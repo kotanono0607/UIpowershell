@@ -1,296 +1,296 @@
-# 20241117_ƒƒCƒ“foamŠÖ”.ps1
+ï»¿# 20241117_ãƒ¡ã‚¤ãƒ³foamé–¢æ•°.ps1
 
-function ÀsƒCƒxƒ“ƒg {
+function å®Ÿè¡Œã‚¤ãƒ™ãƒ³ãƒˆ {
 
             try {
-                # ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹“à‚Ìƒ{ƒ^ƒ“‚ğæ“¾‚µAYÀ•W‚Åƒ\[ƒg
-                $buttons = $global:ƒŒƒCƒ„[1.Controls |
+                # ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«å†…ã®ãƒœã‚¿ãƒ³ã‚’å–å¾—ã—ã€Yåº§æ¨™ã§ã‚½ãƒ¼ãƒˆ
+                $buttons = $global:ãƒ¬ã‚¤ãƒ¤ãƒ¼1.Controls |
                            Where-Object { $_ -is [System.Windows.Forms.Button] } |
                            Sort-Object { $_.Location.Y }
 
-                # o—Í—p‚Ì•¶š—ñ•Ï”‚ğ‰Šú‰»
+                # å‡ºåŠ›ç”¨ã®æ–‡å­—åˆ—å¤‰æ•°ã‚’åˆæœŸåŒ–
                 $output = ""
 
-                # ƒ{ƒ^ƒ“‚Ì‘”‚ğæ“¾
+                # ãƒœã‚¿ãƒ³ã®ç·æ•°ã‚’å–å¾—
                 $buttonCount = $buttons.Count
-                write-host "ƒ{ƒ^ƒ“ƒJƒEƒ“ƒg" + $buttons.Count
-                # ÅŒã‚ÉŒ©‚Â‚©‚Á‚½Greenƒ{ƒ^ƒ“‚ÌeID‚ğŠi”[
+                write-host "ãƒœã‚¿ãƒ³ã‚«ã‚¦ãƒ³ãƒˆ" + $buttons.Count
+                # æœ€å¾Œã«è¦‹ã¤ã‹ã£ãŸGreenãƒœã‚¿ãƒ³ã®è¦ªIDã‚’æ ¼ç´
                 $lastGreenParentId = $null
 
                 for ($i = 0; $i -lt $buttonCount; $i++) {
                     $button = $buttons[$i]
                     $buttonName = $button.Name
                     $buttonText = $button.Text
-                    $buttonColor = $button.BackColor  # ƒ{ƒ^ƒ“‚Ì”wŒiF‚ğæ“¾
+                    $buttonColor = $button.BackColor  # ãƒœã‚¿ãƒ³ã®èƒŒæ™¯è‰²ã‚’å–å¾—
 
-                    # ”wŒiF‚Ìî•ñ‚ğæ“¾iF–¼j
+                    # èƒŒæ™¯è‰²ã®æƒ…å ±ã‚’å–å¾—ï¼ˆè‰²åï¼‰
                     $colorName = $buttonColor.Name
 
-                    # ƒ{ƒ^ƒ“î•ñ‚ğƒRƒ“ƒ\[ƒ‹‚Éo—Í
-                    $buttonInfo = "ƒ{ƒ^ƒ“–¼: $buttonName, ƒeƒLƒXƒg: $buttonText, F: $colorName"
+                    # ãƒœã‚¿ãƒ³æƒ…å ±ã‚’ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«å‡ºåŠ›
+                    $buttonInfo = "ãƒœã‚¿ãƒ³å: $buttonName, ãƒ†ã‚­ã‚¹ãƒˆ: $buttonText, è‰²: $colorName"
                     #Write-Host $buttonInfo
 
-                    # ƒ{ƒ^ƒ“–¼‚Ì‚İ‚ğID‚Æ‚µ‚Äg—p
+                    # ãƒœã‚¿ãƒ³åã®ã¿ã‚’IDã¨ã—ã¦ä½¿ç”¨
                     $id = $buttonName
 
-                    # ƒGƒ“ƒgƒŠ‚ğæ“¾
-                    $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ = ID‚ÅƒGƒ“ƒgƒŠ‚ğæ“¾ -ID $id
-                    Write-Host "æ“¾‚µ‚½ƒGƒ“ƒgƒŠ:$æ“¾‚µ‚½ƒGƒ“ƒgƒŠ"
-                    if ($æ“¾‚µ‚½ƒGƒ“ƒgƒŠ -ne $null) {
-                        # ƒGƒ“ƒgƒŠ‚Ì“à—e‚ğƒRƒ“ƒ\[ƒ‹‚Éo—Í
-                        Write-Host "ƒGƒ“ƒgƒŠID: $id`n“à—e:`n$æ“¾‚µ‚½ƒGƒ“ƒgƒŠ`n"
+                    # ã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾—
+                    $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª = IDã§ã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾— -ID $id
+                    Write-Host "å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª:$å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª"
+                    if ($å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª -ne $null) {
+                        # ã‚¨ãƒ³ãƒˆãƒªã®å†…å®¹ã‚’ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«å‡ºåŠ›
+                        Write-Host "ã‚¨ãƒ³ãƒˆãƒªID: $id`nå†…å®¹:`n$å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª`n"
 
-                        # ƒGƒ“ƒgƒŠ‚Ì“à—e‚Ì‚İ‚ğ$output‚É’Ç‰Ái‹ós‚ğ’Ç‰Áj
-                        $output += "$æ“¾‚µ‚½ƒGƒ“ƒgƒŠ`n`n"
+                        # ã‚¨ãƒ³ãƒˆãƒªã®å†…å®¹ã®ã¿ã‚’$outputã«è¿½åŠ ï¼ˆç©ºè¡Œã‚’è¿½åŠ ï¼‰
+                        $output += "$å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª`n`n"
                     }
                     else {
-                        # ƒGƒ“ƒgƒŠ‚ª‘¶İ‚µ‚È‚¢ê‡‚ÌƒƒbƒZ[ƒW‚ğƒRƒ“ƒ\[ƒ‹‚Éo—Í
-                        #Write-Host "ƒGƒ“ƒgƒŠID: $id ‚Í‘¶İ‚µ‚Ü‚¹‚ñB`n"
+                        # ã‚¨ãƒ³ãƒˆãƒªãŒå­˜åœ¨ã—ãªã„å ´åˆã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«å‡ºåŠ›
+                        #Write-Host "ã‚¨ãƒ³ãƒˆãƒªID: $id ã¯å­˜åœ¨ã—ã¾ã›ã‚“ã€‚`n"
                     }
 
-                    # Œ»İ‚Ìƒ{ƒ^ƒ“‚ªGreen‚Ìê‡AlastGreenParentId‚ğXV
+                    # ç¾åœ¨ã®ãƒœã‚¿ãƒ³ãŒGreenã®å ´åˆã€lastGreenParentIdã‚’æ›´æ–°
                     if ($colorName -eq "Green") {
-                        # eID‚ğ’Šoi—á: "76-1" -> "76"j
+                        # è¦ªIDã‚’æŠ½å‡ºï¼ˆä¾‹: "76-1" -> "76"ï¼‰
                         $lastGreenParentId = ($id -split '-')[0]
                     }
 
-                    # Œ»İ‚Ìƒ{ƒ^ƒ“‚ªRed‚ÅAŸ‚Ìƒ{ƒ^ƒ“‚ªBlue‚Ìê‡‚É“Á’è‚ÌID‚ğ‘}“ü
+                    # ç¾åœ¨ã®ãƒœã‚¿ãƒ³ãŒRedã§ã€æ¬¡ã®ãƒœã‚¿ãƒ³ãŒBlueã®å ´åˆã«ç‰¹å®šã®IDã‚’æŒ¿å…¥
                     if ($colorName -eq "Red" -and ($i + 1) -lt $buttonCount) {
                         $nextButton = $buttons[$i + 1]
                         $nextColorName = $nextButton.BackColor.Name
 
                         if ($nextColorName -eq "Blue") {
                             if ($lastGreenParentId -ne $null) {
-                                # “Á’è‚ÌID‚ğlastGreenParentId‚ÉŠî‚Ã‚¢‚Äİ’èi—á: "76-2"j
+                                # ç‰¹å®šã®IDã‚’lastGreenParentIdã«åŸºã¥ã„ã¦è¨­å®šï¼ˆä¾‹: "76-2"ï¼‰
                                 $specialId = "$lastGreenParentId-2"
 
-                                # “Á’è‚ÌID‚ÅƒGƒ“ƒgƒŠ‚ğæ“¾
-                                $specialEntry = ID‚ÅƒGƒ“ƒgƒŠ‚ğæ“¾ -ID $specialId
+                                # ç‰¹å®šã®IDã§ã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾—
+                                $specialEntry = IDã§ã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾— -ID $specialId
                                 if ($specialEntry -ne $null) {
-                                    # ƒGƒ“ƒgƒŠ‚Ì“à—e‚ğƒRƒ“ƒ\[ƒ‹‚Éo—Í
-                                    #Write-Host "ƒGƒ“ƒgƒŠID: $specialId`n“à—e:`n$specialEntry`n"
+                                    # ã‚¨ãƒ³ãƒˆãƒªã®å†…å®¹ã‚’ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«å‡ºåŠ›
+                                    #Write-Host "ã‚¨ãƒ³ãƒˆãƒªID: $specialId`nå†…å®¹:`n$specialEntry`n"
 
-                                    # ƒGƒ“ƒgƒŠ‚Ì“à—e‚Ì‚İ‚ğ$output‚É’Ç‰Ái‹ós‚ğ’Ç‰Áj
+                                    # ã‚¨ãƒ³ãƒˆãƒªã®å†…å®¹ã®ã¿ã‚’$outputã«è¿½åŠ ï¼ˆç©ºè¡Œã‚’è¿½åŠ ï¼‰
                                     $output += "$specialEntry`n`n"
                                 }
                                 else {
-                                    # ƒGƒ“ƒgƒŠ‚ª‘¶İ‚µ‚È‚¢ê‡‚ÌƒƒbƒZ[ƒW‚ğƒRƒ“ƒ\[ƒ‹‚Éo—Í
-                                    #Write-Host "ƒGƒ“ƒgƒŠID: $specialId ‚Í‘¶İ‚µ‚Ü‚¹‚ñB`n"
+                                    # ã‚¨ãƒ³ãƒˆãƒªãŒå­˜åœ¨ã—ãªã„å ´åˆã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«å‡ºåŠ›
+                                    #Write-Host "ã‚¨ãƒ³ãƒˆãƒªID: $specialId ã¯å­˜åœ¨ã—ã¾ã›ã‚“ã€‚`n"
                                 }
                             }
                             else {
-                                # lastGreenParentId‚ª‚È‚¢ê‡‚ÌƒƒbƒZ[ƒW‚ğƒRƒ“ƒ\[ƒ‹‚Éo—Í
-                                #Write-Host "’¼‹ß‚ÌGreenƒ{ƒ^ƒ“‚ª‘¶İ‚µ‚Ü‚¹‚ñB“Á•Ê‚ÈID‚ğ‘}“ü‚Å‚«‚Ü‚¹‚ñB`n"
+                                # lastGreenParentIdãŒãªã„å ´åˆã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«å‡ºåŠ›
+                                #Write-Host "ç›´è¿‘ã®Greenãƒœã‚¿ãƒ³ãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚ç‰¹åˆ¥ãªIDã‚’æŒ¿å…¥ã§ãã¾ã›ã‚“ã€‚`n"
                             }
                         }
                     }
                 }
 
-                # ƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚ÌƒpƒX‚ğİ’èips1‚Æ“¯‚¶ƒfƒBƒŒƒNƒgƒŠj
+                # ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹ã‚’è¨­å®šï¼ˆps1ã¨åŒã˜ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªï¼‰
                 $outputFilePath = Join-Path -Path $global:folderPath  -ChildPath "output.ps1"
 
-                # o—Í‚ğƒtƒ@ƒCƒ‹‚É‘‚«‚Ş
+                # å‡ºåŠ›ã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«æ›¸ãè¾¼ã‚€
                 try {
                     $output | Set-Content -Path $outputFilePath -Force -Encoding UTF8
-                    #Write-Host "o—Í‚ğƒtƒ@ƒCƒ‹‚É‘‚«‚İ‚Ü‚µ‚½Bƒtƒ@ƒCƒ‹ƒpƒX: $outputFilePath"
+                    #Write-Host "å‡ºåŠ›ã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«æ›¸ãè¾¼ã¿ã¾ã—ãŸã€‚ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹: $outputFilePath"
                 }
                 catch {
-                    Write-Error "o—Íƒtƒ@ƒCƒ‹‚Ì‘‚«‚İ‚É¸”s‚µ‚Ü‚µ‚½B"
+                    Write-Error "å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«ã®æ›¸ãè¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸã€‚"
                     return
                 }
 
-                # ƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚ğƒ‚ƒjƒ^[1‚ÅÅ‘å‰»‚µ‚ÄŠJ‚­
+                # ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ¢ãƒ‹ã‚¿ãƒ¼1ã§æœ€å¤§åŒ–ã—ã¦é–‹ã
                 try {
-                    # Notepad‚ğÅ‘å‰»‚³‚ê‚½ó‘Ô‚Å‹N“®
+                    # Notepadã‚’æœ€å¤§åŒ–ã•ã‚ŒãŸçŠ¶æ…‹ã§èµ·å‹•
                     #Start-Process notepad.exe -ArgumentList $outputFilePath -WindowStyle Maximized
                     #Start-Process -FilePath "powershell_ise.exe" -ArgumentList $outputFilePath -WindowStyle Maximized
-                    # -NoProfile ‚ğ•t‚¯‚é‚±‚Æ‚ÅV‚µ‚¢ƒvƒƒZƒX‚Æ‚µ‚Ä‹N“®
+                    # -NoProfile ã‚’ä»˜ã‘ã‚‹ã“ã¨ã§æ–°ã—ã„ãƒ—ãƒ­ã‚»ã‚¹ã¨ã—ã¦èµ·å‹•
                    Start-Process -FilePath "powershell_ise.exe" -ArgumentList $outputFilePath -NoNewWindow
 
-                    # C³”ÅƒR[ƒh
+                    # ä¿®æ­£ç‰ˆã‚³ãƒ¼ãƒ‰
                    #Start-Process -FilePath "powershell_ise.exe" -ArgumentList $outputFilePath -Separate
 
 
-                    #Write-Host "ƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚ğƒ‚ƒjƒ^[1‚ÅÅ‘å‰»‚µ‚ÄŠJ‚«‚Ü‚µ‚½B"
+                    #Write-Host "ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ¢ãƒ‹ã‚¿ãƒ¼1ã§æœ€å¤§åŒ–ã—ã¦é–‹ãã¾ã—ãŸã€‚"
                 }
                 catch {
-                    Write-Error "ƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚ğŠJ‚­Û‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B"
+                    Write-Error "ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ãéš›ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚"
                 }
             }
             catch {
-                Write-Error "ƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: $_"
+                Write-Error "ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: $_"
             }
   
-       # Set-ExecuteButtonClickEvent ŠÖ”‚Ì•Â‚¶’†Š‡ŒÊ
+       # Set-ExecuteButtonClickEvent é–¢æ•°ã®é–‰ã˜ä¸­æ‹¬å¼§
     } 
 
-function •Ï”ƒCƒxƒ“ƒg {
+function å¤‰æ•°ã‚¤ãƒ™ãƒ³ãƒˆ {
 
-            $ƒƒCƒ“ƒtƒH[ƒ€.Hide()
-            $ƒXƒNƒŠƒvƒgPath = $PSScriptRoot # Œ»İ‚ÌƒXƒNƒŠƒvƒg‚ÌƒfƒBƒŒƒNƒgƒŠ‚ğ•Ï”‚ÉŠi”[
-            #."$ƒXƒNƒŠƒvƒgPath\20241117_•Ï”ŠÇ—UI.ps1"
+            $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Hide()
+            $ã‚¹ã‚¯ãƒªãƒ—ãƒˆPath = $PSScriptRoot # ç¾åœ¨ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å¤‰æ•°ã«æ ¼ç´
+            #."$ã‚¹ã‚¯ãƒªãƒ—ãƒˆPath\20241117_å¤‰æ•°ç®¡ç†UI.ps1"
             $variableName = Show-VariableManagerForm
-            $ƒƒCƒ“ƒtƒH[ƒ€.Show()     
+            $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Show()     
 }
 
-function ƒtƒHƒ‹ƒ_ì¬ƒCƒxƒ“ƒg {
+function ãƒ•ã‚©ãƒ«ãƒ€ä½œæˆã‚¤ãƒ™ãƒ³ãƒˆ {
 
-            $ƒƒCƒ“ƒtƒH[ƒ€.Hide()
-            V‹KƒtƒHƒ‹ƒ_ì¬
-            $ƒƒCƒ“ƒtƒH[ƒ€.Show()
+            $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Hide()
+            æ–°è¦ãƒ•ã‚©ãƒ«ãƒ€ä½œæˆ
+            $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Show()
      
 }
 
-function ƒtƒHƒ‹ƒ_Ø‘ÖƒCƒxƒ“ƒg {
+function ãƒ•ã‚©ãƒ«ãƒ€åˆ‡æ›¿ã‚¤ãƒ™ãƒ³ãƒˆ {
 
-            $ƒƒCƒ“ƒtƒH[ƒ€.Hide()
-           ƒtƒHƒ‹ƒ_‘I‘ğ‚Æ•Û‘¶ 
-            $ƒƒCƒ“ƒtƒH[ƒ€.Show()     
+            $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Hide()
+           ãƒ•ã‚©ãƒ«ãƒ€é¸æŠã¨ä¿å­˜ 
+            $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Show()     
 }
 
-function Update-à–¾ƒ‰ƒxƒ‹ {
+function Update-èª¬æ˜ãƒ©ãƒ™ãƒ« {
     param (
-        [string]$à–¾•¶
+        [string]$èª¬æ˜æ–‡
     )
-    if ($à–¾•¶) {
-        $global:à–¾ƒ‰ƒxƒ‹.Text = $à–¾•¶
-        #Write-Host "à–¾•¶‚ğXV: $à–¾•¶"
+    if ($èª¬æ˜æ–‡) {
+        $global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = $èª¬æ˜æ–‡
+        #Write-Host "èª¬æ˜æ–‡ã‚’æ›´æ–°: $èª¬æ˜æ–‡"
     } else {
-        $global:à–¾ƒ‰ƒxƒ‹.Text = "‚±‚±‚Éà–¾•¶‚ª•\¦‚³‚ê‚Ü‚·B"
-        #Write-Host "à–¾•¶‚ğƒNƒŠƒA"
+        $global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = "ã“ã“ã«èª¬æ˜æ–‡ãŒè¡¨ç¤ºã•ã‚Œã¾ã™ã€‚"
+        #Write-Host "èª¬æ˜æ–‡ã‚’ã‚¯ãƒªã‚¢"
     }
 }
 
-function Ø‘Öƒ{ƒ^ƒ“ƒCƒxƒ“ƒg {
+function åˆ‡æ›¿ãƒœã‚¿ãƒ³ã‚¤ãƒ™ãƒ³ãƒˆ {
     param (
         [array]$SwitchButtons,
         [array]$SwitchTexts
     )
 
     for ($i = 0; $i -lt $SwitchButtons.Count; $i++) {
-        $ƒ{ƒ^ƒ“ = $SwitchButtons[$i]
-        $ƒ{ƒ^ƒ“ƒeƒLƒXƒg = $SwitchTexts[$i]
-        $à–¾•¶ = $global:Ø‘Öƒ{ƒ^ƒ“à–¾[$ƒ{ƒ^ƒ“.Text]
+        $ãƒœã‚¿ãƒ³ = $SwitchButtons[$i]
+        $ãƒœã‚¿ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ = $SwitchTexts[$i]
+        $èª¬æ˜æ–‡ = $global:åˆ‡æ›¿ãƒœã‚¿ãƒ³èª¬æ˜[$ãƒœã‚¿ãƒ³.Text]
 
-        # Šeƒ{ƒ^ƒ“‚ÌTagƒvƒƒpƒeƒB‚Éà–¾•¶‚ğİ’è
-        $ƒ{ƒ^ƒ“.Tag = $à–¾•¶
+        # å„ãƒœã‚¿ãƒ³ã®Tagãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã«èª¬æ˜æ–‡ã‚’è¨­å®š
+        $ãƒœã‚¿ãƒ³.Tag = $èª¬æ˜æ–‡
 
-        # GotFocusƒCƒxƒ“ƒg
-        $ƒ{ƒ^ƒ“.Add_GotFocus({
+        # GotFocusã‚¤ãƒ™ãƒ³ãƒˆ
+        $ãƒœã‚¿ãƒ³.Add_GotFocus({
             param($sender, $e)
-            Update-à–¾ƒ‰ƒxƒ‹ -à–¾•¶ $sender.Tag
-            #Write-Host "$($sender.Text) ƒ{ƒ^ƒ“‚ÉƒtƒH[ƒJƒX‚ª“–‚½‚è‚Ü‚µ‚½B"
+            Update-èª¬æ˜ãƒ©ãƒ™ãƒ« -èª¬æ˜æ–‡ $sender.Tag
+            #Write-Host "$($sender.Text) ãƒœã‚¿ãƒ³ã«ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ãŒå½“ãŸã‚Šã¾ã—ãŸã€‚"
         })
 
-        # LostFocusƒCƒxƒ“ƒg
-        $ƒ{ƒ^ƒ“.Add_LostFocus({
+        # LostFocusã‚¤ãƒ™ãƒ³ãƒˆ
+        $ãƒœã‚¿ãƒ³.Add_LostFocus({
             param($sender, $e)
-            Update-à–¾ƒ‰ƒxƒ‹ -à–¾•¶ $null
-            #Write-Host "$($sender.Text) ƒ{ƒ^ƒ“‚ÌƒtƒH[ƒJƒX‚ªŠO‚ê‚Ü‚µ‚½B"
+            Update-èª¬æ˜ãƒ©ãƒ™ãƒ« -èª¬æ˜æ–‡ $null
+            #Write-Host "$($sender.Text) ãƒœã‚¿ãƒ³ã®ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ãŒå¤–ã‚Œã¾ã—ãŸã€‚"
         })
 
-        # MouseEnterƒCƒxƒ“ƒg
-        $ƒ{ƒ^ƒ“.Add_MouseEnter({
+        # MouseEnterã‚¤ãƒ™ãƒ³ãƒˆ
+        $ãƒœã‚¿ãƒ³.Add_MouseEnter({
             param($sender, $e)
-            Update-à–¾ƒ‰ƒxƒ‹ -à–¾•¶ $sender.Tag
-            #Write-Host "$($sender.Text) ƒ{ƒ^ƒ“‚Éƒ}ƒEƒX‚ª“ü‚è‚Ü‚µ‚½B"
+            Update-èª¬æ˜ãƒ©ãƒ™ãƒ« -èª¬æ˜æ–‡ $sender.Tag
+            #Write-Host "$($sender.Text) ãƒœã‚¿ãƒ³ã«ãƒã‚¦ã‚¹ãŒå…¥ã‚Šã¾ã—ãŸã€‚"
         })
 
-        # MouseLeaveƒCƒxƒ“ƒg
-        $ƒ{ƒ^ƒ“.Add_MouseLeave({
+        # MouseLeaveã‚¤ãƒ™ãƒ³ãƒˆ
+        $ãƒœã‚¿ãƒ³.Add_MouseLeave({
             param($sender, $e)
-            Update-à–¾ƒ‰ƒxƒ‹ -à–¾•¶ $null
-            #Write-Host "$($sender.Text) ƒ{ƒ^ƒ“‚©‚çƒ}ƒEƒX‚ª—£‚ê‚Ü‚µ‚½B"
+            Update-èª¬æ˜ãƒ©ãƒ™ãƒ« -èª¬æ˜æ–‡ $null
+            #Write-Host "$($sender.Text) ãƒœã‚¿ãƒ³ã‹ã‚‰ãƒã‚¦ã‚¹ãŒé›¢ã‚Œã¾ã—ãŸã€‚"
         })
     }
-} # Set-SwitchButtonEventHandlers ŠÖ”‚Ì•Â‚¶’†Š‡ŒÊ
+} # Set-SwitchButtonEventHandlers é–¢æ•°ã®é–‰ã˜ä¸­æ‹¬å¼§
 
-# WindowsƒtƒH[ƒ€‚ğ—˜—p‚·‚é‚½‚ß‚Ì•K—v‚ÈƒAƒZƒ“ƒuƒŠ‚ğ“Ç‚İ‚İ
+# Windowsãƒ•ã‚©ãƒ¼ãƒ ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ã®å¿…è¦ãªã‚¢ã‚»ãƒ³ãƒ–ãƒªã‚’èª­ã¿è¾¼ã¿
 Add-Type -AssemblyName System.Windows.Forms
 
-function V‹KƒtƒHƒ‹ƒ_ì¬ {
-    # •Û‘¶æ‚ğƒXƒNƒŠƒvƒg‚Ì“¯‚¶êŠ‚Æ‚·‚éV‹KƒtƒHƒ‹ƒ_ì¬ƒXƒNƒŠƒvƒg
+function æ–°è¦ãƒ•ã‚©ãƒ«ãƒ€ä½œæˆ {
+    # ä¿å­˜å…ˆã‚’ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®åŒã˜å ´æ‰€ã¨ã™ã‚‹æ–°è¦ãƒ•ã‚©ãƒ«ãƒ€ä½œæˆã‚¹ã‚¯ãƒªãƒ—ãƒˆ
 
-    # Œ»İ‚ÌƒXƒNƒŠƒvƒg‚ÌƒpƒX‚ğæ“¾
-    $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ = $PSScriptRoot
-    #Write-Host "•Û‘¶æƒfƒBƒŒƒNƒgƒŠ: $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ"
+    # ç¾åœ¨ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®ãƒ‘ã‚¹ã‚’å–å¾—
+    $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª = $PSScriptRoot
+    #Write-Host "ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª: $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª"
 
 
-    $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ = $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ + "\ŒÂX‚Ì—š—ğ"
+    $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª = $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª + "\å€‹ã€…ã®å±¥æ­´"
 
-    # ƒCƒ“ƒvƒbƒgƒ{ƒbƒNƒX‚ÅƒtƒHƒ‹ƒ_–¼‚ğæ“¾
-    $“ü—ÍƒtƒH[ƒ€ = New-Object Windows.Forms.Form
-    $“ü—ÍƒtƒH[ƒ€.Text = "ƒtƒHƒ‹ƒ_–¼“ü—Í"
-    $“ü—ÍƒtƒH[ƒ€.Size = New-Object Drawing.Size(400,150)
+    # ã‚¤ãƒ³ãƒ—ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹ã§ãƒ•ã‚©ãƒ«ãƒ€åã‚’å–å¾—
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ  = New-Object Windows.Forms.Form
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Text = "ãƒ•ã‚©ãƒ«ãƒ€åå…¥åŠ›"
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Size = New-Object Drawing.Size(400,150)
 
-    $ƒ‰ƒxƒ‹ = New-Object Windows.Forms.Label
-    $ƒ‰ƒxƒ‹.Text = "V‚µ‚¢ƒtƒHƒ‹ƒ_–¼‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢:"
-    $ƒ‰ƒxƒ‹.AutoSize = $true
-    $ƒ‰ƒxƒ‹.Location = New-Object Drawing.Point(10,20)
+    $ãƒ©ãƒ™ãƒ« = New-Object Windows.Forms.Label
+    $ãƒ©ãƒ™ãƒ«.Text = "æ–°ã—ã„ãƒ•ã‚©ãƒ«ãƒ€åã‚’å…¥åŠ›ã—ã¦ãã ã•ã„:"
+    $ãƒ©ãƒ™ãƒ«.AutoSize = $true
+    $ãƒ©ãƒ™ãƒ«.Location = New-Object Drawing.Point(10,20)
 
-    $ƒeƒLƒXƒgƒ{ƒbƒNƒX = New-Object Windows.Forms.TextBox
-    $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Size = New-Object Drawing.Size(350,30)
-    $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Location = New-Object Drawing.Point(10,50)
+    $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ = New-Object Windows.Forms.TextBox
+    $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Size = New-Object Drawing.Size(350,30)
+    $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Location = New-Object Drawing.Point(10,50)
 
-    $ƒ{ƒ^ƒ“ = New-Object Windows.Forms.Button
-    $ƒ{ƒ^ƒ“.Text = "ì¬"
-    $ƒ{ƒ^ƒ“.Location = New-Object Drawing.Point(10,90)
-    $ƒ{ƒ^ƒ“.Add_Click({$“ü—ÍƒtƒH[ƒ€.Close()})
+    $ãƒœã‚¿ãƒ³ = New-Object Windows.Forms.Button
+    $ãƒœã‚¿ãƒ³.Text = "ä½œæˆ"
+    $ãƒœã‚¿ãƒ³.Location = New-Object Drawing.Point(10,90)
+    $ãƒœã‚¿ãƒ³.Add_Click({$å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Close()})
 
-    $“ü—ÍƒtƒH[ƒ€.Controls.Add($ƒ‰ƒxƒ‹)
-    $“ü—ÍƒtƒH[ƒ€.Controls.Add($ƒeƒLƒXƒgƒ{ƒbƒNƒX)
-    $“ü—ÍƒtƒH[ƒ€.Controls.Add($ƒ{ƒ^ƒ“)
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ãƒ©ãƒ™ãƒ«)
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹)
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ãƒœã‚¿ãƒ³)
 
-    $“ü—ÍƒtƒH[ƒ€.ShowDialog()
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .ShowDialog()
 
-    $ƒtƒHƒ‹ƒ_–¼ = $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Text
+    $ãƒ•ã‚©ãƒ«ãƒ€å = $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Text
 
-    if (-not $ƒtƒHƒ‹ƒ_–¼) {
-        #Write-Host "ƒtƒHƒ‹ƒ_–¼‚ª“ü—Í‚³‚ê‚Ü‚¹‚ñ‚Å‚µ‚½Bˆ—‚ğ’†~‚µ‚Ü‚·B"
+    if (-not $ãƒ•ã‚©ãƒ«ãƒ€å) {
+        #Write-Host "ãƒ•ã‚©ãƒ«ãƒ€åãŒå…¥åŠ›ã•ã‚Œã¾ã›ã‚“ã§ã—ãŸã€‚å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚"
         return
     }
 
     
 
-    # •Û‘¶æ‚Ìƒtƒ‹ƒpƒX‚ğ¶¬
-    $ƒtƒHƒ‹ƒ_ƒpƒX = Join-Path -Path $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ -ChildPath $ƒtƒHƒ‹ƒ_–¼
+    # ä¿å­˜å…ˆã®ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ç”Ÿæˆ
+    $ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ = Join-Path -Path $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª -ChildPath $ãƒ•ã‚©ãƒ«ãƒ€å
 
-    # V‹KƒtƒHƒ‹ƒ_‚ğì¬
-    if (-not (Test-Path -Path $ƒtƒHƒ‹ƒ_ƒpƒX)) {
-        New-Item -Path $ƒtƒHƒ‹ƒ_ƒpƒX -ItemType Directory | Out-Null
-        #Write-Host "ƒtƒHƒ‹ƒ_‚ªì¬‚³‚ê‚Ü‚µ‚½: $ƒtƒHƒ‹ƒ_ƒpƒX"
+    # æ–°è¦ãƒ•ã‚©ãƒ«ãƒ€ã‚’ä½œæˆ
+    if (-not (Test-Path -Path $ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹)) {
+        New-Item -Path $ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ -ItemType Directory | Out-Null
+        #Write-Host "ãƒ•ã‚©ãƒ«ãƒ€ãŒä½œæˆã•ã‚Œã¾ã—ãŸ: $ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹"
     } else {
-        #Write-Host "ƒtƒHƒ‹ƒ_‚ÍŠù‚É‘¶İ‚µ‚Ä‚¢‚Ü‚·: $ƒtƒHƒ‹ƒ_ƒpƒX"
+        #Write-Host "ãƒ•ã‚©ãƒ«ãƒ€ã¯æ—¢ã«å­˜åœ¨ã—ã¦ã„ã¾ã™: $ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹"
     }
 
-    # ƒƒCƒ“.json ƒtƒ@ƒCƒ‹‚É•Û‘¶
-    $jsonFilePath = Join-Path -Path $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ -ChildPath "ƒƒCƒ“.json"
+    # ãƒ¡ã‚¤ãƒ³.json ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜
+    $jsonFilePath = Join-Path -Path $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª -ChildPath "ãƒ¡ã‚¤ãƒ³.json"
 
-    # JSONƒf[ƒ^‚ğì¬
+    # JSONãƒ‡ãƒ¼ã‚¿ã‚’ä½œæˆ
     $jsonData = @{}
     if (Test-Path -Path $jsonFilePath) {
-        # Šù‘¶‚ÌJSONƒtƒ@ƒCƒ‹‚ª‚ ‚éê‡‚Í“Ç‚İ‚Ş
+        # æ—¢å­˜ã®JSONãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹å ´åˆã¯èª­ã¿è¾¼ã‚€
         $existingData = Get-Content -Path $jsonFilePath | ConvertFrom-Json -ErrorAction SilentlyContinue
         if ($existingData) {
             $jsonData = $existingData
         }
     }
-    $jsonData.ƒtƒHƒ‹ƒ_ƒpƒX = $ƒtƒHƒ‹ƒ_ƒpƒX
+    $jsonData.ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ = $ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹
 
-    # JSONƒtƒ@ƒCƒ‹‚É‘‚«‚İ
+    # JSONãƒ•ã‚¡ã‚¤ãƒ«ã«æ›¸ãè¾¼ã¿
     $jsonData | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonFilePath -Encoding UTF8
-    #Write-Host "ƒtƒHƒ‹ƒ_ƒpƒX‚ªƒƒCƒ“.json‚É•Û‘¶‚³‚ê‚Ü‚µ‚½: $jsonFilePath"
+    #Write-Host "ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ãŒãƒ¡ã‚¤ãƒ³.jsonã«ä¿å­˜ã•ã‚Œã¾ã—ãŸ: $jsonFilePath"
 
 
-    $ƒXƒNƒŠƒvƒgPath = $PSScriptRoot # Œ»İ‚ÌƒXƒNƒŠƒvƒg‚ÌƒfƒBƒŒƒNƒgƒŠ‚ğ•Ï”‚ÉŠi”[
+    $ã‚¹ã‚¯ãƒªãƒ—ãƒˆPath = $PSScriptRoot # ç¾åœ¨ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å¤‰æ•°ã«æ ¼ç´
 
-    # ŠÖ”‚ÌŒÄ‚Ño‚µ—á
-$global:folderPath = æ“¾-JSON’l -jsonFilePath "$ƒXƒNƒŠƒvƒgPath\ŒÂX‚Ì—š—ğ\ƒƒCƒ“.json" -keyName "ƒtƒHƒ‹ƒ_ƒpƒX"
+    # é–¢æ•°ã®å‘¼ã³å‡ºã—ä¾‹
+$global:folderPath = å–å¾—-JSONå€¤ -jsonFilePath "$ã‚¹ã‚¯ãƒªãƒ—ãƒˆPath\å€‹ã€…ã®å±¥æ­´\ãƒ¡ã‚¤ãƒ³.json" -keyName "ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹"
 $global:JSONPath = "$global:folderPath\variables.json"
 
             $outputFile = $global:JSONPath
         try {
-            # o—ÍƒtƒHƒ‹ƒ_‚ª‘¶İ‚µ‚È‚¢ê‡‚Íì¬
+            # å‡ºåŠ›ãƒ•ã‚©ãƒ«ãƒ€ãŒå­˜åœ¨ã—ãªã„å ´åˆã¯ä½œæˆ
             $outputFolder = Split-Path -Parent $outputFile
 
             [System.Windows.Forms.MessageBox]::Show($outputFolder) 
@@ -300,191 +300,191 @@ $global:JSONPath = "$global:folderPath\variables.json"
             }
 
             $global:variables | ConvertTo-Json -Depth 10 | Out-File -FilePath $outputFile -Encoding UTF8
-            [System.Windows.Forms.MessageBox]::Show("•Ï”‚ªJSONŒ`®‚Å•Û‘¶‚³‚ê‚Ü‚µ‚½: `n$outputFile") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show("å¤‰æ•°ãŒJSONå½¢å¼ã§ä¿å­˜ã•ã‚Œã¾ã—ãŸ: `n$outputFile") | Out-Null
         } catch {
-            [System.Windows.Forms.MessageBox]::Show("JSON‚Ì•Û‘¶‚É¸”s‚µ‚Ü‚µ‚½: $_") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show("JSONã®ä¿å­˜ã«å¤±æ•—ã—ã¾ã—ãŸ: $_") | Out-Null
         }
 
-        #."C:\Users\hallo\Documents\WindowsPowerShell\chord\RPA-UI2\20241112_(ƒƒCƒ“)ƒR[ƒhIDŠÇ—JSON.ps1"
-        JSON‰‰ñ
-        JSONƒXƒgƒA‚ğ‰Šú‰»
+        #."C:\Users\hallo\Documents\WindowsPowerShell\chord\RPA-UI2\20241112_(ãƒ¡ã‚¤ãƒ³)ã‚³ãƒ¼ãƒ‰IDç®¡ç†JSON.ps1"
+        JSONåˆå›
+        JSONã‚¹ãƒˆã‚¢ã‚’åˆæœŸåŒ–
 
 
 }
 
-# WindowsƒtƒH[ƒ€‚ğ—˜—p‚·‚é‚½‚ß‚Ì•K—v‚ÈƒAƒZƒ“ƒuƒŠ‚ğ“Ç‚İ‚İ
+# Windowsãƒ•ã‚©ãƒ¼ãƒ ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ã®å¿…è¦ãªã‚¢ã‚»ãƒ³ãƒ–ãƒªã‚’èª­ã¿è¾¼ã¿
 Add-Type -AssemblyName System.Windows.Forms
 
-# WindowsƒtƒH[ƒ€‚ğ—˜—p‚·‚é‚½‚ß‚Ì•K—v‚ÈƒAƒZƒ“ƒuƒŠ‚ğ“Ç‚İ‚İ
+# Windowsãƒ•ã‚©ãƒ¼ãƒ ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ã®å¿…è¦ãªã‚¢ã‚»ãƒ³ãƒ–ãƒªã‚’èª­ã¿è¾¼ã¿
 Add-Type -AssemblyName System.Windows.Forms
 
-function ƒtƒHƒ‹ƒ_‘I‘ğ‚Æ•Û‘¶ {
-    # •Û‘¶æƒfƒBƒŒƒNƒgƒŠ‚ğæ“¾
-    $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ = Join-Path -Path $PSScriptRoot -ChildPath "ŒÂX‚Ì—š—ğ"
+function ãƒ•ã‚©ãƒ«ãƒ€é¸æŠã¨ä¿å­˜ {
+    # ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å–å¾—
+    $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª = Join-Path -Path $PSScriptRoot -ChildPath "å€‹ã€…ã®å±¥æ­´"
     
-    if (-not (Test-Path -Path $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ)) {
-        New-Item -Path $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ -ItemType Directory | Out-Null
+    if (-not (Test-Path -Path $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª)) {
+        New-Item -Path $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª -ItemType Directory | Out-Null
     }
     
-    # •Û‘¶æƒfƒBƒŒƒNƒgƒŠ“à‚ÌƒtƒHƒ‹ƒ_ˆê——‚ğæ“¾
-    $ƒtƒHƒ‹ƒ_ˆê—— = Get-ChildItem -Path $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ -Directory | Select-Object -ExpandProperty Name
+    # ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ã®ãƒ•ã‚©ãƒ«ãƒ€ä¸€è¦§ã‚’å–å¾—
+    $ãƒ•ã‚©ãƒ«ãƒ€ä¸€è¦§ = Get-ChildItem -Path $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª -Directory | Select-Object -ExpandProperty Name
 
-    # ƒtƒH[ƒ€ì¬
-    $“ü—ÍƒtƒH[ƒ€ = New-Object Windows.Forms.Form
-    $“ü—ÍƒtƒH[ƒ€.Text = "ƒtƒHƒ‹ƒ_‘I‘ğ"
-    $“ü—ÍƒtƒH[ƒ€.Size = New-Object Drawing.Size(400,300)
+    # ãƒ•ã‚©ãƒ¼ãƒ ä½œæˆ
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ  = New-Object Windows.Forms.Form
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Text = "ãƒ•ã‚©ãƒ«ãƒ€é¸æŠ"
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Size = New-Object Drawing.Size(400,300)
     
-    $ƒ‰ƒxƒ‹ = New-Object Windows.Forms.Label
-    $ƒ‰ƒxƒ‹.Text = "ƒtƒHƒ‹ƒ_‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢:"
-    $ƒ‰ƒxƒ‹.AutoSize = $true
-    $ƒ‰ƒxƒ‹.Location = New-Object Drawing.Point(10,10)
+    $ãƒ©ãƒ™ãƒ« = New-Object Windows.Forms.Label
+    $ãƒ©ãƒ™ãƒ«.Text = "ãƒ•ã‚©ãƒ«ãƒ€ã‚’é¸æŠã—ã¦ãã ã•ã„:"
+    $ãƒ©ãƒ™ãƒ«.AutoSize = $true
+    $ãƒ©ãƒ™ãƒ«.Location = New-Object Drawing.Point(10,10)
 
-    $ƒŠƒXƒgƒ{ƒbƒNƒX = New-Object Windows.Forms.ListBox
-    $ƒŠƒXƒgƒ{ƒbƒNƒX.Size = New-Object Drawing.Size(350,200)
-    $ƒŠƒXƒgƒ{ƒbƒNƒX.Location = New-Object Drawing.Point(10,40)
-    $ƒŠƒXƒgƒ{ƒbƒNƒX.Items.AddRange($ƒtƒHƒ‹ƒ_ˆê——)
+    $ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ = New-Object Windows.Forms.ListBox
+    $ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Size = New-Object Drawing.Size(350,200)
+    $ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Location = New-Object Drawing.Point(10,40)
+    $ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Items.AddRange($ãƒ•ã‚©ãƒ«ãƒ€ä¸€è¦§)
     
-    $ƒ{ƒ^ƒ“ = New-Object Windows.Forms.Button
-    $ƒ{ƒ^ƒ“.Text = "•Û‘¶"
-    $ƒ{ƒ^ƒ“.Location = New-Object Drawing.Point(10,250)
-    $ƒ{ƒ^ƒ“.Add_Click({
-        if ($ƒŠƒXƒgƒ{ƒbƒNƒX.SelectedItem) {
-            $global:‘I‘ğƒtƒHƒ‹ƒ_ = $ƒŠƒXƒgƒ{ƒbƒNƒX.SelectedItem
-            $“ü—ÍƒtƒH[ƒ€.Close()
+    $ãƒœã‚¿ãƒ³ = New-Object Windows.Forms.Button
+    $ãƒœã‚¿ãƒ³.Text = "ä¿å­˜"
+    $ãƒœã‚¿ãƒ³.Location = New-Object Drawing.Point(10,250)
+    $ãƒœã‚¿ãƒ³.Add_Click({
+        if ($ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.SelectedItem) {
+            $global:é¸æŠãƒ•ã‚©ãƒ«ãƒ€ = $ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.SelectedItem
+            $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Close()
         } else {
-            [System.Windows.Forms.MessageBox]::Show("ƒtƒHƒ‹ƒ_‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢B", "ƒGƒ‰[", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
+            [System.Windows.Forms.MessageBox]::Show("ãƒ•ã‚©ãƒ«ãƒ€ã‚’é¸æŠã—ã¦ãã ã•ã„ã€‚", "ã‚¨ãƒ©ãƒ¼", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
         }
     })
     
-    $“ü—ÍƒtƒH[ƒ€.Controls.Add($ƒ‰ƒxƒ‹)
-    $“ü—ÍƒtƒH[ƒ€.Controls.Add($ƒŠƒXƒgƒ{ƒbƒNƒX)
-    $“ü—ÍƒtƒH[ƒ€.Controls.Add($ƒ{ƒ^ƒ“)
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ãƒ©ãƒ™ãƒ«)
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹)
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ãƒœã‚¿ãƒ³)
 
-    # ƒtƒH[ƒ€‚ğ•\¦
-    $“ü—ÍƒtƒH[ƒ€.ShowDialog()
+    # ãƒ•ã‚©ãƒ¼ãƒ ã‚’è¡¨ç¤º
+    $å…¥åŠ›ãƒ•ã‚©ãƒ¼ãƒ .ShowDialog()
 
-    if (-not $global:‘I‘ğƒtƒHƒ‹ƒ_) {
-        #Write-Host "ƒtƒHƒ‹ƒ_‚ª‘I‘ğ‚³‚ê‚Ü‚¹‚ñ‚Å‚µ‚½Bˆ—‚ğ’†~‚µ‚Ü‚·B"
+    if (-not $global:é¸æŠãƒ•ã‚©ãƒ«ãƒ€) {
+        #Write-Host "ãƒ•ã‚©ãƒ«ãƒ€ãŒé¸æŠã•ã‚Œã¾ã›ã‚“ã§ã—ãŸã€‚å‡¦ç†ã‚’ä¸­æ­¢ã—ã¾ã™ã€‚"
         return
     }
 
-    # ƒtƒHƒ‹ƒ_ƒpƒX‚ğæ“¾
-    $‘I‘ğƒtƒHƒ‹ƒ_ƒpƒX = Join-Path -Path $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ -ChildPath $global:‘I‘ğƒtƒHƒ‹ƒ_
+    # ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ã‚’å–å¾—
+    $é¸æŠãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ = Join-Path -Path $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª -ChildPath $global:é¸æŠãƒ•ã‚©ãƒ«ãƒ€
 
-    # JSONƒtƒ@ƒCƒ‹‚Ö‚Ì•Û‘¶
-    $jsonFilePath = Join-Path -Path $•Û‘¶æƒfƒBƒŒƒNƒgƒŠ -ChildPath "ƒƒCƒ“.json"
+    # JSONãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®ä¿å­˜
+    $jsonFilePath = Join-Path -Path $ä¿å­˜å…ˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª -ChildPath "ãƒ¡ã‚¤ãƒ³.json"
 
-    # JSONƒf[ƒ^‚ğì¬
-    $jsonData = @{ ƒtƒHƒ‹ƒ_ƒpƒX = $‘I‘ğƒtƒHƒ‹ƒ_ƒpƒX }
+    # JSONãƒ‡ãƒ¼ã‚¿ã‚’ä½œæˆ
+    $jsonData = @{ ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ = $é¸æŠãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ }
     if (Test-Path -Path $jsonFilePath) {
         $existingData = Get-Content -Path $jsonFilePath | ConvertFrom-Json -ErrorAction SilentlyContinue
         if ($existingData) {
-            $existingData.ƒtƒHƒ‹ƒ_ƒpƒX = $‘I‘ğƒtƒHƒ‹ƒ_ƒpƒX
+            $existingData.ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ = $é¸æŠãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹
             $jsonData = $existingData
         }
     }
 
-    # JSONƒtƒ@ƒCƒ‹‚É‘‚«‚İ
+    # JSONãƒ•ã‚¡ã‚¤ãƒ«ã«æ›¸ãè¾¼ã¿
     $jsonData | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonFilePath -Encoding UTF8
-    #Write-Host "‘I‘ğ‚³‚ê‚½ƒtƒHƒ‹ƒ_ƒpƒX‚ªƒƒCƒ“.json‚É•Û‘¶‚³‚ê‚Ü‚µ‚½: $‘I‘ğƒtƒHƒ‹ƒ_ƒpƒX"
+    #Write-Host "é¸æŠã•ã‚ŒãŸãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹ãŒãƒ¡ã‚¤ãƒ³.jsonã«ä¿å­˜ã•ã‚Œã¾ã—ãŸ: $é¸æŠãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹"
 
-    # ŠÖ”‚ÌŒÄ‚Ño‚µ—á
-    $ƒXƒNƒŠƒvƒgPath = $PSScriptRoot # Œ»İ‚ÌƒXƒNƒŠƒvƒg‚ÌƒfƒBƒŒƒNƒgƒŠ‚ğ•Ï”‚ÉŠi”[
-    $global:folderPath = æ“¾-JSON’l -jsonFilePath "$ƒXƒNƒŠƒvƒgPath\ŒÂX‚Ì—š—ğ\ƒƒCƒ“.json" -keyName "ƒtƒHƒ‹ƒ_ƒpƒX"
+    # é–¢æ•°ã®å‘¼ã³å‡ºã—ä¾‹
+    $ã‚¹ã‚¯ãƒªãƒ—ãƒˆPath = $PSScriptRoot # ç¾åœ¨ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å¤‰æ•°ã«æ ¼ç´
+    $global:folderPath = å–å¾—-JSONå€¤ -jsonFilePath "$ã‚¹ã‚¯ãƒªãƒ—ãƒˆPath\å€‹ã€…ã®å±¥æ­´\ãƒ¡ã‚¤ãƒ³.json" -keyName "ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹"
     $global:JSONPath = "$global:folderPath\variables.json"
 }
 
-function ì¬ƒ{ƒ^ƒ“‚ÆƒCƒxƒ“ƒgİ’è {
+function ä½œæˆãƒœã‚¿ãƒ³ã¨ã‚¤ãƒ™ãƒ³ãƒˆè¨­å®š {
     param (
-        [string]$ˆ—”Ô†,
-        [string]$ƒeƒLƒXƒg,
-        [string]$ƒ{ƒ^ƒ“–¼,
-        [System.Drawing.Color]$”wŒiF,
-        [object]$ƒRƒ“ƒeƒi,
-        [string]$à–¾  # V‚µ‚­’Ç‰Á
+        [string]$å‡¦ç†ç•ªå·,
+        [string]$ãƒ†ã‚­ã‚¹ãƒˆ,
+        [string]$ãƒœã‚¿ãƒ³å,
+        [System.Drawing.Color]$èƒŒæ™¯è‰²,
+        [object]$ã‚³ãƒ³ãƒ†ãƒŠ,
+        [string]$èª¬æ˜  # æ–°ã—ãè¿½åŠ 
     )
     
 #
-    # V‚µ‚¢ƒ{ƒ^ƒ“‚ğì¬
-    $V‚µ‚¢ƒ{ƒ^ƒ“ = 00_”Ä—pFƒ{ƒ^ƒ“‚ğì¬‚·‚é -ƒRƒ“ƒeƒi $ƒRƒ“ƒeƒi -ƒeƒLƒXƒg $ƒeƒLƒXƒg -ƒ{ƒ^ƒ“–¼ $ƒ{ƒ^ƒ“–¼ -• 160 -‚‚³ 30 -XˆÊ’u 10 -YˆÊ’u $YˆÊ’u -”wŒiF $”wŒiF
+    # æ–°ã—ã„ãƒœã‚¿ãƒ³ã‚’ä½œæˆ
+    $æ–°ã—ã„ãƒœã‚¿ãƒ³ = 00_æ±ç”¨è‰²ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ -ã‚³ãƒ³ãƒ†ãƒŠ $ã‚³ãƒ³ãƒ†ãƒŠ -ãƒ†ã‚­ã‚¹ãƒˆ $ãƒ†ã‚­ã‚¹ãƒˆ -ãƒœã‚¿ãƒ³å $ãƒœã‚¿ãƒ³å -å¹… 160 -é«˜ã• 30 -Xä½ç½® 10 -Yä½ç½® $Yä½ç½® -èƒŒæ™¯è‰² $èƒŒæ™¯è‰²
 
     
-$V‚µ‚¢ƒ{ƒ^ƒ“.Tag = @{
-ˆ—”Ô† = $ˆ—”Ô†
-à–¾ = $à–¾
+$æ–°ã—ã„ãƒœã‚¿ãƒ³.Tag = @{
+å‡¦ç†ç•ªå· = $å‡¦ç†ç•ªå·
+èª¬æ˜ = $èª¬æ˜
   } 
 
 
 
-    # ƒNƒŠƒbƒNƒCƒxƒ“ƒg‚ğİ’èi•K—v‚É‰‚¶‚Ä•Ûj
-    00_”Ä—pFƒ{ƒ^ƒ“‚ÌƒNƒŠƒbƒNƒCƒxƒ“ƒg‚ğİ’è‚·‚é -ƒ{ƒ^ƒ“ $V‚µ‚¢ƒ{ƒ^ƒ“ -ˆ—”Ô† $ˆ—”Ô†
+    # ã‚¯ãƒªãƒƒã‚¯ã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®šï¼ˆå¿…è¦ã«å¿œã˜ã¦ä¿æŒï¼‰
+    00_æ±ç”¨è‰²ãƒœã‚¿ãƒ³ã®ã‚¯ãƒªãƒƒã‚¯ã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®šã™ã‚‹ -ãƒœã‚¿ãƒ³ $æ–°ã—ã„ãƒœã‚¿ãƒ³ -å‡¦ç†ç•ªå· $å‡¦ç†ç•ªå·
 
 
-    # à–¾•¶‚ğƒnƒbƒVƒ…ƒe[ƒuƒ‹‚É’Ç‰Á
-    $global:ì¬ƒ{ƒ^ƒ“à–¾[$ˆ—”Ô†] = $à–¾
-    #Write-Host "ì¬ƒ{ƒ^ƒ“à–¾’Ç‰Á: ˆ—”Ô†=$ˆ—”Ô†, à–¾=$à–¾"
+    # èª¬æ˜æ–‡ã‚’ãƒãƒƒã‚·ãƒ¥ãƒ†ãƒ¼ãƒ–ãƒ«ã«è¿½åŠ 
+    $global:ä½œæˆãƒœã‚¿ãƒ³èª¬æ˜[$å‡¦ç†ç•ªå·] = $èª¬æ˜
+    #Write-Host "ä½œæˆãƒœã‚¿ãƒ³èª¬æ˜è¿½åŠ : å‡¦ç†ç•ªå·=$å‡¦ç†ç•ªå·, èª¬æ˜=$èª¬æ˜"
 
-    # MouseEnter ƒCƒxƒ“ƒg‚ğİ’è
-    $V‚µ‚¢ƒ{ƒ^ƒ“.Add_MouseEnter({
+    # MouseEnter ã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®š
+    $æ–°ã—ã„ãƒœã‚¿ãƒ³.Add_MouseEnter({
         param($sender, $eventArgs)
-        #Write-Host "MouseEnter ƒCƒxƒ“ƒg”­¶: sender=$sender, Text=$($sender.Text)"
+        #Write-Host "MouseEnter ã‚¤ãƒ™ãƒ³ãƒˆç™ºç”Ÿ: sender=$sender, Text=$($sender.Text)"
         
 
-                $global:à–¾ƒ‰ƒxƒ‹.Text = $à–¾
+                $global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = $èª¬æ˜
                    $tag = $sender.Tag
-           $ˆ—”Ô† = $tag.ˆ—”Ô†
-             $à–¾ = $tag.à–¾
+           $å‡¦ç†ç•ªå· = $tag.å‡¦ç†ç•ªå·
+             $èª¬æ˜ = $tag.èª¬æ˜
 
-        if ($null -eq $ˆ—”Ô†) {
-            #Write-Host "Error: ˆ—”Ô†‚ª null ‚Å‚·B"
+        if ($null -eq $å‡¦ç†ç•ªå·) {
+            #Write-Host "Error: å‡¦ç†ç•ªå·ãŒ null ã§ã™ã€‚"
         }
 
-        if ($global:ì¬ƒ{ƒ^ƒ“à–¾.ContainsKey($ˆ—”Ô†)) {
-            #Write-Host "à–¾•¶‚ğİ’è: $($global:ì¬ƒ{ƒ^ƒ“à–¾[$ˆ—”Ô†])"
-            $global:à–¾ƒ‰ƒxƒ‹.Text = $global:ì¬ƒ{ƒ^ƒ“à–¾[$ˆ—”Ô†]
+        if ($global:ä½œæˆãƒœã‚¿ãƒ³èª¬æ˜.ContainsKey($å‡¦ç†ç•ªå·)) {
+            #Write-Host "èª¬æ˜æ–‡ã‚’è¨­å®š: $($global:ä½œæˆãƒœã‚¿ãƒ³èª¬æ˜[$å‡¦ç†ç•ªå·])"
+            $global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = $global:ä½œæˆãƒœã‚¿ãƒ³èª¬æ˜[$å‡¦ç†ç•ªå·]
         } else {
-            #Write-Host "à–¾•¶‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: ˆ—”Ô†=$ˆ—”Ô†"
-            $global:à–¾ƒ‰ƒxƒ‹.Text = "‚±‚Ìƒ{ƒ^ƒ“‚É‚Íà–¾‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB"
+            #Write-Host "èª¬æ˜æ–‡ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: å‡¦ç†ç•ªå·=$å‡¦ç†ç•ªå·"
+            $global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = "ã“ã®ãƒœã‚¿ãƒ³ã«ã¯èª¬æ˜ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"
         }
     })
 
 
 
-    # MouseLeave ƒCƒxƒ“ƒg‚ğİ’è
-    $V‚µ‚¢ƒ{ƒ^ƒ“.Add_MouseLeave({
-        #Write-Host "MouseLeave ƒCƒxƒ“ƒg”­¶: à–¾ƒ‰ƒxƒ‹‚ğƒNƒŠƒA"
-        $global:à–¾ƒ‰ƒxƒ‹.Text = ""
+    # MouseLeave ã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®š
+    $æ–°ã—ã„ãƒœã‚¿ãƒ³.Add_MouseLeave({
+        #Write-Host "MouseLeave ã‚¤ãƒ™ãƒ³ãƒˆç™ºç”Ÿ: èª¬æ˜ãƒ©ãƒ™ãƒ«ã‚’ã‚¯ãƒªã‚¢"
+        $global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = ""
     })
 
-    # GotFocus ƒCƒxƒ“ƒg‚ğİ’è
-    $V‚µ‚¢ƒ{ƒ^ƒ“.Add_GotFocus({
+    # GotFocus ã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®š
+    $æ–°ã—ã„ãƒœã‚¿ãƒ³.Add_GotFocus({
         param($sender, $eventArgs)
-        #Write-Host "GotFocus ƒCƒxƒ“ƒg”­¶: sender=$sender, Text=$($sender.Text)"
+        #Write-Host "GotFocus ã‚¤ãƒ™ãƒ³ãƒˆç™ºç”Ÿ: sender=$sender, Text=$($sender.Text)"
         
-        $global:à–¾ƒ‰ƒxƒ‹.Text = $à–¾
+        $global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = $èª¬æ˜
                    $tag = $sender.Tag
-           $ˆ—”Ô† = $tag.ˆ—”Ô†
-             $à–¾ = $tag.à–¾
+           $å‡¦ç†ç•ªå· = $tag.å‡¦ç†ç•ªå·
+             $èª¬æ˜ = $tag.èª¬æ˜
 
 
-        if ($null -eq $ˆ—”Ô†) {
-            #Write-Host "Error: ˆ—”Ô†‚ª null ‚Å‚·B"
+        if ($null -eq $å‡¦ç†ç•ªå·) {
+            #Write-Host "Error: å‡¦ç†ç•ªå·ãŒ null ã§ã™ã€‚"
         }
 
-        if ($global:ì¬ƒ{ƒ^ƒ“à–¾.ContainsKey($ˆ—”Ô†)) {
-            #Write-Host "à–¾•¶‚ğİ’è: $($global:ì¬ƒ{ƒ^ƒ“à–¾[$ˆ—”Ô†])"
-            #$global:à–¾ƒ‰ƒxƒ‹.Text = $global:ì¬ƒ{ƒ^ƒ“à–¾[$ˆ—”Ô†]
-            $global:à–¾ƒ‰ƒxƒ‹.Text = $à–¾
+        if ($global:ä½œæˆãƒœã‚¿ãƒ³èª¬æ˜.ContainsKey($å‡¦ç†ç•ªå·)) {
+            #Write-Host "èª¬æ˜æ–‡ã‚’è¨­å®š: $($global:ä½œæˆãƒœã‚¿ãƒ³èª¬æ˜[$å‡¦ç†ç•ªå·])"
+            #$global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = $global:ä½œæˆãƒœã‚¿ãƒ³èª¬æ˜[$å‡¦ç†ç•ªå·]
+            $global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = $èª¬æ˜
         } else {
-            #Write-Host "à–¾•¶‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: ˆ—”Ô†=$ˆ—”Ô†"
-            $global:à–¾ƒ‰ƒxƒ‹.Text = $à–¾
-            #$global:à–¾ƒ‰ƒxƒ‹.Text = "‚±‚Ìƒ{ƒ^ƒ“‚É‚Íà–¾‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB"
+            #Write-Host "èª¬æ˜æ–‡ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: å‡¦ç†ç•ªå·=$å‡¦ç†ç•ªå·"
+            $global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = $èª¬æ˜
+            #$global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = "ã“ã®ãƒœã‚¿ãƒ³ã«ã¯èª¬æ˜ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"
         }
     })
 
-    # LostFocus ƒCƒxƒ“ƒg‚ğİ’è
-    $V‚µ‚¢ƒ{ƒ^ƒ“.Add_LostFocus({
-        #Write-Host "LostFocus ƒCƒxƒ“ƒg”­¶: à–¾ƒ‰ƒxƒ‹‚ğƒNƒŠƒA"
-        $global:à–¾ƒ‰ƒxƒ‹.Text = ""
+    # LostFocus ã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®š
+    $æ–°ã—ã„ãƒœã‚¿ãƒ³.Add_LostFocus({
+        #Write-Host "LostFocus ã‚¤ãƒ™ãƒ³ãƒˆç™ºç”Ÿ: èª¬æ˜ãƒ©ãƒ™ãƒ«ã‚’ã‚¯ãƒªã‚¢"
+        $global:èª¬æ˜ãƒ©ãƒ™ãƒ«.Text = ""
     })
 }
