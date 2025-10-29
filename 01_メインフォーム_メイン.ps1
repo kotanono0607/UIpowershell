@@ -9,8 +9,14 @@ $global:ピンク青色 = [System.Drawing.Color]::FromArgb(227, 206, 229)
 
 $global:ピンク赤色 = [System.Drawing.Color]::FromArgb(252, 160, 158)
 
-# スクリプトの実行ディレクトリを変更（ユーザー名に依存しない）
-Set-Location -Path "$env:USERPROFILE\Documents\WindowsPowerShell\chord"
+# スクリプトの実行ディレクトリを変更（スクリプトの場所を基準にする）
+# 注: $PSScriptRoot はスクリプトが配置されているディレクトリを自動的に取得
+if ($PSScriptRoot) {
+    Set-Location -Path $PSScriptRoot
+} else {
+    # スクリプトが直接実行されていない場合のフォールバック
+    Set-Location -Path (Split-Path -Parent $MyInvocation.MyCommand.Path)
+}
 
 
 
@@ -191,8 +197,7 @@ $Global:可視左パネル = $null
 $Global:可視右パネル = $null
 $Global:不可視右の右パネル = $null
 
-# グローバル変数にハッシュテーブルを格納
-$Global:表示スクリプト座標 = @{ X = 0; Y = 0 }
+# $Global:表示スクリプト座標 は既に行64で定義済み（重複削除）
 
 $Global:レイヤー階層の深さ　= 1
 
@@ -258,9 +263,9 @@ function デバッグJSONファイル {
     }
 }
 
-# 使用例
-$jsonPath1 = "C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\個々の履歴\AAAAAA111\コード.json"
-デバッグJSONファイル -jsonPath $jsonPath1
+# 使用例（デバッグ用のため本番では無効化）
+# $jsonPath1 = "C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\個々の履歴\AAAAAA111\コード.json"
+# デバッグJSONファイル -jsonPath $jsonPath1
 
 
 
@@ -400,7 +405,7 @@ $ボタンA2 = 00_メインにボタンを作成する -コンテナ $操作フ�
 
 
 
-$jsonData = Get-Content -Path ".\RPA-UI2\ボタン設定.json" | ConvertFrom-Json
+$jsonData = Get-Content -Path ".\ボタン設定.json" | ConvertFrom-Json
 
 $前回の処理番号左側 = $null
 $script:初期Y = 10

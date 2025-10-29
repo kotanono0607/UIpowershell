@@ -13,8 +13,9 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 Write-Host "DEBUG: アセンブリ読み込み完了"
 
-# 2. JSONファイルパス設定
-$ファイルパス = "C:\Users\hallo\Documents\WindowsPowerShell\chord\RPA-UI2\ボタン設定.json"
+# 2. JSONファイルパス設定（スクリプトの親ディレクトリから相対パス）
+$スクリプトの親ディレクトリ = Split-Path -Parent $PSScriptRoot
+$ファイルパス = Join-Path $スクリプトの親ディレクトリ "ボタン設定.json"
 Write-Host "DEBUG: JSONファイルパス設定 => $ファイルパス"
 
 # ============================================================
