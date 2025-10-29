@@ -181,14 +181,13 @@ function ドロップ禁止チェック_ネスト規制 {
         $gid = $movingBtn.Tag.GroupID
         if ($null -eq $gid) { return $null }
 
-        # 同じ GroupID かつ 指定色 のボタンを集める
+        # 同じ GroupID の全ボタンを集める（色に関係なく）
+        # 修正: 条件分岐の中間ノード(Gray)も含めるため、色フィルタを削除
         $sameGroupBtns = $panel.Controls |
             Where-Object {
                 $_ -is [System.Windows.Forms.Button] -and
                 $_.Tag -ne $null -and
-                $_.Tag.GroupID -eq $gid -and
-                $_.Tag.BackgroundColor -ne $null -and
-                $_.Tag.BackgroundColor.ToArgb() -eq $targetColor.ToArgb()
+                $_.Tag.GroupID -eq $gid
             }
 
         # "開始" "終了" の2本がそろってないと正しい範囲が出せない
@@ -304,14 +303,13 @@ function ドロップ禁止チェック_ネスト規制 {
         $gid = $movingBtn.Tag.GroupID
         if ($null -eq $gid) { return $false }
 
-        # 同じGroupIDかつ指定色のボタンを全て取得
+        # 同じGroupIDの全ボタンを取得（色に関係なく）
+        # 修正: 条件分岐の中間ノード(Gray)も含めるため、色フィルタを削除
         $sameGroupBtns = $panel.Controls |
             Where-Object {
                 $_ -is [System.Windows.Forms.Button] -and
                 $_.Tag -ne $null -and
-                $_.Tag.GroupID -eq $gid -and
-                $_.Tag.BackgroundColor -ne $null -and
-                $_.Tag.BackgroundColor.ToArgb() -eq $groupColor.ToArgb()
+                $_.Tag.GroupID -eq $gid
             }
 
         if ($sameGroupBtns.Count -lt 2) {
