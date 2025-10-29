@@ -221,6 +221,7 @@ function ドロップ禁止チェック_ネスト規制 {
             [System.Drawing.Color]$targetColor
         )
 
+        # まず色でフィルタして、対象となるGroupIDを特定
         $colorBtns = $panel.Controls |
             Where-Object {
                 $_ -is [System.Windows.Forms.Button] -and
@@ -234,15 +235,27 @@ function ドロップ禁止チェック_ネスト規制 {
         $ranges = @()
 
         foreach ($g in $grouped) {
-            # そのグループのボタン(開始/終了)が2つ未満ならスキップ
-            if ($g.Group.Count -lt 2) { continue }
+            if ($g.Group.Count -lt 1) { continue }
 
-            $sorted = $g.Group | Sort-Object { $_.Location.Y }
+            $gid = $g.Name
+
+            # ★修正: そのGroupIDの全ノード（色に関係なく）を取得
+            # 条件分岐の中間ノード(Gray)も含めるため
+            $allNodesInGroup = $panel.Controls |
+                Where-Object {
+                    $_ -is [System.Windows.Forms.Button] -and
+                    $_.Tag -ne $null -and
+                    $_.Tag.GroupID -eq $gid
+                }
+
+            if ($allNodesInGroup.Count -lt 2) { continue }
+
+            $sorted = $allNodesInGroup | Sort-Object { $_.Location.Y }
             $topY    = $sorted[0].Location.Y
             $bottomY = $sorted[-1].Location.Y
 
             $ranges += [pscustomobject]@{
-                GroupID = $g.Name
+                GroupID = $gid
                 TopY    = [int]$topY
                 BottomY = [int]$bottomY
             }
