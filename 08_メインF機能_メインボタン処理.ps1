@@ -40,6 +40,12 @@ function 実行イベント {
                         # エントリの内容をコンソールに出力
                         Write-Host "エントリID: $id`n内容:`n$取得したエントリ`n"
 
+                        # エントリが "AAAA" で始まる場合は展開（Blueノード）
+                        if ($取得したエントリ -match "^AAAA") {
+                            Write-Host "Blueノード（スクリプト化されたノード）を展開します"
+                            $取得したエントリ = ノードリストを展開 -ノードリスト文字列 $取得したエントリ
+                        }
+
                         # エントリの内容のみを$outputに追加（空行を追加）
                         $output += "$取得したエントリ`n`n"
                     }
@@ -122,7 +128,56 @@ function 実行イベント {
             }
   
        # Set-ExecuteButtonClickEvent 関数の閉じ中括弧
-    } 
+    }
+
+# ノードリストを展開する再帰関数
+function ノードリストを展開 {
+    param (
+        [string]$ノードリスト文字列
+    )
+
+    Write-Host "=== ノードリスト展開開始 ==="
+    Write-Host "入力: $ノードリスト文字列"
+
+    # "AAAA" を除去
+    $ノードリスト文字列 = $ノードリスト文字列 -replace "^AAAA\s*", ""
+
+    # 行ごとに分割
+    $lines = $ノードリスト文字列 -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
+
+    Write-Host "ノード数: $($lines.Count)"
+
+    $output = ""
+
+    foreach ($line in $lines) {
+        # 形式: <ノードID>;<背景色>;<テキスト>;
+        $parts = $line -split ";"
+        if ($parts.Count -ge 1) {
+            $nodeId = $parts[0].Trim()
+            Write-Host "処理中のノードID: $nodeId"
+
+            # このノードのエントリを取得
+            $entry = IDでエントリを取得 -ID $nodeId
+
+            if ($entry -ne $null) {
+                Write-Host "取得したエントリ: $entry"
+
+                # エントリが "AAAA" で始まる場合は再帰的に展開
+                if ($entry -match "^AAAA") {
+                    Write-Host "再帰的に展開します"
+                    $entry = ノードリストを展開 -ノードリスト文字列 $entry
+                }
+
+                $output += "$entry`n"
+            } else {
+                Write-Host "エントリが見つかりません: $nodeId"
+            }
+        }
+    }
+
+    Write-Host "=== ノードリスト展開完了 ==="
+    return $output
+}
 
 function 変数イベント {
 
