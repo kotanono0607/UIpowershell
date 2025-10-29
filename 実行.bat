@@ -1,2 +1,3 @@
 @echo off
-powershell -ExecutionPolicy Bypass -File "C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\01_���C���t�H�[��_���C��.ps1"
+REM 相対パスでメインスクリプトを実行（どの環境でも動作可能）
+powershell -ExecutionPolicy Bypass -File "%~dp0\01_メインフォーム_メイン.ps1"

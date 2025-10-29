@@ -14,7 +14,7 @@ $メインフォーム.Hide()
 
 
 # JSONファイルを読み込み
-$jsonData = Get-Content -Path ".\RPA-UI2\ボタン設定.json" | ConvertFrom-Json
+$jsonData = Get-Content -Path ".\ボタン設定.json" | ConvertFrom-Json
 
 # 処理番号に対応する関数名を取得する辞書を作成
 $関数マッピング = @{}

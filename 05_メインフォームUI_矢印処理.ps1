@@ -10,6 +10,9 @@ function 00_矢印追記処理 {
     # パネルごとの描画オブジェクトをクリア
     $フレームパネル.Tag.DrawObjects = @()
 
+    # ピンク処理済みフラグを初期化
+    $hasProcessedPink = $false
+
     # メインフレームパネル内のボタンを取得し、Y座標でソート
     $buttons = $フレームパネル.Controls |
         Where-Object { $_ -is [System.Windows.Forms.Button] } |
