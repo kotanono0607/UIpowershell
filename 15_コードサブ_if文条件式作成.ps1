@@ -456,10 +456,10 @@ function ShowConditionBuilder {
     # 単一値の変数名リストを取得
     $variablesList = Get-SingleValueVariableNames -JSONPath $JSONPath
 
-    # 変数リストが空の場合の対応
+    # 変数リストが空の場合は空の配列を使用（警告のみ）
     if ($variablesList.Count -eq 0) {
-        #Write-Host "単一値の変数が見つかりませんでした。"
-        return
+        Write-Host "警告: 単一値の変数が見つかりませんでした。変数を使用する条件式は作成できません。" -ForegroundColor Yellow
+        $variablesList = @()  # 空の配列を設定
     }
 
     Add-Type -AssemblyName System.Windows.Forms
