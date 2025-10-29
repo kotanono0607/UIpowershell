@@ -1,3 +1,3 @@
 @echo off
-REM ç›¸å¯¾ãƒ‘ã‚¹ã§ãƒ¡ã‚¤ãƒ³ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’å®Ÿè¡Œï¼ˆã©ã®ç’°å¢ƒã§ã‚‚å‹•ä½œå¯èƒ½ï¼‰
-powershell -ExecutionPolicy Bypass -File "%~dp0\01_ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ _ãƒ¡ã‚¤ãƒ³.ps1"
+REM ‘Š‘ÎƒpƒX‚ÅƒƒCƒ“ƒXƒNƒŠƒvƒg‚ðŽÀsi‚Ç‚ÌŠÂ‹«‚Å‚à“®ì‰Â”\j
+powershell -ExecutionPolicy Bypass -File "%~dp0\01_ƒƒCƒ“ƒtƒH[ƒ€_ƒƒCƒ“.ps1"
