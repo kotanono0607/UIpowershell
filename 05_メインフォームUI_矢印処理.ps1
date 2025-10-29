@@ -487,6 +487,9 @@ function 取得-ボタン一覧 {
         $processingNum  = if ($tag.処理番号) { $tag.処理番号 } else { "未設定" }
         $scriptFlag     = if ($tag.script)  { $tag.script   } else { "未設定" }
 
+        # GroupIDを取得（存在しない場合は空文字列）
+        $groupID = if ($tag.GroupID -ne $null) { $tag.GroupID } else { "" }
+
         $outputList += [PSCustomObject]@{
             ボタン名 = $button.Name
             X座標    = $button.Location.X
@@ -498,6 +501,7 @@ function 取得-ボタン一覧 {
             高さ     = $button.Height
             幅       = $button.Width
             script   = $scriptFlag
+            GroupID  = $groupID
         }
         $index++
     }
