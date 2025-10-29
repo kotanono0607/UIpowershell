@@ -1,12 +1,18 @@
 {
     "エントリ":  {
+                 "1-1":  "Write-Host \"OK\"",
+                 "12-1":  "Write-Host \"OK\"",
+                 "7-1":  "Write-Host \"OK\"",
+                 "15-1":  "AAAA\r\n11-1;LemonChiffon;ループ 開始;\r\n14-1;SpringGreen;条件分岐 開始;\r\n13-1;Salmon;順次;\r\n14-2;Gray;条件分岐 中間;\r\n12-1;ffc8dcff;順次;\r\n14-3;SpringGreen;条件分岐 終了;\r\n11-2;LemonChiffon;ループ 終了;",
+                 "2-1":  "Write-Host \"OK\"",
                  "5-1":  "",
                  "9-1":  "",
-                 "3-1":  "",
-                 "1-1":  "Write-Host \"OK\"",
-                 "7-1":  "Write-Host \"OK\"",
+                 "10-1":  "",
+                 "11-2":  "}",
+                 "13-1":  "Write-Host \"OK\"",
+                 "11-1":  "for ($i = 0; $i -lt 1; $i += 1) {",
                  "8-1":  "Write-Host \"OK\"",
-                 "2-1":  "Write-Host \"OK\""
+                 "3-1":  ""
              },
-    "最後のID":  9
+    "最後のID":  15
 }
