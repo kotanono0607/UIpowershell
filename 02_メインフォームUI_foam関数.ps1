@@ -187,7 +187,8 @@ function ドロップ禁止チェック_ネスト規制 {
             Where-Object {
                 $_ -is [System.Windows.Forms.Button] -and
                 $_.Tag -ne $null -and
-                $_.Tag.GroupID -eq $gid
+                $_.Tag.GroupID -ne $null -and
+                $_.Tag.GroupID.ToString() -eq $gid.ToString()
             }
 
         # "開始" "終了" の2本がそろってないと正しい範囲が出せない
@@ -241,11 +242,13 @@ function ドロップ禁止チェック_ネスト規制 {
 
             # ★修正: そのGroupIDの全ノード（色に関係なく）を取得
             # 条件分岐の中間ノード(Gray)も含めるため
+            # 型を文字列に統一して比較（Group-Objectは文字列を返すため）
             $allNodesInGroup = $panel.Controls |
                 Where-Object {
                     $_ -is [System.Windows.Forms.Button] -and
                     $_.Tag -ne $null -and
-                    $_.Tag.GroupID -eq $gid
+                    $_.Tag.GroupID -ne $null -and
+                    $_.Tag.GroupID.ToString() -eq $gid.ToString()
                 }
 
             if ($allNodesInGroup.Count -lt 2) { continue }
@@ -322,7 +325,8 @@ function ドロップ禁止チェック_ネスト規制 {
             Where-Object {
                 $_ -is [System.Windows.Forms.Button] -and
                 $_.Tag -ne $null -and
-                $_.Tag.GroupID -eq $gid
+                $_.Tag.GroupID -ne $null -and
+                $_.Tag.GroupID.ToString() -eq $gid.ToString()
             }
 
         if ($sameGroupBtns.Count -lt 2) {
