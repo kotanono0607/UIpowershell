@@ -369,15 +369,30 @@ function ドロップ禁止チェック_ネスト規制 {
     $isGreen  = ($元色 -ne $null -and $元色.ToArgb() -eq [System.Drawing.Color]::SpringGreen.ToArgb())
     $isYellow = ($元色 -ne $null -and $元色.ToArgb() -eq [System.Drawing.Color]::LemonChiffon.ToArgb())
 
+    Write-Host "=== ネスト規制チェック開始 ==="
+    Write-Host "移動ボタンID: $($移動ボタン.Name), GroupID: $($移動ボタン.Tag.GroupID)"
+    Write-Host "色: Green=$isGreen, Yellow=$isYellow"
+    Write-Host "設置希望Y: $設置希望Y"
+
     # パネル上の全条件分岐ブロック範囲と全ループブロック範囲を先に取っておく
     $allCondRanges = Get-AllGroupRanges -panel $フレーム -targetColor ([System.Drawing.Color]::SpringGreen)
     $allLoopRanges = Get-AllGroupRanges -panel $フレーム -targetColor ([System.Drawing.Color]::LemonChiffon)
+
+    Write-Host "条件分岐範囲数: $($allCondRanges.Count)"
+    foreach ($cr in $allCondRanges) {
+        Write-Host "  - GroupID:$($cr.GroupID) Y:$($cr.TopY)-$($cr.BottomY)"
+    }
+    Write-Host "ループ範囲数: $($allLoopRanges.Count)"
+    foreach ($lr in $allLoopRanges) {
+        Write-Host "  - GroupID:$($lr.GroupID) Y:$($lr.TopY)-$($lr.BottomY)"
+    }
 
     # まず「単体ノードが腹に落ちる」ケースの即時チェック
     if ($isYellow) {
         foreach ($cr in $allCondRanges) {
             if ($設置希望Y -ge $cr.TopY -and $設置希望Y -le $cr.BottomY) {
                 # ループの任意ノードを条件分岐の腹の中に入れるのは禁止
+                Write-Host ">>> 禁止: ループノードを条件分岐内に配置"
                 return $true
             }
         }
@@ -387,6 +402,7 @@ function ドロップ禁止チェック_ネスト規制 {
             if ($設置希望Y -ge $lr.TopY -and $設置希望Y -le $lr.BottomY) {
                 # 条件分岐ノードをループの腹に刺すのは禁止
                 # (＝ループの途中に条件分岐を割り込ませるのもダメ)
+                Write-Host ">>> 禁止: 条件分岐ノードをループ内に配置"
                 return $true
             }
         }
@@ -395,66 +411,97 @@ function ドロップ禁止チェック_ネスト規制 {
     # ★★★ 新規追加: グループ分断チェック ★★★
     if ($isGreen) {
         # 条件分岐グループがループの境界をまたぐかチェック
+        Write-Host "条件分岐グループ分断チェック開始"
         $isFragmented = Check-GroupFragmentation `
             -panel $フレーム `
             -movingBtn $移動ボタン `
             -newY $設置希望Y `
             -groupColor ([System.Drawing.Color]::SpringGreen) `
             -boundaryColor ([System.Drawing.Color]::LemonChiffon)
-        
+
+        Write-Host "分断チェック結果: $isFragmented"
         if ($isFragmented) {
+            Write-Host ">>> 禁止: 条件分岐グループが分断される"
             return $true
         }
     }
 
     if ($isYellow) {
         # ループグループが条件分岐の境界をまたぐかチェック
+        Write-Host "ループグループ分断チェック開始"
         $isFragmented = Check-GroupFragmentation `
             -panel $フレーム `
             -movingBtn $移動ボタン `
             -newY $設置希望Y `
             -groupColor ([System.Drawing.Color]::LemonChiffon) `
             -boundaryColor ([System.Drawing.Color]::SpringGreen)
-        
+
+        Write-Host "分断チェック結果: $isFragmented"
         if ($isFragmented) {
+            Write-Host ">>> 禁止: ループグループが分断される"
             return $true
         }
     }
 
     # 次に、グループ全体としての整合性チェック
     if ($isGreen) {
+        Write-Host "条件分岐グループ全体の整合性チェック開始"
         # この条件分岐グループが移動後どういう縦範囲になるか
         $movedCondRange = Get-GroupRangeAfterMove -panel $フレーム `
                                                  -movingBtn $移動ボタン `
                                                  -newY $設置希望Y `
                                                  -targetColor ([System.Drawing.Color]::SpringGreen)
 
+        if ($movedCondRange) {
+            Write-Host "移動後の条件分岐範囲: GroupID=$($movedCondRange.GroupID) Y=$($movedCondRange.TopY)-$($movedCondRange.BottomY)"
+        } else {
+            Write-Host "移動後の条件分岐範囲: null"
+        }
+
         foreach ($lr in $allLoopRanges) {
-            if (Is-IllegalPair -condRange $movedCondRange -loopRange $lr) {
+            Write-Host "Is-IllegalPairチェック: 条件分岐 vs ループ(GroupID=$($lr.GroupID))"
+            $isPairIllegal = Is-IllegalPair -condRange $movedCondRange -loopRange $lr
+            Write-Host "結果: $isPairIllegal"
+            if ($isPairIllegal) {
+                Write-Host ">>> 禁止: 条件分岐とループの配置が不正"
                 return $true
             }
         }
 
+        Write-Host "=== 問題なし ==="
         return $false
     }
 
     if ($isYellow) {
+        Write-Host "ループグループ全体の整合性チェック開始"
         # このループグループが移動後どういう縦範囲になるか
         $movedLoopRange = Get-GroupRangeAfterMove -panel $フレーム `
                                                  -movingBtn $移動ボタン `
                                                  -newY $設置希望Y `
                                                  -targetColor ([System.Drawing.Color]::LemonChiffon)
 
+        if ($movedLoopRange) {
+            Write-Host "移動後のループ範囲: GroupID=$($movedLoopRange.GroupID) Y=$($movedLoopRange.TopY)-$($movedLoopRange.BottomY)"
+        } else {
+            Write-Host "移動後のループ範囲: null"
+        }
+
         foreach ($cr in $allCondRanges) {
-            if (Is-IllegalPair -condRange $cr -loopRange $movedLoopRange) {
+            Write-Host "Is-IllegalPairチェック: 条件分岐(GroupID=$($cr.GroupID)) vs ループ"
+            $isPairIllegal = Is-IllegalPair -condRange $cr -loopRange $movedLoopRange
+            Write-Host "結果: $isPairIllegal"
+            if ($isPairIllegal) {
+                Write-Host ">>> 禁止: ループと条件分岐の配置が不正"
                 return $true
             }
         }
 
+        Write-Host "=== 問題なし ==="
         return $false
     }
 
     # 緑でも黄でもないノードは規制しない
+    Write-Host "=== 緑でも黄でもないノード ==="
     return $false
 }
 
