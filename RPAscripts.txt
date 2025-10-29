@@ -1,0 +1,4866 @@
+﻿### MERGED POWERSHELL SCRIPTS
+SOURCE_ROOT: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2
+GENERATED_AT: 2025-10-28 22:13:42 +09:00
+FILTER: leading number 01-08 only
+FORMAT: FILE-START/END markers with PATH and content blocks
+===============================================
+===== FILE-START =====
+PATH: 01_メインフォーム_メイン.ps1
+----- CONTENT BEGIN -----
+
+# タイトル: 複数のボタンに独立したドラッグ＆ドロップを設定する
+
+$global:グループモード = 0
+
+$global:青色 = [System.Drawing.Color]::FromArgb(200, 220, 255)
+
+$global:ピンク青色 = [System.Drawing.Color]::FromArgb(227, 206, 229)
+
+$global:ピンク赤色 = [System.Drawing.Color]::FromArgb(252, 160, 158)
+
+# スクリプトの実行ディレクトリを変更（ユーザー名に依存しない）
+Set-Location -Path "$env:USERPROFILE\Documents\WindowsPowerShell\chord"
+
+
+
+$スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレクトリを変数に格納
+$MainpsName = $MyInvocation.MyCommand.Name#メインスクリプト名取得
+Get-ChildItem -Path "$スクリプトPath\" -Filter "*.ps1" | Where-Object { $_.Name -ne $MainpsName } | ForEach-Object {. $_.FullName} # フォルダ内のすべてのps1ファイルを取得し、メインスクリプトを除いて読み込む
+
+$codeFolderPath = Join-Path -Path $スクリプトPath -ChildPath "01_code" # 01_codeフォルダ内の.ps1ファイルを取得し、メインスクリプトを除外
+
+write-host "aa" $codeFolderPath
+
+Get-ChildItem -Path $codeFolderPath -Filter "*.ps1" | Where-Object { $_.Name -ne $MainpsName } | ForEach-Object {. $_.FullName }
+
+$メインPath = Split-Path $スクリプトPath # ひとつ上の階層のパスを取得
+
+
+JSON初回
+
+# 関数の呼び出し例
+$global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\個々の履歴\メイン.json" -keyName "フォルダパス"
+
+write-host "aaa" $global:folderPath
+
+$global:JSONPath = "$global:folderPath\variables.json"
+
+# Windows Formsを利用するためのアセンブリを読み込み
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName Microsoft.VisualBasic
+
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class DPIHelper {
+    [DllImport("user32.dll")]
+    public static extern bool SetProcessDPIAware();
+}
+"@
+    # DPIスケーリングを無効化
+[DPIHelper]::SetProcessDPIAware()
+
+# グローバル変数の宣言
+$global:ボタンカウンタ = 1                # 生成されるボタンのカウンタ
+$global:ドラッグ中のボタン = $null         # ドラッグ中のボタン
+$global:黄色ボタングループカウンタ = 1      # 黄色ボタンのグループIDカウンタ
+$global:緑色ボタングループカウンタ = 1      # 緑色ボタンのグループIDカウンタ
+$global:drawObjects = @()                  # 描画オブジェクトを保持するリスト
+
+#========== メインコード ==========
+
+$Global:表示スクリプト座標 = @{ X = 0; Y = 0 }
+
+$Global:Pink選択中 = $false
+
+# グローバル変数をオブジェクトの配列として定義
+$Global:Pink選択配列 = @()
+
+for ($A = 0; $A -le 6; $A++) {
+    $Global:Pink選択配列 += [PSCustomObject]@{
+        レイヤー = $A
+        Y座標    = 0
+        値        = 0
+        展開ボタン        = 0
+    }
+}
+
+
+
+$Global:現在展開中のスクリプト名 = ""
+
+
+# フォームを生成
+$メインフォーム = 00_フォームを作成する -幅 1400 -高さ 900
+
+
+# フォーム生成直後に通常表示を強制
+$メインフォーム.WindowState   = [System.Windows.Forms.FormWindowState]::Normal  # 通常
+$メインフォーム.StartPosition = 'CenterScreen'                                   # 任意
+$メインフォーム.ShowInTaskbar = $true                                             # 念のため
+
+
+                
+#$ボタン02 = 00_メインにボタンを作成する -コンテナ $メインフォーム  -テキスト "Group" -ボタン名 "002" -幅 80 -高さ 40 -X位置 860 -Y位置 300 -枠線 0 -背景色  ([System.Drawing.Color]::FromArgb(255, 255, 255)) -フォントサイズ 8 -クリックアクション $ボタン2アクション
+
+#$ボタン1 = 00_メインにボタンを作成する -コンテナ $メインフォーム  -テキスト "レイヤー化`n→" -ボタン名 "001" -幅 80 -高さ 40 -X位置 860 -Y位置 350 -枠線 0 -背景色  ([System.Drawing.Color]::FromArgb(255, 255, 255)) -フォントサイズ 8 -クリックアクション $ボタン2アクション
+
+#$ボタンA1 = 00_メインにボタンを作成する -コンテナ $メインフォーム  -テキスト "テスト" -ボタン名 "005" -幅 80 -高さ 40 -X位置 860 -Y位置 400 -枠線 0 -背景色  ([System.Drawing.Color]::FromArgb(255, 255, 255)) -フォントサイズ 8 -クリックアクション $ボタン2アクション
+
+$ボタン03 = 00_メインにボタンを作成する -コンテナ $メインフォーム  -テキスト "▶" -ボタン名 "003右" -幅 40 -高さ 20 -X位置 900 -Y位置 40 -枠線 0 -背景色  ([System.Drawing.Color]::FromArgb(255, 255, 255)) -フォントサイズ 8 -クリックアクション $ボタン2アクション
+$ボタン04 = 00_メインにボタンを作成する -コンテナ $メインフォーム  -テキスト "◀" -ボタン名 "004左" -幅 40 -高さ 20 -X位置 850 -Y位置 40 -枠線 0 -背景色  ([System.Drawing.Color]::FromArgb(255, 255, 255)) -フォントサイズ 8 -クリックアクション $ボタン2アクション
+
+
+# コマンドを定義するハッシュテーブル #これつかってる？
+$コマンド = @{
+    'File.New1'    = { 実行イベント }
+    'File.New2'    = { 変数イベント }
+    'folder.New'    = { フォルダ作成イベント }
+   　'folder.change'    = { フォルダ切替イベント }
+    
+    'File.New'    = { [System.Windows.Forms.MessageBox]::Show("新規が選択されました。", "ツールバーアクション") }
+    'File.Open'   = { [System.Windows.Forms.MessageBox]::Show("開くが選択されました。", "ツールバーアクション") }
+    'File.Exit'   = { $メインフォーム.Close() }
+    'Edit.Copy'   = { [System.Windows.Forms.MessageBox]::Show("コピーが選択されました。", "ツールバーアクション") }
+    'Edit.Paste'  = { [System.Windows.Forms.MessageBox]::Show("貼り付けが選択されました。", "ツールバーアクション") }
+    'Help.About'  = { [System.Windows.Forms.MessageBox]::Show("このアプリケーションについて。", "ツールバーアクション") }
+}
+
+# メニュー構造を定義する
+$メニュー構造 = @(
+    @{
+        名前         = "実行"
+        ツールチップ = "スクリプトを実行する機能を提供します。"
+        項目         = @(
+            @{ テキスト = "実行"; アクション = { 実行イベント } }
+        )
+    },
+    @{
+        名前         = "変数"
+        ツールチップ = "変数の管理や設定を行います。"
+        項目         = @(
+            @{ テキスト = "変数管理"; アクション = { 変数イベント } }
+        )
+    },
+    @{
+        名前         = "folder切替"
+        ツールチップ = "フォルダや設定の切り替えを行います。"
+        項目         = @(
+            @{ テキスト = "作成"; アクション = { フォルダ作成イベント } }
+            @{ テキスト = "切替"; アクション = { フォルダ切替イベント } }
+            @{ テキスト = "終了"; アクション = { Write-Host "終了がクリックされました" } }
+        )
+    },
+    @{
+        名前         = "ファイル"
+        ツールチップ = "ファイルの操作を行います。"
+        項目         = @(
+            @{ テキスト = "新規"; アクション = { Write-Host "新規がクリックされました" } }
+            @{ テキスト = "開く"; アクション = { Write-Host "開くがクリックされました" } }
+            @{ テキスト = "終了"; アクション = { Write-Host "終了がクリックされました" } }
+        )
+    },
+    @{
+        名前         = "編集"
+        ツールチップ = "編集操作を行います。"
+        項目         = @(
+            @{ テキスト = "コピー"; アクション = { Write-Host "コピーがクリックされました" } }
+            @{ テキスト = "貼り付け"; アクション = { Write-Host "貼り付けがクリックされました" } }
+        )
+    },
+    @{
+        名前         = "ヘルプ"
+        ツールチップ = "アプリケーションの情報を表示します。"
+        項目         = @(
+            @{ テキスト = "このアプリケーションについて"; アクション = { Write-Host "ヘルプがクリックされました" } }
+        )
+    }
+)
+
+
+
+
+ツールバーを追加 -フォーム $メインフォーム -メニュー構造 $メニュー構造
+
+
+フォームにラベル追加 -フォーム $メインフォーム -テキスト "ノード操作" -X座標 190 -Y座標 125
+
+フォームにラベル追加 -フォーム $メインフォーム -テキスト "メイン操作" -X座標 190 -Y座標 40
+
+フォームにラベル追加 -フォーム $メインフォーム -テキスト "メインパネル" -X座標 650 -Y座標 40
+フォームにラベル追加 -フォーム $メインフォーム -テキスト "プレビューパネル" -X座標 1050 -Y座標 40
+
+フォームにラベル追加 -フォーム $メインフォーム -テキスト "説明" -X座標 200 -Y座標 620
+フォームにラベル追加 -フォーム $メインフォーム -テキスト "→" -X座標 480 -Y座標 350
+
+# グローバル変数の宣言
+$Global:不可視左の左パネル = $null
+$Global:可視左パネル = $null
+$Global:可視右パネル = $null
+$Global:不可視右の右パネル = $null
+
+# グローバル変数にハッシュテーブルを格納
+$Global:表示スクリプト座標 = @{ X = 0; Y = 0 }
+
+$Global:レイヤー階層の深さ　= 1
+
+#$Global:表示スクリプト座標.X# X座標にアクセス
+#$Global:表示スクリプト座標.Y# Y座標にアクセス
+
+
+$global:レイヤー0 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 550 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "0" -枠線あり $true
+
+$global:レイヤー1 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 550 -Y位置 70 -Visible $true -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "1" -枠線あり $true
+00_フレームパネルにラベルを追加する -フレームパネル $global:レイヤー1 -ラベルテキスト "レイヤー1" -X位置 120 -Y位置 0 -フォント (New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)) -フォント色 ([System.Drawing.Color]::Blue)
+$global:レイヤー2 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 940 -Y位置 70 -Visible $true -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "2" -枠線あり $true
+00_フレームパネルにラベルを追加する -フレームパネル $global:レイヤー2 -ラベルテキスト "レイヤー2" -X位置 120 -Y位置 0 -フォント (New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)) -フォント色 ([System.Drawing.Color]::Blue)
+$global:レイヤー3 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "3" -枠線あり $true
+00_フレームパネルにラベルを追加する -フレームパネル $global:レイヤー3 -ラベルテキスト "レイヤー3" -X位置 120 -Y位置 0 -フォント (New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)) -フォント色 ([System.Drawing.Color]::Blue)
+$global:レイヤー4 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "4" -枠線あり $true
+00_フレームパネルにラベルを追加する -フレームパネル $global:レイヤー4 -ラベルテキスト "レイヤー4" -X位置 120 -Y位置 0 -フォント (New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)) -フォント色 ([System.Drawing.Color]::Blue)
+$global:レイヤー5 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "5" -枠線あり $true
+00_フレームパネルにラベルを追加する -フレームパネル $global:レイヤー5 -ラベルテキスト "レイヤー5" -X位置 120 -Y位置 0 -フォント (New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)) -フォント色 ([System.Drawing.Color]::Blue)
+
+$global:レイヤー6 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "6" -枠線あり $true
+
+$Global:不可視左の左パネル = $global:レイヤー0
+$Global:可視左パネル = $global:レイヤー1
+$Global:可視右パネル = $global:レイヤー2
+$Global:不可視右の右パネル = $global:レイヤー3
+
+
+
+
+function デバッグJSONファイル {
+    param (
+        [string]$jsonPath  # JSONファイルのパス
+    )
+
+    # JSONデータの読み込み
+    try {
+        $json = Get-Content $jsonPath | ConvertFrom-Json
+        write-host "JSONファイルを正常に読み込みました。"  # 読み込み成功のメッセージ
+    }
+    catch {
+        write-host "JSONファイルの読み込みに失敗しました。"  # 読み込み失敗メッセージ
+        return
+    }
+
+    # JSONの中身を表示
+    write-host "JSONの内容:"
+    $json | Format-List
+
+    # エントリが存在する場合は、それを確認する
+    if ($json.PSObject.Properties["エントリ"]) {
+        write-host "`n'エントリ' セクションの内容:"
+        $json.エントリ | Format-List
+    } else {
+        write-host "'エントリ' セクションが見つかりませんでした。"
+    }
+
+    # 最後のIDを表示
+    if ($json.PSObject.Properties["最後のID"]) {
+        write-host "`n'最後のID': $($json.最後のID)"
+    } else {
+        write-host "'最後のID' が見つかりませんでした。"
+    }
+}
+
+# 使用例
+$jsonPath1 = "C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\個々の履歴\AAAAAA111\コード.json"
+デバッグJSONファイル -jsonPath $jsonPath1
+
+
+
+
+$global:説明フレーム = 00_フレームを作成する -フォーム $メインフォーム -幅 450 -高さ 200 -X位置 10 -Y位置 650 -Visible $true -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -枠線あり $true
+
+# 説明フレームに説明用のLabelを追加
+$global:説明ラベル = New-Object System.Windows.Forms.Label
+$global:説明ラベル.AutoSize = $false
+$global:説明ラベル.Size = New-Object System.Drawing.Size(435, 185)  # フレームサイズに合わせる
+$global:説明ラベル.Location = New-Object System.Drawing.Point(10, 10)
+$global:説明ラベル.Text = "ここに説明文が表示されます。"
+$global:説明ラベル.Font = New-Object System.Drawing.Font("MS UI Gothic", 12)
+$global:説明ラベル.TextAlign = "TopLeft"
+#$global:説明ラベル.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$global:説明ラベル.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+
+# 説明フレームにLabelを追加
+$global:説明フレーム.Controls.Add($global:説明ラベル)
+
+# メインフレームのPaintイベントを設定
+00_メインフレームパネルのPaintイベントを設定する -フレームパネル $Global:可視左パネル
+
+# メインフレームのDragEnterイベントを設定
+00_フレームのDragEnterイベントを設定する -フレーム $Global:可視左パネル
+
+# メインフレームのDragDropイベントを設定
+00_フレームのDragDropイベントを設定する -フレーム $Global:可視左パネル
+
+
+$メイン高さ　= 450
+$メインY位置　= 150
+
+# 操作フレーム（左側）を生成（イベントハンドラーは設定しない）
+$操作フレームパネル1= 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ $メイン高さ -X位置 150 -Y位置 $メインY位置 -Visible $true -背景色 ([System.Drawing.Color]::FromArgb(180, 180, 180))
+$操作フレームパネル2 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ $メイン高さ -X位置 150 -Y位置 $メインY位置 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(250, 215, 220))
+$操作フレームパネル3 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ $メイン高さ -X位置 150 -Y位置 $メインY位置 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(210, 255, 240))
+$操作フレームパネル4 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ $メイン高さ -X位置 150 -Y位置 $メインY位置 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(225, 245, 230))
+$操作フレームパネル5 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ $メイン高さ -X位置 150 -Y位置 $メインY位置 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(250, 250, 230))
+$操作フレームパネル6 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ $メイン高さ -X位置 150 -Y位置 $メインY位置 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(240, 230, 250))
+$操作フレームパネル7 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ $メイン高さ -X位置 150 -Y位置 $メインY位置 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(245, 245, 245))
+$操作フレームパネル8 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ $メイン高さ -X位置 150 -Y位置 $メインY位置 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(220, 235, 255))
+$操作フレームパネル9 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ $メイン高さ -X位置 150 -Y位置 $メインY位置 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 250, 220))
+$操作フレームパネル10 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ $メイン高さ -X位置 150 -Y位置 $メインY位置 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 235, 240))
+
+$操作フレームパネルA1= 00_フレームを作成する -フォーム $メインフォーム -幅 450 -高さ 50 -X位置 10 -Y位置 70 -Visible $true -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255)) -枠線あり $true
+
+
+
+# 1. JSONストアの初期化（初回のみ実行）
+JSONストアを初期化
+
+$切替上部y = 150
+
+$切替1 = 00_ボタンを作成する -コンテナ $メインフォーム -テキスト "制御構文" -幅 140 -高さ 30 -X位置 10 -Y位置 $切替上部y -背景色 ([System.Drawing.Color]::FromArgb(180, 180, 180)) -ドラッグ可能 $false -フォントサイズ 12
+$切替2 = 00_ボタンを作成する -コンテナ $メインフォーム -テキスト "マウス操作" -幅 140 -高さ 30 -X位置 10 -Y位置 ($切替上部y +30) -背景色 ([System.Drawing.Color]::FromArgb(250, 215, 220)) -ドラッグ可能 $false -フォントサイズ 12
+$切替3 = 00_ボタンを作成する -コンテナ $メインフォーム -テキスト "キーボード操作" -幅 140 -高さ 30 -X位置 10 -Y位置  ($切替上部y +60) -背景色 ([System.Drawing.Color]::FromArgb(210, 255, 240)) -ドラッグ可能 $false -フォントサイズ 12
+$切替4 = 00_ボタンを作成する -コンテナ $メインフォーム -テキスト "UIAutomation" -幅 140 -高さ 30 -X位置 10 -Y位置  ($切替上部y +90) -背景色 ([System.Drawing.Color]::FromArgb(225, 245, 230)) -ドラッグ可能 $false -フォントサイズ 12
+$切替5 = 00_ボタンを作成する -コンテナ $メインフォーム -テキスト "ファイル操作" -幅 140 -高さ 30 -X位置 10 -Y位置  ($切替上部y +120) -背景色 ([System.Drawing.Color]::FromArgb(250, 250, 230)) -ドラッグ可能 $false -フォントサイズ 12
+$切替6 = 00_ボタンを作成する -コンテナ $メインフォーム -テキスト "データ処理" -幅 140 -高さ 30 -X位置 10 -Y位置  ($切替上部y +150) -背景色 ([System.Drawing.Color]::FromArgb(240, 230, 250)) -ドラッグ可能 $false -フォントサイズ 12
+$切替7 = 00_ボタンを作成する -コンテナ $メインフォーム -テキスト "スクリプト実行" -幅 140 -高さ 30 -X位置 10 -Y位置  ($切替上部y +180) -背景色 ([System.Drawing.Color]::FromArgb(245, 245, 245)) -ドラッグ可能 $false -フォントサイズ 12
+$切替8 = 00_ボタンを作成する -コンテナ $メインフォーム -テキスト "Excel処理" -幅 140 -高さ 30 -X位置 10 -Y位置  ($切替上部y +210) -背景色 ([System.Drawing.Color]::FromArgb(220, 235, 255)) -ドラッグ可能 $false -フォントサイズ 12
+$切替9 = 00_ボタンを作成する -コンテナ $メインフォーム -テキスト "ウインドウ操作" -幅 140 -高さ 30 -X位置 10 -Y位置  ($切替上部y +240) -背景色 ([System.Drawing.Color]::FromArgb(255, 250, 220)) -ドラッグ可能 $false -フォントサイズ 12
+$切替10 = 00_ボタンを作成する -コンテナ $メインフォーム -テキスト "画像処理" -幅 140 -高さ 30 -X位置 10 -Y位置  ($切替上部y +270) -背景色 ([System.Drawing.Color]::FromArgb(255, 235, 240)) -ドラッグ可能 $false -フォントサイズ 12
+
+
+
+function 非表示 {
+$操作フレームパネル1.Visible = $false
+$操作フレームパネル2.Visible = $false
+$操作フレームパネル3.Visible = $false
+$操作フレームパネル4.Visible = $false
+$操作フレームパネル5.Visible = $false
+$操作フレームパネル6.Visible = $false
+$操作フレームパネル7.Visible = $false
+$操作フレームパネル8.Visible = $false
+$操作フレームパネル9.Visible = $false
+$操作フレームパネル10.Visible = $false
+
+}
+
+if ($切替1 -ne $null) { $切替1.Add_Click({ 非表示; $操作フレームパネル1.Visible = $true }) }
+if ($切替2 -ne $null) { $切替2.Add_Click({ 非表示; $操作フレームパネル2.Visible = $true }) }
+if ($切替3 -ne $null) { $切替3.Add_Click({ 非表示; $操作フレームパネル3.Visible = $true }) }
+if ($切替4 -ne $null) { $切替4.Add_Click({ 非表示; $操作フレームパネル4.Visible = $true }) }
+if ($切替5 -ne $null) { $切替5.Add_Click({ 非表示; $操作フレームパネル5.Visible = $true }) }
+if ($切替6 -ne $null) { $切替6.Add_Click({ 非表示; $操作フレームパネル6.Visible = $true }) }
+if ($切替7 -ne $null) { $切替7.Add_Click({ 非表示; $操作フレームパネル7.Visible = $true }) }
+if ($切替8 -ne $null) { $切替8.Add_Click({ 非表示; $操作フレームパネル8.Visible = $true }) }
+if ($切替9 -ne $null) { $切替9.Add_Click({ 非表示; $操作フレームパネル9.Visible = $true }) }
+if ($切替10 -ne $null) { $切替10.Add_Click({ 非表示; $操作フレームパネル10.Visible = $true }) }
+
+# 切替ボタンに対応する説明文を定義
+$global:切替ボタン説明 = @{
+    "制御構文"     = "制御構文に関する説明文をここに記載します。"
+    "マウス操作"   = "マウス操作に関する説明文をここに記載します。"
+    "キーボード操作" = "キーボード操作に関する説明文をここに記載します。"
+    "UIAutomation" = "UIAutomationに関する説明文をここに記載します。"
+    "ファイル操作" = "ファイル操作に関する説明文をここに記載します。"
+    "データ処理"   = "データ処理に関する説明文をここに記載します。"
+    "スクリプト実行" = "スクリプト実行に関する説明文をここに記載します。"
+}
+
+# 作成ボタンの説明文
+$global:作成ボタン説明 = @{
+    "1-1" = "順次処理に関する説明文をここに記載します。"
+    "1-2" = "条件分岐に関する説明文をここに記載します。"
+    "1-3" = "ループ処理に関する説明文をここに記載します。"
+    "1-4" = "順次処理（別バージョン）に関する説明文をここに記載します。"
+    "2-1" = "マウス座標取得（左クリック）に関する説明文をここに記載します。"
+    "2-2" = "マウス移動に関する説明文をここに記載します。"
+    "3-1" = "キー操作に関する説明文をここに記載します。"
+    "3-2" = "キー入力に関する説明文をここに記載します。"
+    "4-1" = "UIに関する説明文をここに記載します。"
+    # 必要に応じて追加してください
+}
+
+
+# 外部スクリプト内の関数を呼び出して切替ボタンのイベントを設定
+$切替ボタン一覧 = @($切替1, $切替2, $切替3, $切替4, $切替5, $切替6, $切替7)
+$切替テキスト一覧 = @("制御構文", "マウス操作", "キーボード操作", "UIAutomation", "ファイル操作", "データ処理", "スクリプト実行")
+切替ボタンイベント $切替ボタン一覧 -SwitchTexts $切替テキスト一覧
+
+# 外部スクリプト内の関数を呼び出して実行ボタンのイベントを設定
+#実行ボタンイベント -Button $実行ボタン
+
+#変数ボタンイベント -Button $変数ボタン
+
+#フォルダ作成イベント -Button $フォルダ作成
+$ボタン1 = 00_メインにボタンを作成する -コンテナ $操作フレームパネルA1  -テキスト "レイヤー化" -ボタン名 "001" -幅 80 -高さ 40 -X位置 60 -Y位置 5 -枠線 0 -背景色  ([System.Drawing.Color]::FromArgb(255, 255, 255)) -フォントサイズ 8 -クリックアクション $ボタン2アクション
+$ボタンA2 = 00_メインにボタンを作成する -コンテナ $操作フレームパネルA1  -テキスト "変数" -ボタン名 "A001" -幅 80 -高さ 40 -X位置 200 -Y位置 5 -枠線 0 -背景色  ([System.Drawing.Color]::FromArgb(255, 255, 255)) -フォントサイズ 8 -クリックアクション $ボタン2アクション
+#↑挙動はどこで設定している？
+
+
+#フォルダ切替イベント -Button $フォルダ切替
+
+
+
+
+$jsonData = Get-Content -Path ".\RPA-UI2\ボタン設定.json" | ConvertFrom-Json
+
+$前回の処理番号左側 = $null
+$script:初期Y = 10
+
+foreach ($ボタン in $jsonData) {
+    $背景色 = [System.Drawing.Color]::FromName($ボタン.背景色)
+    $コンテナ = Get-Variable -Name $ボタン.コンテナ -Scope Global -ErrorAction SilentlyContinue
+
+    # 処理番号の左側を取得
+    $処理番号左側 = $ボタン.処理番号 -split '-' | Select-Object -First 1
+    Write-Host "処理番号の左側: $処理番号左側"
+
+    # 処理番号の左側が変わったタイミングで初期Yをリセット
+    if ($処理番号左側 -ne $前回の処理番号左側) {
+        Write-Host "処理番号が変わったため、初期Yをリセット"
+        $script:初期Y = 10
+    }
+
+    # Y位置を設定して次回のために増加
+    $Y位置 = $script:初期Y
+    $script:初期Y += 40
+
+    if ($コンテナ) {
+        作成ボタンとイベント設定 -処理番号 $ボタン.処理番号 -テキスト $ボタン.テキスト `
+            -ボタン名 $ボタン.ボタン名 -背景色 $背景色 `
+            -コンテナ $コンテナ.Value -Y位置 $Y位置 -説明 $ボタン.説明
+    }
+
+    # 前回の処理番号を更新
+    $前回の処理番号左側 = $処理番号左側
+}
+
+
+# 【タイトル: 出力-ボタン情報 JSON読込対応版 Ver1.0】
+# タイトル: 出力-ボタン情報 JSONキー1専用版  Ver1.0
+function 出力-ボタン情報 {
+    param (
+        [string]$jsonFilePath  # JSONファイルのパス
+    )
+
+    #------------------------------------------------------------
+    # ① JSONファイルの存在確認と読込
+    #------------------------------------------------------------
+    if (-not (Test-Path $jsonFilePath)) {
+        throw "JSONファイルが見つかりません: $jsonFilePath"
+    }
+
+    # -Raw を付けて一括読込 → ConvertFrom-Json
+    $jsonData = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
+
+    #------------------------------------------------------------
+    # ② 階層(1～5)ごとの構成配列をループ
+    #    ★ここで階層名が '1' でなければスキップする★
+    #------------------------------------------------------------
+    foreach ($階層Prop in $jsonData.PSObject.Properties) {
+
+        if ($階層Prop.Name -ne '1') { continue }   # ← 追加行
+
+        $階層番号 = $階層Prop.Name
+        $構成配列 = $階層Prop.Value.構成   # 配列 (空の場合もあり)
+        if (-not $構成配列) { continue }   # ボタンが無ければ次の階層へ
+
+        foreach ($button in $構成配列) {
+
+            #----------------------------------------------------
+            # ③ デバッグ出力
+            #----------------------------------------------------
+            Write-Host "[階層 $階層番号] ボタン名: $($button.ボタン名) `tY座標: $($button.Y座標) `t順番: $($button.順番) `tボタン色: $($button.ボタン色) `tテキスト: $($button.テキスト) `t処理番号: $($button.処理番号) `t幅: $($button.幅) `t高さ: $($button.高さ)"
+
+            #----------------------------------------------------
+            # ④ 色指定を System.Drawing.Color に変換
+            #----------------------------------------------------
+            $buttonColor = if ($button.ボタン色 -match '^[A-Fa-f0-9]{6}$') {
+                [System.Drawing.ColorTranslator]::FromHtml("#$($button.ボタン色)")
+            } else {
+                [System.Drawing.Color]::FromName($button.ボタン色)
+            }
+
+            #----------------------------------------------------
+            # ⑤ ボタン生成
+            #----------------------------------------------------
+            $新ボタン = 00_ボタンを作成する `
+                -コンテナ      $Global:可視左パネル `
+                -テキスト      $button.テキスト `
+                -ボタン名      $button.ボタン名 `
+                -幅           $button.幅 `
+                -高さ         $button.高さ `
+                -X位置         $button.X座標 `
+                -Y位置         $button.Y座標 `
+                -枠線          1 `
+                -背景色        $buttonColor `
+                -ドラッグ可能  $true `
+                -ボタンタイプ  "ノード" `
+                -ボタンタイプ2 $button.script `
+                -処理番号      $button.処理番号
+        }
+    }
+}
+
+
+#---　ボタン生成処理
+出力-ボタン情報 -jsonFilePath "$global:folderPath\memory.json"
+
+00_ボタンの上詰め再配置関数 -フレーム $Global:可視左パネル
+
+00_矢印追記処理 -フレームパネル $Global:可視左パネル
+
+
+# フォームを表示
+$メインフォーム.Add_Shown({ $メインフォーム.Activate() })
+
+[void]$メインフォーム.ShowDialog()
+
+----- CONTENT END -----
+===== FILE-END =====
+
+===== FILE-START =====
+PATH: 02_ツール\01_JSON調整.ps1
+----- CONTENT BEGIN -----
+# RPA UI2 ボタン設定編集ツール UI付き Ver1.4.1 (DATA TABLE + DefaultView 版)
+# このスクリプトは STA モードで実行してください。（例：powershell.exe -STA）
+
+# 0. STAモードチェック
+if ([System.Threading.Thread]::CurrentThread.ApartmentState -ne "STA") {
+    Write-Error "このスクリプトは STA モードで実行してください。"
+    exit
+}
+Write-Host "DEBUG: STAモードで実行中"
+
+# 1. 必要なアセンブリの読み込み
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+Write-Host "DEBUG: アセンブリ読み込み完了"
+
+# 2. JSONファイルパス設定
+$ファイルパス = "C:\Users\hallo\Documents\WindowsPowerShell\chord\RPA-UI2\ボタン設定.json"
+Write-Host "DEBUG: JSONファイルパス設定 => $ファイルパス"
+
+# ============================================================
+# PSCustomObject の配列を DataTable に変換する関数
+# ============================================================
+function ConvertTo-DataTable {
+    param (
+        [Parameter(Mandatory)]
+        [System.Collections.IEnumerable] $Objects
+    )
+    # 新規 DataTable 作成
+    $dt = New-Object System.Data.DataTable
+
+    # 配列が空なら空の DataTable を返す
+    if ($Objects.Count -eq 0) {
+        return $dt
+    }
+
+    # 最初のオブジェクトのプロパティを列定義として追加
+    $first = $Objects | Select-Object -First 1
+    foreach ($prop in $first.psobject.Properties) {
+        $column = New-Object System.Data.DataColumn ($prop.Name, [System.String])
+        $dt.Columns.Add($column) | Out-Null
+    }
+
+    # 各オブジェクトの値を行として追加
+    foreach ($obj in $Objects) {
+        $row = $dt.NewRow()
+        foreach ($prop in $obj.psobject.Properties) {
+            $row[$prop.Name] = $prop.Value
+        }
+        $dt.Rows.Add($row)
+    }
+
+    return $dt
+}
+
+# ============================================================
+# 3. グリッド更新関数（JSON読み込み → DataTable変換 → DataGridViewにバインド）
+# ============================================================
+function 更新_グリッド {
+    Write-Host "DEBUG: 更新_グリッド 開始"
+
+    # 3-1. JSONファイルが存在しなければ空配列で新規作成
+    if (-not (Test-Path $ファイルパス)) {
+        Write-Host "DEBUG: JSONファイルが存在しません。新規作成します。"
+        @() | ConvertTo-Json | Out-File $ファイルパス -Encoding UTF8
+    }
+
+    # 3-2. JSONを読み込む (UTF-8 前提。Shift-JISの場合は -Encoding Default に変更可能)
+    try {
+        $jsonRaw = Get-Content $ファイルパス -Raw -Encoding UTF8
+    }
+    catch {
+        Write-Host "DEBUG: JSON読み込みエラー（UTF8）：$_"
+        $jsonRaw = Get-Content $ファイルパス -Raw -Encoding Default
+    }
+    Write-Host "DEBUG: 読み込んだJSON => $jsonRaw"
+
+    # 3-3. JSONをオブジェクトに変換
+    $データ = $null
+    try {
+        $データ = $jsonRaw | ConvertFrom-Json
+    }
+    catch {
+        Write-Host "DEBUG: JSONパースエラー: $_"
+        $データ = @()
+    }
+
+    # 3-4. 単一オブジェクトの場合は配列化
+    if ($データ -and -not ($データ -is [System.Collections.IEnumerable])) {
+        Write-Host "DEBUG: JSONが単一オブジェクトのため配列化します。"
+        $データ = @($データ)
+    }
+
+    # 3-5. 空または null の場合は空配列に置き換え
+    if (-not $データ) {
+        Write-Host "DEBUG: JSON内容が空です。空配列に設定します。"
+        $データ = @()
+    }
+
+    Write-Host "DEBUG: JSONデータ件数 => $($データ.Count)"
+
+    # 3-6. DataTableに変換し、DefaultView で DataGridView にバインド
+    $dt = ConvertTo-DataTable -Objects $データ
+    $DataGridView.DataSource = $dt.DefaultView
+    $DataGridView.Refresh()
+
+    Write-Host "DEBUG: 更新_グリッド 完了"
+}
+
+# ============================================================
+# 4. 新規作成処理
+# ============================================================
+function 新規作成_実行 {
+    Write-Host "DEBUG: 新規作成_実行 開始"
+    [System.Windows.Forms.MessageBox]::Show("新規作成実行開始")
+
+    $新規レコード = [PSCustomObject]@{
+        処理番号 = $テキストBox_処理番号.Text
+        テキスト   = $テキストBox_テキスト.Text
+        ボタン名   = $テキストBox_ボタン名.Text
+        背景色     = $テキストBox_背景色.Text
+        コンテナ   = $テキストBox_コンテナ.Text
+        説明       = $テキストBox_説明.Text
+        関数名     = $テキストBox_関数名.Text
+    }
+    Write-Host "DEBUG: 新規レコード作成 => $($新規レコード | Out-String)"
+
+    # JSONを配列として読み込み
+    $データ = Get-Content $ファイルパス -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (-not $データ) {
+        Write-Host "DEBUG: JSONファイル内が空です。新規配列を作成します。"
+        $データ = @()
+    }
+
+    $データ += $新規レコード
+    $データ | ConvertTo-Json -Depth 5 | Set-Content $ファイルパス -Encoding UTF8
+    Write-Host "DEBUG: 新規レコードを書き込み完了"
+
+    更新_グリッド
+    Write-Host "DEBUG: 新規作成_実行 完了"
+}
+
+# ============================================================
+# 5. 編集処理
+# ============================================================
+function 編集_実行 {
+    Write-Host "DEBUG: 編集_実行 開始"
+    [System.Windows.Forms.MessageBox]::Show("編集実行開始")
+
+    $処理番号 = $テキストBox_処理番号.Text
+    Write-Host "DEBUG: 編集対象の処理番号 => $処理番号"
+
+    $データ = Get-Content $ファイルパス -Raw -Encoding UTF8 | ConvertFrom-Json
+    $更新済み = $false
+
+    for ($i = 0; $i -lt $データ.Count; $i++) {
+        Write-Host "DEBUG: チェック中の処理番号 => $($データ[$i].処理番号)"
+        if ($データ[$i].処理番号 -eq $処理番号) {
+            $データ[$i].テキスト   = $テキストBox_テキスト.Text
+            $データ[$i].ボタン名   = $テキストBox_ボタン名.Text
+            $データ[$i].背景色     = $テキストBox_背景色.Text
+            $データ[$i].コンテナ   = $テキストBox_コンテナ.Text
+            $データ[$i].説明       = $テキストBox_説明.Text
+            $データ[$i].関数名     = $テキストBox_関数名.Text
+            Write-Host "DEBUG: 編集対象が見つかりました。レコード更新完了"
+            $更新済み = $true
+            break
+        }
+    }
+
+    if (-not $更新済み) {
+        Write-Host "DEBUG: 編集対象の処理番号が見つかりません"
+        [System.Windows.Forms.MessageBox]::Show("該当する処理番号が見つかりません。")
+        return
+    }
+
+    $データ | ConvertTo-Json -Depth 5 | Set-Content $ファイルパス -Encoding UTF8
+    Write-Host "DEBUG: 編集したデータを書き込み完了"
+
+    更新_グリッド
+    Write-Host "DEBUG: 編集_実行 完了"
+}
+
+# ============================================================
+# 6. 削除処理
+# ============================================================
+function 削除_実行 {
+    Write-Host "DEBUG: 削除_実行 開始"
+    [System.Windows.Forms.MessageBox]::Show("削除実行開始")
+
+    $処理番号 = $テキストBox_処理番号.Text
+    Write-Host "DEBUG: 削除対象の処理番号 => $処理番号"
+
+    $データ  = Get-Content $ファイルパス -Raw -Encoding UTF8 | ConvertFrom-Json
+    $元件数  = $データ.Count
+    Write-Host "DEBUG: 削除前の件数 => $元件数"
+
+    $データ = $データ | Where-Object { $_.処理番号 -ne $処理番号 }
+
+    if ($元件数 -eq $データ.Count) {
+        Write-Host "DEBUG: 削除対象のレコードが見つかりません"
+        [System.Windows.Forms.MessageBox]::Show("該当する処理番号が見つかりません。")
+        return
+    }
+
+    Write-Host "DEBUG: 削除後の件数 => $($データ.Count)"
+    $データ | ConvertTo-Json -Depth 5 | Set-Content $ファイルパス -Encoding UTF8
+
+    更新_グリッド
+    Write-Host "DEBUG: 削除_実行 完了"
+}
+
+# ============================================================
+# 7. フォーム作成
+# ============================================================
+$form = New-Object System.Windows.Forms.Form
+$form.Text          = "ボタン設定編集ツール UI付き"
+$form.Size          = New-Object System.Drawing.Size(800,600)
+$form.StartPosition = "CenterScreen"
+Write-Host "DEBUG: フォーム作成完了"
+
+# ============================================================
+# 8. DataGridView作成【表示領域：10,10 ～ 760,250】
+# ============================================================
+$DataGridView = New-Object System.Windows.Forms.DataGridView
+$DataGridView.Location            = New-Object System.Drawing.Point(10,10)
+$DataGridView.Size                = New-Object System.Drawing.Size(760,250)
+$DataGridView.ReadOnly            = $true
+$DataGridView.SelectionMode       = "FullRowSelect"
+
+# ■ 列ヘッダーを確実に表示するためのプロパティ設定 ■
+$DataGridView.ColumnHeadersVisible = $true
+$DataGridView.AutoSizeColumnsMode  = 'Fill'
+$DataGridView.AutoGenerateColumns  = $true
+$DataGridView.BackgroundColor      = [System.Drawing.Color]::White
+
+$form.Controls.Add($DataGridView)
+Write-Host "DEBUG: DataGridView作成完了"
+
+# ============================================================
+# 9. 入力用ラベル・テキストボックス作成（位置：Y軸270～）
+# ============================================================
+$ラベルX        = 10
+$テキストBoxX   = 100
+$初期Y          = 270
+$間隔Y          = 30
+
+$位置_処理番号_Y         = $初期Y
+$位置_テキストラベル_Y     = $初期Y + $間隔Y
+$位置_テキストBoxテキスト_Y = $初期Y + $間隔Y
+$位置_ボタン名ラベル_Y     = $初期Y + (2 * $間隔Y)
+$位置_テキストBoxボタン名_Y = $初期Y + (2 * $間隔Y)
+$位置_背景色ラベル_Y       = $初期Y + (3 * $間隔Y)
+$位置_テキストBox背景色_Y   = $初期Y + (3 * $間隔Y)
+$位置_コンテナラベル_Y     = $初期Y + (4 * $間隔Y)
+$位置_テキストBoxコンテナ_Y = $初期Y + (4 * $間隔Y)
+$位置_説明ラベル_Y         = $初期Y + (5 * $間隔Y)
+$位置_テキストBox説明_Y     = $初期Y + (5 * $間隔Y)
+$位置_関数名ラベル_Y       = $初期Y + (6 * $間隔Y)
+$位置_テキストBox関数名_Y   = $初期Y + (6 * $間隔Y)
+Write-Host "DEBUG: 入力用コントロールの位置計算完了"
+
+# 9-1. 処理番号ラベル・テキストボックス
+$ラベル_処理番号 = New-Object System.Windows.Forms.Label
+$ラベル_処理番号.Location = New-Object System.Drawing.Point($ラベルX, $位置_処理番号_Y)
+$ラベル_処理番号.Size     = New-Object System.Drawing.Size(80,20)
+$ラベル_処理番号.Text     = "処理番号"
+$form.Controls.Add($ラベル_処理番号)
+
+$テキストBox_処理番号 = New-Object System.Windows.Forms.TextBox
+$テキストBox_処理番号.Location = New-Object System.Drawing.Point($テキストBoxX, $位置_処理番号_Y)
+$テキストBox_処理番号.Size     = New-Object System.Drawing.Size(200,20)
+$form.Controls.Add($テキストBox_処理番号)
+
+# 9-2. テキストラベル・テキストボックス
+$ラベル_テキスト = New-Object System.Windows.Forms.Label
+$ラベル_テキスト.Location = New-Object System.Drawing.Point($ラベルX, $位置_テキストラベル_Y)
+$ラベル_テキスト.Size     = New-Object System.Drawing.Size(80,20)
+$ラベル_テキスト.Text     = "テキスト"
+$form.Controls.Add($ラベル_テキスト)
+
+$テキストBox_テキスト = New-Object System.Windows.Forms.TextBox
+$テキストBox_テキスト.Location = New-Object System.Drawing.Point($テキストBoxX, $位置_テキストBoxテキスト_Y)
+$テキストBox_テキスト.Size     = New-Object System.Drawing.Size(200,20)
+$form.Controls.Add($テキストBox_テキスト)
+
+# 9-3. ボタン名ラベル・テキストボックス
+$ラベル_ボタン名 = New-Object System.Windows.Forms.Label
+$ラベル_ボタン名.Location = New-Object System.Drawing.Point($ラベルX, $位置_ボタン名ラベル_Y)
+$ラベル_ボタン名.Size     = New-Object System.Drawing.Size(80,20)
+$ラベル_ボタン名.Text     = "ボタン名"
+$form.Controls.Add($ラベル_ボタン名)
+
+$テキストBox_ボタン名 = New-Object System.Windows.Forms.TextBox
+$テキストBox_ボタン名.Location = New-Object System.Drawing.Point($テキストBoxX, $位置_テキストBoxボタン名_Y)
+$テキストBox_ボタン名.Size     = New-Object System.Drawing.Size(200,20)
+$form.Controls.Add($テキストBox_ボタン名)
+
+# 9-4. 背景色ラベル・テキストボックス
+$ラベル_背景色 = New-Object System.Windows.Forms.Label
+$ラベル_背景色.Location = New-Object System.Drawing.Point($ラベルX, $位置_背景色ラベル_Y)
+$ラベル_背景色.Size     = New-Object System.Drawing.Size(80,20)
+$ラベル_背景色.Text     = "背景色"
+$form.Controls.Add($ラベル_背景色)
+
+$テキストBox_背景色 = New-Object System.Windows.Forms.TextBox
+$テキストBox_背景色.Location = New-Object System.Drawing.Point($テキストBoxX, $位置_テキストBox背景色_Y)
+$テキストBox_背景色.Size     = New-Object System.Drawing.Size(200,20)
+$form.Controls.Add($テキストBox_背景色)
+
+# 9-5. コンテナラベル・テキストボックス
+$ラベル_コンテナ = New-Object System.Windows.Forms.Label
+$ラベル_コンテナ.Location = New-Object System.Drawing.Point($ラベルX, $位置_コンテナラベル_Y)
+$ラベル_コンテナ.Size     = New-Object System.Drawing.Size(80,20)
+$ラベル_コンテナ.Text     = "コンテナ"
+$form.Controls.Add($ラベル_コンテナ)
+
+$テキストBox_コンテナ = New-Object System.Windows.Forms.TextBox
+$テキストBox_コンテナ.Location = New-Object System.Drawing.Point($テキストBoxX, $位置_テキストBoxコンテナ_Y)
+$テキストBox_コンテナ.Size     = New-Object System.Drawing.Size(200,20)
+$form.Controls.Add($テキストBox_コンテナ)
+
+# 9-6. 説明ラベル・テキストボックス
+$ラベル_説明 = New-Object System.Windows.Forms.Label
+$ラベル_説明.Location = New-Object System.Drawing.Point($ラベルX, $位置_説明ラベル_Y)
+$ラベル_説明.Size     = New-Object System.Drawing.Size(80,20)
+$ラベル_説明.Text     = "説明"
+$form.Controls.Add($ラベル_説明)
+
+$テキストBox_説明 = New-Object System.Windows.Forms.TextBox
+$テキストBox_説明.Location = New-Object System.Drawing.Point($テキストBoxX, $位置_テキストBox説明_Y)
+$テキストBox_説明.Size     = New-Object System.Drawing.Size(200,20)
+$form.Controls.Add($テキストBox_説明)
+
+# 9-7. 関数名ラベル・テキストボックス
+$ラベル_関数名 = New-Object System.Windows.Forms.Label
+$ラベル_関数名.Location = New-Object System.Drawing.Point($ラベルX, $位置_関数名ラベル_Y)
+$ラベル_関数名.Size     = New-Object System.Drawing.Size(80,20)
+$ラベル_関数名.Text     = "関数名"
+$form.Controls.Add($ラベル_関数名)
+
+$テキストBox_関数名 = New-Object System.Windows.Forms.TextBox
+$テキストBox_関数名.Location = New-Object System.Drawing.Point($テキストBoxX, $位置_テキストBox関数名_Y)
+$テキストBox_関数名.Size     = New-Object System.Drawing.Size(200,20)
+$form.Controls.Add($テキストBox_関数名)
+
+Write-Host "DEBUG: 入力コントロール作成完了"
+
+# ============================================================
+# 10. 操作用ボタン作成
+# ============================================================
+# 10-1. 新規作成ボタン
+$ボタン_新規 = New-Object System.Windows.Forms.Button
+$ボタン_新規.Location = New-Object System.Drawing.Point(350, $位置_ボタン新規_Y)
+$ボタン_新規.Size     = New-Object System.Drawing.Size(100,30)
+$ボタン_新規.Text     = "新規作成"
+$ボタン_新規.Add_Click({
+    Write-Host "DEBUG: 新規作成ボタンクリック"
+    新規作成_実行
+})
+$form.Controls.Add($ボタン_新規)
+
+# 10-2. 編集ボタン
+$ボタン_編集 = New-Object System.Windows.Forms.Button
+$ボタン_編集.Location = New-Object System.Drawing.Point(350, $位置_ボタン編集_Y)
+$ボタン_編集.Size     = New-Object System.Drawing.Size(100,30)
+$ボタン_編集.Text     = "編集"
+$ボタン_編集.Add_Click({
+    Write-Host "DEBUG: 編集ボタンクリック"
+    編集_実行
+})
+$form.Controls.Add($ボタン_編集)
+
+# 10-3. 削除ボタン
+$ボタン_削除 = New-Object System.Windows.Forms.Button
+$ボタン_削除.Location = New-Object System.Drawing.Point(350, $位置_ボタン削除_Y)
+$ボタン_削除.Size     = New-Object System.Drawing.Size(100,30)
+$ボタン_削除.Text     = "削除"
+$ボタン_削除.Add_Click({
+    Write-Host "DEBUG: 削除ボタンクリック"
+    削除_実行
+})
+$form.Controls.Add($ボタン_削除)
+
+# 10-4. リロードボタン
+$ボタン_リロード = New-Object System.Windows.Forms.Button
+$ボタン_リロード.Location = New-Object System.Drawing.Point(350, $位置_ボタンリロード_Y)
+$ボタン_リロード.Size     = New-Object System.Drawing.Size(100,30)
+$ボタン_リロード.Text     = "リロード"
+$ボタン_リロード.Add_Click({
+    Write-Host "DEBUG: リロードボタンクリック"
+    更新_グリッド
+})
+$form.Controls.Add($ボタン_リロード)
+
+Write-Host "DEBUG: 操作用ボタン作成完了"
+
+# ============================================================
+# 11. DataGridView行選択時にテキストボックスへ値を反映
+# ============================================================
+$DataGridView.Add_SelectionChanged({
+    Write-Host "DEBUG: DataGridView行選択変更イベント発生"
+    if ($DataGridView.SelectedRows.Count -gt 0) {
+        # DataSource を DataTable.DefaultView にしているので、
+        # SelectedRows[0].DataBoundItem は DataRowView になる
+        $rowView = $DataGridView.SelectedRows[0].DataBoundItem
+        if ($rowView) {
+            $テキストBox_処理番号.Text = $rowView["処理番号"]
+            $テキストBox_テキスト.Text   = $rowView["テキスト"]
+            $テキストBox_ボタン名.Text   = $rowView["ボタン名"]
+            $テキストBox_背景色.Text     = $rowView["背景色"]
+            $テキストBox_コンテナ.Text   = $rowView["コンテナ"]
+            $テキストBox_説明.Text       = $rowView["説明"]
+            $テキストBox_関数名.Text     = $rowView["関数名"]
+        }
+    }
+})
+
+# ============================================================
+# 12. フォーム表示後に初期バインド
+# ============================================================
+$form.Add_Shown({
+    Write-Host "DEBUG: フォーム表示後 Add_Shown イベント発生"
+    更新_グリッド
+})
+
+# ============================================================
+# 13. 初期グリッド更新＆フォーム表示
+# ============================================================
+Write-Host "DEBUG: 初期グリッド更新実行"
+更新_グリッド
+
+Write-Host "DEBUG: フォーム表示開始"
+[System.Windows.Forms.Application]::Run($form)
+
+----- CONTENT END -----
+===== FILE-END =====
+
+===== FILE-START =====
+PATH: 02_メインフォームUI_foam関数.ps1
+----- CONTENT BEGIN -----
+
+# グローバル変数の初期化
+$global:ボタンカウンタ = 1
+$global:黄色ボタングループカウンタ = 1
+$global:緑色ボタングループカウンタ = 1
+$global:ドラッグ中のボタン = $null
+
+
+function 00_フォームを作成する {
+    param(
+        [int]$幅 = 1400,
+        [int]$高さ = 900
+    )
+
+    # タイトル: フォーム生成（最小化対策込み）Ver1.2
+    # 目的:
+    # - 初期状態を必ず Normal にする
+    # - TopMost 常時ONをやめ、前面化はイベントで制御
+    # - Shown/Resize イベントで最小化に落ちた場合の復帰を保証
+
+    # フォームの作成と基本設定
+    $メインフォーム = New-Object System.Windows.Forms.Form
+
+    # 画面系の基本プロパティ
+    $メインフォーム.Text            = "ドラッグ＆ドロップでボタンの位置を変更"  # タイトル
+    $メインフォーム.Width           = $幅
+    $メインフォーム.Height          = $高さ
+    $メインフォーム.StartPosition   = "CenterScreen"                              # 画面中央
+    $メインフォーム.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Sizable
+    $メインフォーム.ShowInTaskbar   = $true
+    $メインフォーム.MinimizeBox     = $true
+    $メインフォーム.MaximizeBox     = $true
+    $メインフォーム.Name            = "メインフォーム"                           # Nameプロパティ
+    $メインフォーム.AllowDrop       = $false                                       # フォーム自体のドロップ無効
+    $メインフォーム.BackColor       = [System.Drawing.Color]::FromArgb(255,255,255)
+
+    # ■最小化対策: 初期状態を明示的にNormalへ
+    $メインフォーム.WindowState     = [System.Windows.Forms.FormWindowState]::Normal
+
+    # ■常時前面はやめる（他のフォームやOSと喧嘩しやすい）
+    $メインフォーム.TopMost = $false
+
+    # ■Shown時の保険: 最小化なら即Normalへ戻し、前面化
+    $メインフォーム.Add_Shown({
+        param($s,$e)
+        # しつこい最小化癖をここで矯正
+        if ($s.WindowState -eq [System.Windows.Forms.FormWindowState]::Minimized) {
+            $s.WindowState = [System.Windows.Forms.FormWindowState]::Normal
+        }
+        # 一瞬だけTopMostにして前面化してから戻す（Zオーダー安定用の小技）
+        $s.TopMost = $true
+        $s.TopMost = $false
+        $s.Activate()
+    })
+
+    # ■Resize時の保険: もし最小化に落ちたら即復帰
+    $メインフォーム.Add_Resize({
+        param($s,$e)
+        switch ($s.WindowState) {
+            ([System.Windows.Forms.FormWindowState]::Minimized) {
+                # 最小化に落ちた瞬間に引き戻す
+                $s.WindowState = [System.Windows.Forms.FormWindowState]::Normal
+                $s.Activate()
+            }
+            ([System.Windows.Forms.FormWindowState]::Normal) {
+                # 特に処理なし
+            }
+            ([System.Windows.Forms.FormWindowState]::Maximized) {
+                # 特に処理なし
+            }
+        }
+    })
+
+    # フォームを返す
+    return $メインフォーム
+}
+
+function 00_フレームのDragDropイベントを設定する {
+    param (
+        [System.Windows.Forms.Panel]$フレーム
+    )
+
+    $フレーム.Add_DragDrop({
+        param($sender, $e)
+
+        # ドラッグ中のボタンを取得
+        $ボタン = $e.Data.GetData([System.Windows.Forms.Button])
+
+        if ($ボタン -ne $null -and $ボタン.Tag.IsDragging) {
+
+            # ドロップ先のフレーム内の座標に変換
+            $ドロップ画面座標 = New-Object System.Drawing.Point($e.X, $e.Y)
+            $ドロップ点 = $sender.PointToClient($ドロップ画面座標)
+
+            # 現在の位置と色
+            $現在のY   = $ボタン.Location.Y
+            $現在の色  = $ボタン.BackColor
+
+            # ボタンの中心Yを基準に配置したいYを計算
+            $中心Y   = $ドロップ点.Y
+            $配置Y   = $中心Y - ($ボタン.Height / 2) + 10
+
+            # ============================
+            # ネスト禁止チェック:
+            #   - 条件分岐(緑)をループ(黄)の中に入れるな
+            #   - ループ(黄)を条件分岐(緑)の中に入れるな
+            # ============================
+            $禁止フラグ = ドロップ禁止チェック_ネスト規制 `
+                -フレーム $sender `
+                -移動ボタン $ボタン `
+                -設置希望Y $配置Y
+
+            if ($禁止フラグ) {
+                [System.Windows.Forms.MessageBox]::Show(
+                    "この位置には配置できません。`r`nネストは禁止です。",
+                    "配置禁止",
+                    [System.Windows.Forms.MessageBoxButtons]::OK,
+                    [System.Windows.Forms.MessageBoxIcon]::Warning
+                ) | Out-Null
+
+                # ドラッグ状態をリセットして終了
+                $ボタン.Tag.IsDragging = $false
+                $ボタン.Tag.StartPoint = [System.Drawing.Point]::Empty
+                $global:ドラッグ中のボタン = $null
+                return
+            }
+
+            # ============================
+            # 既存の同色ブロック衝突チェック
+            # （今の 10_ボタンの一覧取得 は bool を返してるのでそれに合わせる）
+            # ============================
+            $衝突あり = 10_ボタンの一覧取得 `
+                -フレーム $sender `
+                -現在のY $現在のY `
+                -設置希望Y $配置Y `
+                -現在の色 $現在の色
+
+            if ($衝突あり) {
+                # 同色ブロックの領域をまたぐ/割り込む等で拒否
+                # ここでは何もしないで抜ける
+            }
+            else {
+                # スナップXをフレーム中央にそろえる
+                $スナップX = [Math]::Floor(($sender.ClientSize.Width - $ボタン.Width) / 2)
+
+                # 実際に移動
+                $ボタン.Location = New-Object System.Drawing.Point($スナップX, $配置Y)
+
+                # ドラッグ状態のリセット
+                $ボタン.Tag.IsDragging = $false
+                $ボタン.Tag.StartPoint = [System.Drawing.Point]::Empty
+                $global:ドラッグ中のボタン = $null
+
+                # 全体の整列とライン再描画
+                00_ボタンの上詰め再配置関数 -フレーム $sender
+                00_矢印追記処理 -フレームパネル $Global:可視左パネル
+            }
+        }
+    })
+}
+
+
+function ドロップ禁止チェック_ネスト規制 {
+    param (
+        [System.Windows.Forms.Panel]$フレーム,      # ドロップ先パネル
+        [System.Windows.Forms.Button]$移動ボタン,   # 今ドラッグしてるボタン
+        [int]$設置希望Y                              # ドロップ後に置く予定のY
+    )
+
+    # ユーティリティ: 指定色+GroupIDのブロック縦範囲を返す(TopY/BottomY)
+    # movingBtn だけは newY を反映して計算する
+    function Get-GroupRangeAfterMove {
+        param(
+            [System.Windows.Forms.Panel]$panel,
+            [System.Windows.Forms.Button]$movingBtn,
+            [int]$newY,
+            [System.Drawing.Color]$targetColor
+        )
+
+        if (-not $movingBtn.Tag) { return $null }
+        $gid = $movingBtn.Tag.GroupID
+        if ($null -eq $gid) { return $null }
+
+        # 同じ GroupID かつ 指定色 のボタンを集める
+        $sameGroupBtns = $panel.Controls |
+            Where-Object {
+                $_ -is [System.Windows.Forms.Button] -and
+                $_.Tag -ne $null -and
+                $_.Tag.GroupID -eq $gid -and
+                $_.Tag.BackgroundColor -ne $null -and
+                $_.Tag.BackgroundColor.ToArgb() -eq $targetColor.ToArgb()
+            }
+
+        # "開始" "終了" の2本がそろってないと正しい範囲が出せない
+        if ($sameGroupBtns.Count -lt 2) {
+            return $null
+        }
+
+        $yList = @()
+        foreach ($btn in $sameGroupBtns) {
+            if ($btn -eq $movingBtn) {
+                $yList += $newY
+            } else {
+                $yList += $btn.Location.Y
+            }
+        }
+
+        $topY    = ($yList | Measure-Object -Minimum).Minimum
+        $bottomY = ($yList | Measure-Object -Maximum).Maximum
+
+        return [pscustomobject]@{
+            GroupID  = $gid
+            TopY     = [int]$topY
+            BottomY  = [int]$bottomY
+        }
+    }
+
+    # ユーティリティ: パネル全体から、指定色ごとに GroupID 単位の範囲を回収
+    function Get-AllGroupRanges {
+        param(
+            [System.Windows.Forms.Panel]$panel,
+            [System.Drawing.Color]$targetColor
+        )
+
+        $colorBtns = $panel.Controls |
+            Where-Object {
+                $_ -is [System.Windows.Forms.Button] -and
+                $_.Tag -ne $null -and
+                $_.Tag.BackgroundColor -ne $null -and
+                $_.Tag.BackgroundColor.ToArgb() -eq $targetColor.ToArgb()
+            }
+
+        $grouped = $colorBtns | Group-Object -Property { $_.Tag.GroupID }
+
+        $ranges = @()
+
+        foreach ($g in $grouped) {
+            # そのグループのボタン(開始/終了)が2つ未満ならスキップ
+            if ($g.Group.Count -lt 2) { continue }
+
+            $sorted = $g.Group | Sort-Object { $_.Location.Y }
+            $topY    = $sorted[0].Location.Y
+            $bottomY = $sorted[-1].Location.Y
+
+            $ranges += [pscustomobject]@{
+                GroupID = $g.Name
+                TopY    = [int]$topY
+                BottomY = [int]$bottomY
+            }
+        }
+
+        return $ranges
+    }
+
+    # 2つの範囲(condRange=緑 / loopRange=黄)の組み合わせが違反かどうか
+    # 戻り値: $true = 違反
+    function Is-IllegalPair {
+        param(
+            $condRange,
+            $loopRange
+        )
+
+        if ($null -eq $condRange -or $null -eq $loopRange) {
+            return $false
+        }
+
+        $cTop =  $condRange.TopY
+        $cBot =  $condRange.BottomY
+        $lTop =  $loopRange.TopY
+        $lBot =  $loopRange.BottomY
+
+        # まず重なってるかどうか
+        $overlap = ($cBot -gt $lTop) -and ($cTop -lt $lBot)
+        if (-not $overlap) {
+            # 完全に上下に離れてる → OK
+            return $false
+        }
+
+        # 条件分岐がループの完全内側ならOK
+        $condInsideLoop = ($cTop -ge $lTop) -and ($cBot -le $lBot)
+        if ($condInsideLoop) {
+            # OK (ループが外側、条件分岐が内側) は合法
+            return $false
+        }
+
+        # それ以外の重なりはダメ
+        # - 交差 (片足だけ突っ込んでる)
+        # - ループが条件分岐の内側に丸ごと入る
+        return $true
+    }
+
+    # ここから本体
+    $元色 = $null
+    if ($移動ボタン.Tag -and $移動ボタン.Tag.BackgroundColor) {
+        $元色 = $移動ボタン.Tag.BackgroundColor
+    }
+
+    $isGreen  = ($元色 -ne $null -and $元色.ToArgb() -eq [System.Drawing.Color]::SpringGreen.ToArgb())
+    $isYellow = ($元色 -ne $null -and $元色.ToArgb() -eq [System.Drawing.Color]::LemonChiffon.ToArgb())
+
+    # パネル上の全条件分岐ブロック範囲と全ループブロック範囲を先に取っておく
+    $allCondRanges = Get-AllGroupRanges -panel $フレーム -targetColor ([System.Drawing.Color]::SpringGreen)
+    $allLoopRanges = Get-AllGroupRanges -panel $フレーム -targetColor ([System.Drawing.Color]::LemonChiffon)
+
+    # まず「単体ノードが腹に落ちる」ケースの即時チェック
+    if ($isYellow) {
+        foreach ($cr in $allCondRanges) {
+            if ($設置希望Y -ge $cr.TopY -and $設置希望Y -le $cr.BottomY) {
+                # ループの任意ノードを条件分岐の腹の中に入れるのは禁止
+                return $true
+            }
+        }
+    }
+    elseif ($isGreen) {
+        foreach ($lr in $allLoopRanges) {
+            if ($設置希望Y -ge $lr.TopY -and $設置希望Y -le $lr.BottomY) {
+                # 条件分岐ノードをループの腹に刺すのは禁止
+                # (＝ループの途中に条件分岐を割り込ませるのもダメ)
+                return $true
+            }
+        }
+    }
+
+    # 次に、グループ全体としての整合性チェック
+    if ($isGreen) {
+        # この条件分岐グループが移動後どういう縦範囲になるか
+        $movedCondRange = Get-GroupRangeAfterMove -panel $フレーム `
+                                                 -movingBtn $移動ボタン `
+                                                 -newY $設置希望Y `
+                                                 -targetColor ([System.Drawing.Color]::SpringGreen)
+
+        foreach ($lr in $allLoopRanges) {
+            if (Is-IllegalPair -condRange $movedCondRange -loopRange $lr) {
+                return $true
+            }
+        }
+
+        return $false
+    }
+
+    if ($isYellow) {
+        # このループグループが移動後どういう縦範囲になるか
+        $movedLoopRange = Get-GroupRangeAfterMove -panel $フレーム `
+                                                 -movingBtn $移動ボタン `
+                                                 -newY $設置希望Y `
+                                                 -targetColor ([System.Drawing.Color]::LemonChiffon)
+
+        foreach ($cr in $allCondRanges) {
+            if (Is-IllegalPair -condRange $cr -loopRange $movedLoopRange) {
+                return $true
+            }
+        }
+
+        return $false
+    }
+
+    # 緑でも黄でもないノードは規制しない
+    return $false
+}
+
+
+
+function 00_フレームのDragEnterイベントを設定する {
+  param (
+    [System.Windows.Forms.Panel]$フレーム
+  )
+
+  $フレーム.Add_DragEnter({
+    param($sender, $e)
+    if ($e.Data.GetDataPresent([System.Windows.Forms.Button])) {
+      $e.Effect = [System.Windows.Forms.DragDropEffects]::Move
+    } else {
+      $e.Effect = [System.Windows.Forms.DragDropEffects]::None
+    }
+  })
+}
+
+function 10_ボタンの一覧取得 {
+    param (
+        [System.Windows.Forms.Panel]$フレーム,
+        [Int]$現在のY,
+        [System.Drawing.Color]$現在の色,
+        [Int]$設置希望Y
+    )
+    
+    # 現在の色がSpringGreenまたはLemonChiffonでない場合、フラグを返す
+    if (-not ($現在の色 -eq [System.Drawing.Color]::SpringGreen -or $現在の色 -eq [System.Drawing.Color]::LemonChiffon)) {
+        return $false
+    }
+
+    # 現在のボタンをY位置順にソート
+    $ソート済みボタン = $フレーム.Controls |
+                      Where-Object { $_ -is [System.Windows.Forms.Button] } |
+                      Sort-Object { $_.Location.Y }
+    
+    # Y座標の範囲を決定
+    $minY = [Math]::Min($現在のY, $設置希望Y)
+    $maxY = [Math]::Max($現在のY, $設置希望Y)
+    
+    # フラグを初期化
+    $SameColorExists = $false
+    
+    foreach ($ボタン in $ソート済みボタン) {
+        $ボタンY = $ボタン.Location.Y
+        $ボタン色 = $ボタン.BackColor
+        
+        ##Write-Host "色: $ボタン色" +  " ボタンY座標: $ボタンY"
+    
+        if ($現在の色 -eq [System.Drawing.Color]::SpringGreen) {
+    
+        # Y座標が範囲内かつBackColorが現在の色かをチェック
+        if ($ボタンY -ge $minY -and $ボタンY -le $maxY -and $ボタン色 -eq [System.Drawing.Color]::SpringGreen -and $ボタンY -ne $現在のY) {
+            ##Write-Host "ボタン '$($ボタン.Text)' が指定範囲内にあり、BackColorが現在の色です。1"
+            $SameColorExists = $true
+            break  # 最初に見つけたらループを抜ける
+        }
+
+
+        } elseif($現在の色 -eq [System.Drawing.Color]::LemonChiffon) {
+
+        if ($ボタンY -ge $minY -and $ボタンY -le $maxY -and $ボタン色 -eq [System.Drawing.Color]::LemonChiffon -and $ボタンY -ne $現在のY) {
+            ##Write-Host "ボタン '$($ボタン.Text)' が指定範囲内にあり、BackColorが現在の色です2。"
+            $SameColorExists = $true
+            break  # 最初に見つけたらループを抜ける
+        }
+            
+        }
+
+    }
+    
+    # フラグを返り値として返す
+    return $SameColorExists
+}
+
+function 00_ボタンの上詰め再配置関数 {
+  param (
+    [System.Windows.Forms.Panel]$フレーム,
+    [int]$ボタン高さ = 30,
+    [int]$間隔 = 20  
+  )
+
+  # ボタンの高さと間隔を設定
+  $ボタン高さ = 30
+  $ボタン間隔 = $間隔
+
+  # 現在のボタンをY位置順にソート
+  $ソート済みボタン = $フレーム.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] } | Sort-Object { $_.Location.Y }
+
+  $現在のY位置 = 0  # ボタン配置の初期位置
+
+  # "条件分岐 開始"、"条件分岐 中間"、"条件分岐 終了"の位置を特定
+  $開始インデックス = -1
+  $中間インデックス = -1
+  $終了インデックス = -1
+
+  for ($i = 0; $i -lt $ソート済みボタン.Count; $i++) {
+    if ($ソート済みボタン[$i].Text -eq "条件分岐 開始") {
+      $開始インデックス = $i
+    }
+    if ($ソート済みボタン[$i].Text -eq "条件分岐 中間") {
+      $中間インデックス = $i
+    }
+    if ($ソート済みボタン[$i].Text -eq "条件分岐 終了") {
+      $終了インデックス = $i
+    }
+  }
+
+  for ($インデックス = 0; $インデックス -lt $ソート済みボタン.Count; $インデックス++) {
+    $ボタンテキスト = $ソート済みボタン[$インデックス].Text
+
+    # ボタンの色を設定する条件分岐
+    if ($開始インデックス -ne -1 -and $中間インデックス -ne -1 -and $インデックス -gt $開始インデックス -and $インデックス -lt $中間インデックス) {
+
+ 
+if ($ソート済みボタン[$インデックス].Tag.script -eq "スクリプト") {
+       $ソート済みボタン[$インデックス].BackColor = $global:ピンク赤色
+} else {
+       $ソート済みボタン[$インデックス].BackColor = [System.Drawing.Color]::Salmon
+}
+
+
+
+
+    } elseif ($中間インデックス -ne -1 -and $終了インデックス -ne -1 -and $インデックス -gt $中間インデックス -and $インデックス -lt $終了インデックス) {
+
+
+
+if ($ソート済みボタン[$インデックス].Tag.script -eq "スクリプト") {
+      $ソート済みボタン[$インデックス].BackColor = $global:ピンク青色
+} else {
+       $ソート済みボタン[$インデックス].BackColor =$global:青色
+}
+
+
+    } else {
+      # 現在の色を取得
+      $現在の色 = $ソート済みボタン[$インデックス].BackColor
+
+      # 現在の色が Salmon または FromArgb(200, 220, 255) の場合のみ White に変更
+      if ($現在の色.ToArgb() -eq [System.Drawing.Color]::Salmon.ToArgb() -or $現在の色.ToArgb() -eq $global:青色.ToArgb()) {
+        $ソート済みボタン[$インデックス].BackColor = [System.Drawing.Color]::White
+      }
+      if ($ソート済みボタン[$インデックス].Tag.script -eq "スクリプト") {
+        $ソート済みボタン[$インデックス].BackColor = [System.Drawing.Color]::Pink
+      }
+    }
+
+
+    # ボタン間隔と高さの調整（"条件分岐 中間"の場合は0とする）
+    if ($ボタンテキスト -eq "条件分岐 中間") {
+      $使用する間隔 = 10
+      $使用する高さ = 0
+    } else {
+      $使用する間隔 = $ボタン間隔
+      $使用する高さ = $ボタン高さ
+    }
+
+    # 希望位置を計算
+    $希望位置Y = $現在のY位置 + $使用する間隔
+
+    # ボタンの配置を更新
+    $ソート済みボタン[$インデックス].Location = New-Object System.Drawing.Point(
+      [Math]::Floor(($フレーム.ClientSize.Width - $ソート済みボタン[$インデックス].Width) / 2),
+      $希望位置Y
+    )
+
+    # 現在のY位置を更新
+    $現在のY位置 = $希望位置Y + $使用する高さ
+  }
+}
+
+function 00_フレームを作成する {
+    param (
+        [System.Windows.Forms.Form]$フォーム,           # フレームを追加するフォーム
+        [int]$幅 = 300,                                # フレームの幅
+        [int]$高さ = 600,                              # フレームの高さ
+        [int]$X位置 = 100,                              # フレームのX座標
+        [int]$Y位置 = 20,                               # フレームのY座標
+        [string]$フレーム名 = "フレームパネル",         # フレームの名前
+        [bool]$Visible = $true,                        # パネルの初期表示状態
+        [System.Drawing.Color]$背景色 = ([System.Drawing.Color]::FromArgb(240,240,240)),  # 背景色
+        [bool]$枠線あり = $false                        # 枠線の有無
+    )
+
+    # パネル作成
+    $フレームパネル = New-Object System.Windows.Forms.Panel
+    $フレームパネル.Size = New-Object System.Drawing.Size($幅, $高さ)
+    $フレームパネル.Location = New-Object System.Drawing.Point($X位置, $Y位置)
+    $フレームパネル.AllowDrop = $true
+    $フレームパネル.AutoScroll = $true
+    $フレームパネル.Name = $フレーム名
+    $フレームパネル.Visible = $Visible
+    $フレームパネル.BackColor = $背景色
+
+    if ($枠線あり) {
+        $フレームパネル.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+    }
+    else {
+        $フレームパネル.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+    }
+
+    # 描画オブジェクト用のプロパティを Tag に追加
+    $フレームパネル.Tag = @{ DrawObjects = @() }
+
+    # フレームのClickイベントを設定
+    $フレームパネル.Add_Click({
+        param($sender, $e)
+        [System.Windows.Forms.MessageBox]::Show("フレームがクリックされました。")
+    })
+
+    # フレームをフォームに追加
+    $フォーム.Controls.Add($フレームパネル)
+
+    # Paintイベントの設定
+    00_メインフレームパネルのPaintイベントを設定する -フレームパネル $フレームパネル
+
+    # フレームを返す
+    return $フレームパネル
+}
+
+function script:コンテキストメニューを初期化する {
+    ###Write-Host "コンテキストメニューを初期化します。"
+    if (-not $script:ContextMenuInitialized) {
+        # コンテキストメニューをスクリプトスコープで定義
+        $script:右クリックメニュー = New-Object System.Windows.Forms.ContextMenuStrip
+        $script:名前変更メニューアイテム = $script:右クリックメニュー.Items.Add("名前変更")
+        $script:スクリプト編集メニューアイテム = $script:右クリックメニュー.Items.Add("スクリプト編集")
+        $script:スクリプト実行メニューアイテム = $script:右クリックメニュー.Items.Add("スクリプト実行")
+        $script:削除メニューアイテム = $script:右クリックメニュー.Items.Add("削除")
+
+        ###Write-Host "コンテキストメニュー項目を追加しました。"
+
+        # イベントハンドラーの設定
+        $script:名前変更メニューアイテム.Add_Click({ 
+            ###Write-Host "名前変更メニューがクリックされました。"
+            script:名前変更処理 
+        })
+        $script:スクリプト編集メニューアイテム.Add_Click({ 
+            ###Write-Host "スクリプト編集メニューがクリックされました。"
+            script:スクリプト編集処理 
+        })
+        $script:スクリプト実行メニューアイテム.Add_Click({ 
+            ###Write-Host "スクリプト編集メニューがクリックされました。"
+            script:スクリプト実行処理 
+        })
+        $script:削除メニューアイテム.Add_Click({ 
+            ###Write-Host "削除メニューがクリックされました。"
+            script:削除処理 
+        })
+
+        # イベントハンドラーが一度だけ設定されたことを記録
+        $script:ContextMenuInitialized = $true
+        ###Write-Host "コンテキストメニューの初期化が完了しました。"
+    }
+    else {
+        ###Write-Host "コンテキストメニューは既に初期化されています。"
+    }
+}
+
+function script:名前変更処理 {
+    ###Write-Host "名前変更処理を開始します。"
+    if ($null -ne $メインフォーム) {
+        ###Write-Host "メインフォームを非表示にします。"
+        $メインフォーム.Hide()
+    }
+
+    # 右クリック時に格納したボタンを取得
+    $btn = $script:右クリックメニュー.Tag
+    ###Write-Host "取得したボタン: $($btn.Name)"
+
+    if ($btn -ne $null) {
+        # 入力ボックスを表示して新しい名前を取得
+        ###Write-Host "入力ボックスを表示して新しい名前を取得します。"
+        $新しい名前 = [Microsoft.VisualBasic.Interaction]::InputBox(
+            "新しいボタン名を入力してください:",  # プロンプト
+            "ボタン名の変更",                    # タイトル
+            $btn.Text                            # デフォルト値
+        )
+        ###Write-Host "ユーザーが入力した新しい名前: '$新しい名前'"
+
+        # ユーザーが入力した場合のみテキストを更新
+        if (![string]::IsNullOrWhiteSpace($新しい名前)) {
+            ###Write-Host "ボタンのテキストを更新します。"
+            $btn.Text = $新しい名前
+        }
+        else {
+            ###Write-Host "新しい名前が入力されませんでした。変更をキャンセルします。"
+        }
+    }
+    else {
+        Write-Warning "ボタンが取得できませんでした。"
+    }
+
+    if ($null -ne $メインフォーム) {
+        ###Write-Host "メインフォームを再表示します。"
+        $メインフォーム.Show()
+    }
+    ###Write-Host "名前変更処理が完了しました。"
+}
+
+function script:スクリプト編集処理 {
+    ###Write-Host "スクリプト編集処理を開始します。"
+    if ($null -ne $メインフォーム) {
+        ###Write-Host "メインフォームを非表示にします。"
+        $メインフォーム.Hide()
+    }
+
+    # 右クリック時に格納したボタンを取得
+    $btn = $script:右クリックメニュー.Tag
+    ###Write-Host "取得したボタン: $($btn.Name)"
+
+    if ($btn -ne $null) {
+        $エントリID = $btn.Name.ToString()
+        ###Write-Host "エントリID: $エントリID"
+
+        # スクリプト編集用のフォームを作成
+        ###Write-Host "スクリプト編集用フォームを作成します。"
+        $編集フォーム = New-Object System.Windows.Forms.Form
+        $編集フォーム.Text = "スクリプト編集"
+        $編集フォーム.Size = New-Object System.Drawing.Size(600, 400)
+        $編集フォーム.StartPosition = "CenterScreen"
+
+        # スクリプト取得関数が存在する前提
+        ###Write-Host "IDでエントリを取得します。"
+        try {
+            $取得したエントリ = IDでエントリを取得 -ID $エントリID
+            ###Write-Host "取得したエントリ: $取得したエントリ"
+        }
+        catch {
+            Write-Error "エントリの取得中にエラーが発生しました: $_"
+            return
+        }
+
+        # テキストボックスの作成
+        ###Write-Host "テキストボックスを作成します。"
+        $テキストボックス = New-Object System.Windows.Forms.TextBox
+        $テキストボックス.Multiline = $true
+        $テキストボックス.ScrollBars = "Both"
+        $テキストボックス.WordWrap = $false
+        $テキストボックス.Size = New-Object System.Drawing.Size(580, 300)
+        $テキストボックス.Font = New-Object System.Drawing.Font("Consolas", 10)
+        $テキストボックス.Location = New-Object System.Drawing.Point(10, 10)
+        $テキストボックス.Text = $取得したエントリ  # ボタンのタグに保存されたスクリプトを読み込む
+        ###Write-Host "テキストボックスにスクリプトを設定しました。"
+
+        # 保存ボタンの作成
+        ###Write-Host "保存ボタンを作成します。"
+        $保存ボタン = New-Object System.Windows.Forms.Button
+        $保存ボタン.Text = "保存"
+        $保存ボタン.DialogResult = [System.Windows.Forms.DialogResult]::OK
+        $保存ボタン.Anchor = "Bottom, Right"
+        $保存ボタン.Location = New-Object System.Drawing.Point(420, 330)
+        $保存ボタン.Size = New-Object System.Drawing.Size(75, 25)
+
+        # キャンセルボタンの作成
+        ###Write-Host "キャンセルボタンを作成します。"
+        $キャンセルボタン = New-Object System.Windows.Forms.Button
+        $キャンセルボタン.Text = "キャンセル"
+        $キャンセルボタン.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+        $キャンセルボタン.Anchor = "Bottom, Right"
+        $キャンセルボタン.Location = New-Object System.Drawing.Point(500, 330)
+        $キャンセルボタン.Size = New-Object System.Drawing.Size(75, 25)
+
+        # フォームにコントロールを追加
+        ###Write-Host "フォームにコントロールを追加します。"
+        $編集フォーム.Controls.Add($テキストボックス)
+        $編集フォーム.Controls.Add($保存ボタン)
+        $編集フォーム.Controls.Add($キャンセルボタン)
+
+        # フォームのボタンを設定
+        $編集フォーム.AcceptButton = $保存ボタン
+        $編集フォーム.CancelButton = $キャンセルボタン
+
+        # フォームをモーダルで表示
+        ###Write-Host "スクリプト編集フォームを表示します。"
+        $結果 = $編集フォーム.ShowDialog()
+        ###Write-Host "スクリプト編集フォームが閉じられました。"
+
+        if ($結果 -eq [System.Windows.Forms.DialogResult]::OK) {
+            ###Write-Host "保存ボタンがクリックされました。エントリを置換します。"
+            try {
+                IDでエントリを置換 -ID $エントリID -新しい文字列 $テキストボックス.Text
+                ###Write-Host "エントリの置換が完了しました。"
+            }
+            catch {
+                Write-Error "エントリの置換中にエラーが発生しました: $_"
+            }
+        }
+        else {
+            ###Write-Host "編集がキャンセルされました。"
+        }
+
+        # 編集フォームを破棄
+        ###Write-Host "編集フォームを破棄します。"
+        $編集フォーム.Dispose()
+    }
+    else {
+        Write-Warning "ボタンが取得できませんでした。"
+    }
+
+    if ($null -ne $メインフォーム) {
+        ###Write-Host "メインフォームを再表示します。"
+        $メインフォーム.Show()
+    }
+    ###Write-Host "スクリプト編集処理が完了しました。"
+}
+
+function script:スクリプト実行処理 {
+    ###Write-Host "スクリプト実行処理を開始します。"
+    if ($null -ne $メインフォーム) {
+        ###Write-Host "メインフォームを非表示にします。"
+        $メインフォーム.Hide()
+    }
+
+    # 右クリック時に格納したボタンを取得
+    $btn = $script:右クリックメニュー.Tag
+    ###Write-Host "取得したボタン: $($btn.Name)"
+
+    if ($btn -ne $null) {
+        $エントリID = $btn.Name.ToString()
+        ###Write-Host "エントリID: $エントリID"
+
+        # スクリプト実行用のフォームを作成
+        ###Write-Host "スクリプト実行用フォームを作成します。"
+        $実行フォーム = New-Object System.Windows.Forms.Form
+        $実行フォーム.Text = "スクリプト実行"
+        $実行フォーム.Size = New-Object System.Drawing.Size(600, 500)
+        $実行フォーム.StartPosition = "CenterScreen"
+
+        # スクリプト取得関数が存在する前提
+        ###Write-Host "IDでエントリを取得します。"
+        try {
+            $取得したエントリ = IDでエントリを取得 -ID $エントリID
+            ###Write-Host "取得したエントリ: $取得したエントリ"
+        }
+        catch {
+            Write-Error "エントリの取得中にエラーが発生しました: $_"
+            return
+        }
+
+        # スクリプト入力用テキストボックスの作成
+        ###Write-Host "スクリプト入力用テキストボックスを作成します。"
+        $テキストボックス = New-Object System.Windows.Forms.TextBox
+        $テキストボックス.Multiline = $true
+        $テキストボックス.ScrollBars = "Both"
+        $テキストボックス.WordWrap = $false
+        $テキストボックス.Size = New-Object System.Drawing.Size(580, 250)
+        $テキストボックス.Font = New-Object System.Drawing.Font("Consolas", 10)
+        $テキストボックス.Location = New-Object System.Drawing.Point(10, 10)
+        $テキストボックス.Text = $取得したエントリ
+        
+        # コンソール出力用テキストボックスの作成
+        ###Write-Host "コンソール用テキストボックスを作成します。"
+        $コンソールボックス = New-Object System.Windows.Forms.TextBox
+        $コンソールボックス.Multiline = $true
+        $コンソールボックス.ScrollBars = "Both"
+        $コンソールボックス.WordWrap = $false
+        $コンソールボックス.ReadOnly = $true
+        $コンソールボックス.Size = New-Object System.Drawing.Size(580, 150)
+        $コンソールボックス.Font = New-Object System.Drawing.Font("Consolas", 10)
+        $コンソールボックス.Location = New-Object System.Drawing.Point(10, 270)
+
+        # 実行ボタンの作成
+        ###Write-Host "実行ボタンを作成します。"
+        $実行ボタン = New-Object System.Windows.Forms.Button
+        $実行ボタン.Text = "実行"
+        $実行ボタン.Anchor = "Bottom, Right"
+        $実行ボタン.Location = New-Object System.Drawing.Point(420, 430)
+        $実行ボタン.Size = New-Object System.Drawing.Size(75, 25)
+        $実行ボタン.Add_Click({
+            $output = Invoke-Expression $テキストボックス.Text 2>&1
+            $コンソールボックス.Text = $output
+        })
+
+        # キャンセルボタンの作成
+        ###Write-Host "キャンセルボタンを作成します。"
+        $キャンセルボタン = New-Object System.Windows.Forms.Button
+        $キャンセルボタン.Text = "キャンセル"
+        $キャンセルボタン.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+        $キャンセルボタン.Anchor = "Bottom, Right"
+        $キャンセルボタン.Location = New-Object System.Drawing.Point(500, 430)
+        $キャンセルボタン.Size = New-Object System.Drawing.Size(75, 25)
+
+        # フォームにコントロールを追加
+        ###Write-Host "フォームにコントロールを追加します。"
+        $実行フォーム.Controls.Add($テキストボックス)
+        $実行フォーム.Controls.Add($コンソールボックス)
+        $実行フォーム.Controls.Add($実行ボタン)
+        $実行フォーム.Controls.Add($キャンセルボタン)
+
+        # フォームのボタンを設定
+        $実行フォーム.CancelButton = $キャンセルボタン
+
+        # フォームをモーダルで表示
+        ###Write-Host "スクリプト実行フォームを表示します。"
+        $実行フォーム.ShowDialog()
+        ###Write-Host "スクリプト実行フォームが閉じられました。"
+    }
+    else {
+        Write-Warning "ボタンが取得できませんでした。"
+    }
+
+    if ($null -ne $メインフォーム) {
+        ###Write-Host "メインフォームを再表示します。"
+        $メインフォーム.Show()
+    }
+    ###Write-Host "スクリプト実行処理が完了しました。"
+}
+
+
+function 条件分岐ボタン削除処理 {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [System.Windows.Forms.Button]$ボタン
+    )
+
+    #-----------------------------
+    # ① 基本情報の取得
+    #-----------------------------
+    $parent  = $ボタン.Parent
+    if (-not $parent) { return }
+
+    $myY     = $ボタン.Location.Y
+    $myText  = $ボタン.Text.Trim()
+
+    #-----------------------------
+    # ② 探索ターゲットを決定
+    #-----------------------------
+    switch ($myText) {
+        '条件分岐 開始' {
+            $方向     = '下'       # 自分より下側を探す
+            $欲しい順 = @('条件分岐 中間','条件分岐 終了')
+        }
+        '条件分岐 終了' {
+            $方向     = '上'       # 自分より上側を探す
+            $欲しい順 = @('条件分岐 中間','条件分岐 開始')
+        }
+        default {
+            Write-Verbose "SpringGreen だが対象外テキスト [$myText]"
+            return
+        }
+    }
+
+    #-----------------------------
+    # ③ 兄弟コントロールから候補を抽出
+    #-----------------------------
+    #   $候補ハッシュ[テキスト] = 最も近い Control
+    $候補ハッシュ = @{}
+
+    foreach ($ctrl in $parent.Controls) {
+        if (-not ($ctrl -is [System.Windows.Forms.Button])) { continue }
+        $txt = $ctrl.Text.Trim()
+        if ($txt -notin $欲しい順) { continue }
+
+        $delta = $ctrl.Location.Y - $myY
+        if (($方向 -eq '下' -and $delta -le 0) -or
+            ($方向 -eq '上' -and $delta -ge 0)) { continue }   # 方向が逆なら除外
+
+        $距離 = [math]::Abs($delta)
+
+        # まだ登録されていない or もっと近いボタンなら採用
+        if (-not $候補ハッシュ.ContainsKey($txt) -or
+            $距離 -lt $候補ハッシュ[$txt].距離) {
+
+            $候補ハッシュ[$txt] = [pscustomobject]@{
+                Ctrl  = $ctrl
+                距離  = $距離
+            }
+        }
+    }
+
+    #-----------------------------
+    # ④ ３つ揃っているか判定
+    #-----------------------------
+    $削除対象 = @($ボタン)   # 自分自身は必ず削除
+    foreach ($name in $欲しい順) {
+        if ($候補ハッシュ.ContainsKey($name)) {
+            $削除対象 += $候補ハッシュ[$name].Ctrl
+        }
+    }
+
+    if ($削除対象.Count -lt 3) {
+        Write-Warning "セットが揃わないため削除しません。"
+        return
+    }
+
+    #-----------------------------
+    # ⑤ 削除実行
+    #-----------------------------
+    foreach ($b in $削除対象) {
+        try {
+            $parent.Controls.Remove($b)
+            $b.Dispose()
+        }
+        catch {
+            Write-Warning "ボタン [$($b.Text)] の削除に失敗: $_"
+        }
+    }
+
+    #-----------------------------
+    # ⑥ 後処理（配置調整など）
+    #-----------------------------
+    if (Get-Command 00_ボタンの上詰め再配置関数 -ErrorAction SilentlyContinue) {
+        00_ボタンの上詰め再配置関数 -フレーム $parent
+    }
+    if (Get-Command 00_矢印追記処理 -ErrorAction SilentlyContinue) {
+        00_矢印追記処理 -フレームパネル $Global:可視左パネル
+    }
+}
+
+function ループボタン削除処理 {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [System.Windows.Forms.Button]$ボタン
+    )
+
+    #-----------------------------
+    # ① 親コンテナとGroupIDの取得
+    #-----------------------------
+    $parent = $ボタン.Parent
+    if (-not $parent) { return }
+
+    # ループ開始／終了ボタンには同じGroupIDが入っている想定
+    $targetGroupID = $ボタン.Tag.GroupID
+
+    #-----------------------------
+    # ② 同じGroupIDを持つ LemonChiffon ボタンを収集
+    #    （開始・終了の2個がそろうはず）
+    #-----------------------------
+    $候補ボタン一覧 = @()
+
+    foreach ($ctrl in $parent.Controls) {
+        # ボタン以外は無視
+        if (-not ($ctrl -is [System.Windows.Forms.Button])) {
+            continue
+        }
+
+        # 色がLemonChiffon以外は無視（ループ以外は対象外）
+        if ($ctrl.BackColor.ToArgb() -ne [System.Drawing.Color]::LemonChiffon.ToArgb()) {
+            continue
+        }
+
+        # GroupIDが一致するものだけ拾う
+        if ($ctrl.Tag.GroupID -eq $targetGroupID) {
+            $候補ボタン一覧 += $ctrl
+        }
+    }
+
+    #-----------------------------
+    # ③ 2つ揃っているかチェック
+    #    片方だけ壊れてる場合は何もしないで警告
+    #-----------------------------
+    if ($候補ボタン一覧.Count -lt 2) {
+        Write-Warning "ループ開始/終了のセットが揃わないため削除しません。"
+        return
+    }
+
+    #-----------------------------
+    # ④ 実際に削除
+    #-----------------------------
+    foreach ($b in $候補ボタン一覧) {
+        try {
+            $parent.Controls.Remove($b)
+            $b.Dispose()
+        }
+        catch {
+            Write-Warning "ループボタン [$($b.Text)] の削除に失敗: $_"
+        }
+    }
+
+    #-----------------------------
+    # ⑤ 後処理（詰め直しと矢印再描画）
+    #    条件分岐ボタン削除処理と同じ流れにそろえる
+    #-----------------------------
+    if (Get-Command 00_ボタンの上詰め再配置関数 -ErrorAction SilentlyContinue) {
+        00_ボタンの上詰め再配置関数 -フレーム $parent
+    }
+    if (Get-Command 00_矢印追記処理 -ErrorAction SilentlyContinue) {
+        00_矢印追記処理 -フレームパネル $Global:可視左パネル
+    }
+}
+
+
+
+
+
+function script:削除処理 {
+    ###Write-Host "削除処理を開始します。"
+    # 右クリック時に格納したボタンを取得
+    $btn = $script:右クリックメニュー.Tag
+    ###Write-Host "取得したボタン: $($btn.Name)"
+
+
+    # ★★ 条件分岐（緑）専用削除 ★★
+    if ($btn.BackColor -eq [System.Drawing.Color]::SpringGreen) {
+        条件分岐ボタン削除処理 -ボタン $btn
+        return   # 条件分岐はここで完結
+    }
+    # ★★ ループ（黄）専用削除 ★★
+    elseif ($btn.BackColor -eq [System.Drawing.Color]::LemonChiffon) {
+        ループボタン削除処理 -ボタン $btn
+        return   # ループはここで完結
+    }
+
+    # ここから下は従来の「普通の1個だけ消す」ルート
+
+
+    if ($btn -ne $null) {
+        if ($btn.Parent -ne $null) {
+            ###Write-Host "ボタンの親コンテナを取得しました。"
+            try {
+                ###Write-Host "ボタンを親コンテナから削除します。"
+                $btn.Parent.Controls.Remove($btn)
+                $btn.Dispose()
+                ###Write-Host "ボタンを削除しました。"
+
+                # 外部関数が定義されている場合のみ実行
+                if (Get-Command 00_ボタンの上詰め再配置関数 -ErrorAction SilentlyContinue) {
+                    ###Write-Host "ボタンの上詰め再配置関数を呼び出します。"
+                    00_ボタンの上詰め再配置関数 -フレーム $btn.Parent
+                }
+                else {
+                    Write-Warning "関数 '00_ボタンの上詰め再配置関数' が定義されていません。"
+                }
+
+                if (Get-Command 00_矢印追記処理 -ErrorAction SilentlyContinue) {
+                    ###Write-Host "矢印追記処理を呼び出します。"
+                    00_矢印追記処理 -フレームパネル $Global:可視左パネル
+                }
+                else {
+                    Write-Warning "関数 '00_矢印追記処理' が定義されていません。"
+                }
+            }
+            catch {
+                Write-Error "ボタンの削除中にエラーが発生しました: $_"
+            }
+        }
+        else {
+            Write-Warning "ボタンの親が存在しません。"
+        }
+    }
+    else {
+        Write-Warning "削除対象のボタンが取得できませんでした。"
+    }
+    ###Write-Host "削除処理が完了しました。"
+}
+
+function script:ボタンクリック情報表示 {
+    param (
+        [System.Windows.Forms.Button]$sender
+    )
+   
+#    if ($global:グループモード -eq 1 -and $sender.Parent.Name -eq $Global:可視左パネル.Name) {
+   
+
+
+    # Shiftキーが押されている場合に処理を変更
+    if ([System.Windows.Forms.Control]::ModifierKeys -band [System.Windows.Forms.Keys]::Shift -and $sender.Parent.Name -eq $Global:可視左パネル.Name) {
+
+
+
+
+
+        # グループモードの場合の処理内容をここに記述
+ $グループ情報 = @"
+グループモード情報:
+  ボタン名: $($sender.Name)
+  ボタンテキスト: $($sender.Text)
+  グループ内での処理を実行中...
+"@
+
+        # 既にグループモードが適用されている場合はリセット
+        if ($sender.FlatStyle -eq [System.Windows.Forms.FlatStyle]::Flat -and $sender.FlatAppearance.BorderColor -eq [System.Drawing.Color]::Red) {
+            ###Write-Host "既にグループモードが適用されているため、リセットします。"
+
+            #$sender.FlatStyle = [System.Windows.Forms.FlatStyle]::Standard
+            $sender.FlatAppearance.BorderColor = [System.Drawing.Color]::Black
+            $sender.FlatAppearance.BorderSize = 1
+
+        }
+        else {
+            ###Write-Host "グループモードを適用します。"
+
+            # グループモードの適用処理
+            #$sender.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+            $sender.FlatAppearance.BorderColor = [System.Drawing.Color]::Red
+            $sender.FlatAppearance.BorderSize = 3
+        }
+        適用-赤枠に挟まれたボタンスタイル -フレームパネル $Global:可視左パネル #$global:レイヤーパネル
+               #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("g3", "タイトル")
+
+    }
+    else {
+        ##Write-Host "通常モードで処理を実行します。"
+
+      #  if ($sender.BackColor -eq [System.Drawing.Color]::Pink -and $sender.Parent.Name -eq $Global:可視左パネル.Name) {
+        if ($sender.Tag.script -eq "スクリプト" -and $sender.Parent.Name -eq $Global:可視左パネル.Name) {
+            ##Write-Host "背景色がPinkのボタンです。"
+            ####Write-Host "ボタン名: $($sender.Name)"
+                        # グローバル変数に座標を格納
+            $最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル 
+
+            $A = [int]$最後の文字
+
+             $Global:Pink選択配列[$A].Y座標 = $sender.Location.Y +15
+　　　　　　 $Global:Pink選択配列[$A].値 = 1
+            $Global:Pink選択配列[$A].展開ボタン = $sender.Name
+
+            $Global:現在展開中のスクリプト名 = $sender.Name
+
+
+            Write-Host $Global:現在展開中のスクリプト名 -ForegroundColor Red
+
+            ##Write-Host "AA-" $Global:現在展開中のスクリプト名
+
+                       $Global:Pink選択中 = $true
+                       #矢印を表示する -フォーム $メインフォーム -幅 1400 -高さ 900 -矢印サイズ 10 -矢印角度 30 -PictureBoxX 850 -PictureBoxY 100 -PictureBox幅 90 -PictureBox高さ 20
+               フレームパネルからすべてのボタンを削除する -フレームパネル $Global:可視右パネル
+            $取得したエントリ = IDでエントリを取得 -ID $sender.Name
+                Write-Host $取得したエントリ -ForegroundColor Red
+            PINKからボタン作成 -文字列 $取得したエントリ
+
+        $最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル
+        $Global:レイヤー階層の深さ = [int]$最後の文字 + 1
+
+        # Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show($Global:レイヤー階層の深さ, "タ^イCトgル?A") 
+ 
+
+
+           00_矢印追記処理 -フレームパネル $Global:可視左パネル
+            #[System.Windows.Forms.MessageBox]::Show("背景色がPinkのボタン名: $取得したエントリ", "背景色Pink", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        }
+
+$情報 = @"
+ボタン情報:
+  名前: $($sender.Name)
+  テキスト: $($sender.Text)
+  サイズ: $($sender.Size.Width) x $($sender.Size.Height)
+  位置: X=$($sender.Location.X), Y=$($sender.Location.Y)
+  背景色: $($sender.BackColor)
+"@
+
+        ##Write-Host "情報をメッセージボックスで表示します。"
+        [System.Windows.Forms.MessageBox]::Show($情報, "ボタン情報", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+
+    ###Write-Host "ボタンクリック情報表示処理が完了しました。"
+}
+
+
+
+function PINKからボタン作成 {
+    param (
+        [string]$文字列
+    )
+
+    Write-Host " !!!!!!" -ForegroundColor Yellow
+
+    $初期Y = 20 # Y座標の初期値
+
+    # 文字列を改行で分割し、最初の1行をスキップ
+    $文字列 -split "`r?`n" | Select-Object -Skip 1 | ForEach-Object {
+        # 各行をセミコロンで分割
+        $parts = $_ -split ';'
+
+        # 各部分を変数に割り当て
+        $ボタン名 = $parts[0].Trim()
+        $背景色名 = $parts[1].Trim()
+        $テキスト = $parts[2].Trim()
+        $タイプ = $parts[3].Trim()
+
+        #-----------------------------------------------------------------------------------------------------
+
+        # 色名からSystem.Drawing.Colorオブジェクトを取得
+        try {
+            # 色名から色を取得
+            $背景色 = [System.Drawing.Color]::FromName($背景色名)
+            if (!$背景色.IsKnownColor) {
+                throw "無効な色名"
+            }
+        }
+        catch {
+            # 色名が無効な場合、色コードとして解析を試みる
+            try {
+                # HEXカラーコード（#なし）を検出し、自動で#を付加
+                if ($背景色名 -match '^[0-9A-Fa-f]{6}$' -or $背景色名 -match '^[0-9A-Fa-f]{8}$') {
+                    $hexColor = "#$背景色名"
+                    $背景色 = [System.Drawing.ColorTranslator]::FromHtml($hexColor)
+                }
+                # HEXカラーコード（#あり）を検出
+                elseif ($背景色名 -match '^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$') {
+                    $背景色 = [System.Drawing.ColorTranslator]::FromHtml($背景色名)
+                }
+                # RGB形式（例: 255,0,255）を検出
+                elseif ($背景色名 -match '^\d{1,3},\d{1,3},\d{1,3}$') {
+                    $rgb = $背景色名 -split ','
+                    $背景色 = [System.Drawing.Color]::FromArgb(
+                        [int]$rgb[0],
+                        [int]$rgb[1],
+                        [int]$rgb[2]
+                    )
+                }
+                else {
+                    throw "無効な色指定"
+                }
+            }
+            catch {
+                ##Write-Host "警告: 色名または色コードが無効です。ボタンの作成をスキップします。 - 色名: $背景色名" -ForegroundColor Yellow
+                ##Write-Host " - 内容: $_" -ForegroundColor Yellow
+                return
+            }
+        }
+
+        # デバッグ出力
+        ##Write-Host "ボタン名: $ボタン名, 背景色: $背景色名, テキスト: $テキスト" -ForegroundColor Green
+
+        $幅 = 120        
+        $初期X = [Math]::Floor(($Global:可視右パネル.ClientSize.Width - $幅) / 2)# 中央配置のためのX座標を計算
+
+        # ボタンテキストが "条件分岐 中間" の場合
+        if ($テキスト -eq "条件分岐 中間") {
+        $調整Y = $初期Y - 5
+        $新ボタン = 00_ボタンを作成する -コンテナ $Global:可視右パネル -テキスト $テキスト -ボタン名 $ボタン名 -幅 $幅 -高さ 1 -X位置 $初期X -Y位置 $調整Y -枠線 1 -背景色 $背景色 -ドラッグ可能 $false 
+
+        $初期Y += 10         
+        }else{
+            Write-Host "AAAA" -ForegroundColor Yellow
+        $新ボタン = 00_ボタンを作成する -コンテナ $Global:可視右パネル -テキスト $テキスト -ボタン名 $ボタン名 -幅 $幅 -高さ 30 -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $背景色 -ドラッグ可能 $true　-ボタンタイプ "ノード"　-ボタンタイプ2 $タイプ
+
+        $初期Y += 50
+        }
+
+
+
+    }
+    00_メインフレームパネルのPaintイベントを設定する -フレームパネル $Global:可視右パネル
+    00_矢印追記処理 -フレームパネル $Global:可視右パネル
+}
+
+function 00_ボタンを作成する {
+    param (
+        [System.Windows.Forms.Control]$コンテナ,          # ボタンを追加するコンテナ（フレーム）
+        [string]$テキスト = "ドラッグで移動",              # ボタンのテキスト
+        [string]$ボタン名,                                # ボタン名
+        [int]$幅 = 120,                                   # ボタンの幅
+        [int]$高さ = 30,                                  # ボタンの高さ
+        [int]$X位置 = 10,                                 # ボタンのX座標
+        [int]$Y位置 = 20,                                 # ボタンのY座標
+        [int]$枠線 = 0,                                   # ボタンの枠線サイズ
+        [System.Drawing.Color]$背景色,                    # ボタンの背景色（必須）
+        [bool]$ドラッグ可能 = $true,                      # ドラッグ可能かどうか
+        [int]$フォントサイズ = 10,
+        [string]$ボタンタイプ = "なし",
+        [string]$ボタンタイプ2 = "なし",
+        [string]$処理番号 = "なし"
+    )
+
+    ###Write-Host "00_ボタンを作成します。ボタン名: $ボタン名"
+    
+    # コンテキストメニューの初期化
+    script:コンテキストメニューを初期化する
+
+    # ボタンの作成
+    ###Write-Host "ボタンを作成します。"
+    $ボタン = New-Object System.Windows.Forms.Button
+    $ボタン.Text = $テキスト #$ボタン名 # 
+    $ボタン.Size = New-Object System.Drawing.Size($幅, $高さ)
+    $ボタン.Location = New-Object System.Drawing.Point($X位置, $Y位置)
+    $ボタン.AllowDrop = $false                            # ボタン自体のドロップを無効化
+    $ボタン.Name = $ボタン名                              # ボタンのNameプロパティを設定
+    $ボタン.BackColor = $背景色                           # ボタンの背景色を設定
+    $ボタン.UseVisualStyleBackColor = $false              # BackColorを有効にする
+
+    ###Write-Host "ボタンのフォントを設定します。"
+    # フォントサイズの設定
+    $ボタン.Font = New-Object System.Drawing.Font("Microsoft Sans Serif", $フォントサイズ)
+
+    $ボタン.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $ボタン.FlatAppearance.BorderSize = $枠線
+
+    $ボタン.Tag = @{
+        BackgroundColor = $背景色
+        GroupID = $null
+        MultiLineTags = $null # 必要に応じて設定
+        script = $null # 必要に応じて設定
+        処理番号 = $処理番号
+    } # 背景色をTagプロパティに保存
+
+      if ($ボタンタイプ2 -eq "スクリプト") {
+      $ボタン.Tag.script = "スクリプト"
+      }
+
+    # コンテキストメニューを設定
+    $ボタン.ContextMenuStrip = $script:右クリックメニュー
+
+    if ($ドラッグ可能) {
+        ###Write-Host "ドラッグ可能なボタンの設定をします。"
+        # フラグを追加
+        $ボタン.Tag.IsDragging = $false
+        $ボタン.Tag.StartPoint = [System.Drawing.Point]::Empty
+
+        # ボタンのMouseDownイベントでドラッグの開始と右クリックの処理を設定
+        ###Write-Host "MouseDownイベントハンドラーを追加します。"
+        $ボタン.Add_MouseDown({
+            param($sender, $e)
+            ###Write-Host "MouseDownイベントが発生しました。ボタン: $($sender.Name), ボタン: $($e.Button)"
+            if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+                # ドラッグ開始位置を記録
+                ###Write-Host "左クリックが検出されました。ドラッグ開始位置を記録します。"
+                $sender.Tag.StartPoint = $e.Location
+                $sender.Tag.IsDragging = $false
+            }
+            elseif ($e.Button -eq [System.Windows.Forms.MouseButtons]::Right) {
+                ###Write-Host "右クリックが検出されました。"
+                # 右クリック処理（必要に応じて追加）
+            }
+        })
+
+        # ボタンのMouseMoveイベントでドラッグの判定
+        ###Write-Host "MouseMoveイベントハンドラーを追加します。"
+        $ボタン.Add_MouseMove({
+            param($sender, $e)
+            if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+                if (-not $sender.Tag.IsDragging) {
+                    # マウスが移動した距離を計算
+                    $dx = [Math]::Abs($e.X - $sender.Tag.StartPoint.X)
+                    $dy = [Math]::Abs($e.Y - $sender.Tag.StartPoint.Y)
+                    ###Write-Host "マウス移動距離: dx=$dx, dy=$dy"
+                    if ($dx -ge 5 -or $dy -ge 5) {
+                        ###Write-Host "ドラッグを開始します。"
+                        $sender.Tag.IsDragging = $true
+                        # ドラッグ中のボタンを設定
+                        $global:ドラッグ中のボタン = $sender
+                        # ドラッグを開始
+                        $sender.DoDragDrop($sender, [System.Windows.Forms.DragDropEffects]::Move)
+                    }
+                }
+            }
+        })
+
+        # ボタンのDragDropイベントで位置を更新
+        ###Write-Host "DragDropイベントハンドラーを追加します。"
+        $ボタン.Add_DragDrop({
+            param($sender, $e)
+            ###Write-Host "DragDropイベントが発生しました。"
+            if ($global:ドラッグ中のボタン -ne $null) {
+                $targetButton = $e.Data.GetData([System.Windows.Forms.DataFormats]::Object)
+                if ($targetButton -ne $null -and $targetButton -is [System.Windows.Forms.Button]) {
+                    ###Write-Host "ドラッグ中のボタンを移動します。ボタン: $($targetButton.Name)"
+                    # 親コンテナ内でボタンのインデックスを変更
+                    $sender.Parent.Controls.SetChildIndex($targetButton, 0)
+                    # 新しい位置を計算
+                    $newLocation = $sender.PointToClient($e.Location)
+                    ###Write-Host "新しい位置: X=$($newLocation.X), Y=$($newLocation.Y)"
+                    $targetButton.Location = $newLocation
+                    $global:ドラッグ中のボタン = $null
+                }
+                else {
+                    Write-Warning "ドラッグデータがボタンではありません。"
+                }
+            }
+            else {
+                Write-Warning "ドラッグ中のボタンが存在しません。"
+            }
+        })
+
+        # ボタンのDragEnterイベントでエフェクトを設定
+        ###Write-Host "DragEnterイベントハンドラーを追加します。"
+        $ボタン.Add_DragEnter({
+            param($sender, $e)
+            if ($e.Data.GetDataPresent([System.Windows.Forms.DataFormats]::Object)) {
+                ###Write-Host "DragEnter: Moveエフェクトを設定します。"
+                $e.Effect = [System.Windows.Forms.DragDropEffects]::Move
+            }
+            else {
+                ###Write-Host "DragEnter: Moveエフェクトを設定できません。"
+            }
+        })
+    }
+
+    # ボタンクリック時に情報を表示するイベントハンドラーを追加
+    ###Write-Host "Clickイベントハンドラーを追加します。"
+    if ($ボタンタイプ -eq "ノード") {
+
+    $ボタン.Add_Click({
+        param($sender, $e)
+
+
+        ###Write-Host "Clickイベントが発生しました。ボタン: $($sender.Name)"
+        script:ボタンクリック情報表示 -sender $sender
+    })
+    } else {
+        # Falseの処理内容
+    }
+
+    
+
+
+    # 右クリック時にメニュー表示、その時点で対象ボタンをTagへ
+    ###Write-Host "MouseUpイベントハンドラーを追加します。"
+    $ボタン.Add_MouseUp({
+        param($sender, $e)
+        if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Right) {
+            ###Write-Host "右クリックが検出されました。メニューを表示します。"
+            $script:右クリックメニュー.Tag = $sender
+            $script:右クリックメニュー.Show($sender, $e.Location)
+        }
+    })
+
+    # コンテナにボタンを追加
+    ###Write-Host "ボタンをコンテナに追加します。"
+    $コンテナ.Controls.Add($ボタン)
+
+    # ボタンオブジェクトを返す
+    ###Write-Host "ボタンの作成が完了しました。"
+    return $ボタン
+}
+
+function 00_メインにボタンを作成する {
+    param (
+        [System.Windows.Forms.Control]$コンテナ,          # ボタンを追加するコンテナ（フレーム）
+        [string]$テキスト = "ドラッグで移動",              # ボタンのテキスト
+        [string]$ボタン名,                                # ボタン名
+        [int]$幅 = 120,                                   # ボタンの幅
+        [int]$高さ = 30,                                  # ボタンの高さ
+        [int]$X位置 = 10,                                 # ボタンのX座標
+        [int]$Y位置 = 20,                                 # ボタンのY座標
+        [int]$枠線 = 1,                                   # ボタンの枠線サイズ
+        [System.Drawing.Color]$背景色,                    # ボタンの背景色（必須）
+        [int]$フォントサイズ = 10,                        # フォントサイズ
+        [scriptblock]$クリックアクション                   # ボタンクリック時のアクション
+    )
+
+    $ボタン = New-Object System.Windows.Forms.Button
+    $ボタン.Text = $テキスト -replace "`n", [Environment]::NewLine # 改行を反映
+    $ボタン.Size = New-Object System.Drawing.Size($幅, $高さ)
+    $ボタン.Location = New-Object System.Drawing.Point($X位置, $Y位置)
+    $ボタン.AllowDrop = $false                            # ボタン自体のドロップを無効化
+    $ボタン.Name = $ボタン名                              # ボタンのNameプロパティを設定
+    $ボタン.BackColor = $背景色                           # ボタンの背景色を設定
+    $ボタン.UseVisualStyleBackColor = $false              # BackColorを有効にする
+    $ボタン.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+
+    ###Write-Host "ボタンのフォントを設定します。"
+    # フォントサイズの設定
+    $ボタン.Font = New-Object System.Drawing.Font("Microsoft Sans Serif", $フォントサイズ)
+
+    $ボタン.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $ボタン.FlatAppearance.BorderSize = $枠線
+
+    # クリックイベントの登録
+    $ボタン.Add_Click({
+        param($sender, $e)
+        ###Write-Host "Clickイベントが発生しました。ボタン: $($sender.Name)"
+    
+        if ($sender.Name -eq "001") {
+            # 001 に対するアクション
+            表示-赤枠ボタン名一覧 -フレームパネル $Global:可視左パネル
+        } elseif ($sender.Name -eq "002") {
+            # 002 に対するアクション
+        $global:グループモード = 1
+        } elseif ($sender.Name -eq "003右") {
+
+
+
+        　   $最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル 
+　　　##Write-Host "左パネル" $最後の文字
+
+
+
+if ($最後の文字 -ge 2) { 
+    # Trueの処理内容（$数値が2以上の場合）
+    矢印を削除する -フォーム $メインフォーム
+            メインフレームの右を押した場合の処理
+
+  
+} else {
+    # Falseの処理内容（$数値が1以下の場合）
+}
+
+00_矢印追記処理 -フレームパネル $Global:可視左パネル
+       } elseif ($sender.Name -eq "004左") {
+
+
+　   $最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル 
+　　　##Write-Host "左パネル" $最後の文字
+        
+        if ($最後の文字 -le 3) { 
+            # Trueの処理内容（$数値が3以下の場合）
+            矢印を削除する -フォーム $メインフォーム
+             メインフレームの左を押した場合の処理
+        } else {
+            # Falseの処理内容（$数値が4以上の場合）
+        }
+
+        00_矢印追記処理 -フレームパネル $Global:可視左パネル
+     
+
+        }else {
+            ###Write-Host "ボタン名が001または002ではありません。アクションは実行されません。"
+        }
+
+# メインフレームのPaintイベントを設定
+00_メインフレームパネルのPaintイベントを設定する -フレームパネル $Global:可視左パネル
+
+# メインフレームのDragEnterイベントを設定
+00_フレームのDragEnterイベントを設定する -フレーム $Global:可視左パネル
+
+# メインフレームのDragDropイベントを設定
+00_フレームのDragDropイベントを設定する -フレーム $Global:可視左パネル
+
+
+
+    })
+
+    # コンテナにボタンを追加
+    ###Write-Host "ボタンをコンテナに追加します。"
+    $コンテナ.Controls.Add($ボタン)
+
+    # ボタンオブジェクトを返す
+    ###Write-Host "ボタンの作成が完了しました。"
+    return $ボタン
+}
+
+
+function 00_汎用色ボタンを作成する {
+  param (
+    [System.Windows.Forms.Control]$コンテナ,     # ボタンを追加するコンテナ（フレーム）
+    [string]$テキスト,                # ボタンのテキスト
+    [string]$ボタン名,                # ボタン名
+    [int]$幅,                     # ボタンの幅
+    [int]$高さ,                    # ボタンの高さ
+    [int]$X位置,                   # ボタンのX座標
+    [int]$Y位置,                   # ボタンのY座標
+    [System.Drawing.Color]$背景色           # ボタンの背景色
+  )
+
+  # ボタンの作成
+  $色ボタン = New-Object System.Windows.Forms.Button
+
+  # --- 基本レイアウト関連 ---
+  $色ボタン.Text = $テキスト                                     # ボタン上に表示するテキスト
+  $色ボタン.Size = New-Object System.Drawing.Size($幅, $高さ)     # ボタンの表示サイズ
+  $色ボタン.Location = New-Object System.Drawing.Point($X位置, $Y位置) # ボタンの配置座標
+  $色ボタン.Name = $ボタン名                                     # コントロール名
+  $色ボタン.Font = New-Object System.Drawing.Font("Meiryo UI", 10, [System.Drawing.FontStyle]::Bold)
+  # ↑ 太字＋読みやすいフォント。細字がいいなら Bold 外してもOK。
+
+  # --- 背景色と文字色の適用 ---
+  $色ボタン.BackColor = $背景色
+  $色ボタン.ForeColor = [System.Drawing.Color]::Black             # ← 文字色を黒に固定
+  $色ボタン.UseVisualStyleBackColor = $false                      # テーマ依存にしない
+
+  # --- フラット&枠線なし設定 ---
+  $色ボタン.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat    # フラット表示
+  $色ボタン.FlatAppearance.BorderSize = 0                         # 枠線なし
+  $色ボタン.FlatAppearance.BorderColor = $背景色                  # 念のため同色で塗りつぶし扱い
+
+  # --- ホバー・クリック時の色変化を抑止 ---
+  $色ボタン.FlatAppearance.MouseOverBackColor = $背景色           # ホバー時の背景色
+  $色ボタン.FlatAppearance.MouseDownBackColor = $背景色           # クリック時の背景色
+
+  # --- メタ情報をTagに保存（元コードの意図を維持）---
+  $色ボタン.Tag = @{
+    BackgroundColor = $背景色
+    GroupID = $null
+  }
+
+  # --- コンテナに追加 ---
+  $コンテナ.Controls.Add($色ボタン)
+
+  # --- 作ったボタンを返す（後でイベントとか貼る用）---
+  return $色ボタン
+}
+
+
+function 00_汎用色ボタンのクリックイベントを設定する {
+    param(
+        [System.Windows.Forms.Button]$ボタン,
+        [int]$生成ボタンの高さ = 30,
+        [int]$生成ボタンの幅 = 120,
+        [int]$生成ボタンの間隔 = 20,
+        [int]$引数 = 0,
+        [string]$処理番号
+    )
+
+    # ボタンのTagに関連情報を保存
+    $ボタン.Tag = @{
+        ボタン高さ      = $生成ボタンの高さ
+        間隔           = $生成ボタンの間隔
+        幅             = $生成ボタンの幅
+        処理番号       = $処理番号
+        BackgroundColor = $ボタン.BackColor
+    }
+
+    # クリックイベントを設定
+    $ボタン.Add_Click({
+        param($sender, $e)
+
+        # Tagから必要な情報を取得
+        $tag = $sender.Tag
+        $buttonColor = $tag.BackgroundColor
+        $buttonText  = $sender.Text
+        $buttonName  = IDを自動生成する
+
+        $ボタン高さ = $tag.ボタン高さ
+        $間隔     = $tag.間隔
+        $幅       = $tag.幅
+
+        $メインフレームパネル = $Global:可視左パネル
+        $global:レイヤーパネル = $メインフレームパネル
+        $初期X = [Math]::Floor(($メインフレームパネル.ClientSize.Width - $幅) / 2)
+
+        # 初期Y位置を計算する関数
+        function Get-NextYPosition {
+            param(
+                [System.Windows.Forms.Control]$panel,
+                [int]$高さ,
+                [int]$間隔
+            )
+            if ($panel.Controls.Count -eq 0) {
+                return $間隔
+            }
+            else {
+                $最下ボタン = $panel.Controls |
+                    Where-Object { $_ -is [System.Windows.Forms.Button] } |
+                    Sort-Object { $_.Location.Y } |
+                    Select-Object -Last 1
+                return $最下ボタン.Location.Y + $高さ + $間隔
+            }
+        }
+
+        $初期Y = Get-NextYPosition -panel $メインフレームパネル -高さ $ボタン高さ -間隔 $間隔
+
+        switch ($buttonText) {
+            "ループ" {
+                # グループIDを取得・更新
+                $currentGroupID = $global:黄色ボタングループカウンタ
+                $global:黄色ボタングループカウンタ++
+
+                # 開始ボタンの作成
+                $ボタン1 = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト "$buttonText 開始" -ボタン名 "$buttonName-1" -幅 $幅 -高さ $ボタン高さ -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $buttonColor -ドラッグ可能 $true　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
+                $ボタン1.Tag.GroupID = $currentGroupID
+                $global:ボタンカウンタ++
+
+                # 終了ボタンの作成
+                $初期Y += $ボタン高さ + $間隔
+                $ボタン2 = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト "$buttonText 終了" -ボタン名 "$buttonName-2" -幅 $幅 -高さ $ボタン高さ -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $buttonColor -ドラッグ可能 $true　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
+                00_文字列処理内容 -ボタン名 $buttonName -処理番号 $tag.処理番号
+                $ボタン2.Tag.GroupID = $currentGroupID
+                $global:ボタンカウンタ++
+            }
+            "条件分岐" {
+                # グループIDを取得・更新
+                $currentGroupID = $global:緑色ボタングループカウンタ
+                $global:緑色ボタングループカウンタ++
+
+                # 開始ボタンの作成
+                $ボタン1 = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト "$buttonText 開始" -ボタン名 "$buttonName-1" -幅 $幅 -高さ $ボタン高さ -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $buttonColor -ドラッグ可能 $true　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
+                $ボタン1.Tag.GroupID = $currentGroupID
+                $global:ボタンカウンタ++
+
+                # 中間ボタン（グレーライン）の作成
+                $初期Y += $ボタン高さ + $間隔
+                $ボタン中間 = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト "$buttonText 中間" -ボタン名 "$buttonName-2" -幅 $幅 -高さ 1 -X位置 $初期X -Y位置 ($初期Y - 10) -枠線 1 -背景色 ([System.Drawing.Color]::Gray) -ドラッグ可能 $false　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
+
+                # 終了ボタンの作成
+                $ボタン2 = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト "$buttonText 終了" -ボタン名 "$buttonName-3" -幅 $幅 -高さ $ボタン高さ -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $buttonColor -ドラッグ可能 $true　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
+                00_文字列処理内容 -ボタン名 $buttonName -処理番号 $tag.処理番号
+                $ボタン2.Tag.GroupID = $currentGroupID
+                $global:ボタンカウンタ++
+            }
+            default {
+
+                # 順次実行ボタンの作成
+                $新ボタン = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト $buttonText -ボタン名 "$buttonName-1" -幅 $幅 -高さ $ボタン高さ -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $buttonColor -ドラッグ可能 $true　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
+                00_文字列処理内容 -ボタン名 $buttonName -処理番号 $tag.処理番号 -ボタン $新ボタン
+
+                #$currentIndex = Get-ButtonIndex -対象ボタン $新ボタン -フレームパネル $メインフレームパネル
+                $global:ボタンカウンタ++
+
+            }
+        }
+
+        # 矢印の追記処理
+        00_矢印追記処理 -フレームパネル $Global:可視左パネル
+    })
+}
+
+# JSONファイルから指定キーの値を取得する関数
+function 取得-JSON値 {
+    param (
+        [string]$jsonFilePath, # JSONファイルのパス
+        [string]$keyName       # 取得したいキー名
+    )
+    # ファイルを確認
+    if (-Not (Test-Path $jsonFilePath)) {
+        throw "指定されたファイルが見つかりません: $jsonFilePath"
+    }
+
+    # JSONファイルを読み込み
+    $jsonContent = Get-Content -Path $jsonFilePath | ConvertFrom-Json
+
+    # 指定されたキーの値を取得
+    if ($jsonContent.PSObject.Properties[$keyName]) {
+        return $jsonContent.$keyName
+    } else {
+        throw "指定されたキーがJSONに存在しません: $keyName"
+    }
+}
+
+function フォームにラベル追加 {
+    param (
+        [Parameter(Mandatory)]
+        [System.Windows.Forms.Form]$フォーム, # フォームオブジェクト
+        
+        [Parameter(Mandatory)]
+        [string]$テキスト, # ラベルに表示するテキスト
+        
+        [Parameter(Mandatory)]
+        [int]$X座標, # ラベルのX座標
+        
+        [Parameter(Mandatory)]
+        [int]$Y座標  # ラベルのY座標
+    )
+    # ラベルを作成
+    $ラベル = New-Object System.Windows.Forms.Label
+    $ラベル.Text = $テキスト
+    $ラベル.Location = New-Object System.Drawing.Point($X座標, $Y座標)
+    #$ラベル.AutoSize = $true
+
+    # フォントスタイルを設定（型キャストを追加）
+    $フォントスタイル = [System.Drawing.FontStyle]([System.Drawing.FontStyle]::Bold)
+    $ラベル.Font = New-Object System.Drawing.Font("Arial", 10, $フォントスタイル)
+
+    # テキストの色を設定
+    $ラベル.ForeColor = [System.Drawing.Color]::black
+
+    # 背景色を設定（透明にする場合は不要）
+    #$ラベル.BackColor = [System.Drawing.Color]::LightYellow
+
+    # テキストの配置を設定
+    $ラベル.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+
+    # フォームにラベルを追加
+    $フォーム.Controls.Add($ラベル)
+}
+
+# ボタンのインデックスを取得する関数
+function Get-ButtonIndex {
+    param (
+        [System.Windows.Forms.Button]$対象ボタン,
+        [System.Windows.Forms.Panel]$フレームパネル
+    )
+
+    # フレーム内のボタンをY座標でソート
+    $sortedButtons = $フレームパネル.Controls |
+                     Where-Object { $_ -is [System.Windows.Forms.Button] } |
+                     Sort-Object { $_.Location.Y }
+
+    # インデックスを取得
+    $index = 0
+    foreach ($btn in $sortedButtons) {
+        if ($btn -eq $対象ボタン) {
+            return $index
+        }
+        $index++
+    }
+
+    # ボタンが見つからない場合は-1を返す
+    return -1
+}
+
+function 適用-赤枠に挟まれたボタンスタイル {
+    param (
+        [System.Windows.Forms.Panel]$フレームパネル
+    )
+          #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show($フレームパネル.Name, "タイトル")
+    # コントロールをデバッグ出力
+    ###Write-Host "=== デバッグ: コントロール一覧 ==="
+    foreach ($control in $フレームパネル.Controls) {
+        ##Write-Host "コントロール: $($control.GetType().Name), Text: $($control.Text)"
+    }
+    ###Write-Host "==============================="
+
+    # フレーム内のボタンを取得してソート
+    $ソート済みボタン = $フレームパネル.Controls |
+                        Where-Object { $_ -is [System.Windows.Forms.Button] } |
+                        Sort-Object { $_.Location.Y }
+
+    #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show($ソート済みボタン.Count, "タイトル")
+
+    # デバッグ: ボタン情報を出力
+    ###Write-Host "=== デバッグ: ボタン情報 ==="
+    foreach ($ボタン in $ソート済みボタン) {
+        $枠色 = if ($ボタン.FlatStyle -eq 'Flat') {
+            $ボタン.FlatAppearance.BorderColor
+                      #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("q", "タイトル")
+        } else {
+            "未設定"
+
+        }
+        ###Write-Host "ボタン: $($ボタン.Text), 枠の色: $枠色, FlatStyle: $($ボタン.FlatStyle), Location: $($ボタン.Location)"
+    }
+    ###Write-Host "==========================="
+
+    # 赤枠のボタンのインデックスを探す
+    $赤枠ボタンインデックス = @()
+    for ($i = 0; $i -lt $ソート済みボタン.Count; $i++) {
+        $ボタン = $ソート済みボタン[$i]
+        # デバッグ: 色比較の結果を詳細に出力
+        if ($ボタン.FlatStyle -eq 'Flat') {
+            $現在の色 = $ボタン.FlatAppearance.BorderColor
+            ###Write-Host "デバッグ: ボタン[$($ボタン.Text)] の枠色 (ARGB): $($現在の色.ToArgb())"
+
+            if ($現在の色.ToArgb() -eq [System.Drawing.Color]::Red.ToArgb()) {
+                ###Write-Host "赤枠ボタン検出: $($ボタン.Text) (インデックス: $i)"
+                $赤枠ボタンインデックス += $i
+            }
+        }
+    }
+
+    # 赤枠ボタンが2つ以上ある場合に処理を実行
+    if ($赤枠ボタンインデックス.Count -ge 2) {
+        $開始インデックス = $赤枠ボタンインデックス[0]
+        $終了インデックス = $赤枠ボタンインデックス[-1]
+          #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("aka2izyo", "タイトル")
+        # 赤枠に挟まれたボタンにスタイルを適用
+        ###Write-Host "赤枠に挟まれたボタン:"
+        for ($i = $開始インデックス + 1; $i -lt $終了インデックス; $i++) {
+            $挟まれたボタン = $ソート済みボタン[$i]
+            ###Write-Host " - $($挟まれたボタン.Text) にスタイルを適用します。"
+
+            # スタイルを適用
+            $挟まれたボタン.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+            $挟まれたボタン.FlatAppearance.BorderColor = [System.Drawing.Color]::Red
+            $挟まれたボタン.FlatAppearance.BorderSize = 3
+        }
+
+
+    } else {
+        ###Write-Host "赤枠のボタンが2つ以上存在しません。"
+    }
+}
+
+function 表示-赤枠ボタン名一覧 {
+    param (
+        [System.Windows.Forms.Panel]$フレームパネル
+    )
+    $global:グループモード = 0
+
+    # フレーム内のボタンを取得してソート
+    $ソート済みボタン = $フレームパネル.Controls |
+                        Where-Object { $_ -is [System.Windows.Forms.Button] } |
+                        Sort-Object { $_.Location.Y }
+
+    # 赤枠のボタンの名前とY位置を収集
+    $赤枠ボタンリスト = @()
+    foreach ($ボタン in $ソート済みボタン) {
+        if ($ボタン.FlatStyle -eq 'Flat' -and 
+            $ボタン.FlatAppearance.BorderColor.ToArgb() -eq [System.Drawing.Color]::Red.ToArgb()) {
+            $赤枠ボタンリスト += @{
+                Name = $ボタン.Name
+                Y位置 = $ボタン.Location.Y
+            }
+        }
+    }
+
+
+
+    # 赤枠のボタンの名前一覧を出力し、削除
+    if ($赤枠ボタンリスト.Count -gt 0) {
+
+
+        $最小Y位置 = [int]::MaxValue  # 削除対象ボタンの最小Y位置を取得するための変数
+        $削除したボタン情報 = @()         # 削除したボタンの情報を格納する配列
+
+        foreach ($ボタン情報 in $赤枠ボタンリスト) {
+            $名前 = $ボタン情報.Name
+            $Y位置 = $ボタン情報.Y位置
+
+
+            if ($Y位置 -lt $最小Y位置) {            # 最小Y位置を更新
+                $最小Y位置 = $Y位置
+            }
+
+            $削除対象ボタン = $フレームパネル.Controls[$名前]            # ボタンを取得
+            
+            if ($削除対象ボタン -ne $null) {
+                $ボタン色 = $削除対象ボタン.BackColor.Name                # ボタンの背景色とテキストを取得
+                $テキスト = $削除対象ボタン.Text
+                $タイプ = $削除対象ボタン.Tag.script
+
+                $フレームパネル.Controls.Remove($削除対象ボタン)                # ボタンをパネルから削除
+                $削除対象ボタン.Dispose()                # 必要に応じてボタンを破棄
+          
+                $削除したボタン情報 += "$名前;$ボタン色;$テキスト;$タイプ"                # 削除したボタンの情報を配列に追加（名前-ボタン色-テキスト）
+
+            }
+            else {
+                ###Write-Host "ボタン '$名前' が見つかりませんでした。"
+            }
+        }
+
+        $初期Y = $最小Y位置        # 削除された赤枠ボタンの中で最も上のY位置を初期Y位置として設定
+        $entryString = $削除したボタン情報 -join "_"         # 削除したボタンの情報をアンダースコアで連結した文字列に変換
+
+       # [System.Windows.Forms.MessageBox]::Show($entryString , "debug情報表示", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+
+        $最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル 
+
+        $A = [int]$最後の文字
+
+        # $フレームパネル   $初期Y
+        $Global:Pink選択配列[$A].初期Y = $初期Y
+        $Global:Pink選択配列[$A].値 = 1
+
+
+
+        # 新しいボタンの作成
+        $buttonName  = IDを自動生成する
+        $幅 = 120
+        $初期X = [Math]::Floor(($フレームパネル.ClientSize.Width - $幅) / 2)
+        $新ボタン = 00_ボタンを作成する -コンテナ $フレームパネル -テキスト "スクリプト" -ボタン名 "$buttonName-1" -幅 120 -高さ 30 -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 ([System.Drawing.Color]::Pink) -ドラッグ可能 $true -ボタンタイプ "ノード" -ボタンタイプ2 "スクリプト"
+
+        00_文字列処理内容 -ボタン名 "$buttonName" -処理番号 "99-1" -直接エントリ $entryString -ボタン $新ボタン
+
+
+
+        # ボタンカウンタのインクリメント
+        $global:ボタンカウンタ++
+
+        # ボタンの再配置（必要に応じて）
+        00_ボタンの上詰め再配置関数 -フレーム $フレームパネル
+        00_矢印追記処理 -フレームパネル $フレームパネル
+    } else {
+        #Write-Host "赤枠のボタンが存在しません。"
+    }
+}
+
+function フレームパネルからすべてのボタンを削除する {
+    param (
+        [System.Windows.Forms.Panel]$フレームパネル
+    )
+
+    # パネル内のすべてのボタンを取得
+    $ボタンリスト = $フレームパネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }
+
+    foreach ($ボタン in $ボタンリスト) {
+        try {
+            # ボタンをパネルから削除
+            $フレームパネル.Controls.Remove($ボタン)
+
+            # ボタンのリソースを解放
+            $ボタン.Dispose()
+
+            ##Write-Host "ボタン '$($ボタン.Name)' を削除しました。" -ForegroundColor Green
+        }
+        catch {
+            ##Write-Host "ボタン '$($ボタン.Name)' の削除中にエラーが発生しました。 - $_" -ForegroundColor Red
+        }
+    }
+
+    # 必要に応じて、再描画をトリガー
+    $フレームパネル.Invalidate()
+}
+
+# 矢印を描く関数
+function 矢印を描く {
+    param (
+        [int]$幅,
+        [int]$高さ,
+        [System.Drawing.Point]$始点,
+        [System.Drawing.Point]$終点,
+        [float]$矢印サイズ = 10.0,    # 矢印ヘッドのサイズ
+        [float]$矢印角度 = 30.0      # 矢印ヘッドの角度（度数法）
+    )
+
+    # デバッグ: 受け取った始点と終点を表示
+    #Write-Host "矢印を描く - 始点: ($($始点.X), $($始点.Y)), 終点: ($($終点.X), $($終点.Y))"
+
+    # Bitmap を作成（32bppArgb で透明度をサポート）
+    $bitmap = New-Object System.Drawing.Bitmap($幅, $高さ, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $グラフィックス = [System.Drawing.Graphics]::FromImage($bitmap)
+
+    # 背景色を透明に設定
+    $グラフィックス.Clear([System.Drawing.Color]::Transparent)
+
+    # ペンの設定
+    $ペン = New-Object System.Drawing.Pen([System.Drawing.Color]::Pink, 2)
+
+    try {
+        # メインラインを描画
+        $グラフィックス.DrawLine($ペン, $始点, $終点)
+
+        # ベクトルの計算
+        $dx = $終点.X - $始点.X
+        $dy = $終点.Y - $始点.Y
+        $長さ = [math]::Sqrt($dx * $dx + $dy * $dy)
+
+        if ($長さ -eq 0) { 
+            #Write-Host "矢印の長さが0のため、矢印ヘッドを描画できません。"
+            return $bitmap
+        }
+
+        # 単位ベクトル
+        $ux = $dx / $長さ
+        $uy = $dy / $長さ
+
+        # 矢印ヘッドの角度をラジアンに変換
+        $角度ラジアン = [math]::PI * $矢印角度 / 180.0
+
+        # 矢印ヘッドのポイント計算
+        $sin = [math]::Sin($角度ラジアン)
+        $cos = [math]::Cos($角度ラジアン)
+
+        $点1X = [math]::Round($終点.X - $矢印サイズ * ($cos * $ux + $sin * $uy))
+        $点1Y = [math]::Round($終点.Y - $矢印サイズ * ($cos * $uy - $sin * $ux))
+        $点2X = [math]::Round($終点.X - $矢印サイズ * ($cos * $ux - $sin * $uy))
+        $点2Y = [math]::Round($終点.Y - $矢印サイズ * ($cos * $uy + $sin * $ux))
+
+        $点1 = New-Object System.Drawing.Point -ArgumentList $点1X, $点1Y
+        $点2 = New-Object System.Drawing.Point -ArgumentList $点2X, $点2Y
+
+        # デバッグ: 矢印ヘッドの点を表示
+        #Write-Host "矢印ヘッドの点1: ($($点1.X), $($点1.Y)), 点2: ($($点2.X), $($点2.Y))"
+
+        # 矢印ヘッドを描画
+        $グラフィックス.DrawLine($ペン, $終点, $点1)
+        $グラフィックス.DrawLine($ペン, $終点, $点2)
+    }
+    catch {
+        #Write-Host "描画中にエラーが発生しました: $_"
+    }
+    finally {
+        # リソースの解放
+        $ペン.Dispose()
+        $グラフィックス.Dispose()
+    }
+
+    return $bitmap
+}
+
+# 矢印を表示する関数
+function 矢印を表示する {
+    param (
+        [System.Windows.Forms.Form]$フォーム,
+        [int]$幅,
+        [int]$高さ,
+        [System.Drawing.Point]$始点,
+        [System.Drawing.Point]$終点,
+        [float]$矢印サイズ = 10.0,    # 矢印ヘッドのサイズ
+        [float]$矢印角度 = 30.0,     # 矢印ヘッドの角度（度数法）
+        [int]$PictureBoxX = 0,        # PictureBoxのX座標
+        [int]$PictureBoxY = 0,        # PictureBoxのY座標
+        [int]$PictureBox幅 = 1400,    # PictureBoxの幅
+        [int]$PictureBox高さ = 900     # PictureBoxの高さ
+    )
+
+    # デバッグ: 受け取った始点と終点を表示
+    #Write-Host "矢印を表示する - 始点: ($($始点.X), $($始点.Y)), 終点: ($($終点.X), $($終点.Y))"
+
+    # 矢印を描く関数を呼び出して Bitmap を取得
+    $bitmap = 矢印を描く -幅 $幅 -高さ $高さ -始点 $始点 -終点 $終点 -矢印サイズ $矢印サイズ -矢印角度 $矢印角度
+    #Write-Host "矢印の描画が完了しました。"
+
+    # PictureBox を作成
+    $pictureBox = New-Object System.Windows.Forms.PictureBox
+    $pictureBox.Name = "ArrowPictureBox"  # 名前を設定
+    $pictureBox.Image = $bitmap
+    $pictureBox.Location = New-Object System.Drawing.Point($PictureBoxX, $PictureBoxY)
+    $pictureBox.Size = New-Object System.Drawing.Size($PictureBox幅, $PictureBox高さ)
+    $pictureBox.SizeMode = "Normal"  # AutoSize ではなく Normal に設定
+    $pictureBox.BackColor =  [System.Drawing.Color]::FromArgb(255, 255, 255)  # 背景を一時的に黄色に設定して確認
+    $pictureBox.Parent = $フォーム  # 親をフォームに設定
+    $pictureBox.BringToFront()      # PictureBoxを前面に移動
+
+    # デバッグ: PictureBox の位置とサイズを表示
+    #Write-Host "PictureBox の位置: ($PictureBoxX, $PictureBoxY), サイズ: ($PictureBox幅, $PictureBox高さ)"
+
+    # PictureBox をフォームに追加
+    $フォーム.Controls.Add($pictureBox)
+}
+
+function 矢印を削除する {
+    param (
+        [System.Windows.Forms.Form]$フォーム
+    )
+
+    # 名前でPictureBoxを検索
+    $pictureBox = $フォーム.Controls | Where-Object { $_.Name -eq "ArrowPictureBox" }
+
+    if ($pictureBox) {
+        # PictureBoxをフォームから削除
+        $フォーム.Controls.Remove($pictureBox)
+        $pictureBox.Dispose()
+        #Write-Host "矢印を削除しました。"
+    }
+    else {
+        ##Write-Host "矢印が見つかりませんでした。"
+    }
+}
+
+function Check-Pink選択配列Objects {
+    #Write-Host "---- Check-Pink選択配列Objects 関数開始 ----"
+
+    # グローバル変数が存在するか確認
+    if (-not (Test-Path variable:Global:Pink選択配列)) {
+        Write-Warning "グローバル変数 'Pink選択配列' が存在しません。"
+        #Write-Host "結果: FALSE"
+        return $false
+    } else {
+        #Write-Host "グローバル変数 'Pink選択配列' は存在します。"
+    }
+
+    # グローバル変数が配列であるか確認
+    if (-not ($Global:Pink選択配列 -is [System.Array])) {
+        Write-Warning "'Pink選択配列' は配列ではありません。"
+        #Write-Host "現在の値: $($Global:Pink選択配列)"
+        #Write-Host "結果: FALSE"
+        return $false
+    } else {
+        #Write-Host "'Pink選択配列' は配列です。"
+    }
+
+    # 各オブジェクトをループして、'値' プロパティが1かどうかをチェック
+    foreach ($item in $Global:Pink選択配列) {
+        #Write-Host "`n--- レイヤー $($item.レイヤー) の内容 ---"
+        #Write-Host "初期Y: $($item.初期Y)"
+        #Write-Host "値: $($item.値)"
+
+        if ($item.値 -eq 1) {
+            #Write-Host "レイヤー $($item.レイヤー) の値が1です。"
+            #Write-Host "結果: TRUE"
+            return $true
+        } else {
+            #Write-Host "レイヤー $($item.レイヤー) の値は1ではありません。"
+        }
+    }
+
+    # すべてのレイヤーの値が0の場合
+    #Write-Host "`nすべてのレイヤーの値が0です。"
+    #Write-Host "結果: FALSE"
+    return $false
+}
+
+
+----- CONTENT END -----
+===== FILE-END =====
+
+===== FILE-START =====
+PATH: 03_メインフォームUI_ノードボタンメニュー処理.ps1
+----- CONTENT BEGIN -----
+
+
+----- CONTENT END -----
+===== FILE-END =====
+
+===== FILE-START =====
+PATH: 04_メインフォームUI_スクリプト処理.ps1
+----- CONTENT BEGIN -----
+
+
+----- CONTENT END -----
+===== FILE-END =====
+
+===== FILE-START =====
+PATH: 05_メインフォームUI_矢印処理.ps1
+----- CONTENT BEGIN -----
+# Windows Formsを利用するためのアセンブリを読み込み
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
+function 00_矢印追記処理 {
+    param (
+        [System.Windows.Forms.Panel]$フレームパネル
+    )
+
+    # パネルごとの描画オブジェクトをクリア
+    $フレームパネル.Tag.DrawObjects = @()
+
+    # メインフレームパネル内のボタンを取得し、Y座標でソート
+    $buttons = $フレームパネル.Controls |
+        Where-Object { $_ -is [System.Windows.Forms.Button] } |
+        Sort-Object { $_.Location.Y }
+
+    # シーケンスボタン（白、赤、青）の処理
+    $sequenceColors = @(
+        [System.Drawing.Color]::White.ToArgb(),
+        [System.Drawing.Color]::Salmon.ToArgb(),
+        $global:青色.ToArgb(),
+        $global:ピンク青色.ToArgb(),
+        $global:ピンク赤色.ToArgb()
+    )
+
+    #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^pink矢印真ん中
+foreach ($button in $buttons) {
+
+$result = Check-Pink選択配列Objects
+Write-Host "関数の戻り値: $result"
+
+    if (-not $hasProcessedPink -and ($button.BackColor.ToArgb() -eq [System.Drawing.Color]::Pink.ToArgb()) -and ($result -eq $true) -and  $Global:Pink選択中 -eq "true"-and $フレームパネル -eq $Global:可視左パネル ) {
+     
+        Write-Host "ここまできてる？"
+
+        Write-Host $Global:表示スクリプト座標.X 
+        Write-Host $Global:表示スクリプト座標.Y 
+     
+     
+        # 横ラインを描画（ピンク色）
+        $pinkLineColor = [System.Drawing.Color]::Pink
+
+            $最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル 
+            $A = [int]$最後の文字
+             
+
+        # ボタンの右側から横ラインを引く開始点と終了点を計算
+        $horizontalStartPoint = [System.Drawing.Point]::new(
+             210,
+            $Global:Pink選択配列[$A].Y座標
+        )
+        $horizontalEndPoint = [System.Drawing.Point]::new(
+            300,  # 必要に応じて調整
+            20
+        )
+
+
+
+        # DrawObjects にラインを追加
+        $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+            Type       = "Line"
+            StartPoint = $horizontalStartPoint
+            EndPoint   = $horizontalEndPoint
+            Color      = $pinkLineColor
+        }
+
+
+$始点 = [System.Drawing.Point]::new(0, 20)  
+$終点 = [System.Drawing.Point]::new(70, 20)  
+矢印を表示する -フォーム $メインフォーム -幅 1400 -高さ 900 -始点 $始点 -終点 $終点  -矢印サイズ 20 -矢印角度 45 -PictureBoxX 850 -PictureBoxY 70 -PictureBox幅 72 -PictureBox高さ 40
+
+
+        # フラグを設定して、これ以上の処理を防止
+        $hasProcessedPink = $true
+    }
+}
+
+
+
+
+    # 条件分岐（緑色ボタン）内の処理をグループ化
+    $conditionalGroups = @()
+    $currentGroup = @()
+    $insideConditional = $false
+
+    foreach ($button in $buttons) {
+        if ($button.BackColor.ToArgb() -eq [System.Drawing.Color]::SpringGreen.ToArgb()) {
+            if (-not $insideConditional) {
+                $insideConditional = $true
+                $currentGroup = @()
+                $currentGroup += $button
+            } else {
+                $currentGroup += $button
+                $conditionalGroups += ,$currentGroup
+                $insideConditional = $false
+                $currentGroup = @()
+            }
+        }
+        elseif ($insideConditional) {
+            $currentGroup += $button
+        }
+    }
+
+    # 各分類に対して設定を調整可能な変数を定義
+    $yellowLineColor = [System.Drawing.Color]::Orange
+    $yellowLineHorizontalOffset = -30
+    $yellowLineVerticalOffset = 0
+
+    $greenToBlueLineColor = $global:青色
+    $greenToBlueLineHorizontalOffset = 0
+    $greenToBlueLineVerticalOffset = 0
+
+    $redToGreenLineColor = [System.Drawing.Color]::Salmon
+    $redToGreenLineHorizontalOffset = -20
+    $redToGreenLineVerticalOffset = 0
+
+    # 条件分岐内のボタンへのライン描画と矢印追加
+    foreach ($group in $conditionalGroups) {
+        $conditionalButtons = $group
+        $greenButtonTop = $conditionalButtons[0]
+        $greenButtonBottom = $conditionalButtons[-1]
+
+        # 条件分岐内の青いボタンを取得
+        $blueButtons = $conditionalButtons |
+            Where-Object { ($_.BackColor.ToArgb() -eq $global:青色.ToArgb()) -or ($_.BackColor.ToArgb() -eq $global:ピンク青色.ToArgb()) }
+
+
+        if ($blueButtons.Count -gt 0) {
+            # 一番上の青いボタンを取得
+            $firstBlueButton = $blueButtons[0]
+
+            # 緑色ボタン（上）の右側から横ラインを引く
+            $horizontalStartPoint = [System.Drawing.Point]::new(
+                $greenButtonTop.Location.X + $greenButtonTop.Width + $greenToBlueLineHorizontalOffset,
+                $greenButtonTop.Location.Y + ($greenButtonTop.Height / 2) + $greenToBlueLineVerticalOffset
+            )
+            $horizontalEndPoint = [System.Drawing.Point]::new(
+                $horizontalStartPoint.X + 20,  # 横幅を20ピクセル追加（必要に応じて調整）
+                $horizontalStartPoint.Y
+            )
+
+            # 横ラインを描画（青）
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "Line"
+                StartPoint = $horizontalStartPoint
+                EndPoint = $horizontalEndPoint
+                Color = $greenToBlueLineColor
+            }
+
+            # 横ラインの終点から垂直ラインを引く（青ボタンのY位置に合わせて垂直に）
+            $verticalStartPoint = $horizontalEndPoint
+            $verticalEndPoint = [System.Drawing.Point]::new(
+                $verticalStartPoint.X,
+                $firstBlueButton.Location.Y + ($firstBlueButton.Height / 2) + $greenToBlueLineVerticalOffset
+            )
+
+            # 縦ラインを描画（青）
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "Line"
+                StartPoint = $verticalStartPoint
+                EndPoint = $verticalEndPoint
+                Color = $greenToBlueLineColor
+            }
+
+            # 青ボタンの右側からさらに横ラインを引く（正しい方向に）
+            $blueHorizontalStartPoint = [System.Drawing.Point]::new(
+                $firstBlueButton.Location.X + $firstBlueButton.Width + $greenToBlueLineHorizontalOffset,
+                $firstBlueButton.Location.Y + ($firstBlueButton.Height / 2) + $greenToBlueLineVerticalOffset
+            )
+            $blueHorizontalEndPoint = [System.Drawing.Point]::new(
+                $blueHorizontalStartPoint.X + 20,  # 横幅を20ピクセル追加（必要に応じて調整）
+                $blueHorizontalStartPoint.Y
+            )
+
+            # 横ラインを描画（青）
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "Line"
+                StartPoint = $blueHorizontalStartPoint
+                EndPoint = $blueHorizontalEndPoint
+                Color = $greenToBlueLineColor
+            }
+        }
+
+        # 条件分岐内の赤いボタンを取得
+        $redButtons = $conditionalButtons |
+            Where-Object { ($_.BackColor.ToArgb() -eq [System.Drawing.Color]::Salmon.ToArgb()) -or ($_.BackColor.ToArgb() -eq $global:ピンク赤色.ToArgb()) }
+
+
+        if ($redButtons.Count -gt 0) {
+            # 一番下の赤いボタンを取得
+            $lastRedButton = $redButtons[-1]
+
+            # 赤いボタンの左側からラインを引く
+            $horizontalLineStartX = $lastRedButton.Location.X
+            $horizontalLineEndX = $horizontalLineStartX + $redToGreenLineHorizontalOffset
+            if ($horizontalLineEndX -lt 0) { $horizontalLineEndX = 0 }
+            $horizontalLineY = $lastRedButton.Location.Y + ($lastRedButton.Height / 2) + $redToGreenLineVerticalOffset
+
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "Line"
+                StartPoint = [System.Drawing.Point]::new($horizontalLineStartX, $horizontalLineY)
+                EndPoint = [System.Drawing.Point]::new($horizontalLineEndX, $horizontalLineY)
+                Color = $redToGreenLineColor
+            }
+
+            # 横線の左端から下に縦線を引く
+            $verticalLineX = $horizontalLineEndX
+            $verticalLineStartY = $horizontalLineY
+            $verticalLineEndY = $greenButtonBottom.Location.Y + ($greenButtonBottom.Height / 2) + $redToGreenLineVerticalOffset
+
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "Line"
+                StartPoint = [System.Drawing.Point]::new($verticalLineX, $verticalLineStartY)
+                EndPoint = [System.Drawing.Point]::new($verticalLineX, $verticalLineEndY)
+                Color = $redToGreenLineColor
+            }
+
+            # 緑色ボタン（下）への矢印
+            $arrowStartX = $verticalLineX
+            $arrowEndX = $greenButtonBottom.Location.X  # 緑色ボタンの左端
+            $arrowY = $verticalLineEndY
+
+            # 矢印の情報を追加
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "Arrow"
+                StartPoint = [System.Drawing.Point]::new($arrowStartX, $arrowY)
+                EndPoint = [System.Drawing.Point]::new($arrowEndX, $arrowY)
+                Direction = "Left"
+                Color = $redToGreenLineColor
+            }
+        }
+
+        # --- 新しい矢印表示条件の追加 ---
+        # グループ内の緑色ボタンの上下のボタンをチェックして矢印を追加
+        foreach ($group in $conditionalGroups) {
+            $conditionalButtons = $group
+            $greenButtonTop = $conditionalButtons[0]
+            $greenButtonBottom = $conditionalButtons[-1]
+
+            # 緑色ボタンの位置を基にボタンのインデックスを取得
+            $topIndex = $buttons.IndexOf($greenButtonTop)
+            $bottomIndex = $buttons.IndexOf($greenButtonBottom)
+
+            # 上側の緑色ボタンの下にあるボタンが赤色の場合、赤の↓矢印を追加
+            if ($topIndex -lt ($buttons.Count - 1)) {
+                $buttonBelowTop = $buttons[$topIndex + 1]
+                #if ($buttonBelowTop.BackColor.ToArgb() -eq [System.Drawing.Color]::Salmon.ToArgb()) {
+                if (($buttonBelowTop.BackColor.ToArgb() -eq [System.Drawing.Color]::Salmon.ToArgb()) -or ($buttonBelowTop.BackColor.ToArgb() -eq $global:ピンク赤色.ToArgb())) {
+
+
+                    # 赤色の下向き矢印を描画
+                    $startPoint = [System.Drawing.Point]::new(
+                        $greenButtonTop.Location.X + ($greenButtonTop.Width / 2),
+                        $greenButtonTop.Location.Y + $greenButtonTop.Height
+                    )
+                    $endPoint = [System.Drawing.Point]::new(
+                        $buttonBelowTop.Location.X + ($buttonBelowTop.Width / 2),
+                        $buttonBelowTop.Location.Y
+                    )
+
+                    $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                        Type = "DownArrow"
+                        StartPoint = $startPoint
+                        EndPoint = $endPoint
+                        Color = [System.Drawing.Color]::Salmon
+                    }
+                }
+            }
+
+            # 下側の緑色ボタンの上にあるボタンが青色の場合、青の↓矢印を追加
+            if ($bottomIndex -gt 0) {
+                $buttonAboveBottom = $buttons[$bottomIndex - 1]
+                #if ($buttonAboveBottom.BackColor.ToArgb() -eq $global:青色.ToArgb()) {
+                if (($buttonAboveBottom.BackColor.ToArgb() -eq $global:青色.ToArgb()) -or ($buttonAboveBottom.BackColor.ToArgb() -eq $global:ピンク青色.ToArgb())) {
+
+                    # 青色の下向き矢印を描画
+                    $startPoint = [System.Drawing.Point]::new(
+                        $buttonAboveBottom.Location.X + ($buttonAboveBottom.Width / 2),
+                        $buttonAboveBottom.Location.Y + $buttonAboveBottom.Height
+                    )
+                    $endPoint = [System.Drawing.Point]::new(
+                        $greenButtonBottom.Location.X + ($greenButtonBottom.Width / 2),
+                        $greenButtonBottom.Location.Y
+                    )
+
+                    $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                        Type = "DownArrow"
+                        StartPoint = $startPoint
+                        EndPoint = $endPoint
+                        Color = $global:青色
+                    }
+                }
+            }
+        }
+        # --- ここまで新しい矢印表示条件の追加 ---
+    }
+
+    # 通常のシーケンス処理における矢印描画条件の追加
+    for ($i = 0; $i -lt ($buttons.Count - 1); $i++) {
+        $currentButton = $buttons[$i]
+        $nextButton = $buttons[$i + 1]
+
+        $currentColor = $currentButton.BackColor.ToArgb()
+        $nextColor = $nextButton.BackColor.ToArgb()
+
+        # 下向きの矢印を描画する条件を変更
+        if ($currentColor -eq [System.Drawing.Color]::White.ToArgb() -and $nextColor -eq [System.Drawing.Color]::White.ToArgb()) {
+            # 下向きの矢印を描画（黒）
+            $startPoint = [System.Drawing.Point]::new(
+                $currentButton.Location.X + ($currentButton.Width / 2),
+                $currentButton.Location.Y + $currentButton.Height
+            )
+            $endPoint = [System.Drawing.Point]::new(
+                $nextButton.Location.X + ($nextButton.Width / 2),
+                $nextButton.Location.Y
+            )
+
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "DownArrow"
+                StartPoint = $startPoint
+                EndPoint = $endPoint
+                Color = [System.Drawing.Color]::Black  # 黒色の矢印
+            }
+        }
+        #elseif ($currentColor -eq [System.Drawing.Color]::Salmon.ToArgb() -and $nextColor -eq [System.Drawing.Color]::Salmon.ToArgb()) {
+        elseif ((($currentColor -eq [System.Drawing.Color]::Salmon.ToArgb()) -or ($currentColor -eq $global:ピンク赤色.ToArgb())) -and
+        (($nextColor -eq [System.Drawing.Color]::Salmon.ToArgb()) -or ($nextColor -eq $global:ピンク赤色.ToArgb()))) {
+
+
+
+            # 下向きの矢印を描画（赤）
+            $startPoint = [System.Drawing.Point]::new(
+                $currentButton.Location.X + ($currentButton.Width / 2),
+                $currentButton.Location.Y + $currentButton.Height
+            )
+            $endPoint = [System.Drawing.Point]::new(
+                $nextButton.Location.X + ($nextButton.Width / 2),
+                $nextButton.Location.Y
+            )
+
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "Arrow"
+                StartPoint = $startPoint
+                EndPoint = $endPoint
+                Direction = "Left"
+                Color = [System.Drawing.Color]::Salmon  # 赤色の矢印
+            }
+        }
+    elseif ((($currentColor -eq $global:青色.ToArgb()) -or ($currentColor -eq $global:ピンク青色.ToArgb())) -and
+            (($nextColor -eq $global:青色.ToArgb()) -or ($nextColor -eq $global:ピンク青色.ToArgb()))) {
+
+            # 下向きの矢印を描画（青）
+            $startPoint = [System.Drawing.Point]::new(
+                $currentButton.Location.X + ($currentButton.Width / 2),
+                $currentButton.Location.Y + $currentButton.Height
+            )
+            $endPoint = [System.Drawing.Point]::new(
+                $nextButton.Location.X + ($nextButton.Width / 2),
+                $nextButton.Location.Y
+            )
+
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "DownArrow"
+                StartPoint = $startPoint
+                EndPoint = $endPoint
+                Color = $global:青色  # 青色の矢印
+            }
+        }
+    }
+
+    # 黄色ボタンの処理
+    $yellowButtons = $buttons | Where-Object { $_.BackColor.ToArgb() -eq [System.Drawing.Color]::LemonChiffon.ToArgb() }
+
+    # グループIDでグループ化
+    $groupedYellowButtons = $yellowButtons | Group-Object -Property { $_.Tag.GroupID }
+
+    foreach ($group in $groupedYellowButtons) {
+        if ($group.Count -eq 2) {
+            $button1 = $group.Group[0]
+            $button2 = $group.Group[1]
+
+            # 上下関係を確認
+            if ($button1.Location.Y -le $button2.Location.Y) {
+                $upperButton = $button1
+                $lowerButton = $button2
+            }
+            else {
+                $upperButton = $button2
+                $lowerButton = $button1
+            }
+
+            # 上段のボタンの左側に矢印を引く（修正箇所）
+            $horizontalLineStartX = $upperButton.Location.X  # ボタンの左端
+            $horizontalLineEndX = $horizontalLineStartX + $yellowLineHorizontalOffset  # 正方向に変更
+            if ($horizontalLineEndX -lt 0) {
+                $horizontalLineEndX = 0
+            }
+            $horizontalLineY = $upperButton.Location.Y + ($upperButton.Height / 2) + $yellowLineVerticalOffset
+
+            # 矢印の情報を追加（Typeを "Arrow" に変更）
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "Arrow"  # 修正箇所
+                #StartPoint = [System.Drawing.Point]::new($horizontalLineStartX, $horizontalLineY)
+                #EndPoint = [System.Drawing.Point]::new($horizontalLineEndX, $horizontalLineY)
+                StartPoint = [System.Drawing.Point]::new($horizontalLineEndX, $horizontalLineY)
+                EndPoint = [System.Drawing.Point]::new($horizontalLineStartX, $horizontalLineY)
+                Direction = "Right"
+                Color = $yellowLineColor
+            }
+
+            # 横線の左端から下に縦線を引く
+            $verticalLineX = $horizontalLineEndX
+            $verticalLineStartY = $horizontalLineY
+            $verticalLineEndY = $lowerButton.Location.Y + ($lowerButton.Height / 2) + $yellowLineVerticalOffset
+
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "Line"
+                StartPoint = [System.Drawing.Point]::new($verticalLineX, $verticalLineStartY)
+                EndPoint = [System.Drawing.Point]::new($verticalLineX, $verticalLineEndY)
+                Color = $yellowLineColor
+            }
+
+            # 縦線の下端から下段のボタンの左側に向けて横線を引く（修正箇所）
+            $arrowStartX = $verticalLineX
+            $arrowEndX = $lowerButton.Location.X  # 下段ボタンの左端
+            $arrowY = $verticalLineEndY
+
+            # 横線の情報を追加（Typeを "Line" に変更）
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "Line"  # 修正箇所
+                StartPoint = [System.Drawing.Point]::new($arrowStartX, $arrowY)
+                EndPoint = [System.Drawing.Point]::new($arrowEndX, $arrowY)
+                Color = $yellowLineColor
+            }
+        }
+    }
+
+
+        # pinkボタンの処理
+    $pinkButtons = $buttons | Where-Object { $_.BackColor.ToArgb() -eq [System.Drawing.Color]::LemonChiffon.ToArgb() }
+
+    # グループIDでグループ化
+    $groupedpinkButtons = $pinkButtons | Group-Object -Property { $_.Tag.GroupID }
+
+    # メインフレームパネルを再描画
+    $フレームパネル.Invalidate()
+
+    取得-ボタン一覧 -フレームパネル $Global:可視左パネル
+    #取得-ボタン一覧 -フレームパネル $global:レイヤー0
+    #取得-ボタン一覧 -フレームパネル $global:レイヤー1
+    #取得-ボタン一覧 -フレームパネル $global:レイヤー2
+    #取得-ボタン一覧 -フレームパネル $global:レイヤー3
+    #取得-ボタン一覧 -フレームパネル $global:レイヤー4
+    #取得-ボタン一覧 -フレームパネル $global:レイヤー5
+    #取得-ボタン一覧 -フレームパネル $global:レイヤー6
+
+}
+# 【タイトル: 取得-ボタン一覧 階層別JSON出力 Ver1.0】
+# 【タイトル: 取得-ボタン一覧 階層別JSON出力 Ver1.1】
+
+function 取得-ボタン一覧 {
+    param (
+        [System.Windows.Forms.Panel]$フレームパネル
+    )
+
+    #--- 0) 階層番号（1〜5）を取得 --------------------------------------------
+    $最後の文字 = グローバル変数から数値取得 -パネル $フレームパネル
+    Write-Host "最後の文字 = $最後の文字"   # デバッグ用
+
+    if (-not ($最後の文字 -as [int] -and 1..5 -contains [int]$最後の文字)) {
+        throw "不正な階層番号です。（1〜5 の整数が必要）"
+    }
+
+    #--- 1) パネル内ボタンを収集 ----------------------------------------------
+    $buttons       = $フレームパネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }
+    $sortedButtons = $buttons | Sort-Object { $_.Location.Y }
+
+    $index       = 1
+    $outputList  = @()
+
+    foreach ($button in $sortedButtons) {
+        $tag            = $button.Tag
+        $processingNum  = if ($tag.処理番号) { $tag.処理番号 } else { "未設定" }
+        $scriptFlag     = if ($tag.script)  { $tag.script   } else { "未設定" }
+
+        $outputList += [PSCustomObject]@{
+            ボタン名 = $button.Name
+            X座標    = $button.Location.X
+            Y座標    = $button.Location.Y
+            順番     = $index
+            ボタン色 = $button.BackColor.Name
+            テキスト = $button.Text
+            処理番号 = $processingNum
+            高さ     = $button.Height
+            幅       = $button.Width
+            script   = $scriptFlag
+        }
+        $index++
+    }
+
+    #--- 2) JSON 読込／テンプレート初期化 ------------------------------------
+    $jsonPath   = Join-Path $global:folderPath 'memory.json'
+    $baseObject = @{}
+
+    if (Test-Path $jsonPath) {
+        try       { $baseObject = Get-Content $jsonPath | ConvertFrom-Json }
+        catch     { Write-Host "既存 JSON を読込めなかったため再生成します。" }
+    }
+
+    # 既存が空なら新規の PSCustomObject を用意
+    if (-not $baseObject) { $baseObject = [pscustomobject]@{} }
+
+    #--- 3) 1〜5 の階層プロパティを揃える -------------------------------------
+    foreach ($n in 1..5) {
+        if (-not ($baseObject.PSObject.Properties.Name -contains "$n")) {
+            # Add-Member で NoteProperty を動的追加
+            $baseObject | Add-Member -MemberType NoteProperty -Name "$n" `
+                -Value ([pscustomobject]@{ 構成 = @() })
+        }
+        elseif (-not ($baseObject."$n").PSObject.Properties.Name -contains '構成') {
+            # 過去に構成が無かった場合も補完
+            $baseObject."$n" | Add-Member -MemberType NoteProperty -Name '構成' -Value @()
+        }
+    }
+
+    #--- 4) 指定階層へ今回のデータをセット -----------------------------------
+    $baseObject."$最後の文字".構成 = $outputList
+
+    #--- 5) JSON 保存 ---------------------------------------------------------
+    $baseObject | ConvertTo-Json -Depth 8 |
+        Out-File -FilePath $jsonPath -Encoding UTF8
+
+    Write-Host "memory.json を更新しました（階層 $最後の文字）"
+}
+
+# カスタム矢印を描画するヘルパー関数
+function Draw-CustomArrow {
+    param (
+        [System.Drawing.Graphics]$graphics,
+        [System.Drawing.Pen]$pen,
+        [System.Drawing.Point]$startPoint,
+        [System.Drawing.Point]$endPoint,
+        [float]$arrowSize = 7.0,    # 矢印ヘッドのサイズを小さく
+        [float]$arrowAngle = 45.0   # 矢印ヘッドの角度を鋭く
+    )
+
+    # アンチエイリアシングを有効にして描画品質を向上
+    $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+
+    # メインラインを描画
+    $graphics.DrawLine($pen, $startPoint, $endPoint)
+
+    # メインラインのベクトルを計算
+    $dx = $endPoint.X - $startPoint.X
+    $dy = $endPoint.Y - $startPoint.Y
+    $length = [math]::Sqrt($dx * $dx + $dy * $dy)
+
+    if ($length -eq 0) { return }
+
+    # 単位ベクトルを計算
+    $ux = $dx / $length
+    $uy = $dy / $length
+
+    # 矢印ヘッドの角度をラジアンに変換
+    $angleRad = [math]::PI * $arrowAngle / 180.0
+
+    # 矢印ヘッドの2つのポイントを計算
+    $sin = [math]::Sin($angleRad)
+    $cos = [math]::Cos($angleRad)
+
+    $point1X = [math]::Round($endPoint.X - $arrowSize * ($cos * $ux + $sin * $uy))
+    $point1Y = [math]::Round($endPoint.Y - $arrowSize * ($cos * $uy - $sin * $ux))
+    $point2X = [math]::Round($endPoint.X - $arrowSize * ($cos * $ux - $sin * $uy))
+    $point2Y = [math]::Round($endPoint.Y - $arrowSize * ($cos * $uy + $sin * $ux))
+
+    $point1 = New-Object System.Drawing.Point($point1X, $point1Y)
+    $point2 = New-Object System.Drawing.Point($point2X, $point2Y)
+
+    # 矢印ヘッドを描画
+    $graphics.DrawLine($pen, $endPoint, $point1)
+    $graphics.DrawLine($pen, $endPoint, $point2)
+}
+
+
+
+# 修正後のコード Ver1
+function 00_メインフレームパネルのPaintイベントを設定する {
+    param (
+        [System.Windows.Forms.Panel]$フレームパネル
+    )
+
+    $フレームパネル.Add_Paint({
+        param($sender, $e)
+        
+        # スクロール位置を考慮（修正箇所 Ver1）
+        $e.Graphics.TranslateTransform($sender.AutoScrollPosition.X, $sender.AutoScrollPosition.Y)
+        
+        # 描画品質を向上
+        $e.Graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+
+        # パネルごとの DrawObjects を取得
+        $drawObjects = $sender.Tag.DrawObjects
+
+        foreach ($obj in $drawObjects) {
+            if ($obj.Type -eq "Line") {
+                # 色の設定（既存のロジックを使用）
+                $lineColor = if (($obj.Color.ToArgb() -eq $global:青色.ToArgb()) -or ($obj.Color.ToArgb() -eq $global:ピンク青色.ToArgb())) {
+                    [System.Drawing.Color]::Blue
+                }
+                elseif ($obj.Color.ToArgb() -eq [System.Drawing.Color]::SpringGreen.ToArgb()) {
+                    [System.Drawing.Color]::Green
+                }
+                elseif ($obj.Color.ToArgb() -eq [System.Drawing.Color]::LemonChiffon.ToArgb()) {
+                    [System.Drawing.Color]::Yellow
+                }
+                elseif (($obj.Color.ToArgb() -eq [System.Drawing.Color]::Salmon.ToArgb()) -or ($obj.Color.ToArgb() -eq $global:ピンク赤色.ToArgb())) {
+                    [System.Drawing.Color]::Red
+                }
+                elseif ($obj.PSObject.Properties.Match("Color").Count -gt 0) {
+                    $obj.Color
+                }
+                else {
+                    [System.Drawing.Color]::Black
+                }
+
+                # ラインを描画（ペンの幅を細く）
+                $pen = New-Object System.Drawing.Pen($lineColor, 1)  # 太さを1に変更
+                $e.Graphics.DrawLine($pen, $obj.StartPoint, $obj.EndPoint)
+                $pen.Dispose()
+            }
+            elseif ($obj.Type -eq "Arrow" -or $obj.Type -eq "DownArrow") {
+                # 矢印の色を設定（既存のロジックを使用）
+                $arrowColor = if (($obj.Color.ToArgb() -eq $global:青色.ToArgb()) -or ($obj.Color.ToArgb() -eq $global:ピンク青色.ToArgb())) {
+                    [System.Drawing.Color]::Blue
+                }
+                elseif ($obj.Color.ToArgb() -eq [System.Drawing.Color]::SpringGreen.ToArgb()) {
+                    [System.Drawing.Color]::Green
+                }
+                elseif ($obj.Color.ToArgb() -eq [System.Drawing.Color]::LemonChiffon.ToArgb()) {
+                    [System.Drawing.Color]::Yellow
+                }
+                elseif (($obj.Color.ToArgb() -eq [System.Drawing.Color]::Salmon.ToArgb()) -or ($obj.Color.ToArgb() -eq $global:ピンク赤色.ToArgb())) {
+                    [System.Drawing.Color]::Red
+                }
+                elseif ($obj.PSObject.Properties.Match("Color").Count -gt 0) {
+                    $obj.Color
+                }
+                else {
+                    [System.Drawing.Color]::Black
+                }
+
+                # ペンの設定
+                $pen = New-Object System.Drawing.Pen($arrowColor, 1)  # 太さを1に変更
+
+                # 矢印の描画方向を調整
+                $endPoint = $obj.EndPoint
+                $startPoint = $obj.StartPoint
+                
+                if ($obj.Type -eq "DownArrow") {
+                    # 下向きの場合、特別な調整が必要な場合はここに追加
+                    # ここでは既存の StartPoint と EndPoint を使用
+                }
+                elseif ($obj.Direction -eq "Right") {
+                    # 右向きの場合、矢印の向きを右に調整
+                    # 必要に応じて座標を変更
+                    # ここでは既存の StartPoint と EndPoint を使用
+                    write-host "AAs"
+                    #$endPoint = $obj.EndPoint
+                    #$startPoint = $obj.StartPoint
+                }
+                elseif ($obj.Direction -eq "Left") {
+                    # 左向きの場合、矢印の向きを左に調整
+                    # 必要に応じて座標を変更
+                    # ここでは既存の StartPoint と EndPoint を使用
+                }
+                else {
+                    # その他の方向の場合、特別な調整が必要な場合はここに追加
+                    # ここでは既存の StartPoint と EndPoint を使用
+                }
+
+                # カスタム矢印を描画
+                Draw-CustomArrow -graphics $e.Graphics -pen $pen -startPoint $startPoint -endPoint $endPoint
+
+                $pen.Dispose()
+            }
+        }
+    })
+}
+
+
+----- CONTENT END -----
+===== FILE-END =====
+
+===== FILE-START =====
+PATH: 06_メインフォームUI_フレーム移動.ps1
+----- CONTENT BEGIN -----
+# フレームパネルをフォームから削除する関数
+
+
+function メインフレームの左を押した場合の処理 {
+
+        00_フレームを表示する -フレームパネル $Global:不可視右の右パネル             
+
+        $layers = @($Global:可視左パネル, $Global:可視右パネル, $Global:不可視右の右パネル) # レイヤーパネルを配列に格納
+        $moveIterations = 3 # 移動を繰り返す回数を設定
+
+        for ($i = 1; $i -le $moveIterations; $i++) {
+            foreach ($layer in $layers) {
+                00_フレームを移動する -フレームパネル $layer -deltaX -130 -deltaY 0 -相対
+            }
+            Start-Sleep -Milliseconds 100
+        }
+
+        00_フレームを非表示にする -フレームパネル $Global:可視左パネル
+
+        $Global:不可視左の左パネル = $Global:可視左パネル
+        $Global:可視左パネル = $Global:可視右パネル
+        $Global:可視右パネル = $Global:不可視右の右パネル
+        $新しいレイヤー名 = 新しいレイヤー名を取得する -パネル $Global:不可視右の右パネル　-向き "左"# 関数を呼び出して新しいレイヤー名を取得
+        $Global:不可視右の右パネル = (Get-Variable -Name $新しいレイヤー名 -Scope Global).Value　# レイヤー名から変数を取得して不可視右の右パネルに割り当て
+       # パネル名を表示する
+}
+function メインフレームの右を押した場合の処理 {
+
+        00_フレームを表示する -フレームパネル $Global:不可視左の左パネル
+
+        $layers = @($Global:不可視左の左パネル, $Global:可視左パネル,$Global:可視右パネル) # レイヤーパネルを配列に格納
+        $moveIterations = 3 # 移動を繰り返す回数を設定
+
+        for ($i = 1; $i -le $moveIterations; $i++) {
+            foreach ($layer in $layers) {
+                00_フレームを移動する -フレームパネル $layer -deltaX 130 -deltaY 0 -相対
+            }
+            Start-Sleep -Milliseconds 100
+        }
+
+         00_フレームを非表示にする -フレームパネル $Global:可視右パネル
+
+        $Global:不可視右の右パネル = $Global:可視右パネル
+        $Global:可視右パネル = $Global:可視左パネル
+        $Global:可視左パネル = $Global:不可視左の左パネル
+
+
+        $新しいレイヤー名 = 新しいレイヤー名を取得する -パネル $Global:不可視左の左パネル -向き "右"　# 関数を呼び出して新しいレイヤー名を取得
+        $Global:不可視左の左パネル = (Get-Variable -Name $新しいレイヤー名 -Scope Global).Value　# レイヤー名から変数を取得して不可視右の右パネルに割り当て
+        #パネル名を表示する
+
+}
+
+
+
+# 必要なモジュールをインポート（System.Windows.Forms を使用する場合）
+Add-Type -AssemblyName System.Windows.Forms
+
+# 1. グローバル変数からレイヤー名の最後の文字を取得する関数
+function グローバル変数から数値取得 {
+    param (
+        [System.Windows.Forms.Panel]$パネル
+    )
+
+    # グローバルスコープから「レイヤー」を含む変数を検索
+    $一致する変数 = Get-Variable -Scope Global | Where-Object {
+        $_.Value -eq $パネル -and $_.Name -like '*レイヤー*'
+    } | Select-Object -First 1
+
+    if ($一致する変数) {
+        $レイヤー名 = $一致する変数.Name
+        #Write-Host "対応する変数名: $レイヤー名"
+
+        try {
+            # 名前の最後の文字を取得（文字列として）
+            $最後の文字 = $レイヤー名[-1].ToString()
+            #Write-Host "最後の文字: $最後の文字"
+            return $最後の文字
+        }
+        catch {
+            #Write-Host "レイヤー名から最後の文字を取得できませんでした。エラー: $_" -ForegroundColor Red
+            return $null
+        }
+    }
+    else {
+        #Write-Host "該当するレイヤー変数が見つかりません。" -ForegroundColor Red
+        return $null
+    }
+}
+
+# 2. 新しいレイヤー名を取得する関数
+function 新しいレイヤー名を取得する {
+    param (
+        [System.Windows.Forms.Panel]$パネル,
+        [string]$向き
+    )
+
+    # レイヤーの最後の文字を取得する関数を呼び出す
+    $最後の文字 = グローバル変数から数値取得　-パネル $パネル
+
+    if ($null -ne $最後の文字) {
+        # 最後の文字が数字であることを確認
+        if ($最後の文字 -match '^\d$') {
+            if ($向き -eq "左") {
+                $新しい番号 = [int]$最後の文字 + 1
+            }
+            elseif ($向き -eq "右") {
+                $新しい番号 = [int]$最後の文字 - 1
+            }
+            else {
+                #Write-Host "向きの値が無効です。'左' または '右' を指定してください。" -ForegroundColor Yellow
+                return $null
+            }
+
+            # 新しいレイヤー名を作成
+            $新しいレイヤー名 = "レイヤー$新しい番号"
+            return $新しいレイヤー名
+        }
+        else {
+            #Write-Host "レイヤー名の最後の文字が数字ではありません。値を確認してください。" -ForegroundColor Red
+            return $null
+        }
+    }
+    else {
+        return $null
+    }
+}
+
+
+
+function 00_フレームを削除する {
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Forms.Panel]$フレームパネル  # 削除対象のフレームパネル
+    )
+
+    # フレームパネルが存在し、フォームに追加されていることを確認
+    if ($フレームパネル -eq $null) {
+        #Write-Host "警告: フレームパネルが指定されていません。" -ForegroundColor Yellow
+        return
+    }
+
+    if ($フレームパネル.Parent -eq $null) {
+        #Write-Host "警告: フレームパネルがフォームに追加されていません。" -ForegroundColor Yellow
+        return
+    }
+
+    # 削除処理
+    try {
+        # フレームパネルを親から削除
+        $フレームパネル.Parent.Controls.Remove($フレームパネル)
+
+        # フレームパネルのリソースを解放
+        $フレームパネル.Dispose()
+
+        #Write-Host "フレームパネルをフォームから削除しました。" -ForegroundColor Green
+    }
+    catch {
+        #Write-Host "フレームパネルの削除中にエラーが発生しました。 - $_" -ForegroundColor Red
+    }
+}
+
+
+
+
+
+
+# フレームパネルを新しい位置に移動する関数（相対移動と絶対移動をサポート）
+function 00_フレームを移動する {
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Forms.Panel]$フレームパネル,  # 移動対象のフレームパネル
+
+        # 絶対移動用のパラメータ
+        [Parameter(Mandatory = $false)]
+        [int]$新X位置,  # 新しいX座標（絶対）
+
+        [Parameter(Mandatory = $false)]
+        [int]$新Y位置,   # 新しいY座標（絶対）
+
+        # 相対移動用のパラメータ
+        [Parameter(Mandatory = $false)]
+        [int]$deltaX = 0,  # X方向の移動量（相対）
+
+        [Parameter(Mandatory = $false)]
+        [int]$deltaY = 0,  # Y方向の移動量（相対）
+
+        # 相対移動を指定するスイッチ
+        [switch]$相対
+    )
+
+    # フレームパネルが存在し、フォームに追加されていることを確認
+    if ($フレームパネル -eq $null) {
+        #Write-Host "警告: フレームパネルが指定されていません。" -ForegroundColor Yellow
+        return
+    }
+
+    if ($フレームパネル.Parent -eq $null) {
+        #Write-Host "警告: フレームパネルがフォームに追加されていません。" -ForegroundColor Yellow
+        return
+    }
+
+    # 移動処理
+    try {
+        if ($相対) {
+            # 相対移動の場合
+            $現在の位置 = $フレームパネル.Location
+            $新X = $現在の位置.X + $deltaX
+            $新Y = $現在の位置.Y + $deltaY
+            $フレームパネル.Location = New-Object System.Drawing.Point($新X, $新Y)
+            ##Write-Host "フレームパネルを相対位置に移動しました。ΔX: $deltaX, ΔY: $deltaY" -ForegroundColor Green
+        }
+        else {
+            # 絶対移動の場合
+            if ($新X位置 -eq $null -or $新Y位置 -eq $null) {
+                #Write-Host "警告: 絶対移動の場合は新しいX位置とY位置を指定してください。" -ForegroundColor Yellow
+                return
+            }
+            $フレームパネル.Location = New-Object System.Drawing.Point($新X位置, $新Y位置)
+            ##Write-Host "フレームパネルを新しい位置に移動しました。X: $新X位置, Y: $新Y位置" -ForegroundColor Green
+        }
+    }
+    catch {
+        #Write-Host "フレームパネルの移動中にエラーが発生しました。 - $_" -ForegroundColor Red
+    }
+}
+
+
+
+# フレームパネルを非表示にする関数
+function 00_フレームを非表示にする {
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Forms.Panel]$フレームパネル  # 非表示にするフレームパネル
+    )
+
+    # フレームパネルが存在し、フォームに追加されていることを確認
+    if ($フレームパネル -eq $null) {
+        #Write-Host "警告: フレームパネルが指定されていません。" -ForegroundColor Yellow
+        return
+    }
+
+    if ($フレームパネル.Parent -eq $null) {
+        #Write-Host "警告: フレームパネルがフォームに追加されていません。" -ForegroundColor Yellow
+        return
+    }
+
+    # 非表示処理
+    try {
+        $フレームパネル.Visible = $false
+        #Write-Host "フレームパネルを非表示にしました。" -ForegroundColor Green
+    }
+    catch {
+        #Write-Host "フレームパネルの非表示中にエラーが発生しました。 - $_" -ForegroundColor Red
+    }
+}
+
+
+# フレームパネルを表示する関数
+function 00_フレームを表示する {
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Forms.Panel]$フレームパネル  # 表示するフレームパネル
+    )
+
+    # フレームパネルが存在し、フォームに追加されていることを確認
+    if ($フレームパネル -eq $null) {
+        #Write-Host "警告: フレームパネルが指定されていません。" -ForegroundColor Yellow
+        return
+    }
+
+    if ($フレームパネル.Parent -eq $null) {
+        #Write-Host "警告: フレームパネルがフォームに追加されていません。" -ForegroundColor Yellow
+        return
+    }
+
+    # 表示処理
+    try {
+        $フレームパネル.Visible = $true
+        #Write-Host "フレームパネルを表示しました。" -ForegroundColor Green
+    }
+    catch {
+        #Write-Host "フレームパネルの表示中にエラーが発生しました。 - $_" -ForegroundColor Red
+    }
+}
+
+
+
+# フレームパネルにラベルを追加する関数
+function 00_フレームパネルにラベルを追加する {
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Forms.Panel]$フレームパネル,    # ラベルを追加するフレームパネル
+
+        [Parameter(Mandatory = $true)]
+        [string]$ラベルテキスト,                        # ラベルに表示するテキスト
+
+        [int]$X位置 = 10,                                 # ラベルのX座標（フレームパネル内での位置）
+        [int]$Y位置 = 10,                                 # ラベルのY座標（フレームパネル内での位置）
+
+        [System.Drawing.Font]$フォント = (New-Object System.Drawing.Font("MS UI Gothic", 12)), # ラベルのフォント
+        [System.Drawing.Color]$フォント色 = [System.Drawing.Color]::Black,                   # ラベルのテキスト色
+        [System.Drawing.Color]$背景色 = [System.Drawing.Color]::Transparent               # ラベルの背景色
+    )
+
+    # フレームパネルが存在し、フォームに追加されていることを確認
+    if ($フレームパネル -eq $null) {
+        #Write-Host "警告: フレームパネルが指定されていません。" -ForegroundColor Yellow
+        return
+    }
+
+    if ($フレームパネル.Parent -eq $null) {
+        #Write-Host "警告: フレームパネルがフォームに追加されていません。" -ForegroundColor Yellow
+        return
+    }
+
+    # ラベルの作成と設定
+    try {
+        # ラベルの作成
+        $ラベル = New-Object System.Windows.Forms.Label
+        $ラベル.Text = $ラベルテキスト
+        $ラベル.AutoSize = $true
+        $ラベル.Location = New-Object System.Drawing.Point($X位置, $Y位置)
+        $ラベル.Font = $フォント
+        $ラベル.ForeColor = $フォント色
+        $ラベル.BackColor = $背景色
+
+        # 必要に応じて他のプロパティも設定可能
+        # 例: クリックイベントの追加など
+
+        # ラベルをフレームパネルに追加
+        $フレームパネル.Controls.Add($ラベル)
+
+        #Write-Host "ラベルをフレームパネルに追加しました。テキスト: '$ラベルテキスト', 位置: X=$X位置, Y=$Y位置" -ForegroundColor Green
+    }
+    catch {
+        #Write-Host "ラベルの追加中にエラーが発生しました。 - $_" -ForegroundColor Red
+    }
+}
+
+function パネル名を表示する {
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+
+    # フォームの作成
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = "パネル名一覧"
+    $form.Size = New-Object System.Drawing.Size(400, 250)
+
+    # 表示するグローバル変数のリスト
+    $globalVars = @(
+        $Global:不可視左の左パネル,
+        $Global:可視左パネル,
+        $Global:可視右パネル,
+        $Global:不可視右の右パネル
+    )
+
+    # ラベルの作成と配置
+    $yPos = 20
+    foreach ($panel in $globalVars) {
+        if ($panel -ne $null) {
+            # 同じオブジェクトを参照し、名前に「レイヤー」を含むグローバル変数を検索
+            $一致する変数 = Get-Variable -Scope Global | Where-Object {
+                $_.Value -eq $panel -and $_.Name -like '*レイヤー*'
+            } | Select-Object -First 1
+
+            if ($一致する変数) {
+                $レイヤー名 = $一致する変数.Name
+                $表示テキスト = "$($一致する変数.Name): $($panel.Name)"
+            }
+            else {
+                $表示テキスト = "該当なし: パネル名 = $($panel.Name)"
+            }
+        }
+        else {
+            $表示テキスト = "未定義のパネル"
+        }
+
+        # ラベルを作成
+        $label = New-Object System.Windows.Forms.Label
+        $label.Text = $表示テキスト
+        $label.AutoSize = $true
+        $label.Location = New-Object System.Drawing.Point(20, $yPos)
+        $form.Controls.Add($label)
+        $yPos += 40
+    }
+
+    # フォームを表示
+    $form.ShowDialog()
+}
+
+----- CONTENT END -----
+===== FILE-END =====
+
+===== FILE-START =====
+PATH: 07_メインF機能_ツールバー作成.ps1
+----- CONTENT BEGIN -----
+# 必要な.NETアセンブリを読み込み
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
+# メニュー項目を作成するヘルパー関数
+function メニュー項目作成 {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$テキスト,         # メニュー項目のテキスト
+        [Parameter(Mandatory = $true)]
+        [scriptblock]$アクション    # クリック時のアクション
+    )
+
+    $項目 = New-Object System.Windows.Forms.ToolStripMenuItem
+    $項目.Text = $テキスト
+    $項目.Add_Click($アクション)
+    return $項目
+}
+
+# 任意のメニューを作成してツールバーに追加する関数
+function メニューを追加 {
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Forms.ToolStrip]$ツールバー,  # ツールバーオブジェクト
+        [Parameter(Mandatory = $true)]
+        [string]$メニュー名,                         # メニューの名前（表示テキスト）
+        [Parameter(Mandatory = $true)]
+        [array]$項目リスト,                            # メニュー項目の配列
+        [string]$ツールチップ = ""                     # ツールチップのオプション
+    )
+
+    $ドロップダウンボタン = New-Object System.Windows.Forms.ToolStripDropDownButton
+    $ドロップダウンボタン.Text = $メニュー名
+    $ドロップダウンボタン.ToolTipText = $ツールチップ  # 親メニューにツールチップを設定
+
+    foreach ($項目 in $項目リスト) {
+        if ($項目.テキスト -and $項目.アクション) {
+            $ドロップダウンボタン.DropDownItems.Add( (メニュー項目作成 -テキスト $項目.テキスト -アクション $項目.アクション) ) | Out-Null
+        }
+    }
+
+    $ツールバー.Items.Add($ドロップダウンボタン) | Out-Null
+}
+
+# ツールバーを作成する関数
+function ツールバーを追加 {
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Windows.Forms.Form]$フォーム,     # フォームオブジェクト
+        [Parameter(Mandatory = $true)]
+        [array]$メニュー構造                        # メニュー構造の配列
+    )
+
+    # ツールバーの作成
+    $ツールバー = New-Object System.Windows.Forms.ToolStrip
+    $ツールバー.Dock = [System.Windows.Forms.DockStyle]::Top  # フォームの一番上に配置
+    $ツールバー.ShowItemToolTips = $true                     # ツールチップを有効化
+
+    # 各メニューを追加
+    foreach ($メニュー in $メニュー構造) {
+        メニューを追加 -ツールバー $ツールバー `
+                    -メニュー名 $メニュー.名前 `
+                    -項目リスト $メニュー.項目 `
+                    -ツールチップ $メニュー.ツールチップ
+    }
+
+    # ツールバーをフォームに追加
+    $フォーム.Controls.Add($ツールバー)
+}
+
+----- CONTENT END -----
+===== FILE-END =====
+
+===== FILE-START =====
+PATH: 08_メインF機能_メインボタン処理.ps1
+----- CONTENT BEGIN -----
+# 20241117_メインfoam関数.ps1
+
+function 実行イベント {
+
+            try {
+                # メインフレームパネル内のボタンを取得し、Y座標でソート
+                $buttons = $global:レイヤー1.Controls |
+                           Where-Object { $_ -is [System.Windows.Forms.Button] } |
+                           Sort-Object { $_.Location.Y }
+
+                # 出力用の文字列変数を初期化
+                $output = ""
+
+                # ボタンの総数を取得
+                $buttonCount = $buttons.Count
+                write-host "ボタンカウント" + $buttons.Count
+                # 最後に見つかったGreenボタンの親IDを格納
+                $lastGreenParentId = $null
+
+                for ($i = 0; $i -lt $buttonCount; $i++) {
+                    $button = $buttons[$i]
+                    $buttonName = $button.Name
+                    $buttonText = $button.Text
+                    $buttonColor = $button.BackColor  # ボタンの背景色を取得
+
+                    # 背景色の情報を取得（色名）
+                    $colorName = $buttonColor.Name
+
+                    # ボタン情報をコンソールに出力
+                    $buttonInfo = "ボタン名: $buttonName, テキスト: $buttonText, 色: $colorName"
+                    #Write-Host $buttonInfo
+
+                    # ボタン名のみをIDとして使用
+                    $id = $buttonName
+
+                    # エントリを取得
+                    $取得したエントリ = IDでエントリを取得 -ID $id
+                    Write-Host "取得したエントリ:$取得したエントリ"
+                    if ($取得したエントリ -ne $null) {
+                        # エントリの内容をコンソールに出力
+                        Write-Host "エントリID: $id`n内容:`n$取得したエントリ`n"
+
+                        # エントリの内容のみを$outputに追加（空行を追加）
+                        $output += "$取得したエントリ`n`n"
+                    }
+                    else {
+                        # エントリが存在しない場合のメッセージをコンソールに出力
+                        #Write-Host "エントリID: $id は存在しません。`n"
+                    }
+
+                    # 現在のボタンがGreenの場合、lastGreenParentIdを更新
+                    if ($colorName -eq "Green") {
+                        # 親IDを抽出（例: "76-1" -> "76"）
+                        $lastGreenParentId = ($id -split '-')[0]
+                    }
+
+                    # 現在のボタンがRedで、次のボタンがBlueの場合に特定のIDを挿入
+                    if ($colorName -eq "Red" -and ($i + 1) -lt $buttonCount) {
+                        $nextButton = $buttons[$i + 1]
+                        $nextColorName = $nextButton.BackColor.Name
+
+                        if ($nextColorName -eq "Blue") {
+                            if ($lastGreenParentId -ne $null) {
+                                # 特定のIDをlastGreenParentIdに基づいて設定（例: "76-2"）
+                                $specialId = "$lastGreenParentId-2"
+
+                                # 特定のIDでエントリを取得
+                                $specialEntry = IDでエントリを取得 -ID $specialId
+                                if ($specialEntry -ne $null) {
+                                    # エントリの内容をコンソールに出力
+                                    #Write-Host "エントリID: $specialId`n内容:`n$specialEntry`n"
+
+                                    # エントリの内容のみを$outputに追加（空行を追加）
+                                    $output += "$specialEntry`n`n"
+                                }
+                                else {
+                                    # エントリが存在しない場合のメッセージをコンソールに出力
+                                    #Write-Host "エントリID: $specialId は存在しません。`n"
+                                }
+                            }
+                            else {
+                                # lastGreenParentIdがない場合のメッセージをコンソールに出力
+                                #Write-Host "直近のGreenボタンが存在しません。特別なIDを挿入できません。`n"
+                            }
+                        }
+                    }
+                }
+
+                # テキストファイルのパスを設定（ps1と同じディレクトリ）
+                $outputFilePath = Join-Path -Path $global:folderPath  -ChildPath "output.ps1"
+
+                # 出力をファイルに書き込む
+                try {
+                    $output | Set-Content -Path $outputFilePath -Force -Encoding UTF8
+                    #Write-Host "出力をファイルに書き込みました。ファイルパス: $outputFilePath"
+                }
+                catch {
+                    Write-Error "出力ファイルの書き込みに失敗しました。"
+                    return
+                }
+
+                # テキストファイルをモニター1で最大化して開く
+                try {
+                    # Notepadを最大化された状態で起動
+                    #Start-Process notepad.exe -ArgumentList $outputFilePath -WindowStyle Maximized
+                    #Start-Process -FilePath "powershell_ise.exe" -ArgumentList $outputFilePath -WindowStyle Maximized
+                    # -NoProfile を付けることで新しいプロセスとして起動
+                   Start-Process -FilePath "powershell_ise.exe" -ArgumentList $outputFilePath -NoNewWindow
+
+                    # 修正版コード
+                   #Start-Process -FilePath "powershell_ise.exe" -ArgumentList $outputFilePath -Separate
+
+
+                    #Write-Host "テキストファイルをモニター1で最大化して開きました。"
+                }
+                catch {
+                    Write-Error "テキストファイルを開く際にエラーが発生しました。"
+                }
+            }
+            catch {
+                Write-Error "エラーが発生しました: $_"
+            }
+  
+       # Set-ExecuteButtonClickEvent 関数の閉じ中括弧
+    } 
+
+function 変数イベント {
+
+            $メインフォーム.Hide()
+            $スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレクトリを変数に格納
+            #."$スクリプトPath\20241117_変数管理UI.ps1"
+            $variableName = Show-VariableManagerForm
+            $メインフォーム.Show()     
+}
+
+function フォルダ作成イベント {
+
+            $メインフォーム.Hide()
+            新規フォルダ作成
+            $メインフォーム.Show()
+     
+}
+
+function フォルダ切替イベント {
+
+            $メインフォーム.Hide()
+           フォルダ選択と保存 
+            $メインフォーム.Show()     
+}
+
+function Update-説明ラベル {
+    param (
+        [string]$説明文
+    )
+    if ($説明文) {
+        $global:説明ラベル.Text = $説明文
+        #Write-Host "説明文を更新: $説明文"
+    } else {
+        $global:説明ラベル.Text = "ここに説明文が表示されます。"
+        #Write-Host "説明文をクリア"
+    }
+}
+
+function 切替ボタンイベント {
+    param (
+        [array]$SwitchButtons,
+        [array]$SwitchTexts
+    )
+
+    for ($i = 0; $i -lt $SwitchButtons.Count; $i++) {
+        $ボタン = $SwitchButtons[$i]
+        $ボタンテキスト = $SwitchTexts[$i]
+        $説明文 = $global:切替ボタン説明[$ボタン.Text]
+
+        # 各ボタンのTagプロパティに説明文を設定
+        $ボタン.Tag = $説明文
+
+        # GotFocusイベント
+        $ボタン.Add_GotFocus({
+            param($sender, $e)
+            Update-説明ラベル -説明文 $sender.Tag
+            #Write-Host "$($sender.Text) ボタンにフォーカスが当たりました。"
+        })
+
+        # LostFocusイベント
+        $ボタン.Add_LostFocus({
+            param($sender, $e)
+            Update-説明ラベル -説明文 $null
+            #Write-Host "$($sender.Text) ボタンのフォーカスが外れました。"
+        })
+
+        # MouseEnterイベント
+        $ボタン.Add_MouseEnter({
+            param($sender, $e)
+            Update-説明ラベル -説明文 $sender.Tag
+            #Write-Host "$($sender.Text) ボタンにマウスが入りました。"
+        })
+
+        # MouseLeaveイベント
+        $ボタン.Add_MouseLeave({
+            param($sender, $e)
+            Update-説明ラベル -説明文 $null
+            #Write-Host "$($sender.Text) ボタンからマウスが離れました。"
+        })
+    }
+} # Set-SwitchButtonEventHandlers 関数の閉じ中括弧
+
+# Windowsフォームを利用するための必要なアセンブリを読み込み
+Add-Type -AssemblyName System.Windows.Forms
+
+function 新規フォルダ作成 {
+    # 保存先をスクリプトの同じ場所とする新規フォルダ作成スクリプト
+
+    # 現在のスクリプトのパスを取得
+    $保存先ディレクトリ = $PSScriptRoot
+    #Write-Host "保存先ディレクトリ: $保存先ディレクトリ"
+
+
+    $保存先ディレクトリ = $保存先ディレクトリ + "\個々の履歴"
+
+    # インプットボックスでフォルダ名を取得
+    $入力フォーム = New-Object Windows.Forms.Form
+    $入力フォーム.Text = "フォルダ名入力"
+    $入力フォーム.Size = New-Object Drawing.Size(400,150)
+
+    $ラベル = New-Object Windows.Forms.Label
+    $ラベル.Text = "新しいフォルダ名を入力してください:"
+    $ラベル.AutoSize = $true
+    $ラベル.Location = New-Object Drawing.Point(10,20)
+
+    $テキストボックス = New-Object Windows.Forms.TextBox
+    $テキストボックス.Size = New-Object Drawing.Size(350,30)
+    $テキストボックス.Location = New-Object Drawing.Point(10,50)
+
+    $ボタン = New-Object Windows.Forms.Button
+    $ボタン.Text = "作成"
+    $ボタン.Location = New-Object Drawing.Point(10,90)
+    $ボタン.Add_Click({$入力フォーム.Close()})
+
+    $入力フォーム.Controls.Add($ラベル)
+    $入力フォーム.Controls.Add($テキストボックス)
+    $入力フォーム.Controls.Add($ボタン)
+
+    $入力フォーム.ShowDialog()
+
+    $フォルダ名 = $テキストボックス.Text
+
+    if (-not $フォルダ名) {
+        #Write-Host "フォルダ名が入力されませんでした。処理を中止します。"
+        return
+    }
+
+    
+
+    # 保存先のフルパスを生成
+    $フォルダパス = Join-Path -Path $保存先ディレクトリ -ChildPath $フォルダ名
+
+    # 新規フォルダを作成
+    if (-not (Test-Path -Path $フォルダパス)) {
+        New-Item -Path $フォルダパス -ItemType Directory | Out-Null
+        #Write-Host "フォルダが作成されました: $フォルダパス"
+    } else {
+        #Write-Host "フォルダは既に存在しています: $フォルダパス"
+    }
+
+    # メイン.json ファイルに保存
+    $jsonFilePath = Join-Path -Path $保存先ディレクトリ -ChildPath "メイン.json"
+
+    # JSONデータを作成
+    $jsonData = @{}
+    if (Test-Path -Path $jsonFilePath) {
+        # 既存のJSONファイルがある場合は読み込む
+        $existingData = Get-Content -Path $jsonFilePath | ConvertFrom-Json -ErrorAction SilentlyContinue
+        if ($existingData) {
+            $jsonData = $existingData
+        }
+    }
+    $jsonData.フォルダパス = $フォルダパス
+
+    # JSONファイルに書き込み
+    $jsonData | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonFilePath -Encoding UTF8
+    #Write-Host "フォルダパスがメイン.jsonに保存されました: $jsonFilePath"
+
+
+    $スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレクトリを変数に格納
+
+    # 関数の呼び出し例
+$global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\個々の履歴\メイン.json" -keyName "フォルダパス"
+$global:JSONPath = "$global:folderPath\variables.json"
+
+            $outputFile = $global:JSONPath
+        try {
+            # 出力フォルダが存在しない場合は作成
+            $outputFolder = Split-Path -Parent $outputFile
+
+            [System.Windows.Forms.MessageBox]::Show($outputFolder) 
+
+            if (-not (Test-Path -Path $outputFolder)) {
+                New-Item -ItemType Directory -Path $outputFolder -Force | Out-Null
+            }
+
+            $global:variables | ConvertTo-Json -Depth 10 | Out-File -FilePath $outputFile -Encoding UTF8
+            [System.Windows.Forms.MessageBox]::Show("変数がJSON形式で保存されました: `n$outputFile") | Out-Null
+        } catch {
+            [System.Windows.Forms.MessageBox]::Show("JSONの保存に失敗しました: $_") | Out-Null
+        }
+
+        #."C:\Users\hallo\Documents\WindowsPowerShell\chord\RPA-UI2\20241112_(メイン)コードID管理JSON.ps1"
+        JSON初回
+        JSONストアを初期化
+
+
+}
+
+# Windowsフォームを利用するための必要なアセンブリを読み込み
+Add-Type -AssemblyName System.Windows.Forms
+
+# Windowsフォームを利用するための必要なアセンブリを読み込み
+Add-Type -AssemblyName System.Windows.Forms
+
+function フォルダ選択と保存 {
+    # 保存先ディレクトリを取得
+    $保存先ディレクトリ = Join-Path -Path $PSScriptRoot -ChildPath "個々の履歴"
+    
+    if (-not (Test-Path -Path $保存先ディレクトリ)) {
+        New-Item -Path $保存先ディレクトリ -ItemType Directory | Out-Null
+    }
+    
+    # 保存先ディレクトリ内のフォルダ一覧を取得
+    $フォルダ一覧 = Get-ChildItem -Path $保存先ディレクトリ -Directory | Select-Object -ExpandProperty Name
+
+    # フォーム作成
+    $入力フォーム = New-Object Windows.Forms.Form
+    $入力フォーム.Text = "フォルダ選択"
+    $入力フォーム.Size = New-Object Drawing.Size(400,300)
+    
+    $ラベル = New-Object Windows.Forms.Label
+    $ラベル.Text = "フォルダを選択してください:"
+    $ラベル.AutoSize = $true
+    $ラベル.Location = New-Object Drawing.Point(10,10)
+
+    $リストボックス = New-Object Windows.Forms.ListBox
+    $リストボックス.Size = New-Object Drawing.Size(350,200)
+    $リストボックス.Location = New-Object Drawing.Point(10,40)
+    $リストボックス.Items.AddRange($フォルダ一覧)
+    
+    $ボタン = New-Object Windows.Forms.Button
+    $ボタン.Text = "保存"
+    $ボタン.Location = New-Object Drawing.Point(10,250)
+    $ボタン.Add_Click({
+        if ($リストボックス.SelectedItem) {
+            $global:選択フォルダ = $リストボックス.SelectedItem
+            $入力フォーム.Close()
+        } else {
+            [System.Windows.Forms.MessageBox]::Show("フォルダを選択してください。", "エラー", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
+        }
+    })
+    
+    $入力フォーム.Controls.Add($ラベル)
+    $入力フォーム.Controls.Add($リストボックス)
+    $入力フォーム.Controls.Add($ボタン)
+
+    # フォームを表示
+    $入力フォーム.ShowDialog()
+
+    if (-not $global:選択フォルダ) {
+        #Write-Host "フォルダが選択されませんでした。処理を中止します。"
+        return
+    }
+
+    # フォルダパスを取得
+    $選択フォルダパス = Join-Path -Path $保存先ディレクトリ -ChildPath $global:選択フォルダ
+
+    # JSONファイルへの保存
+    $jsonFilePath = Join-Path -Path $保存先ディレクトリ -ChildPath "メイン.json"
+
+    # JSONデータを作成
+    $jsonData = @{ フォルダパス = $選択フォルダパス }
+    if (Test-Path -Path $jsonFilePath) {
+        $existingData = Get-Content -Path $jsonFilePath | ConvertFrom-Json -ErrorAction SilentlyContinue
+        if ($existingData) {
+            $existingData.フォルダパス = $選択フォルダパス
+            $jsonData = $existingData
+        }
+    }
+
+    # JSONファイルに書き込み
+    $jsonData | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonFilePath -Encoding UTF8
+    #Write-Host "選択されたフォルダパスがメイン.jsonに保存されました: $選択フォルダパス"
+
+    # 関数の呼び出し例
+    $スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレクトリを変数に格納
+    $global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\個々の履歴\メイン.json" -keyName "フォルダパス"
+    $global:JSONPath = "$global:folderPath\variables.json"
+}
+
+function 作成ボタンとイベント設定 {
+    param (
+        [string]$処理番号,
+        [string]$テキスト,
+        [string]$ボタン名,
+        [System.Drawing.Color]$背景色,
+        [object]$コンテナ,
+        [string]$説明  # 新しく追加
+    )
+    
+#
+    # 新しいボタンを作成
+    $新しいボタン = 00_汎用色ボタンを作成する -コンテナ $コンテナ -テキスト $テキスト -ボタン名 $ボタン名 -幅 160 -高さ 30 -X位置 10 -Y位置 $Y位置 -背景色 $背景色
+
+    
+$新しいボタン.Tag = @{
+処理番号 = $処理番号
+説明 = $説明
+  } 
+
+
+
+    # クリックイベントを設定（必要に応じて保持）
+    00_汎用色ボタンのクリックイベントを設定する -ボタン $新しいボタン -処理番号 $処理番号
+
+
+    # 説明文をハッシュテーブルに追加
+    $global:作成ボタン説明[$処理番号] = $説明
+    #Write-Host "作成ボタン説明追加: 処理番号=$処理番号, 説明=$説明"
+
+    # MouseEnter イベントを設定
+    $新しいボタン.Add_MouseEnter({
+        param($sender, $eventArgs)
+        #Write-Host "MouseEnter イベント発生: sender=$sender, Text=$($sender.Text)"
+        
+
+                $global:説明ラベル.Text = $説明
+                   $tag = $sender.Tag
+           $処理番号 = $tag.処理番号
+             $説明 = $tag.説明
+
+        if ($null -eq $処理番号) {
+            #Write-Host "Error: 処理番号が null です。"
+        }
+
+        if ($global:作成ボタン説明.ContainsKey($処理番号)) {
+            #Write-Host "説明文を設定: $($global:作成ボタン説明[$処理番号])"
+            $global:説明ラベル.Text = $global:作成ボタン説明[$処理番号]
+        } else {
+            #Write-Host "説明文が見つかりません: 処理番号=$処理番号"
+            $global:説明ラベル.Text = "このボタンには説明が設定されていません。"
+        }
+    })
+
+
+
+    # MouseLeave イベントを設定
+    $新しいボタン.Add_MouseLeave({
+        #Write-Host "MouseLeave イベント発生: 説明ラベルをクリア"
+        $global:説明ラベル.Text = ""
+    })
+
+    # GotFocus イベントを設定
+    $新しいボタン.Add_GotFocus({
+        param($sender, $eventArgs)
+        #Write-Host "GotFocus イベント発生: sender=$sender, Text=$($sender.Text)"
+        
+        $global:説明ラベル.Text = $説明
+                   $tag = $sender.Tag
+           $処理番号 = $tag.処理番号
+             $説明 = $tag.説明
+
+
+        if ($null -eq $処理番号) {
+            #Write-Host "Error: 処理番号が null です。"
+        }
+
+        if ($global:作成ボタン説明.ContainsKey($処理番号)) {
+            #Write-Host "説明文を設定: $($global:作成ボタン説明[$処理番号])"
+            #$global:説明ラベル.Text = $global:作成ボタン説明[$処理番号]
+            $global:説明ラベル.Text = $説明
+        } else {
+            #Write-Host "説明文が見つかりません: 処理番号=$処理番号"
+            $global:説明ラベル.Text = $説明
+            #$global:説明ラベル.Text = "このボタンには説明が設定されていません。"
+        }
+    })
+
+    # LostFocus イベントを設定
+    $新しいボタン.Add_LostFocus({
+        #Write-Host "LostFocus イベント発生: 説明ラベルをクリア"
+        $global:説明ラベル.Text = ""
+    })
+}
+
+----- CONTENT END -----
+===== FILE-END =====
+

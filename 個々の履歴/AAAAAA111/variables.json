@@ -1,0 +1,28 @@
+﻿{
+    "a":  [
+              "aa"
+          ],
+    "Excel2次元配列":  [
+                       [
+                           "A",
+                           "B",
+                           "C"
+                       ],
+                       [
+                           1,
+                           "ww",
+                           "あいう"
+                       ],
+                       [
+                           2,
+                           "ee",
+                           "ｓｄｆｔｇ"
+                       ],
+                       [
+                           3,
+                           "rr",
+                           "ｓｄｇせ"
+                       ]
+                   ],
+    "GINPパス":  "C:\\Users\\hallo\\AppData\\Local\\Programs\\GIMP 2\\bin\\gimp-2.10.exe"
+}
