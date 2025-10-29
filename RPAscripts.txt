@@ -1,6 +1,6 @@
 ﻿### MERGED POWERSHELL SCRIPTS
 SOURCE_ROOT: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2
-GENERATED_AT: 2025-10-28 22:13:42 +09:00
+GENERATED_AT: 2025-10-29 21:51:03 +09:00
 FILTER: leading number 01-08 only
 FORMAT: FILE-START/END markers with PATH and content blocks
 ===============================================
@@ -18,8 +18,14 @@ $global:ピンク青色 = [System.Drawing.Color]::FromArgb(227, 206, 229)
 
 $global:ピンク赤色 = [System.Drawing.Color]::FromArgb(252, 160, 158)
 
-# スクリプトの実行ディレクトリを変更（ユーザー名に依存しない）
-Set-Location -Path "$env:USERPROFILE\Documents\WindowsPowerShell\chord"
+# スクリプトの実行ディレクトリを変更（スクリプトの場所を基準にする）
+# 注: $PSScriptRoot はスクリプトが配置されているディレクトリを自動的に取得
+if ($PSScriptRoot) {
+    Set-Location -Path $PSScriptRoot
+} else {
+    # スクリプトが直接実行されていない場合のフォールバック
+    Set-Location -Path (Split-Path -Parent $MyInvocation.MyCommand.Path)
+}
 
 
 
@@ -200,8 +206,7 @@ $Global:可視左パネル = $null
 $Global:可視右パネル = $null
 $Global:不可視右の右パネル = $null
 
-# グローバル変数にハッシュテーブルを格納
-$Global:表示スクリプト座標 = @{ X = 0; Y = 0 }
+# $Global:表示スクリプト座標 は既に行64で定義済み（重複削除）
 
 $Global:レイヤー階層の深さ　= 1
 
@@ -267,9 +272,9 @@ function デバッグJSONファイル {
     }
 }
 
-# 使用例
-$jsonPath1 = "C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\個々の履歴\AAAAAA111\コード.json"
-デバッグJSONファイル -jsonPath $jsonPath1
+# 使用例（デバッグ用のため本番では無効化）
+# $jsonPath1 = "C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\個々の履歴\AAAAAA111\コード.json"
+# デバッグJSONファイル -jsonPath $jsonPath1
 
 
 
@@ -409,7 +414,7 @@ $ボタンA2 = 00_メインにボタンを作成する -コンテナ $操作フ�
 
 
 
-$jsonData = Get-Content -Path ".\RPA-UI2\ボタン設定.json" | ConvertFrom-Json
+$jsonData = Get-Content -Path ".\ボタン設定.json" | ConvertFrom-Json
 
 $前回の処理番号左側 = $null
 $script:初期Y = 10
@@ -544,8 +549,9 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 Write-Host "DEBUG: アセンブリ読み込み完了"
 
-# 2. JSONファイルパス設定
-$ファイルパス = "C:\Users\hallo\Documents\WindowsPowerShell\chord\RPA-UI2\ボタン設定.json"
+# 2. JSONファイルパス設定（スクリプトの親ディレクトリから相対パス）
+$スクリプトの親ディレクトリ = Split-Path -Parent $PSScriptRoot
+$ファイルパス = Join-Path $スクリプトの親ディレクトリ "ボタン設定.json"
 Write-Host "DEBUG: JSONファイルパス設定 => $ファイルパス"
 
 # ============================================================
@@ -1260,6 +1266,62 @@ function ドロップ禁止チェック_ネスト規制 {
         return $true
     }
 
+    # ★★★ 新規追加: グループ分断チェック関数 ★★★
+    # グループ内のボタンが境界をまたぐ（一部が内側、一部が外側）かチェック
+    function Check-GroupFragmentation {
+        param(
+            [System.Windows.Forms.Panel]$panel,
+            [System.Windows.Forms.Button]$movingBtn,
+            [int]$newY,
+            [System.Drawing.Color]$groupColor,
+            [System.Drawing.Color]$boundaryColor
+        )
+
+        if (-not $movingBtn.Tag) { return $false }
+        $gid = $movingBtn.Tag.GroupID
+        if ($null -eq $gid) { return $false }
+
+        # 同じGroupIDかつ指定色のボタンを全て取得
+        $sameGroupBtns = $panel.Controls |
+            Where-Object {
+                $_ -is [System.Windows.Forms.Button] -and
+                $_.Tag -ne $null -and
+                $_.Tag.GroupID -eq $gid -and
+                $_.Tag.BackgroundColor -ne $null -and
+                $_.Tag.BackgroundColor.ToArgb() -eq $groupColor.ToArgb()
+            }
+
+        if ($sameGroupBtns.Count -lt 2) {
+            return $false
+        }
+
+        # 境界色のグループ範囲を全て取得
+        $boundaryRanges = Get-AllGroupRanges -panel $panel -targetColor $boundaryColor
+
+        foreach ($br in $boundaryRanges) {
+            $insideCount = 0
+            $outsideCount = 0
+
+            # グループ内の各ボタンが境界の内側か外側かチェック
+            foreach ($btn in $sameGroupBtns) {
+                $btnY = if ($btn -eq $movingBtn) { $newY } else { $btn.Location.Y }
+
+                if (($btnY -ge $br.TopY) -and ($btnY -le $br.BottomY)) {
+                    $insideCount++
+                } else {
+                    $outsideCount++
+                }
+            }
+
+            # 一部が内側、一部が外側 = グループ分断 = 禁止
+            if ($insideCount -gt 0 -and $outsideCount -gt 0) {
+                return $true
+            }
+        }
+
+        return $false
+    }
+
     # ここから本体
     $元色 = $null
     if ($移動ボタン.Tag -and $移動ボタン.Tag.BackgroundColor) {
@@ -1289,6 +1351,35 @@ function ドロップ禁止チェック_ネスト規制 {
                 # (＝ループの途中に条件分岐を割り込ませるのもダメ)
                 return $true
             }
+        }
+    }
+
+    # ★★★ 新規追加: グループ分断チェック ★★★
+    if ($isGreen) {
+        # 条件分岐グループがループの境界をまたぐかチェック
+        $isFragmented = Check-GroupFragmentation `
+            -panel $フレーム `
+            -movingBtn $移動ボタン `
+            -newY $設置希望Y `
+            -groupColor ([System.Drawing.Color]::SpringGreen) `
+            -boundaryColor ([System.Drawing.Color]::LemonChiffon)
+        
+        if ($isFragmented) {
+            return $true
+        }
+    }
+
+    if ($isYellow) {
+        # ループグループが条件分岐の境界をまたぐかチェック
+        $isFragmented = Check-GroupFragmentation `
+            -panel $フレーム `
+            -movingBtn $移動ボタン `
+            -newY $設置希望Y `
+            -groupColor ([System.Drawing.Color]::LemonChiffon) `
+            -boundaryColor ([System.Drawing.Color]::SpringGreen)
+        
+        if ($isFragmented) {
+            return $true
         }
     }
 
@@ -1328,7 +1419,6 @@ function ドロップ禁止チェック_ネスト規制 {
     # 緑でも黄でもないノードは規制しない
     return $false
 }
-
 
 
 function 00_フレームのDragEnterイベントを設定する {
@@ -3184,7 +3274,26 @@ function Check-Pink選択配列Objects {
 ===== FILE-START =====
 PATH: 03_メインフォームUI_ノードボタンメニュー処理.ps1
 ----- CONTENT BEGIN -----
+# ========================================
+# 03_皃ｩ・UI_ﾎ・ﾜｿﾋ襞・.ps1
+# ========================================
+#
+# 﨡
+# ﾎ・ﾜｿ・ｯ睛襞ｳｭｹﾈ睛襞	・
+#
+# ・_
+# - ﾎ・n・ｯ睛襞h:
+# - ｳﾔ・ｼ韓Q/Jdjinﾍ\
+# - ﾎ・-嗜霹
+# - ｰ・ﾗ/ｰ・ﾗ綸
+#
+# (nｶK
+# *淒ﾗ・ｹﾛ・・｡､・
+#
+# ========================================
 
+# TODO: ・ｯ睛襞n淒
+# TODO: ﾎ・ﾍ\ｳﾔ・Jd/霹	n淒
 
 ----- CONTENT END -----
 ===== FILE-END =====
@@ -3192,7 +3301,27 @@ PATH: 03_メインフォームUI_ノードボタンメニュー処理.ps1
 ===== FILE-START =====
 PATH: 04_メインフォームUI_スクリプト処理.ps1
 ----- CONTENT BEGIN -----
+# ========================================
+# 04_皃ｩ・UI_ｹｯ・ﾈ・.ps1
+# ========================================
+#
+# 﨡
+# ﾔx枩ｹｯ・ﾈ	nﾘｦj・
+#
+# ・_
+# - ｹｯ・ﾈU契ﾎ・n｡
+# - ｹｯ・ﾈs0nh:/霹
+# - ｹｯ・ﾈnU・・__
+# - ｹｯ・ﾈnﾝX/ｭｼ
+#
+# (nｶK
+# *淒ﾗ・ｹﾛ・・｡､・
+# ; ・・ﾔx枩o02_皃ｩ・UI_foam｢p.ps1k淒
+#
+# ========================================
 
+# TODO: ｹｯ・ﾈ｡_n淒
+# TODO: ｹｯ・ﾈs0h:UIn淒
 
 ----- CONTENT END -----
 ===== FILE-END =====
@@ -3211,6 +3340,9 @@ function 00_矢印追記処理 {
 
     # パネルごとの描画オブジェクトをクリア
     $フレームパネル.Tag.DrawObjects = @()
+
+    # ピンク処理済みフラグを初期化
+    $hasProcessedPink = $false
 
     # メインフレームパネル内のボタンを取得し、Y座標でソート
     $buttons = $フレームパネル.Controls |
