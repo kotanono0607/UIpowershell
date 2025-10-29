@@ -501,6 +501,14 @@ function 出力-ボタン情報 {
                 -ボタンタイプ  "ノード" `
                 -ボタンタイプ2 $button.script `
                 -処理番号      $button.処理番号
+
+            #----------------------------------------------------
+            # ⑥ GroupIDを復元（JSONに存在する場合）
+            #----------------------------------------------------
+            if ($button.PSObject.Properties.Name -contains 'GroupID' -and $button.GroupID -ne $null -and $button.GroupID -ne "") {
+                $新ボタン.Tag.GroupID = $button.GroupID
+                Write-Host "[復元] GroupID=$($button.GroupID) を設定: $($button.ボタン名)"
+            }
         }
     }
 }
