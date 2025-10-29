@@ -1844,11 +1844,13 @@ function 00_汎用色ボタンのクリックイベントを設定する {
             "ループ" {
                 # グループIDを取得・更新
                 $currentGroupID = $global:黄色ボタングループカウンタ
+                Write-Host "[ループ作成] GroupID=$currentGroupID を割り当て"
                 $global:黄色ボタングループカウンタ++
 
                 # 開始ボタンの作成
                 $ボタン1 = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト "$buttonText 開始" -ボタン名 "$buttonName-1" -幅 $幅 -高さ $ボタン高さ -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $buttonColor -ドラッグ可能 $true　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
                 $ボタン1.Tag.GroupID = $currentGroupID
+                Write-Host "[設定完了] $($ボタン1.Name) にGroupID=$($ボタン1.Tag.GroupID) を設定"
                 $global:ボタンカウンタ++
 
                 # 終了ボタンの作成
@@ -1856,26 +1858,32 @@ function 00_汎用色ボタンのクリックイベントを設定する {
                 $ボタン2 = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト "$buttonText 終了" -ボタン名 "$buttonName-2" -幅 $幅 -高さ $ボタン高さ -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $buttonColor -ドラッグ可能 $true　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
                 00_文字列処理内容 -ボタン名 $buttonName -処理番号 $tag.処理番号
                 $ボタン2.Tag.GroupID = $currentGroupID
+                Write-Host "[設定完了] $($ボタン2.Name) にGroupID=$($ボタン2.Tag.GroupID) を設定"
                 $global:ボタンカウンタ++
             }
             "条件分岐" {
                 # グループIDを取得・更新
                 $currentGroupID = $global:緑色ボタングループカウンタ
+                Write-Host "[条件分岐作成] GroupID=$currentGroupID を割り当て"
                 $global:緑色ボタングループカウンタ++
 
                 # 開始ボタンの作成
                 $ボタン1 = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト "$buttonText 開始" -ボタン名 "$buttonName-1" -幅 $幅 -高さ $ボタン高さ -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $buttonColor -ドラッグ可能 $true　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
                 $ボタン1.Tag.GroupID = $currentGroupID
+                Write-Host "[設定完了] $($ボタン1.Name) にGroupID=$($ボタン1.Tag.GroupID) を設定"
                 $global:ボタンカウンタ++
 
                 # 中間ボタン（グレーライン）の作成
                 $初期Y += $ボタン高さ + $間隔
                 $ボタン中間 = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト "$buttonText 中間" -ボタン名 "$buttonName-2" -幅 $幅 -高さ 1 -X位置 $初期X -Y位置 ($初期Y - 10) -枠線 1 -背景色 ([System.Drawing.Color]::Gray) -ドラッグ可能 $false　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
+                $ボタン中間.Tag.GroupID = $currentGroupID
+                Write-Host "[設定完了] $($ボタン中間.Name) にGroupID=$($ボタン中間.Tag.GroupID) を設定（中間ノード）"
 
                 # 終了ボタンの作成
                 $ボタン2 = 00_ボタンを作成する -コンテナ $メインフレームパネル -テキスト "$buttonText 終了" -ボタン名 "$buttonName-3" -幅 $幅 -高さ $ボタン高さ -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $buttonColor -ドラッグ可能 $true　-ボタンタイプ "ノード" -処理番号 $tag.処理番号
                 00_文字列処理内容 -ボタン名 $buttonName -処理番号 $tag.処理番号
                 $ボタン2.Tag.GroupID = $currentGroupID
+                Write-Host "[設定完了] $($ボタン2.Name) にGroupID=$($ボタン2.Tag.GroupID) を設定"
                 $global:ボタンカウンタ++
             }
             default {
