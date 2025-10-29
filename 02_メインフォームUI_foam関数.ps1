@@ -1,174 +1,174 @@
+ï»¿
+# ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã®åˆæœŸåŒ–
+$global:ãƒœã‚¿ãƒ³ã‚«ã‚¦ãƒ³ã‚¿ = 1
+$global:é»„è‰²ãƒœã‚¿ãƒ³ã‚°ãƒ«ãƒ¼ãƒ—ã‚«ã‚¦ãƒ³ã‚¿ = 1
+$global:ç·‘è‰²ãƒœã‚¿ãƒ³ã‚°ãƒ«ãƒ¼ãƒ—ã‚«ã‚¦ãƒ³ã‚¿ = 1
+$global:ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®ãƒœã‚¿ãƒ³ = $null
 
-# ƒOƒ[ƒoƒ‹•Ï”‚Ì‰Šú‰»
-$global:ƒ{ƒ^ƒ“ƒJƒEƒ“ƒ^ = 1
-$global:‰©Fƒ{ƒ^ƒ“ƒOƒ‹[ƒvƒJƒEƒ“ƒ^ = 1
-$global:—ÎFƒ{ƒ^ƒ“ƒOƒ‹[ƒvƒJƒEƒ“ƒ^ = 1
-$global:ƒhƒ‰ƒbƒO’†‚Ìƒ{ƒ^ƒ“ = $null
 
-
-function 00_ƒtƒH[ƒ€‚ğì¬‚·‚é {
+function 00_ãƒ•ã‚©ãƒ¼ãƒ ã‚’ä½œæˆã™ã‚‹ {
     param(
-        [int]$• = 1400,
-        [int]$‚‚³ = 900
+        [int]$å¹… = 1400,
+        [int]$é«˜ã• = 900
     )
 
-    # ƒ^ƒCƒgƒ‹: ƒtƒH[ƒ€¶¬iÅ¬‰»‘Îô‚İjVer1.2
-    # –Ú“I:
-    # - ‰Šúó‘Ô‚ğ•K‚¸ Normal ‚É‚·‚é
-    # - TopMost íON‚ğ‚â‚ßA‘O–Ê‰»‚ÍƒCƒxƒ“ƒg‚Å§Œä
-    # - Shown/Resize ƒCƒxƒ“ƒg‚ÅÅ¬‰»‚É—‚¿‚½ê‡‚Ì•œ‹A‚ğ•ÛØ
+    # ã‚¿ã‚¤ãƒˆãƒ«: ãƒ•ã‚©ãƒ¼ãƒ ç”Ÿæˆï¼ˆæœ€å°åŒ–å¯¾ç­–è¾¼ã¿ï¼‰Ver1.2
+    # ç›®çš„:
+    # - åˆæœŸçŠ¶æ…‹ã‚’å¿…ãš Normal ã«ã™ã‚‹
+    # - TopMost å¸¸æ™‚ONã‚’ã‚„ã‚ã€å‰é¢åŒ–ã¯ã‚¤ãƒ™ãƒ³ãƒˆã§åˆ¶å¾¡
+    # - Shown/Resize ã‚¤ãƒ™ãƒ³ãƒˆã§æœ€å°åŒ–ã«è½ã¡ãŸå ´åˆã®å¾©å¸°ã‚’ä¿è¨¼
 
-    # ƒtƒH[ƒ€‚Ìì¬‚ÆŠî–{İ’è
-    $ƒƒCƒ“ƒtƒH[ƒ€ = New-Object System.Windows.Forms.Form
+    # ãƒ•ã‚©ãƒ¼ãƒ ã®ä½œæˆã¨åŸºæœ¬è¨­å®š
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ  = New-Object System.Windows.Forms.Form
 
-    # ‰æ–ÊŒn‚ÌŠî–{ƒvƒƒpƒeƒB
-    $ƒƒCƒ“ƒtƒH[ƒ€.Text            = "ƒhƒ‰ƒbƒO•ƒhƒƒbƒv‚Åƒ{ƒ^ƒ“‚ÌˆÊ’u‚ğ•ÏX"  # ƒ^ƒCƒgƒ‹
-    $ƒƒCƒ“ƒtƒH[ƒ€.Width           = $•
-    $ƒƒCƒ“ƒtƒH[ƒ€.Height          = $‚‚³
-    $ƒƒCƒ“ƒtƒH[ƒ€.StartPosition   = "CenterScreen"                              # ‰æ–Ê’†‰›
-    $ƒƒCƒ“ƒtƒH[ƒ€.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Sizable
-    $ƒƒCƒ“ƒtƒH[ƒ€.ShowInTaskbar   = $true
-    $ƒƒCƒ“ƒtƒH[ƒ€.MinimizeBox     = $true
-    $ƒƒCƒ“ƒtƒH[ƒ€.MaximizeBox     = $true
-    $ƒƒCƒ“ƒtƒH[ƒ€.Name            = "ƒƒCƒ“ƒtƒH[ƒ€"                           # NameƒvƒƒpƒeƒB
-    $ƒƒCƒ“ƒtƒH[ƒ€.AllowDrop       = $false                                       # ƒtƒH[ƒ€©‘Ì‚Ìƒhƒƒbƒv–³Œø
-    $ƒƒCƒ“ƒtƒH[ƒ€.BackColor       = [System.Drawing.Color]::FromArgb(255,255,255)
+    # ç”»é¢ç³»ã®åŸºæœ¬ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Text            = "ãƒ‰ãƒ©ãƒƒã‚°ï¼†ãƒ‰ãƒ­ãƒƒãƒ—ã§ãƒœã‚¿ãƒ³ã®ä½ç½®ã‚’å¤‰æ›´"  # ã‚¿ã‚¤ãƒˆãƒ«
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Width           = $å¹…
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Height          = $é«˜ã•
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .StartPosition   = "CenterScreen"                              # ç”»é¢ä¸­å¤®
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Sizable
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .ShowInTaskbar   = $true
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .MinimizeBox     = $true
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .MaximizeBox     = $true
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Name            = "ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ "                           # Nameãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .AllowDrop       = $false                                       # ãƒ•ã‚©ãƒ¼ãƒ è‡ªä½“ã®ãƒ‰ãƒ­ãƒƒãƒ—ç„¡åŠ¹
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .BackColor       = [System.Drawing.Color]::FromArgb(255,255,255)
 
-    # ¡Å¬‰»‘Îô: ‰Šúó‘Ô‚ğ–¾¦“I‚ÉNormal‚Ö
-    $ƒƒCƒ“ƒtƒH[ƒ€.WindowState     = [System.Windows.Forms.FormWindowState]::Normal
+    # â– æœ€å°åŒ–å¯¾ç­–: åˆæœŸçŠ¶æ…‹ã‚’æ˜ç¤ºçš„ã«Normalã¸
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .WindowState     = [System.Windows.Forms.FormWindowState]::Normal
 
-    # ¡í‘O–Ê‚Í‚â‚ß‚éi‘¼‚ÌƒtƒH[ƒ€‚âOS‚ÆŒ–‰Ü‚µ‚â‚·‚¢j
-    $ƒƒCƒ“ƒtƒH[ƒ€.TopMost = $false
+    # â– å¸¸æ™‚å‰é¢ã¯ã‚„ã‚ã‚‹ï¼ˆä»–ã®ãƒ•ã‚©ãƒ¼ãƒ ã‚„OSã¨å–§å˜©ã—ã‚„ã™ã„ï¼‰
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .TopMost = $false
 
-    # ¡Shown‚Ì•ÛŒ¯: Å¬‰»‚È‚ç‘¦Normal‚Ö–ß‚µA‘O–Ê‰»
-    $ƒƒCƒ“ƒtƒH[ƒ€.Add_Shown({
+    # â– Shownæ™‚ã®ä¿é™º: æœ€å°åŒ–ãªã‚‰å³Normalã¸æˆ»ã—ã€å‰é¢åŒ–
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Add_Shown({
         param($s,$e)
-        # ‚µ‚Â‚±‚¢Å¬‰»•È‚ğ‚±‚±‚Å‹¸³
+        # ã—ã¤ã“ã„æœ€å°åŒ–ç™–ã‚’ã“ã“ã§çŸ¯æ­£
         if ($s.WindowState -eq [System.Windows.Forms.FormWindowState]::Minimized) {
             $s.WindowState = [System.Windows.Forms.FormWindowState]::Normal
         }
-        # ˆêu‚¾‚¯TopMost‚É‚µ‚Ä‘O–Ê‰»‚µ‚Ä‚©‚ç–ß‚·iZƒI[ƒ_[ˆÀ’è—p‚Ì¬‹Zj
+        # ä¸€ç¬ã ã‘TopMostã«ã—ã¦å‰é¢åŒ–ã—ã¦ã‹ã‚‰æˆ»ã™ï¼ˆZã‚ªãƒ¼ãƒ€ãƒ¼å®‰å®šç”¨ã®å°æŠ€ï¼‰
         $s.TopMost = $true
         $s.TopMost = $false
         $s.Activate()
     })
 
-    # ¡Resize‚Ì•ÛŒ¯: ‚à‚µÅ¬‰»‚É—‚¿‚½‚ç‘¦•œ‹A
-    $ƒƒCƒ“ƒtƒH[ƒ€.Add_Resize({
+    # â– Resizeæ™‚ã®ä¿é™º: ã‚‚ã—æœ€å°åŒ–ã«è½ã¡ãŸã‚‰å³å¾©å¸°
+    $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Add_Resize({
         param($s,$e)
         switch ($s.WindowState) {
             ([System.Windows.Forms.FormWindowState]::Minimized) {
-                # Å¬‰»‚É—‚¿‚½uŠÔ‚Éˆø‚«–ß‚·
+                # æœ€å°åŒ–ã«è½ã¡ãŸç¬é–“ã«å¼•ãæˆ»ã™
                 $s.WindowState = [System.Windows.Forms.FormWindowState]::Normal
                 $s.Activate()
             }
             ([System.Windows.Forms.FormWindowState]::Normal) {
-                # “Á‚Éˆ—‚È‚µ
+                # ç‰¹ã«å‡¦ç†ãªã—
             }
             ([System.Windows.Forms.FormWindowState]::Maximized) {
-                # “Á‚Éˆ—‚È‚µ
+                # ç‰¹ã«å‡¦ç†ãªã—
             }
         }
     })
 
-    # ƒtƒH[ƒ€‚ğ•Ô‚·
-    return $ƒƒCƒ“ƒtƒH[ƒ€
+    # ãƒ•ã‚©ãƒ¼ãƒ ã‚’è¿”ã™
+    return $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ 
 }
 
-function 00_ƒtƒŒ[ƒ€‚ÌDragDropƒCƒxƒ“ƒg‚ğİ’è‚·‚é {
+function 00_ãƒ•ãƒ¬ãƒ¼ãƒ ã®DragDropã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®šã™ã‚‹ {
     param (
-        [System.Windows.Forms.Panel]$ƒtƒŒ[ƒ€
+        [System.Windows.Forms.Panel]$ãƒ•ãƒ¬ãƒ¼ãƒ 
     )
 
-    $ƒtƒŒ[ƒ€.Add_DragDrop({
+    $ãƒ•ãƒ¬ãƒ¼ãƒ .Add_DragDrop({
         param($sender, $e)
 
-        # ƒhƒ‰ƒbƒO’†‚Ìƒ{ƒ^ƒ“‚ğæ“¾
-        $ƒ{ƒ^ƒ“ = $e.Data.GetData([System.Windows.Forms.Button])
+        # ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®ãƒœã‚¿ãƒ³ã‚’å–å¾—
+        $ãƒœã‚¿ãƒ³ = $e.Data.GetData([System.Windows.Forms.Button])
 
-        if ($ƒ{ƒ^ƒ“ -ne $null -and $ƒ{ƒ^ƒ“.Tag.IsDragging) {
+        if ($ãƒœã‚¿ãƒ³ -ne $null -and $ãƒœã‚¿ãƒ³.Tag.IsDragging) {
 
-            # ƒhƒƒbƒvæ‚ÌƒtƒŒ[ƒ€“à‚ÌÀ•W‚É•ÏŠ·
-            $ƒhƒƒbƒv‰æ–ÊÀ•W = New-Object System.Drawing.Point($e.X, $e.Y)
-            $ƒhƒƒbƒv“_ = $sender.PointToClient($ƒhƒƒbƒv‰æ–ÊÀ•W)
+            # ãƒ‰ãƒ­ãƒƒãƒ—å…ˆã®ãƒ•ãƒ¬ãƒ¼ãƒ å†…ã®åº§æ¨™ã«å¤‰æ›
+            $ãƒ‰ãƒ­ãƒƒãƒ—ç”»é¢åº§æ¨™ = New-Object System.Drawing.Point($e.X, $e.Y)
+            $ãƒ‰ãƒ­ãƒƒãƒ—ç‚¹ = $sender.PointToClient($ãƒ‰ãƒ­ãƒƒãƒ—ç”»é¢åº§æ¨™)
 
-            # Œ»İ‚ÌˆÊ’u‚ÆF
-            $Œ»İ‚ÌY   = $ƒ{ƒ^ƒ“.Location.Y
-            $Œ»İ‚ÌF  = $ƒ{ƒ^ƒ“.BackColor
+            # ç¾åœ¨ã®ä½ç½®ã¨è‰²
+            $ç¾åœ¨ã®Y   = $ãƒœã‚¿ãƒ³.Location.Y
+            $ç¾åœ¨ã®è‰²  = $ãƒœã‚¿ãƒ³.BackColor
 
-            # ƒ{ƒ^ƒ“‚Ì’†SY‚ğŠî€‚É”z’u‚µ‚½‚¢Y‚ğŒvZ
-            $’†SY   = $ƒhƒƒbƒv“_.Y
-            $”z’uY   = $’†SY - ($ƒ{ƒ^ƒ“.Height / 2) + 10
+            # ãƒœã‚¿ãƒ³ã®ä¸­å¿ƒYã‚’åŸºæº–ã«é…ç½®ã—ãŸã„Yã‚’è¨ˆç®—
+            $ä¸­å¿ƒY   = $ãƒ‰ãƒ­ãƒƒãƒ—ç‚¹.Y
+            $é…ç½®Y   = $ä¸­å¿ƒY - ($ãƒœã‚¿ãƒ³.Height / 2) + 10
 
             # ============================
-            # ƒlƒXƒg‹Ö~ƒ`ƒFƒbƒN:
-            #   - ğŒ•ªŠò(—Î)‚ğƒ‹[ƒv(‰©)‚Ì’†‚É“ü‚ê‚é‚È
-            #   - ƒ‹[ƒv(‰©)‚ğğŒ•ªŠò(—Î)‚Ì’†‚É“ü‚ê‚é‚È
+            # ãƒã‚¹ãƒˆç¦æ­¢ãƒã‚§ãƒƒã‚¯:
+            #   - æ¡ä»¶åˆ†å²(ç·‘)ã‚’ãƒ«ãƒ¼ãƒ—(é»„)ã®ä¸­ã«å…¥ã‚Œã‚‹ãª
+            #   - ãƒ«ãƒ¼ãƒ—(é»„)ã‚’æ¡ä»¶åˆ†å²(ç·‘)ã®ä¸­ã«å…¥ã‚Œã‚‹ãª
             # ============================
-            $‹Ö~ƒtƒ‰ƒO = ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ `
-                -ƒtƒŒ[ƒ€ $sender `
-                -ˆÚ“®ƒ{ƒ^ƒ“ $ƒ{ƒ^ƒ“ `
-                -İ’uŠó–]Y $”z’uY
+            $ç¦æ­¢ãƒ•ãƒ©ã‚° = ãƒ‰ãƒ­ãƒƒãƒ—ç¦æ­¢ãƒã‚§ãƒƒã‚¯_ãƒã‚¹ãƒˆè¦åˆ¶ `
+                -ãƒ•ãƒ¬ãƒ¼ãƒ  $sender `
+                -ç§»å‹•ãƒœã‚¿ãƒ³ $ãƒœã‚¿ãƒ³ `
+                -è¨­ç½®å¸Œæœ›Y $é…ç½®Y
 
-            if ($‹Ö~ƒtƒ‰ƒO) {
+            if ($ç¦æ­¢ãƒ•ãƒ©ã‚°) {
                 [System.Windows.Forms.MessageBox]::Show(
-                    "‚±‚ÌˆÊ’u‚É‚Í”z’u‚Å‚«‚Ü‚¹‚ñB`r`nƒlƒXƒg‚Í‹Ö~‚Å‚·B",
-                    "”z’u‹Ö~",
+                    "ã“ã®ä½ç½®ã«ã¯é…ç½®ã§ãã¾ã›ã‚“ã€‚`r`nãƒã‚¹ãƒˆã¯ç¦æ­¢ã§ã™ã€‚",
+                    "é…ç½®ç¦æ­¢",
                     [System.Windows.Forms.MessageBoxButtons]::OK,
                     [System.Windows.Forms.MessageBoxIcon]::Warning
                 ) | Out-Null
 
-                # ƒhƒ‰ƒbƒOó‘Ô‚ğƒŠƒZƒbƒg‚µ‚ÄI—¹
-                $ƒ{ƒ^ƒ“.Tag.IsDragging = $false
-                $ƒ{ƒ^ƒ“.Tag.StartPoint = [System.Drawing.Point]::Empty
-                $global:ƒhƒ‰ƒbƒO’†‚Ìƒ{ƒ^ƒ“ = $null
+                # ãƒ‰ãƒ©ãƒƒã‚°çŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆã—ã¦çµ‚äº†
+                $ãƒœã‚¿ãƒ³.Tag.IsDragging = $false
+                $ãƒœã‚¿ãƒ³.Tag.StartPoint = [System.Drawing.Point]::Empty
+                $global:ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®ãƒœã‚¿ãƒ³ = $null
                 return
             }
 
             # ============================
-            # Šù‘¶‚Ì“¯FƒuƒƒbƒNÕ“Ëƒ`ƒFƒbƒN
-            # i¡‚Ì 10_ƒ{ƒ^ƒ“‚Ìˆê——æ“¾ ‚Í bool ‚ğ•Ô‚µ‚Ä‚é‚Ì‚Å‚»‚ê‚É‡‚í‚¹‚éj
+            # æ—¢å­˜ã®åŒè‰²ãƒ–ãƒ­ãƒƒã‚¯è¡çªãƒã‚§ãƒƒã‚¯
+            # ï¼ˆä»Šã® 10_ãƒœã‚¿ãƒ³ã®ä¸€è¦§å–å¾— ã¯ bool ã‚’è¿”ã—ã¦ã‚‹ã®ã§ãã‚Œã«åˆã‚ã›ã‚‹ï¼‰
             # ============================
-            $Õ“Ë‚ ‚è = 10_ƒ{ƒ^ƒ“‚Ìˆê——æ“¾ `
-                -ƒtƒŒ[ƒ€ $sender `
-                -Œ»İ‚ÌY $Œ»İ‚ÌY `
-                -İ’uŠó–]Y $”z’uY `
-                -Œ»İ‚ÌF $Œ»İ‚ÌF
+            $è¡çªã‚ã‚Š = 10_ãƒœã‚¿ãƒ³ã®ä¸€è¦§å–å¾— `
+                -ãƒ•ãƒ¬ãƒ¼ãƒ  $sender `
+                -ç¾åœ¨ã®Y $ç¾åœ¨ã®Y `
+                -è¨­ç½®å¸Œæœ›Y $é…ç½®Y `
+                -ç¾åœ¨ã®è‰² $ç¾åœ¨ã®è‰²
 
-            if ($Õ“Ë‚ ‚è) {
-                # “¯FƒuƒƒbƒN‚Ì—Ìˆæ‚ğ‚Ü‚½‚®/Š„‚è‚Ş“™‚Å‹‘”Û
-                # ‚±‚±‚Å‚Í‰½‚à‚µ‚È‚¢‚Å”²‚¯‚é
+            if ($è¡çªã‚ã‚Š) {
+                # åŒè‰²ãƒ–ãƒ­ãƒƒã‚¯ã®é ˜åŸŸã‚’ã¾ãŸã/å‰²ã‚Šè¾¼ã‚€ç­‰ã§æ‹’å¦
+                # ã“ã“ã§ã¯ä½•ã‚‚ã—ãªã„ã§æŠœã‘ã‚‹
             }
             else {
-                # ƒXƒiƒbƒvX‚ğƒtƒŒ[ƒ€’†‰›‚É‚»‚ë‚¦‚é
-                $ƒXƒiƒbƒvX = [Math]::Floor(($sender.ClientSize.Width - $ƒ{ƒ^ƒ“.Width) / 2)
+                # ã‚¹ãƒŠãƒƒãƒ—Xã‚’ãƒ•ãƒ¬ãƒ¼ãƒ ä¸­å¤®ã«ãã‚ãˆã‚‹
+                $ã‚¹ãƒŠãƒƒãƒ—X = [Math]::Floor(($sender.ClientSize.Width - $ãƒœã‚¿ãƒ³.Width) / 2)
 
-                # ÀÛ‚ÉˆÚ“®
-                $ƒ{ƒ^ƒ“.Location = New-Object System.Drawing.Point($ƒXƒiƒbƒvX, $”z’uY)
+                # å®Ÿéš›ã«ç§»å‹•
+                $ãƒœã‚¿ãƒ³.Location = New-Object System.Drawing.Point($ã‚¹ãƒŠãƒƒãƒ—X, $é…ç½®Y)
 
-                # ƒhƒ‰ƒbƒOó‘Ô‚ÌƒŠƒZƒbƒg
-                $ƒ{ƒ^ƒ“.Tag.IsDragging = $false
-                $ƒ{ƒ^ƒ“.Tag.StartPoint = [System.Drawing.Point]::Empty
-                $global:ƒhƒ‰ƒbƒO’†‚Ìƒ{ƒ^ƒ“ = $null
+                # ãƒ‰ãƒ©ãƒƒã‚°çŠ¶æ…‹ã®ãƒªã‚»ãƒƒãƒˆ
+                $ãƒœã‚¿ãƒ³.Tag.IsDragging = $false
+                $ãƒœã‚¿ãƒ³.Tag.StartPoint = [System.Drawing.Point]::Empty
+                $global:ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®ãƒœã‚¿ãƒ³ = $null
 
-                # ‘S‘Ì‚Ì®—ñ‚Æƒ‰ƒCƒ“Ä•`‰æ
-                00_ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ” -ƒtƒŒ[ƒ€ $sender
-                00_–îˆó’Ç‹Lˆ— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
+                # å…¨ä½“ã®æ•´åˆ—ã¨ãƒ©ã‚¤ãƒ³å†æç”»
+                00_ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•° -ãƒ•ãƒ¬ãƒ¼ãƒ  $sender
+                00_çŸ¢å°è¿½è¨˜å‡¦ç† -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
             }
         }
     })
 }
 
 
-function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
+function ãƒ‰ãƒ­ãƒƒãƒ—ç¦æ­¢ãƒã‚§ãƒƒã‚¯_ãƒã‚¹ãƒˆè¦åˆ¶ {
     param (
-        [System.Windows.Forms.Panel]$ƒtƒŒ[ƒ€,      # ƒhƒƒbƒvæƒpƒlƒ‹
-        [System.Windows.Forms.Button]$ˆÚ“®ƒ{ƒ^ƒ“,   # ¡ƒhƒ‰ƒbƒO‚µ‚Ä‚éƒ{ƒ^ƒ“
-        [int]$İ’uŠó–]Y                              # ƒhƒƒbƒvŒã‚É’u‚­—\’è‚ÌY
+        [System.Windows.Forms.Panel]$ãƒ•ãƒ¬ãƒ¼ãƒ ,      # ãƒ‰ãƒ­ãƒƒãƒ—å…ˆãƒ‘ãƒãƒ«
+        [System.Windows.Forms.Button]$ç§»å‹•ãƒœã‚¿ãƒ³,   # ä»Šãƒ‰ãƒ©ãƒƒã‚°ã—ã¦ã‚‹ãƒœã‚¿ãƒ³
+        [int]$è¨­ç½®å¸Œæœ›Y                              # ãƒ‰ãƒ­ãƒƒãƒ—å¾Œã«ç½®ãäºˆå®šã®Y
     )
 
-    # ƒ†[ƒeƒBƒŠƒeƒB: w’èF+GroupID‚ÌƒuƒƒbƒNc”ÍˆÍ‚ğ•Ô‚·(TopY/BottomY)
-    # movingBtn ‚¾‚¯‚Í newY ‚ğ”½‰f‚µ‚ÄŒvZ‚·‚é
+    # ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£: æŒ‡å®šè‰²+GroupIDã®ãƒ–ãƒ­ãƒƒã‚¯ç¸¦ç¯„å›²ã‚’è¿”ã™(TopY/BottomY)
+    # movingBtn ã ã‘ã¯ newY ã‚’åæ˜ ã—ã¦è¨ˆç®—ã™ã‚‹
     function Get-GroupRangeAfterMove {
         param(
             [System.Windows.Forms.Panel]$panel,
@@ -181,7 +181,7 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
         $gid = $movingBtn.Tag.GroupID
         if ($null -eq $gid) { return $null }
 
-        # “¯‚¶ GroupID ‚©‚Â w’èF ‚Ìƒ{ƒ^ƒ“‚ğW‚ß‚é
+        # åŒã˜ GroupID ã‹ã¤ æŒ‡å®šè‰² ã®ãƒœã‚¿ãƒ³ã‚’é›†ã‚ã‚‹
         $sameGroupBtns = $panel.Controls |
             Where-Object {
                 $_ -is [System.Windows.Forms.Button] -and
@@ -191,7 +191,7 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
                 $_.Tag.BackgroundColor.ToArgb() -eq $targetColor.ToArgb()
             }
 
-        # "ŠJn" "I—¹" ‚Ì2–{‚ª‚»‚ë‚Á‚Ä‚È‚¢‚Æ³‚µ‚¢”ÍˆÍ‚ªo‚¹‚È‚¢
+        # "é–‹å§‹" "çµ‚äº†" ã®2æœ¬ãŒãã‚ã£ã¦ãªã„ã¨æ­£ã—ã„ç¯„å›²ãŒå‡ºã›ãªã„
         if ($sameGroupBtns.Count -lt 2) {
             return $null
         }
@@ -215,7 +215,7 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
         }
     }
 
-    # ƒ†[ƒeƒBƒŠƒeƒB: ƒpƒlƒ‹‘S‘Ì‚©‚çAw’èF‚²‚Æ‚É GroupID ’PˆÊ‚Ì”ÍˆÍ‚ğ‰ñû
+    # ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£: ãƒ‘ãƒãƒ«å…¨ä½“ã‹ã‚‰ã€æŒ‡å®šè‰²ã”ã¨ã« GroupID å˜ä½ã®ç¯„å›²ã‚’å›å
     function Get-AllGroupRanges {
         param(
             [System.Windows.Forms.Panel]$panel,
@@ -235,7 +235,7 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
         $ranges = @()
 
         foreach ($g in $grouped) {
-            # ‚»‚ÌƒOƒ‹[ƒv‚Ìƒ{ƒ^ƒ“(ŠJn/I—¹)‚ª2‚Â–¢–‚È‚çƒXƒLƒbƒv
+            # ãã®ã‚°ãƒ«ãƒ¼ãƒ—ã®ãƒœã‚¿ãƒ³(é–‹å§‹/çµ‚äº†)ãŒ2ã¤æœªæº€ãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
             if ($g.Group.Count -lt 2) { continue }
 
             $sorted = $g.Group | Sort-Object { $_.Location.Y }
@@ -252,8 +252,8 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
         return $ranges
     }
 
-    # 2‚Â‚Ì”ÍˆÍ(condRange=—Î / loopRange=‰©)‚Ì‘g‚İ‡‚í‚¹‚ªˆá”½‚©‚Ç‚¤‚©
-    # –ß‚è’l: $true = ˆá”½
+    # 2ã¤ã®ç¯„å›²(condRange=ç·‘ / loopRange=é»„)ã®çµ„ã¿åˆã‚ã›ãŒé•åã‹ã©ã†ã‹
+    # æˆ»ã‚Šå€¤: $true = é•å
     function Is-IllegalPair {
         param(
             $condRange,
@@ -269,28 +269,28 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
         $lTop =  $loopRange.TopY
         $lBot =  $loopRange.BottomY
 
-        # ‚Ü‚¸d‚È‚Á‚Ä‚é‚©‚Ç‚¤‚©
+        # ã¾ãšé‡ãªã£ã¦ã‚‹ã‹ã©ã†ã‹
         $overlap = ($cBot -gt $lTop) -and ($cTop -lt $lBot)
         if (-not $overlap) {
-            # Š®‘S‚Éã‰º‚É—£‚ê‚Ä‚é ¨ OK
+            # å®Œå…¨ã«ä¸Šä¸‹ã«é›¢ã‚Œã¦ã‚‹ â†’ OK
             return $false
         }
 
-        # ğŒ•ªŠò‚ªƒ‹[ƒv‚ÌŠ®‘S“à‘¤‚È‚çOK
+        # æ¡ä»¶åˆ†å²ãŒãƒ«ãƒ¼ãƒ—ã®å®Œå…¨å†…å´ãªã‚‰OK
         $condInsideLoop = ($cTop -ge $lTop) -and ($cBot -le $lBot)
         if ($condInsideLoop) {
-            # OK (ƒ‹[ƒv‚ªŠO‘¤AğŒ•ªŠò‚ª“à‘¤) ‚Í‡–@
+            # OK (ãƒ«ãƒ¼ãƒ—ãŒå¤–å´ã€æ¡ä»¶åˆ†å²ãŒå†…å´) ã¯åˆæ³•
             return $false
         }
 
-        # ‚»‚êˆÈŠO‚Ìd‚È‚è‚Íƒ_ƒ
-        # - Œğ· (•Ğ‘«‚¾‚¯“Ë‚Á‚ñ‚Å‚é)
-        # - ƒ‹[ƒv‚ªğŒ•ªŠò‚Ì“à‘¤‚ÉŠÛ‚²‚Æ“ü‚é
+        # ãã‚Œä»¥å¤–ã®é‡ãªã‚Šã¯ãƒ€ãƒ¡
+        # - äº¤å·® (ç‰‡è¶³ã ã‘çªã£è¾¼ã‚“ã§ã‚‹)
+        # - ãƒ«ãƒ¼ãƒ—ãŒæ¡ä»¶åˆ†å²ã®å†…å´ã«ä¸¸ã”ã¨å…¥ã‚‹
         return $true
     }
 
-    # ššš V‹K’Ç‰Á: ƒOƒ‹[ƒv•ª’fƒ`ƒFƒbƒNŠÖ” ššš
-    # ƒOƒ‹[ƒv“à‚Ìƒ{ƒ^ƒ“‚ª‹«ŠE‚ğ‚Ü‚½‚®iˆê•”‚ª“à‘¤Aˆê•”‚ªŠO‘¤j‚©ƒ`ƒFƒbƒN
+    # â˜…â˜…â˜… æ–°è¦è¿½åŠ : ã‚°ãƒ«ãƒ¼ãƒ—åˆ†æ–­ãƒã‚§ãƒƒã‚¯é–¢æ•° â˜…â˜…â˜…
+    # ã‚°ãƒ«ãƒ¼ãƒ—å†…ã®ãƒœã‚¿ãƒ³ãŒå¢ƒç•Œã‚’ã¾ãŸãï¼ˆä¸€éƒ¨ãŒå†…å´ã€ä¸€éƒ¨ãŒå¤–å´ï¼‰ã‹ãƒã‚§ãƒƒã‚¯
     function Check-GroupFragmentation {
         param(
             [System.Windows.Forms.Panel]$panel,
@@ -304,7 +304,7 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
         $gid = $movingBtn.Tag.GroupID
         if ($null -eq $gid) { return $false }
 
-        # “¯‚¶GroupID‚©‚Âw’èF‚Ìƒ{ƒ^ƒ“‚ğ‘S‚Äæ“¾
+        # åŒã˜GroupIDã‹ã¤æŒ‡å®šè‰²ã®ãƒœã‚¿ãƒ³ã‚’å…¨ã¦å–å¾—
         $sameGroupBtns = $panel.Controls |
             Where-Object {
                 $_ -is [System.Windows.Forms.Button] -and
@@ -318,14 +318,14 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
             return $false
         }
 
-        # ‹«ŠEF‚ÌƒOƒ‹[ƒv”ÍˆÍ‚ğ‘S‚Äæ“¾
+        # å¢ƒç•Œè‰²ã®ã‚°ãƒ«ãƒ¼ãƒ—ç¯„å›²ã‚’å…¨ã¦å–å¾—
         $boundaryRanges = Get-AllGroupRanges -panel $panel -targetColor $boundaryColor
 
         foreach ($br in $boundaryRanges) {
             $insideCount = 0
             $outsideCount = 0
 
-            # ƒOƒ‹[ƒv“à‚ÌŠeƒ{ƒ^ƒ“‚ª‹«ŠE‚Ì“à‘¤‚©ŠO‘¤‚©ƒ`ƒFƒbƒN
+            # ã‚°ãƒ«ãƒ¼ãƒ—å†…ã®å„ãƒœã‚¿ãƒ³ãŒå¢ƒç•Œã®å†…å´ã‹å¤–å´ã‹ãƒã‚§ãƒƒã‚¯
             foreach ($btn in $sameGroupBtns) {
                 $btnY = if ($btn -eq $movingBtn) { $newY } else { $btn.Location.Y }
 
@@ -336,7 +336,7 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
                 }
             }
 
-            # ˆê•”‚ª“à‘¤Aˆê•”‚ªŠO‘¤ = ƒOƒ‹[ƒv•ª’f = ‹Ö~
+            # ä¸€éƒ¨ãŒå†…å´ã€ä¸€éƒ¨ãŒå¤–å´ = ã‚°ãƒ«ãƒ¼ãƒ—åˆ†æ–­ = ç¦æ­¢
             if ($insideCount -gt 0 -and $outsideCount -gt 0) {
                 return $true
             }
@@ -345,45 +345,45 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
         return $false
     }
 
-    # ‚±‚±‚©‚ç–{‘Ì
-    $Œ³F = $null
-    if ($ˆÚ“®ƒ{ƒ^ƒ“.Tag -and $ˆÚ“®ƒ{ƒ^ƒ“.Tag.BackgroundColor) {
-        $Œ³F = $ˆÚ“®ƒ{ƒ^ƒ“.Tag.BackgroundColor
+    # ã“ã“ã‹ã‚‰æœ¬ä½“
+    $å…ƒè‰² = $null
+    if ($ç§»å‹•ãƒœã‚¿ãƒ³.Tag -and $ç§»å‹•ãƒœã‚¿ãƒ³.Tag.BackgroundColor) {
+        $å…ƒè‰² = $ç§»å‹•ãƒœã‚¿ãƒ³.Tag.BackgroundColor
     }
 
-    $isGreen  = ($Œ³F -ne $null -and $Œ³F.ToArgb() -eq [System.Drawing.Color]::SpringGreen.ToArgb())
-    $isYellow = ($Œ³F -ne $null -and $Œ³F.ToArgb() -eq [System.Drawing.Color]::LemonChiffon.ToArgb())
+    $isGreen  = ($å…ƒè‰² -ne $null -and $å…ƒè‰².ToArgb() -eq [System.Drawing.Color]::SpringGreen.ToArgb())
+    $isYellow = ($å…ƒè‰² -ne $null -and $å…ƒè‰².ToArgb() -eq [System.Drawing.Color]::LemonChiffon.ToArgb())
 
-    # ƒpƒlƒ‹ã‚Ì‘SğŒ•ªŠòƒuƒƒbƒN”ÍˆÍ‚Æ‘Sƒ‹[ƒvƒuƒƒbƒN”ÍˆÍ‚ğæ‚Éæ‚Á‚Ä‚¨‚­
-    $allCondRanges = Get-AllGroupRanges -panel $ƒtƒŒ[ƒ€ -targetColor ([System.Drawing.Color]::SpringGreen)
-    $allLoopRanges = Get-AllGroupRanges -panel $ƒtƒŒ[ƒ€ -targetColor ([System.Drawing.Color]::LemonChiffon)
+    # ãƒ‘ãƒãƒ«ä¸Šã®å…¨æ¡ä»¶åˆ†å²ãƒ–ãƒ­ãƒƒã‚¯ç¯„å›²ã¨å…¨ãƒ«ãƒ¼ãƒ—ãƒ–ãƒ­ãƒƒã‚¯ç¯„å›²ã‚’å…ˆã«å–ã£ã¦ãŠã
+    $allCondRanges = Get-AllGroupRanges -panel $ãƒ•ãƒ¬ãƒ¼ãƒ  -targetColor ([System.Drawing.Color]::SpringGreen)
+    $allLoopRanges = Get-AllGroupRanges -panel $ãƒ•ãƒ¬ãƒ¼ãƒ  -targetColor ([System.Drawing.Color]::LemonChiffon)
 
-    # ‚Ü‚¸u’P‘Ìƒm[ƒh‚ª• ‚É—‚¿‚évƒP[ƒX‚Ì‘¦ƒ`ƒFƒbƒN
+    # ã¾ãšã€Œå˜ä½“ãƒãƒ¼ãƒ‰ãŒè…¹ã«è½ã¡ã‚‹ã€ã‚±ãƒ¼ã‚¹ã®å³æ™‚ãƒã‚§ãƒƒã‚¯
     if ($isYellow) {
         foreach ($cr in $allCondRanges) {
-            if ($İ’uŠó–]Y -ge $cr.TopY -and $İ’uŠó–]Y -le $cr.BottomY) {
-                # ƒ‹[ƒv‚Ì”CˆÓƒm[ƒh‚ğğŒ•ªŠò‚Ì• ‚Ì’†‚É“ü‚ê‚é‚Ì‚Í‹Ö~
+            if ($è¨­ç½®å¸Œæœ›Y -ge $cr.TopY -and $è¨­ç½®å¸Œæœ›Y -le $cr.BottomY) {
+                # ãƒ«ãƒ¼ãƒ—ã®ä»»æ„ãƒãƒ¼ãƒ‰ã‚’æ¡ä»¶åˆ†å²ã®è…¹ã®ä¸­ã«å…¥ã‚Œã‚‹ã®ã¯ç¦æ­¢
                 return $true
             }
         }
     }
     elseif ($isGreen) {
         foreach ($lr in $allLoopRanges) {
-            if ($İ’uŠó–]Y -ge $lr.TopY -and $İ’uŠó–]Y -le $lr.BottomY) {
-                # ğŒ•ªŠòƒm[ƒh‚ğƒ‹[ƒv‚Ì• ‚Éh‚·‚Ì‚Í‹Ö~
-                # (ƒ‹[ƒv‚Ì“r’†‚ÉğŒ•ªŠò‚ğŠ„‚è‚Ü‚¹‚é‚Ì‚àƒ_ƒ)
+            if ($è¨­ç½®å¸Œæœ›Y -ge $lr.TopY -and $è¨­ç½®å¸Œæœ›Y -le $lr.BottomY) {
+                # æ¡ä»¶åˆ†å²ãƒãƒ¼ãƒ‰ã‚’ãƒ«ãƒ¼ãƒ—ã®è…¹ã«åˆºã™ã®ã¯ç¦æ­¢
+                # (ï¼ãƒ«ãƒ¼ãƒ—ã®é€”ä¸­ã«æ¡ä»¶åˆ†å²ã‚’å‰²ã‚Šè¾¼ã¾ã›ã‚‹ã®ã‚‚ãƒ€ãƒ¡)
                 return $true
             }
         }
     }
 
-    # ššš V‹K’Ç‰Á: ƒOƒ‹[ƒv•ª’fƒ`ƒFƒbƒN ššš
+    # â˜…â˜…â˜… æ–°è¦è¿½åŠ : ã‚°ãƒ«ãƒ¼ãƒ—åˆ†æ–­ãƒã‚§ãƒƒã‚¯ â˜…â˜…â˜…
     if ($isGreen) {
-        # ğŒ•ªŠòƒOƒ‹[ƒv‚ªƒ‹[ƒv‚Ì‹«ŠE‚ğ‚Ü‚½‚®‚©ƒ`ƒFƒbƒN
+        # æ¡ä»¶åˆ†å²ã‚°ãƒ«ãƒ¼ãƒ—ãŒãƒ«ãƒ¼ãƒ—ã®å¢ƒç•Œã‚’ã¾ãŸãã‹ãƒã‚§ãƒƒã‚¯
         $isFragmented = Check-GroupFragmentation `
-            -panel $ƒtƒŒ[ƒ€ `
-            -movingBtn $ˆÚ“®ƒ{ƒ^ƒ“ `
-            -newY $İ’uŠó–]Y `
+            -panel $ãƒ•ãƒ¬ãƒ¼ãƒ  `
+            -movingBtn $ç§»å‹•ãƒœã‚¿ãƒ³ `
+            -newY $è¨­ç½®å¸Œæœ›Y `
             -groupColor ([System.Drawing.Color]::SpringGreen) `
             -boundaryColor ([System.Drawing.Color]::LemonChiffon)
         
@@ -393,11 +393,11 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
     }
 
     if ($isYellow) {
-        # ƒ‹[ƒvƒOƒ‹[ƒv‚ªğŒ•ªŠò‚Ì‹«ŠE‚ğ‚Ü‚½‚®‚©ƒ`ƒFƒbƒN
+        # ãƒ«ãƒ¼ãƒ—ã‚°ãƒ«ãƒ¼ãƒ—ãŒæ¡ä»¶åˆ†å²ã®å¢ƒç•Œã‚’ã¾ãŸãã‹ãƒã‚§ãƒƒã‚¯
         $isFragmented = Check-GroupFragmentation `
-            -panel $ƒtƒŒ[ƒ€ `
-            -movingBtn $ˆÚ“®ƒ{ƒ^ƒ“ `
-            -newY $İ’uŠó–]Y `
+            -panel $ãƒ•ãƒ¬ãƒ¼ãƒ  `
+            -movingBtn $ç§»å‹•ãƒœã‚¿ãƒ³ `
+            -newY $è¨­ç½®å¸Œæœ›Y `
             -groupColor ([System.Drawing.Color]::LemonChiffon) `
             -boundaryColor ([System.Drawing.Color]::SpringGreen)
         
@@ -406,12 +406,12 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
         }
     }
 
-    # Ÿ‚ÉAƒOƒ‹[ƒv‘S‘Ì‚Æ‚µ‚Ä‚Ì®‡«ƒ`ƒFƒbƒN
+    # æ¬¡ã«ã€ã‚°ãƒ«ãƒ¼ãƒ—å…¨ä½“ã¨ã—ã¦ã®æ•´åˆæ€§ãƒã‚§ãƒƒã‚¯
     if ($isGreen) {
-        # ‚±‚ÌğŒ•ªŠòƒOƒ‹[ƒv‚ªˆÚ“®Œã‚Ç‚¤‚¢‚¤c”ÍˆÍ‚É‚È‚é‚©
-        $movedCondRange = Get-GroupRangeAfterMove -panel $ƒtƒŒ[ƒ€ `
-                                                 -movingBtn $ˆÚ“®ƒ{ƒ^ƒ“ `
-                                                 -newY $İ’uŠó–]Y `
+        # ã“ã®æ¡ä»¶åˆ†å²ã‚°ãƒ«ãƒ¼ãƒ—ãŒç§»å‹•å¾Œã©ã†ã„ã†ç¸¦ç¯„å›²ã«ãªã‚‹ã‹
+        $movedCondRange = Get-GroupRangeAfterMove -panel $ãƒ•ãƒ¬ãƒ¼ãƒ  `
+                                                 -movingBtn $ç§»å‹•ãƒœã‚¿ãƒ³ `
+                                                 -newY $è¨­ç½®å¸Œæœ›Y `
                                                  -targetColor ([System.Drawing.Color]::SpringGreen)
 
         foreach ($lr in $allLoopRanges) {
@@ -424,10 +424,10 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
     }
 
     if ($isYellow) {
-        # ‚±‚Ìƒ‹[ƒvƒOƒ‹[ƒv‚ªˆÚ“®Œã‚Ç‚¤‚¢‚¤c”ÍˆÍ‚É‚È‚é‚©
-        $movedLoopRange = Get-GroupRangeAfterMove -panel $ƒtƒŒ[ƒ€ `
-                                                 -movingBtn $ˆÚ“®ƒ{ƒ^ƒ“ `
-                                                 -newY $İ’uŠó–]Y `
+        # ã“ã®ãƒ«ãƒ¼ãƒ—ã‚°ãƒ«ãƒ¼ãƒ—ãŒç§»å‹•å¾Œã©ã†ã„ã†ç¸¦ç¯„å›²ã«ãªã‚‹ã‹
+        $movedLoopRange = Get-GroupRangeAfterMove -panel $ãƒ•ãƒ¬ãƒ¼ãƒ  `
+                                                 -movingBtn $ç§»å‹•ãƒœã‚¿ãƒ³ `
+                                                 -newY $è¨­ç½®å¸Œæœ›Y `
                                                  -targetColor ([System.Drawing.Color]::LemonChiffon)
 
         foreach ($cr in $allCondRanges) {
@@ -439,17 +439,17 @@ function ƒhƒƒbƒv‹Ö~ƒ`ƒFƒbƒN_ƒlƒXƒg‹K§ {
         return $false
     }
 
-    # —Î‚Å‚à‰©‚Å‚à‚È‚¢ƒm[ƒh‚Í‹K§‚µ‚È‚¢
+    # ç·‘ã§ã‚‚é»„ã§ã‚‚ãªã„ãƒãƒ¼ãƒ‰ã¯è¦åˆ¶ã—ãªã„
     return $false
 }
 
 
-function 00_ƒtƒŒ[ƒ€‚ÌDragEnterƒCƒxƒ“ƒg‚ğİ’è‚·‚é {
+function 00_ãƒ•ãƒ¬ãƒ¼ãƒ ã®DragEnterã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®šã™ã‚‹ {
   param (
-    [System.Windows.Forms.Panel]$ƒtƒŒ[ƒ€
+    [System.Windows.Forms.Panel]$ãƒ•ãƒ¬ãƒ¼ãƒ 
   )
 
-  $ƒtƒŒ[ƒ€.Add_DragEnter({
+  $ãƒ•ãƒ¬ãƒ¼ãƒ .Add_DragEnter({
     param($sender, $e)
     if ($e.Data.GetDataPresent([System.Windows.Forms.Button])) {
       $e.Effect = [System.Windows.Forms.DragDropEffects]::Move
@@ -459,670 +459,670 @@ function 00_ƒtƒŒ[ƒ€‚ÌDragEnterƒCƒxƒ“ƒg‚ğİ’è‚·‚é {
   })
 }
 
-function 10_ƒ{ƒ^ƒ“‚Ìˆê——æ“¾ {
+function 10_ãƒœã‚¿ãƒ³ã®ä¸€è¦§å–å¾— {
     param (
-        [System.Windows.Forms.Panel]$ƒtƒŒ[ƒ€,
-        [Int]$Œ»İ‚ÌY,
-        [System.Drawing.Color]$Œ»İ‚ÌF,
-        [Int]$İ’uŠó–]Y
+        [System.Windows.Forms.Panel]$ãƒ•ãƒ¬ãƒ¼ãƒ ,
+        [Int]$ç¾åœ¨ã®Y,
+        [System.Drawing.Color]$ç¾åœ¨ã®è‰²,
+        [Int]$è¨­ç½®å¸Œæœ›Y
     )
     
-    # Œ»İ‚ÌF‚ªSpringGreen‚Ü‚½‚ÍLemonChiffon‚Å‚È‚¢ê‡Aƒtƒ‰ƒO‚ğ•Ô‚·
-    if (-not ($Œ»İ‚ÌF -eq [System.Drawing.Color]::SpringGreen -or $Œ»İ‚ÌF -eq [System.Drawing.Color]::LemonChiffon)) {
+    # ç¾åœ¨ã®è‰²ãŒSpringGreenã¾ãŸã¯LemonChiffonã§ãªã„å ´åˆã€ãƒ•ãƒ©ã‚°ã‚’è¿”ã™
+    if (-not ($ç¾åœ¨ã®è‰² -eq [System.Drawing.Color]::SpringGreen -or $ç¾åœ¨ã®è‰² -eq [System.Drawing.Color]::LemonChiffon)) {
         return $false
     }
 
-    # Œ»İ‚Ìƒ{ƒ^ƒ“‚ğYˆÊ’u‡‚Éƒ\[ƒg
-    $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“ = $ƒtƒŒ[ƒ€.Controls |
+    # ç¾åœ¨ã®ãƒœã‚¿ãƒ³ã‚’Yä½ç½®é †ã«ã‚½ãƒ¼ãƒˆ
+    $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³ = $ãƒ•ãƒ¬ãƒ¼ãƒ .Controls |
                       Where-Object { $_ -is [System.Windows.Forms.Button] } |
                       Sort-Object { $_.Location.Y }
     
-    # YÀ•W‚Ì”ÍˆÍ‚ğŒˆ’è
-    $minY = [Math]::Min($Œ»İ‚ÌY, $İ’uŠó–]Y)
-    $maxY = [Math]::Max($Œ»İ‚ÌY, $İ’uŠó–]Y)
+    # Yåº§æ¨™ã®ç¯„å›²ã‚’æ±ºå®š
+    $minY = [Math]::Min($ç¾åœ¨ã®Y, $è¨­ç½®å¸Œæœ›Y)
+    $maxY = [Math]::Max($ç¾åœ¨ã®Y, $è¨­ç½®å¸Œæœ›Y)
     
-    # ƒtƒ‰ƒO‚ğ‰Šú‰»
+    # ãƒ•ãƒ©ã‚°ã‚’åˆæœŸåŒ–
     $SameColorExists = $false
     
-    foreach ($ƒ{ƒ^ƒ“ in $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“) {
-        $ƒ{ƒ^ƒ“Y = $ƒ{ƒ^ƒ“.Location.Y
-        $ƒ{ƒ^ƒ“F = $ƒ{ƒ^ƒ“.BackColor
+    foreach ($ãƒœã‚¿ãƒ³ in $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³) {
+        $ãƒœã‚¿ãƒ³Y = $ãƒœã‚¿ãƒ³.Location.Y
+        $ãƒœã‚¿ãƒ³è‰² = $ãƒœã‚¿ãƒ³.BackColor
         
-        ##Write-Host "F: $ƒ{ƒ^ƒ“F" +  " ƒ{ƒ^ƒ“YÀ•W: $ƒ{ƒ^ƒ“Y"
+        ##Write-Host "è‰²: $ãƒœã‚¿ãƒ³è‰²" +  " ãƒœã‚¿ãƒ³Yåº§æ¨™: $ãƒœã‚¿ãƒ³Y"
     
-        if ($Œ»İ‚ÌF -eq [System.Drawing.Color]::SpringGreen) {
+        if ($ç¾åœ¨ã®è‰² -eq [System.Drawing.Color]::SpringGreen) {
     
-        # YÀ•W‚ª”ÍˆÍ“à‚©‚ÂBackColor‚ªŒ»İ‚ÌF‚©‚ğƒ`ƒFƒbƒN
-        if ($ƒ{ƒ^ƒ“Y -ge $minY -and $ƒ{ƒ^ƒ“Y -le $maxY -and $ƒ{ƒ^ƒ“F -eq [System.Drawing.Color]::SpringGreen -and $ƒ{ƒ^ƒ“Y -ne $Œ»İ‚ÌY) {
-            ##Write-Host "ƒ{ƒ^ƒ“ '$($ƒ{ƒ^ƒ“.Text)' ‚ªw’è”ÍˆÍ“à‚É‚ ‚èABackColor‚ªŒ»İ‚ÌF‚Å‚·B1"
+        # Yåº§æ¨™ãŒç¯„å›²å†…ã‹ã¤BackColorãŒç¾åœ¨ã®è‰²ã‹ã‚’ãƒã‚§ãƒƒã‚¯
+        if ($ãƒœã‚¿ãƒ³Y -ge $minY -and $ãƒœã‚¿ãƒ³Y -le $maxY -and $ãƒœã‚¿ãƒ³è‰² -eq [System.Drawing.Color]::SpringGreen -and $ãƒœã‚¿ãƒ³Y -ne $ç¾åœ¨ã®Y) {
+            ##Write-Host "ãƒœã‚¿ãƒ³ '$($ãƒœã‚¿ãƒ³.Text)' ãŒæŒ‡å®šç¯„å›²å†…ã«ã‚ã‚Šã€BackColorãŒç¾åœ¨ã®è‰²ã§ã™ã€‚1"
             $SameColorExists = $true
-            break  # Å‰‚ÉŒ©‚Â‚¯‚½‚çƒ‹[ƒv‚ğ”²‚¯‚é
+            break  # æœ€åˆã«è¦‹ã¤ã‘ãŸã‚‰ãƒ«ãƒ¼ãƒ—ã‚’æŠœã‘ã‚‹
         }
 
 
-        } elseif($Œ»İ‚ÌF -eq [System.Drawing.Color]::LemonChiffon) {
+        } elseif($ç¾åœ¨ã®è‰² -eq [System.Drawing.Color]::LemonChiffon) {
 
-        if ($ƒ{ƒ^ƒ“Y -ge $minY -and $ƒ{ƒ^ƒ“Y -le $maxY -and $ƒ{ƒ^ƒ“F -eq [System.Drawing.Color]::LemonChiffon -and $ƒ{ƒ^ƒ“Y -ne $Œ»İ‚ÌY) {
-            ##Write-Host "ƒ{ƒ^ƒ“ '$($ƒ{ƒ^ƒ“.Text)' ‚ªw’è”ÍˆÍ“à‚É‚ ‚èABackColor‚ªŒ»İ‚ÌF‚Å‚·2B"
+        if ($ãƒœã‚¿ãƒ³Y -ge $minY -and $ãƒœã‚¿ãƒ³Y -le $maxY -and $ãƒœã‚¿ãƒ³è‰² -eq [System.Drawing.Color]::LemonChiffon -and $ãƒœã‚¿ãƒ³Y -ne $ç¾åœ¨ã®Y) {
+            ##Write-Host "ãƒœã‚¿ãƒ³ '$($ãƒœã‚¿ãƒ³.Text)' ãŒæŒ‡å®šç¯„å›²å†…ã«ã‚ã‚Šã€BackColorãŒç¾åœ¨ã®è‰²ã§ã™2ã€‚"
             $SameColorExists = $true
-            break  # Å‰‚ÉŒ©‚Â‚¯‚½‚çƒ‹[ƒv‚ğ”²‚¯‚é
+            break  # æœ€åˆã«è¦‹ã¤ã‘ãŸã‚‰ãƒ«ãƒ¼ãƒ—ã‚’æŠœã‘ã‚‹
         }
             
         }
 
     }
     
-    # ƒtƒ‰ƒO‚ğ•Ô‚è’l‚Æ‚µ‚Ä•Ô‚·
+    # ãƒ•ãƒ©ã‚°ã‚’è¿”ã‚Šå€¤ã¨ã—ã¦è¿”ã™
     return $SameColorExists
 }
 
-function 00_ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ” {
+function 00_ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•° {
   param (
-    [System.Windows.Forms.Panel]$ƒtƒŒ[ƒ€,
-    [int]$ƒ{ƒ^ƒ“‚‚³ = 30,
-    [int]$ŠÔŠu = 20  
+    [System.Windows.Forms.Panel]$ãƒ•ãƒ¬ãƒ¼ãƒ ,
+    [int]$ãƒœã‚¿ãƒ³é«˜ã• = 30,
+    [int]$é–“éš” = 20  
   )
 
-  # ƒ{ƒ^ƒ“‚Ì‚‚³‚ÆŠÔŠu‚ğİ’è
-  $ƒ{ƒ^ƒ“‚‚³ = 30
-  $ƒ{ƒ^ƒ“ŠÔŠu = $ŠÔŠu
+  # ãƒœã‚¿ãƒ³ã®é«˜ã•ã¨é–“éš”ã‚’è¨­å®š
+  $ãƒœã‚¿ãƒ³é«˜ã• = 30
+  $ãƒœã‚¿ãƒ³é–“éš” = $é–“éš”
 
-  # Œ»İ‚Ìƒ{ƒ^ƒ“‚ğYˆÊ’u‡‚Éƒ\[ƒg
-  $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“ = $ƒtƒŒ[ƒ€.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] } | Sort-Object { $_.Location.Y }
+  # ç¾åœ¨ã®ãƒœã‚¿ãƒ³ã‚’Yä½ç½®é †ã«ã‚½ãƒ¼ãƒˆ
+  $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³ = $ãƒ•ãƒ¬ãƒ¼ãƒ .Controls | Where-Object { $_ -is [System.Windows.Forms.Button] } | Sort-Object { $_.Location.Y }
 
-  $Œ»İ‚ÌYˆÊ’u = 0  # ƒ{ƒ^ƒ“”z’u‚Ì‰ŠúˆÊ’u
+  $ç¾åœ¨ã®Yä½ç½® = 0  # ãƒœã‚¿ãƒ³é…ç½®ã®åˆæœŸä½ç½®
 
-  # "ğŒ•ªŠò ŠJn"A"ğŒ•ªŠò ’†ŠÔ"A"ğŒ•ªŠò I—¹"‚ÌˆÊ’u‚ğ“Á’è
-  $ŠJnƒCƒ“ƒfƒbƒNƒX = -1
-  $’†ŠÔƒCƒ“ƒfƒbƒNƒX = -1
-  $I—¹ƒCƒ“ƒfƒbƒNƒX = -1
+  # "æ¡ä»¶åˆ†å² é–‹å§‹"ã€"æ¡ä»¶åˆ†å² ä¸­é–“"ã€"æ¡ä»¶åˆ†å² çµ‚äº†"ã®ä½ç½®ã‚’ç‰¹å®š
+  $é–‹å§‹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ = -1
+  $ä¸­é–“ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ = -1
+  $çµ‚äº†ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ = -1
 
-  for ($i = 0; $i -lt $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“.Count; $i++) {
-    if ($ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$i].Text -eq "ğŒ•ªŠò ŠJn") {
-      $ŠJnƒCƒ“ƒfƒbƒNƒX = $i
+  for ($i = 0; $i -lt $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³.Count; $i++) {
+    if ($ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$i].Text -eq "æ¡ä»¶åˆ†å² é–‹å§‹") {
+      $é–‹å§‹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ = $i
     }
-    if ($ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$i].Text -eq "ğŒ•ªŠò ’†ŠÔ") {
-      $’†ŠÔƒCƒ“ƒfƒbƒNƒX = $i
+    if ($ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$i].Text -eq "æ¡ä»¶åˆ†å² ä¸­é–“") {
+      $ä¸­é–“ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ = $i
     }
-    if ($ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$i].Text -eq "ğŒ•ªŠò I—¹") {
-      $I—¹ƒCƒ“ƒfƒbƒNƒX = $i
+    if ($ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$i].Text -eq "æ¡ä»¶åˆ†å² çµ‚äº†") {
+      $çµ‚äº†ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ = $i
     }
   }
 
-  for ($ƒCƒ“ƒfƒbƒNƒX = 0; $ƒCƒ“ƒfƒbƒNƒX -lt $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“.Count; $ƒCƒ“ƒfƒbƒNƒX++) {
-    $ƒ{ƒ^ƒ“ƒeƒLƒXƒg = $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].Text
+  for ($ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ = 0; $ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -lt $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³.Count; $ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹++) {
+    $ãƒœã‚¿ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ = $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].Text
 
-    # ƒ{ƒ^ƒ“‚ÌF‚ğİ’è‚·‚éğŒ•ªŠò
-    if ($ŠJnƒCƒ“ƒfƒbƒNƒX -ne -1 -and $’†ŠÔƒCƒ“ƒfƒbƒNƒX -ne -1 -and $ƒCƒ“ƒfƒbƒNƒX -gt $ŠJnƒCƒ“ƒfƒbƒNƒX -and $ƒCƒ“ƒfƒbƒNƒX -lt $’†ŠÔƒCƒ“ƒfƒbƒNƒX) {
+    # ãƒœã‚¿ãƒ³ã®è‰²ã‚’è¨­å®šã™ã‚‹æ¡ä»¶åˆ†å²
+    if ($é–‹å§‹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -ne -1 -and $ä¸­é–“ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -ne -1 -and $ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -gt $é–‹å§‹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -and $ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -lt $ä¸­é–“ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹) {
 
  
-if ($ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].Tag.script -eq "ƒXƒNƒŠƒvƒg") {
-       $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].BackColor = $global:ƒsƒ“ƒNÔF
+if ($ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].Tag.script -eq "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ") {
+       $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].BackColor = $global:ãƒ”ãƒ³ã‚¯èµ¤è‰²
 } else {
-       $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].BackColor = [System.Drawing.Color]::Salmon
+       $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].BackColor = [System.Drawing.Color]::Salmon
 }
 
 
 
 
-    } elseif ($’†ŠÔƒCƒ“ƒfƒbƒNƒX -ne -1 -and $I—¹ƒCƒ“ƒfƒbƒNƒX -ne -1 -and $ƒCƒ“ƒfƒbƒNƒX -gt $’†ŠÔƒCƒ“ƒfƒbƒNƒX -and $ƒCƒ“ƒfƒbƒNƒX -lt $I—¹ƒCƒ“ƒfƒbƒNƒX) {
+    } elseif ($ä¸­é–“ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -ne -1 -and $çµ‚äº†ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -ne -1 -and $ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -gt $ä¸­é–“ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -and $ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ -lt $çµ‚äº†ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹) {
 
 
 
-if ($ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].Tag.script -eq "ƒXƒNƒŠƒvƒg") {
-      $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].BackColor = $global:ƒsƒ“ƒNÂF
+if ($ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].Tag.script -eq "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ") {
+      $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].BackColor = $global:ãƒ”ãƒ³ã‚¯é’è‰²
 } else {
-       $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].BackColor =$global:ÂF
+       $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].BackColor =$global:é’è‰²
 }
 
 
     } else {
-      # Œ»İ‚ÌF‚ğæ“¾
-      $Œ»İ‚ÌF = $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].BackColor
+      # ç¾åœ¨ã®è‰²ã‚’å–å¾—
+      $ç¾åœ¨ã®è‰² = $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].BackColor
 
-      # Œ»İ‚ÌF‚ª Salmon ‚Ü‚½‚Í FromArgb(200, 220, 255) ‚Ìê‡‚Ì‚İ White ‚É•ÏX
-      if ($Œ»İ‚ÌF.ToArgb() -eq [System.Drawing.Color]::Salmon.ToArgb() -or $Œ»İ‚ÌF.ToArgb() -eq $global:ÂF.ToArgb()) {
-        $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].BackColor = [System.Drawing.Color]::White
+      # ç¾åœ¨ã®è‰²ãŒ Salmon ã¾ãŸã¯ FromArgb(200, 220, 255) ã®å ´åˆã®ã¿ White ã«å¤‰æ›´
+      if ($ç¾åœ¨ã®è‰².ToArgb() -eq [System.Drawing.Color]::Salmon.ToArgb() -or $ç¾åœ¨ã®è‰².ToArgb() -eq $global:é’è‰².ToArgb()) {
+        $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].BackColor = [System.Drawing.Color]::White
       }
-      if ($ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].Tag.script -eq "ƒXƒNƒŠƒvƒg") {
-        $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].BackColor = [System.Drawing.Color]::Pink
+      if ($ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].Tag.script -eq "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ") {
+        $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].BackColor = [System.Drawing.Color]::Pink
       }
     }
 
 
-    # ƒ{ƒ^ƒ“ŠÔŠu‚Æ‚‚³‚Ì’²®i"ğŒ•ªŠò ’†ŠÔ"‚Ìê‡‚Í0‚Æ‚·‚éj
-    if ($ƒ{ƒ^ƒ“ƒeƒLƒXƒg -eq "ğŒ•ªŠò ’†ŠÔ") {
-      $g—p‚·‚éŠÔŠu = 10
-      $g—p‚·‚é‚‚³ = 0
+    # ãƒœã‚¿ãƒ³é–“éš”ã¨é«˜ã•ã®èª¿æ•´ï¼ˆ"æ¡ä»¶åˆ†å² ä¸­é–“"ã®å ´åˆã¯0ã¨ã™ã‚‹ï¼‰
+    if ($ãƒœã‚¿ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ -eq "æ¡ä»¶åˆ†å² ä¸­é–“") {
+      $ä½¿ç”¨ã™ã‚‹é–“éš” = 10
+      $ä½¿ç”¨ã™ã‚‹é«˜ã• = 0
     } else {
-      $g—p‚·‚éŠÔŠu = $ƒ{ƒ^ƒ“ŠÔŠu
-      $g—p‚·‚é‚‚³ = $ƒ{ƒ^ƒ“‚‚³
+      $ä½¿ç”¨ã™ã‚‹é–“éš” = $ãƒœã‚¿ãƒ³é–“éš”
+      $ä½¿ç”¨ã™ã‚‹é«˜ã• = $ãƒœã‚¿ãƒ³é«˜ã•
     }
 
-    # Šó–]ˆÊ’u‚ğŒvZ
-    $Šó–]ˆÊ’uY = $Œ»İ‚ÌYˆÊ’u + $g—p‚·‚éŠÔŠu
+    # å¸Œæœ›ä½ç½®ã‚’è¨ˆç®—
+    $å¸Œæœ›ä½ç½®Y = $ç¾åœ¨ã®Yä½ç½® + $ä½¿ç”¨ã™ã‚‹é–“éš”
 
-    # ƒ{ƒ^ƒ“‚Ì”z’u‚ğXV
-    $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].Location = New-Object System.Drawing.Point(
-      [Math]::Floor(($ƒtƒŒ[ƒ€.ClientSize.Width - $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$ƒCƒ“ƒfƒbƒNƒX].Width) / 2),
-      $Šó–]ˆÊ’uY
+    # ãƒœã‚¿ãƒ³ã®é…ç½®ã‚’æ›´æ–°
+    $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].Location = New-Object System.Drawing.Point(
+      [Math]::Floor(($ãƒ•ãƒ¬ãƒ¼ãƒ .ClientSize.Width - $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹].Width) / 2),
+      $å¸Œæœ›ä½ç½®Y
     )
 
-    # Œ»İ‚ÌYˆÊ’u‚ğXV
-    $Œ»İ‚ÌYˆÊ’u = $Šó–]ˆÊ’uY + $g—p‚·‚é‚‚³
+    # ç¾åœ¨ã®Yä½ç½®ã‚’æ›´æ–°
+    $ç¾åœ¨ã®Yä½ç½® = $å¸Œæœ›ä½ç½®Y + $ä½¿ç”¨ã™ã‚‹é«˜ã•
   }
 }
 
-function 00_ƒtƒŒ[ƒ€‚ğì¬‚·‚é {
+function 00_ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’ä½œæˆã™ã‚‹ {
     param (
-        [System.Windows.Forms.Form]$ƒtƒH[ƒ€,           # ƒtƒŒ[ƒ€‚ğ’Ç‰Á‚·‚éƒtƒH[ƒ€
-        [int]$• = 300,                                # ƒtƒŒ[ƒ€‚Ì•
-        [int]$‚‚³ = 600,                              # ƒtƒŒ[ƒ€‚Ì‚‚³
-        [int]$XˆÊ’u = 100,                              # ƒtƒŒ[ƒ€‚ÌXÀ•W
-        [int]$YˆÊ’u = 20,                               # ƒtƒŒ[ƒ€‚ÌYÀ•W
-        [string]$ƒtƒŒ[ƒ€–¼ = "ƒtƒŒ[ƒ€ƒpƒlƒ‹",         # ƒtƒŒ[ƒ€‚Ì–¼‘O
-        [bool]$Visible = $true,                        # ƒpƒlƒ‹‚Ì‰Šú•\¦ó‘Ô
-        [System.Drawing.Color]$”wŒiF = ([System.Drawing.Color]::FromArgb(240,240,240)),  # ”wŒiF
-        [bool]$˜gü‚ ‚è = $false                        # ˜gü‚Ì—L–³
+        [System.Windows.Forms.Form]$ãƒ•ã‚©ãƒ¼ãƒ ,           # ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’è¿½åŠ ã™ã‚‹ãƒ•ã‚©ãƒ¼ãƒ 
+        [int]$å¹… = 300,                                # ãƒ•ãƒ¬ãƒ¼ãƒ ã®å¹…
+        [int]$é«˜ã• = 600,                              # ãƒ•ãƒ¬ãƒ¼ãƒ ã®é«˜ã•
+        [int]$Xä½ç½® = 100,                              # ãƒ•ãƒ¬ãƒ¼ãƒ ã®Xåº§æ¨™
+        [int]$Yä½ç½® = 20,                               # ãƒ•ãƒ¬ãƒ¼ãƒ ã®Yåº§æ¨™
+        [string]$ãƒ•ãƒ¬ãƒ¼ãƒ å = "ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«",         # ãƒ•ãƒ¬ãƒ¼ãƒ ã®åå‰
+        [bool]$Visible = $true,                        # ãƒ‘ãƒãƒ«ã®åˆæœŸè¡¨ç¤ºçŠ¶æ…‹
+        [System.Drawing.Color]$èƒŒæ™¯è‰² = ([System.Drawing.Color]::FromArgb(240,240,240)),  # èƒŒæ™¯è‰²
+        [bool]$æ ç·šã‚ã‚Š = $false                        # æ ç·šã®æœ‰ç„¡
     )
 
-    # ƒpƒlƒ‹ì¬
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹ = New-Object System.Windows.Forms.Panel
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Size = New-Object System.Drawing.Size($•, $‚‚³)
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Location = New-Object System.Drawing.Point($XˆÊ’u, $YˆÊ’u)
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹.AllowDrop = $true
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹.AutoScroll = $true
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Name = $ƒtƒŒ[ƒ€–¼
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Visible = $Visible
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹.BackColor = $”wŒiF
+    # ãƒ‘ãƒãƒ«ä½œæˆ
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« = New-Object System.Windows.Forms.Panel
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Size = New-Object System.Drawing.Size($å¹…, $é«˜ã•)
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Location = New-Object System.Drawing.Point($Xä½ç½®, $Yä½ç½®)
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.AllowDrop = $true
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.AutoScroll = $true
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Name = $ãƒ•ãƒ¬ãƒ¼ãƒ å
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Visible = $Visible
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.BackColor = $èƒŒæ™¯è‰²
 
-    if ($˜gü‚ ‚è) {
-        $ƒtƒŒ[ƒ€ƒpƒlƒ‹.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+    if ($æ ç·šã‚ã‚Š) {
+        $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
     }
     else {
-        $ƒtƒŒ[ƒ€ƒpƒlƒ‹.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+        $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.BorderStyle = [System.Windows.Forms.BorderStyle]::None
     }
 
-    # •`‰æƒIƒuƒWƒFƒNƒg—p‚ÌƒvƒƒpƒeƒB‚ğ Tag ‚É’Ç‰Á
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Tag = @{ DrawObjects = @() }
+    # æç”»ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆç”¨ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’ Tag ã«è¿½åŠ 
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Tag = @{ DrawObjects = @() }
 
-    # ƒtƒŒ[ƒ€‚ÌClickƒCƒxƒ“ƒg‚ğİ’è
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Add_Click({
+    # ãƒ•ãƒ¬ãƒ¼ãƒ ã®Clickã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®š
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Add_Click({
         param($sender, $e)
-        [System.Windows.Forms.MessageBox]::Show("ƒtƒŒ[ƒ€‚ªƒNƒŠƒbƒN‚³‚ê‚Ü‚µ‚½B")
+        [System.Windows.Forms.MessageBox]::Show("ãƒ•ãƒ¬ãƒ¼ãƒ ãŒã‚¯ãƒªãƒƒã‚¯ã•ã‚Œã¾ã—ãŸã€‚")
     })
 
-    # ƒtƒŒ[ƒ€‚ğƒtƒH[ƒ€‚É’Ç‰Á
-    $ƒtƒH[ƒ€.Controls.Add($ƒtƒŒ[ƒ€ƒpƒlƒ‹)
+    # ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’ãƒ•ã‚©ãƒ¼ãƒ ã«è¿½åŠ 
+    $ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«)
 
-    # PaintƒCƒxƒ“ƒg‚Ìİ’è
-    00_ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹‚ÌPaintƒCƒxƒ“ƒg‚ğİ’è‚·‚é -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $ƒtƒŒ[ƒ€ƒpƒlƒ‹
+    # Paintã‚¤ãƒ™ãƒ³ãƒˆã®è¨­å®š
+    00_ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«ã®Paintã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®šã™ã‚‹ -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«
 
-    # ƒtƒŒ[ƒ€‚ğ•Ô‚·
-    return $ƒtƒŒ[ƒ€ƒpƒlƒ‹
+    # ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’è¿”ã™
+    return $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«
 }
 
-function script:ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚ğ‰Šú‰»‚·‚é {
-    ###Write-Host "ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚ğ‰Šú‰»‚µ‚Ü‚·B"
+function script:ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’åˆæœŸåŒ–ã™ã‚‹ {
+    ###Write-Host "ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’åˆæœŸåŒ–ã—ã¾ã™ã€‚"
     if (-not $script:ContextMenuInitialized) {
-        # ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚ğƒXƒNƒŠƒvƒgƒXƒR[ƒv‚Å’è‹`
-        $script:‰EƒNƒŠƒbƒNƒƒjƒ…[ = New-Object System.Windows.Forms.ContextMenuStrip
-        $script:–¼‘O•ÏXƒƒjƒ…[ƒAƒCƒeƒ€ = $script:‰EƒNƒŠƒbƒNƒƒjƒ…[.Items.Add("–¼‘O•ÏX")
-        $script:ƒXƒNƒŠƒvƒg•ÒWƒƒjƒ…[ƒAƒCƒeƒ€ = $script:‰EƒNƒŠƒbƒNƒƒjƒ…[.Items.Add("ƒXƒNƒŠƒvƒg•ÒW")
-        $script:ƒXƒNƒŠƒvƒgÀsƒƒjƒ…[ƒAƒCƒeƒ€ = $script:‰EƒNƒŠƒbƒNƒƒjƒ…[.Items.Add("ƒXƒNƒŠƒvƒgÀs")
-        $script:íœƒƒjƒ…[ƒAƒCƒeƒ€ = $script:‰EƒNƒŠƒbƒNƒƒjƒ…[.Items.Add("íœ")
+        # ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚¹ã‚³ãƒ¼ãƒ—ã§å®šç¾©
+        $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼ = New-Object System.Windows.Forms.ContextMenuStrip
+        $script:åå‰å¤‰æ›´ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¢ã‚¤ãƒ†ãƒ  = $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼.Items.Add("åå‰å¤‰æ›´")
+        $script:ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¢ã‚¤ãƒ†ãƒ  = $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼.Items.Add("ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†")
+        $script:ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¢ã‚¤ãƒ†ãƒ  = $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼.Items.Add("ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œ")
+        $script:å‰Šé™¤ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¢ã‚¤ãƒ†ãƒ  = $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼.Items.Add("å‰Šé™¤")
 
-        ###Write-Host "ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[€–Ú‚ğ’Ç‰Á‚µ‚Ü‚µ‚½B"
+        ###Write-Host "ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼é …ç›®ã‚’è¿½åŠ ã—ã¾ã—ãŸã€‚"
 
-        # ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰[‚Ìİ’è
-        $script:–¼‘O•ÏXƒƒjƒ…[ƒAƒCƒeƒ€.Add_Click({ 
-            ###Write-Host "–¼‘O•ÏXƒƒjƒ…[‚ªƒNƒŠƒbƒN‚³‚ê‚Ü‚µ‚½B"
-            script:–¼‘O•ÏXˆ— 
+        # ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ãƒ¼ã®è¨­å®š
+        $script:åå‰å¤‰æ›´ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¢ã‚¤ãƒ†ãƒ .Add_Click({ 
+            ###Write-Host "åå‰å¤‰æ›´ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãŒã‚¯ãƒªãƒƒã‚¯ã•ã‚Œã¾ã—ãŸã€‚"
+            script:åå‰å¤‰æ›´å‡¦ç† 
         })
-        $script:ƒXƒNƒŠƒvƒg•ÒWƒƒjƒ…[ƒAƒCƒeƒ€.Add_Click({ 
-            ###Write-Host "ƒXƒNƒŠƒvƒg•ÒWƒƒjƒ…[‚ªƒNƒŠƒbƒN‚³‚ê‚Ü‚µ‚½B"
-            script:ƒXƒNƒŠƒvƒg•ÒWˆ— 
+        $script:ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¢ã‚¤ãƒ†ãƒ .Add_Click({ 
+            ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãŒã‚¯ãƒªãƒƒã‚¯ã•ã‚Œã¾ã—ãŸã€‚"
+            script:ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†å‡¦ç† 
         })
-        $script:ƒXƒNƒŠƒvƒgÀsƒƒjƒ…[ƒAƒCƒeƒ€.Add_Click({ 
-            ###Write-Host "ƒXƒNƒŠƒvƒg•ÒWƒƒjƒ…[‚ªƒNƒŠƒbƒN‚³‚ê‚Ü‚µ‚½B"
-            script:ƒXƒNƒŠƒvƒgÀsˆ— 
+        $script:ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¢ã‚¤ãƒ†ãƒ .Add_Click({ 
+            ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãŒã‚¯ãƒªãƒƒã‚¯ã•ã‚Œã¾ã—ãŸã€‚"
+            script:ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œå‡¦ç† 
         })
-        $script:íœƒƒjƒ…[ƒAƒCƒeƒ€.Add_Click({ 
-            ###Write-Host "íœƒƒjƒ…[‚ªƒNƒŠƒbƒN‚³‚ê‚Ü‚µ‚½B"
-            script:íœˆ— 
+        $script:å‰Šé™¤ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¢ã‚¤ãƒ†ãƒ .Add_Click({ 
+            ###Write-Host "å‰Šé™¤ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãŒã‚¯ãƒªãƒƒã‚¯ã•ã‚Œã¾ã—ãŸã€‚"
+            script:å‰Šé™¤å‡¦ç† 
         })
 
-        # ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰[‚ªˆê“x‚¾‚¯İ’è‚³‚ê‚½‚±‚Æ‚ğ‹L˜^
+        # ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ãƒ¼ãŒä¸€åº¦ã ã‘è¨­å®šã•ã‚ŒãŸã“ã¨ã‚’è¨˜éŒ²
         $script:ContextMenuInitialized = $true
-        ###Write-Host "ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚Ì‰Šú‰»‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
+        ###Write-Host "ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®åˆæœŸåŒ–ãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
     }
     else {
-        ###Write-Host "ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚ÍŠù‚É‰Šú‰»‚³‚ê‚Ä‚¢‚Ü‚·B"
+        ###Write-Host "ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã¯æ—¢ã«åˆæœŸåŒ–ã•ã‚Œã¦ã„ã¾ã™ã€‚"
     }
 }
 
-function script:–¼‘O•ÏXˆ— {
-    ###Write-Host "–¼‘O•ÏXˆ—‚ğŠJn‚µ‚Ü‚·B"
-    if ($null -ne $ƒƒCƒ“ƒtƒH[ƒ€) {
-        ###Write-Host "ƒƒCƒ“ƒtƒH[ƒ€‚ğ”ñ•\¦‚É‚µ‚Ü‚·B"
-        $ƒƒCƒ“ƒtƒH[ƒ€.Hide()
+function script:åå‰å¤‰æ›´å‡¦ç† {
+    ###Write-Host "åå‰å¤‰æ›´å‡¦ç†ã‚’é–‹å§‹ã—ã¾ã™ã€‚"
+    if ($null -ne $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ) {
+        ###Write-Host "ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ã‚’éè¡¨ç¤ºã«ã—ã¾ã™ã€‚"
+        $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Hide()
     }
 
-    # ‰EƒNƒŠƒbƒN‚ÉŠi”[‚µ‚½ƒ{ƒ^ƒ“‚ğæ“¾
-    $btn = $script:‰EƒNƒŠƒbƒNƒƒjƒ…[.Tag
-    ###Write-Host "æ“¾‚µ‚½ƒ{ƒ^ƒ“: $($btn.Name)"
+    # å³ã‚¯ãƒªãƒƒã‚¯æ™‚ã«æ ¼ç´ã—ãŸãƒœã‚¿ãƒ³ã‚’å–å¾—
+    $btn = $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼.Tag
+    ###Write-Host "å–å¾—ã—ãŸãƒœã‚¿ãƒ³: $($btn.Name)"
 
     if ($btn -ne $null) {
-        # “ü—Íƒ{ƒbƒNƒX‚ğ•\¦‚µ‚ÄV‚µ‚¢–¼‘O‚ğæ“¾
-        ###Write-Host "“ü—Íƒ{ƒbƒNƒX‚ğ•\¦‚µ‚ÄV‚µ‚¢–¼‘O‚ğæ“¾‚µ‚Ü‚·B"
-        $V‚µ‚¢–¼‘O = [Microsoft.VisualBasic.Interaction]::InputBox(
-            "V‚µ‚¢ƒ{ƒ^ƒ“–¼‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢:",  # ƒvƒƒ“ƒvƒg
-            "ƒ{ƒ^ƒ“–¼‚Ì•ÏX",                    # ƒ^ƒCƒgƒ‹
-            $btn.Text                            # ƒfƒtƒHƒ‹ƒg’l
+        # å…¥åŠ›ãƒœãƒƒã‚¯ã‚¹ã‚’è¡¨ç¤ºã—ã¦æ–°ã—ã„åå‰ã‚’å–å¾—
+        ###Write-Host "å…¥åŠ›ãƒœãƒƒã‚¯ã‚¹ã‚’è¡¨ç¤ºã—ã¦æ–°ã—ã„åå‰ã‚’å–å¾—ã—ã¾ã™ã€‚"
+        $æ–°ã—ã„åå‰ = [Microsoft.VisualBasic.Interaction]::InputBox(
+            "æ–°ã—ã„ãƒœã‚¿ãƒ³åã‚’å…¥åŠ›ã—ã¦ãã ã•ã„:",  # ãƒ—ãƒ­ãƒ³ãƒ—ãƒˆ
+            "ãƒœã‚¿ãƒ³åã®å¤‰æ›´",                    # ã‚¿ã‚¤ãƒˆãƒ«
+            $btn.Text                            # ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤
         )
-        ###Write-Host "ƒ†[ƒU[‚ª“ü—Í‚µ‚½V‚µ‚¢–¼‘O: '$V‚µ‚¢–¼‘O'"
+        ###Write-Host "ãƒ¦ãƒ¼ã‚¶ãƒ¼ãŒå…¥åŠ›ã—ãŸæ–°ã—ã„åå‰: '$æ–°ã—ã„åå‰'"
 
-        # ƒ†[ƒU[‚ª“ü—Í‚µ‚½ê‡‚Ì‚İƒeƒLƒXƒg‚ğXV
-        if (![string]::IsNullOrWhiteSpace($V‚µ‚¢–¼‘O)) {
-            ###Write-Host "ƒ{ƒ^ƒ“‚ÌƒeƒLƒXƒg‚ğXV‚µ‚Ü‚·B"
-            $btn.Text = $V‚µ‚¢–¼‘O
+        # ãƒ¦ãƒ¼ã‚¶ãƒ¼ãŒå…¥åŠ›ã—ãŸå ´åˆã®ã¿ãƒ†ã‚­ã‚¹ãƒˆã‚’æ›´æ–°
+        if (![string]::IsNullOrWhiteSpace($æ–°ã—ã„åå‰)) {
+            ###Write-Host "ãƒœã‚¿ãƒ³ã®ãƒ†ã‚­ã‚¹ãƒˆã‚’æ›´æ–°ã—ã¾ã™ã€‚"
+            $btn.Text = $æ–°ã—ã„åå‰
         }
         else {
-            ###Write-Host "V‚µ‚¢–¼‘O‚ª“ü—Í‚³‚ê‚Ü‚¹‚ñ‚Å‚µ‚½B•ÏX‚ğƒLƒƒƒ“ƒZƒ‹‚µ‚Ü‚·B"
+            ###Write-Host "æ–°ã—ã„åå‰ãŒå…¥åŠ›ã•ã‚Œã¾ã›ã‚“ã§ã—ãŸã€‚å¤‰æ›´ã‚’ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã—ã¾ã™ã€‚"
         }
     }
     else {
-        Write-Warning "ƒ{ƒ^ƒ“‚ªæ“¾‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B"
+        Write-Warning "ãƒœã‚¿ãƒ³ãŒå–å¾—ã§ãã¾ã›ã‚“ã§ã—ãŸã€‚"
     }
 
-    if ($null -ne $ƒƒCƒ“ƒtƒH[ƒ€) {
-        ###Write-Host "ƒƒCƒ“ƒtƒH[ƒ€‚ğÄ•\¦‚µ‚Ü‚·B"
-        $ƒƒCƒ“ƒtƒH[ƒ€.Show()
+    if ($null -ne $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ) {
+        ###Write-Host "ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ã‚’å†è¡¨ç¤ºã—ã¾ã™ã€‚"
+        $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Show()
     }
-    ###Write-Host "–¼‘O•ÏXˆ—‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
+    ###Write-Host "åå‰å¤‰æ›´å‡¦ç†ãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
 }
 
-function script:ƒXƒNƒŠƒvƒg•ÒWˆ— {
-    ###Write-Host "ƒXƒNƒŠƒvƒg•ÒWˆ—‚ğŠJn‚µ‚Ü‚·B"
-    if ($null -ne $ƒƒCƒ“ƒtƒH[ƒ€) {
-        ###Write-Host "ƒƒCƒ“ƒtƒH[ƒ€‚ğ”ñ•\¦‚É‚µ‚Ü‚·B"
-        $ƒƒCƒ“ƒtƒH[ƒ€.Hide()
+function script:ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†å‡¦ç† {
+    ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†å‡¦ç†ã‚’é–‹å§‹ã—ã¾ã™ã€‚"
+    if ($null -ne $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ) {
+        ###Write-Host "ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ã‚’éè¡¨ç¤ºã«ã—ã¾ã™ã€‚"
+        $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Hide()
     }
 
-    # ‰EƒNƒŠƒbƒN‚ÉŠi”[‚µ‚½ƒ{ƒ^ƒ“‚ğæ“¾
-    $btn = $script:‰EƒNƒŠƒbƒNƒƒjƒ…[.Tag
-    ###Write-Host "æ“¾‚µ‚½ƒ{ƒ^ƒ“: $($btn.Name)"
+    # å³ã‚¯ãƒªãƒƒã‚¯æ™‚ã«æ ¼ç´ã—ãŸãƒœã‚¿ãƒ³ã‚’å–å¾—
+    $btn = $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼.Tag
+    ###Write-Host "å–å¾—ã—ãŸãƒœã‚¿ãƒ³: $($btn.Name)"
 
     if ($btn -ne $null) {
-        $ƒGƒ“ƒgƒŠID = $btn.Name.ToString()
-        ###Write-Host "ƒGƒ“ƒgƒŠID: $ƒGƒ“ƒgƒŠID"
+        $ã‚¨ãƒ³ãƒˆãƒªID = $btn.Name.ToString()
+        ###Write-Host "ã‚¨ãƒ³ãƒˆãƒªID: $ã‚¨ãƒ³ãƒˆãƒªID"
 
-        # ƒXƒNƒŠƒvƒg•ÒW—p‚ÌƒtƒH[ƒ€‚ğì¬
-        ###Write-Host "ƒXƒNƒŠƒvƒg•ÒW—pƒtƒH[ƒ€‚ğì¬‚µ‚Ü‚·B"
-        $•ÒWƒtƒH[ƒ€ = New-Object System.Windows.Forms.Form
-        $•ÒWƒtƒH[ƒ€.Text = "ƒXƒNƒŠƒvƒg•ÒW"
-        $•ÒWƒtƒH[ƒ€.Size = New-Object System.Drawing.Size(600, 400)
-        $•ÒWƒtƒH[ƒ€.StartPosition = "CenterScreen"
+        # ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†ç”¨ã®ãƒ•ã‚©ãƒ¼ãƒ ã‚’ä½œæˆ
+        ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†ç”¨ãƒ•ã‚©ãƒ¼ãƒ ã‚’ä½œæˆã—ã¾ã™ã€‚"
+        $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ  = New-Object System.Windows.Forms.Form
+        $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ .Text = "ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†"
+        $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ .Size = New-Object System.Drawing.Size(600, 400)
+        $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ .StartPosition = "CenterScreen"
 
-        # ƒXƒNƒŠƒvƒgæ“¾ŠÖ”‚ª‘¶İ‚·‚é‘O’ñ
-        ###Write-Host "ID‚ÅƒGƒ“ƒgƒŠ‚ğæ“¾‚µ‚Ü‚·B"
+        # ã‚¹ã‚¯ãƒªãƒ—ãƒˆå–å¾—é–¢æ•°ãŒå­˜åœ¨ã™ã‚‹å‰æ
+        ###Write-Host "IDã§ã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾—ã—ã¾ã™ã€‚"
         try {
-            $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ = ID‚ÅƒGƒ“ƒgƒŠ‚ğæ“¾ -ID $ƒGƒ“ƒgƒŠID
-            ###Write-Host "æ“¾‚µ‚½ƒGƒ“ƒgƒŠ: $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ"
+            $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª = IDã§ã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾— -ID $ã‚¨ãƒ³ãƒˆãƒªID
+            ###Write-Host "å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª: $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª"
         }
         catch {
-            Write-Error "ƒGƒ“ƒgƒŠ‚Ìæ“¾’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: $_"
+            Write-Error "ã‚¨ãƒ³ãƒˆãƒªã®å–å¾—ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: $_"
             return
         }
 
-        # ƒeƒLƒXƒgƒ{ƒbƒNƒX‚Ìì¬
-        ###Write-Host "ƒeƒLƒXƒgƒ{ƒbƒNƒX‚ğì¬‚µ‚Ü‚·B"
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX = New-Object System.Windows.Forms.TextBox
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Multiline = $true
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.ScrollBars = "Both"
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.WordWrap = $false
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Size = New-Object System.Drawing.Size(580, 300)
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Font = New-Object System.Drawing.Font("Consolas", 10)
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Location = New-Object System.Drawing.Point(10, 10)
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Text = $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ  # ƒ{ƒ^ƒ“‚Ìƒ^ƒO‚É•Û‘¶‚³‚ê‚½ƒXƒNƒŠƒvƒg‚ğ“Ç‚İ‚Ş
-        ###Write-Host "ƒeƒLƒXƒgƒ{ƒbƒNƒX‚ÉƒXƒNƒŠƒvƒg‚ğİ’è‚µ‚Ü‚µ‚½B"
+        # ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã®ä½œæˆ
+        ###Write-Host "ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã‚’ä½œæˆã—ã¾ã™ã€‚"
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ = New-Object System.Windows.Forms.TextBox
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Multiline = $true
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.ScrollBars = "Both"
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.WordWrap = $false
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Size = New-Object System.Drawing.Size(580, 300)
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Font = New-Object System.Drawing.Font("Consolas", 10)
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Location = New-Object System.Drawing.Point(10, 10)
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Text = $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª  # ãƒœã‚¿ãƒ³ã®ã‚¿ã‚°ã«ä¿å­˜ã•ã‚ŒãŸã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’èª­ã¿è¾¼ã‚€
+        ###Write-Host "ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã«ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’è¨­å®šã—ã¾ã—ãŸã€‚"
 
-        # •Û‘¶ƒ{ƒ^ƒ“‚Ìì¬
-        ###Write-Host "•Û‘¶ƒ{ƒ^ƒ“‚ğì¬‚µ‚Ü‚·B"
-        $•Û‘¶ƒ{ƒ^ƒ“ = New-Object System.Windows.Forms.Button
-        $•Û‘¶ƒ{ƒ^ƒ“.Text = "•Û‘¶"
-        $•Û‘¶ƒ{ƒ^ƒ“.DialogResult = [System.Windows.Forms.DialogResult]::OK
-        $•Û‘¶ƒ{ƒ^ƒ“.Anchor = "Bottom, Right"
-        $•Û‘¶ƒ{ƒ^ƒ“.Location = New-Object System.Drawing.Point(420, 330)
-        $•Û‘¶ƒ{ƒ^ƒ“.Size = New-Object System.Drawing.Size(75, 25)
+        # ä¿å­˜ãƒœã‚¿ãƒ³ã®ä½œæˆ
+        ###Write-Host "ä¿å­˜ãƒœã‚¿ãƒ³ã‚’ä½œæˆã—ã¾ã™ã€‚"
+        $ä¿å­˜ãƒœã‚¿ãƒ³ = New-Object System.Windows.Forms.Button
+        $ä¿å­˜ãƒœã‚¿ãƒ³.Text = "ä¿å­˜"
+        $ä¿å­˜ãƒœã‚¿ãƒ³.DialogResult = [System.Windows.Forms.DialogResult]::OK
+        $ä¿å­˜ãƒœã‚¿ãƒ³.Anchor = "Bottom, Right"
+        $ä¿å­˜ãƒœã‚¿ãƒ³.Location = New-Object System.Drawing.Point(420, 330)
+        $ä¿å­˜ãƒœã‚¿ãƒ³.Size = New-Object System.Drawing.Size(75, 25)
 
-        # ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“‚Ìì¬
-        ###Write-Host "ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“‚ğì¬‚µ‚Ü‚·B"
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“ = New-Object System.Windows.Forms.Button
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“.Text = "ƒLƒƒƒ“ƒZƒ‹"
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“.Anchor = "Bottom, Right"
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“.Location = New-Object System.Drawing.Point(500, 330)
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“.Size = New-Object System.Drawing.Size(75, 25)
+        # ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³ã®ä½œæˆ
+        ###Write-Host "ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³ã‚’ä½œæˆã—ã¾ã™ã€‚"
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³ = New-Object System.Windows.Forms.Button
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³.Text = "ã‚­ãƒ£ãƒ³ã‚»ãƒ«"
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³.Anchor = "Bottom, Right"
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³.Location = New-Object System.Drawing.Point(500, 330)
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³.Size = New-Object System.Drawing.Size(75, 25)
 
-        # ƒtƒH[ƒ€‚ÉƒRƒ“ƒgƒ[ƒ‹‚ğ’Ç‰Á
-        ###Write-Host "ƒtƒH[ƒ€‚ÉƒRƒ“ƒgƒ[ƒ‹‚ğ’Ç‰Á‚µ‚Ü‚·B"
-        $•ÒWƒtƒH[ƒ€.Controls.Add($ƒeƒLƒXƒgƒ{ƒbƒNƒX)
-        $•ÒWƒtƒH[ƒ€.Controls.Add($•Û‘¶ƒ{ƒ^ƒ“)
-        $•ÒWƒtƒH[ƒ€.Controls.Add($ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“)
+        # ãƒ•ã‚©ãƒ¼ãƒ ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚’è¿½åŠ 
+        ###Write-Host "ãƒ•ã‚©ãƒ¼ãƒ ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚’è¿½åŠ ã—ã¾ã™ã€‚"
+        $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹)
+        $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ä¿å­˜ãƒœã‚¿ãƒ³)
+        $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³)
 
-        # ƒtƒH[ƒ€‚Ìƒ{ƒ^ƒ“‚ğİ’è
-        $•ÒWƒtƒH[ƒ€.AcceptButton = $•Û‘¶ƒ{ƒ^ƒ“
-        $•ÒWƒtƒH[ƒ€.CancelButton = $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“
+        # ãƒ•ã‚©ãƒ¼ãƒ ã®ãƒœã‚¿ãƒ³ã‚’è¨­å®š
+        $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ .AcceptButton = $ä¿å­˜ãƒœã‚¿ãƒ³
+        $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ .CancelButton = $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³
 
-        # ƒtƒH[ƒ€‚ğƒ‚[ƒ_ƒ‹‚Å•\¦
-        ###Write-Host "ƒXƒNƒŠƒvƒg•ÒWƒtƒH[ƒ€‚ğ•\¦‚µ‚Ü‚·B"
-        $Œ‹‰Ê = $•ÒWƒtƒH[ƒ€.ShowDialog()
-        ###Write-Host "ƒXƒNƒŠƒvƒg•ÒWƒtƒH[ƒ€‚ª•Â‚¶‚ç‚ê‚Ü‚µ‚½B"
+        # ãƒ•ã‚©ãƒ¼ãƒ ã‚’ãƒ¢ãƒ¼ãƒ€ãƒ«ã§è¡¨ç¤º
+        ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚"
+        $çµæœ = $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ .ShowDialog()
+        ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ ãŒé–‰ã˜ã‚‰ã‚Œã¾ã—ãŸã€‚"
 
-        if ($Œ‹‰Ê -eq [System.Windows.Forms.DialogResult]::OK) {
-            ###Write-Host "•Û‘¶ƒ{ƒ^ƒ“‚ªƒNƒŠƒbƒN‚³‚ê‚Ü‚µ‚½BƒGƒ“ƒgƒŠ‚ğ’uŠ·‚µ‚Ü‚·B"
+        if ($çµæœ -eq [System.Windows.Forms.DialogResult]::OK) {
+            ###Write-Host "ä¿å­˜ãƒœã‚¿ãƒ³ãŒã‚¯ãƒªãƒƒã‚¯ã•ã‚Œã¾ã—ãŸã€‚ã‚¨ãƒ³ãƒˆãƒªã‚’ç½®æ›ã—ã¾ã™ã€‚"
             try {
-                ID‚ÅƒGƒ“ƒgƒŠ‚ğ’uŠ· -ID $ƒGƒ“ƒgƒŠID -V‚µ‚¢•¶š—ñ $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Text
-                ###Write-Host "ƒGƒ“ƒgƒŠ‚Ì’uŠ·‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
+                IDã§ã‚¨ãƒ³ãƒˆãƒªã‚’ç½®æ› -ID $ã‚¨ãƒ³ãƒˆãƒªID -æ–°ã—ã„æ–‡å­—åˆ— $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Text
+                ###Write-Host "ã‚¨ãƒ³ãƒˆãƒªã®ç½®æ›ãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
             }
             catch {
-                Write-Error "ƒGƒ“ƒgƒŠ‚Ì’uŠ·’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: $_"
+                Write-Error "ã‚¨ãƒ³ãƒˆãƒªã®ç½®æ›ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: $_"
             }
         }
         else {
-            ###Write-Host "•ÒW‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B"
+            ###Write-Host "ç·¨é›†ãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚"
         }
 
-        # •ÒWƒtƒH[ƒ€‚ğ”jŠü
-        ###Write-Host "•ÒWƒtƒH[ƒ€‚ğ”jŠü‚µ‚Ü‚·B"
-        $•ÒWƒtƒH[ƒ€.Dispose()
+        # ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ ã‚’ç ´æ£„
+        ###Write-Host "ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ ã‚’ç ´æ£„ã—ã¾ã™ã€‚"
+        $ç·¨é›†ãƒ•ã‚©ãƒ¼ãƒ .Dispose()
     }
     else {
-        Write-Warning "ƒ{ƒ^ƒ“‚ªæ“¾‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B"
+        Write-Warning "ãƒœã‚¿ãƒ³ãŒå–å¾—ã§ãã¾ã›ã‚“ã§ã—ãŸã€‚"
     }
 
-    if ($null -ne $ƒƒCƒ“ƒtƒH[ƒ€) {
-        ###Write-Host "ƒƒCƒ“ƒtƒH[ƒ€‚ğÄ•\¦‚µ‚Ü‚·B"
-        $ƒƒCƒ“ƒtƒH[ƒ€.Show()
+    if ($null -ne $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ) {
+        ###Write-Host "ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ã‚’å†è¡¨ç¤ºã—ã¾ã™ã€‚"
+        $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Show()
     }
-    ###Write-Host "ƒXƒNƒŠƒvƒg•ÒWˆ—‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
+    ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆç·¨é›†å‡¦ç†ãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
 }
 
-function script:ƒXƒNƒŠƒvƒgÀsˆ— {
-    ###Write-Host "ƒXƒNƒŠƒvƒgÀsˆ—‚ğŠJn‚µ‚Ü‚·B"
-    if ($null -ne $ƒƒCƒ“ƒtƒH[ƒ€) {
-        ###Write-Host "ƒƒCƒ“ƒtƒH[ƒ€‚ğ”ñ•\¦‚É‚µ‚Ü‚·B"
-        $ƒƒCƒ“ƒtƒH[ƒ€.Hide()
+function script:ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œå‡¦ç† {
+    ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œå‡¦ç†ã‚’é–‹å§‹ã—ã¾ã™ã€‚"
+    if ($null -ne $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ) {
+        ###Write-Host "ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ã‚’éè¡¨ç¤ºã«ã—ã¾ã™ã€‚"
+        $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Hide()
     }
 
-    # ‰EƒNƒŠƒbƒN‚ÉŠi”[‚µ‚½ƒ{ƒ^ƒ“‚ğæ“¾
-    $btn = $script:‰EƒNƒŠƒbƒNƒƒjƒ…[.Tag
-    ###Write-Host "æ“¾‚µ‚½ƒ{ƒ^ƒ“: $($btn.Name)"
+    # å³ã‚¯ãƒªãƒƒã‚¯æ™‚ã«æ ¼ç´ã—ãŸãƒœã‚¿ãƒ³ã‚’å–å¾—
+    $btn = $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼.Tag
+    ###Write-Host "å–å¾—ã—ãŸãƒœã‚¿ãƒ³: $($btn.Name)"
 
     if ($btn -ne $null) {
-        $ƒGƒ“ƒgƒŠID = $btn.Name.ToString()
-        ###Write-Host "ƒGƒ“ƒgƒŠID: $ƒGƒ“ƒgƒŠID"
+        $ã‚¨ãƒ³ãƒˆãƒªID = $btn.Name.ToString()
+        ###Write-Host "ã‚¨ãƒ³ãƒˆãƒªID: $ã‚¨ãƒ³ãƒˆãƒªID"
 
-        # ƒXƒNƒŠƒvƒgÀs—p‚ÌƒtƒH[ƒ€‚ğì¬
-        ###Write-Host "ƒXƒNƒŠƒvƒgÀs—pƒtƒH[ƒ€‚ğì¬‚µ‚Ü‚·B"
-        $ÀsƒtƒH[ƒ€ = New-Object System.Windows.Forms.Form
-        $ÀsƒtƒH[ƒ€.Text = "ƒXƒNƒŠƒvƒgÀs"
-        $ÀsƒtƒH[ƒ€.Size = New-Object System.Drawing.Size(600, 500)
-        $ÀsƒtƒH[ƒ€.StartPosition = "CenterScreen"
+        # ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œç”¨ã®ãƒ•ã‚©ãƒ¼ãƒ ã‚’ä½œæˆ
+        ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œç”¨ãƒ•ã‚©ãƒ¼ãƒ ã‚’ä½œæˆã—ã¾ã™ã€‚"
+        $å®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ  = New-Object System.Windows.Forms.Form
+        $å®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ .Text = "ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œ"
+        $å®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ .Size = New-Object System.Drawing.Size(600, 500)
+        $å®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ .StartPosition = "CenterScreen"
 
-        # ƒXƒNƒŠƒvƒgæ“¾ŠÖ”‚ª‘¶İ‚·‚é‘O’ñ
-        ###Write-Host "ID‚ÅƒGƒ“ƒgƒŠ‚ğæ“¾‚µ‚Ü‚·B"
+        # ã‚¹ã‚¯ãƒªãƒ—ãƒˆå–å¾—é–¢æ•°ãŒå­˜åœ¨ã™ã‚‹å‰æ
+        ###Write-Host "IDã§ã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾—ã—ã¾ã™ã€‚"
         try {
-            $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ = ID‚ÅƒGƒ“ƒgƒŠ‚ğæ“¾ -ID $ƒGƒ“ƒgƒŠID
-            ###Write-Host "æ“¾‚µ‚½ƒGƒ“ƒgƒŠ: $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ"
+            $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª = IDã§ã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾— -ID $ã‚¨ãƒ³ãƒˆãƒªID
+            ###Write-Host "å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª: $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª"
         }
         catch {
-            Write-Error "ƒGƒ“ƒgƒŠ‚Ìæ“¾’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: $_"
+            Write-Error "ã‚¨ãƒ³ãƒˆãƒªã®å–å¾—ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: $_"
             return
         }
 
-        # ƒXƒNƒŠƒvƒg“ü—Í—pƒeƒLƒXƒgƒ{ƒbƒNƒX‚Ìì¬
-        ###Write-Host "ƒXƒNƒŠƒvƒg“ü—Í—pƒeƒLƒXƒgƒ{ƒbƒNƒX‚ğì¬‚µ‚Ü‚·B"
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX = New-Object System.Windows.Forms.TextBox
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Multiline = $true
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.ScrollBars = "Both"
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.WordWrap = $false
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Size = New-Object System.Drawing.Size(580, 250)
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Font = New-Object System.Drawing.Font("Consolas", 10)
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Location = New-Object System.Drawing.Point(10, 10)
-        $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Text = $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ
+        # ã‚¹ã‚¯ãƒªãƒ—ãƒˆå…¥åŠ›ç”¨ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã®ä½œæˆ
+        ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆå…¥åŠ›ç”¨ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã‚’ä½œæˆã—ã¾ã™ã€‚"
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ = New-Object System.Windows.Forms.TextBox
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Multiline = $true
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.ScrollBars = "Both"
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.WordWrap = $false
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Size = New-Object System.Drawing.Size(580, 250)
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Font = New-Object System.Drawing.Font("Consolas", 10)
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Location = New-Object System.Drawing.Point(10, 10)
+        $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Text = $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª
         
-        # ƒRƒ“ƒ\[ƒ‹o—Í—pƒeƒLƒXƒgƒ{ƒbƒNƒX‚Ìì¬
-        ###Write-Host "ƒRƒ“ƒ\[ƒ‹—pƒeƒLƒXƒgƒ{ƒbƒNƒX‚ğì¬‚µ‚Ü‚·B"
-        $ƒRƒ“ƒ\[ƒ‹ƒ{ƒbƒNƒX = New-Object System.Windows.Forms.TextBox
-        $ƒRƒ“ƒ\[ƒ‹ƒ{ƒbƒNƒX.Multiline = $true
-        $ƒRƒ“ƒ\[ƒ‹ƒ{ƒbƒNƒX.ScrollBars = "Both"
-        $ƒRƒ“ƒ\[ƒ‹ƒ{ƒbƒNƒX.WordWrap = $false
-        $ƒRƒ“ƒ\[ƒ‹ƒ{ƒbƒNƒX.ReadOnly = $true
-        $ƒRƒ“ƒ\[ƒ‹ƒ{ƒbƒNƒX.Size = New-Object System.Drawing.Size(580, 150)
-        $ƒRƒ“ƒ\[ƒ‹ƒ{ƒbƒNƒX.Font = New-Object System.Drawing.Font("Consolas", 10)
-        $ƒRƒ“ƒ\[ƒ‹ƒ{ƒbƒNƒX.Location = New-Object System.Drawing.Point(10, 270)
+        # ã‚³ãƒ³ã‚½ãƒ¼ãƒ«å‡ºåŠ›ç”¨ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã®ä½œæˆ
+        ###Write-Host "ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ç”¨ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã‚’ä½œæˆã—ã¾ã™ã€‚"
+        $ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹ = New-Object System.Windows.Forms.TextBox
+        $ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹.Multiline = $true
+        $ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹.ScrollBars = "Both"
+        $ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹.WordWrap = $false
+        $ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹.ReadOnly = $true
+        $ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹.Size = New-Object System.Drawing.Size(580, 150)
+        $ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹.Font = New-Object System.Drawing.Font("Consolas", 10)
+        $ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹.Location = New-Object System.Drawing.Point(10, 270)
 
-        # Àsƒ{ƒ^ƒ“‚Ìì¬
-        ###Write-Host "Àsƒ{ƒ^ƒ“‚ğì¬‚µ‚Ü‚·B"
-        $Àsƒ{ƒ^ƒ“ = New-Object System.Windows.Forms.Button
-        $Àsƒ{ƒ^ƒ“.Text = "Às"
-        $Àsƒ{ƒ^ƒ“.Anchor = "Bottom, Right"
-        $Àsƒ{ƒ^ƒ“.Location = New-Object System.Drawing.Point(420, 430)
-        $Àsƒ{ƒ^ƒ“.Size = New-Object System.Drawing.Size(75, 25)
-        $Àsƒ{ƒ^ƒ“.Add_Click({
-            $output = Invoke-Expression $ƒeƒLƒXƒgƒ{ƒbƒNƒX.Text 2>&1
-            $ƒRƒ“ƒ\[ƒ‹ƒ{ƒbƒNƒX.Text = $output
+        # å®Ÿè¡Œãƒœã‚¿ãƒ³ã®ä½œæˆ
+        ###Write-Host "å®Ÿè¡Œãƒœã‚¿ãƒ³ã‚’ä½œæˆã—ã¾ã™ã€‚"
+        $å®Ÿè¡Œãƒœã‚¿ãƒ³ = New-Object System.Windows.Forms.Button
+        $å®Ÿè¡Œãƒœã‚¿ãƒ³.Text = "å®Ÿè¡Œ"
+        $å®Ÿè¡Œãƒœã‚¿ãƒ³.Anchor = "Bottom, Right"
+        $å®Ÿè¡Œãƒœã‚¿ãƒ³.Location = New-Object System.Drawing.Point(420, 430)
+        $å®Ÿè¡Œãƒœã‚¿ãƒ³.Size = New-Object System.Drawing.Size(75, 25)
+        $å®Ÿè¡Œãƒœã‚¿ãƒ³.Add_Click({
+            $output = Invoke-Expression $ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹.Text 2>&1
+            $ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹.Text = $output
         })
 
-        # ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“‚Ìì¬
-        ###Write-Host "ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“‚ğì¬‚µ‚Ü‚·B"
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“ = New-Object System.Windows.Forms.Button
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“.Text = "ƒLƒƒƒ“ƒZƒ‹"
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“.Anchor = "Bottom, Right"
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“.Location = New-Object System.Drawing.Point(500, 430)
-        $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“.Size = New-Object System.Drawing.Size(75, 25)
+        # ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³ã®ä½œæˆ
+        ###Write-Host "ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³ã‚’ä½œæˆã—ã¾ã™ã€‚"
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³ = New-Object System.Windows.Forms.Button
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³.Text = "ã‚­ãƒ£ãƒ³ã‚»ãƒ«"
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³.Anchor = "Bottom, Right"
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³.Location = New-Object System.Drawing.Point(500, 430)
+        $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³.Size = New-Object System.Drawing.Size(75, 25)
 
-        # ƒtƒH[ƒ€‚ÉƒRƒ“ƒgƒ[ƒ‹‚ğ’Ç‰Á
-        ###Write-Host "ƒtƒH[ƒ€‚ÉƒRƒ“ƒgƒ[ƒ‹‚ğ’Ç‰Á‚µ‚Ü‚·B"
-        $ÀsƒtƒH[ƒ€.Controls.Add($ƒeƒLƒXƒgƒ{ƒbƒNƒX)
-        $ÀsƒtƒH[ƒ€.Controls.Add($ƒRƒ“ƒ\[ƒ‹ƒ{ƒbƒNƒX)
-        $ÀsƒtƒH[ƒ€.Controls.Add($Àsƒ{ƒ^ƒ“)
-        $ÀsƒtƒH[ƒ€.Controls.Add($ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“)
+        # ãƒ•ã‚©ãƒ¼ãƒ ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚’è¿½åŠ 
+        ###Write-Host "ãƒ•ã‚©ãƒ¼ãƒ ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚’è¿½åŠ ã—ã¾ã™ã€‚"
+        $å®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ãƒ†ã‚­ã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹)
+        $å®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹)
+        $å®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($å®Ÿè¡Œãƒœã‚¿ãƒ³)
+        $å®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³)
 
-        # ƒtƒH[ƒ€‚Ìƒ{ƒ^ƒ“‚ğİ’è
-        $ÀsƒtƒH[ƒ€.CancelButton = $ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“
+        # ãƒ•ã‚©ãƒ¼ãƒ ã®ãƒœã‚¿ãƒ³ã‚’è¨­å®š
+        $å®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ .CancelButton = $ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³
 
-        # ƒtƒH[ƒ€‚ğƒ‚[ƒ_ƒ‹‚Å•\¦
-        ###Write-Host "ƒXƒNƒŠƒvƒgÀsƒtƒH[ƒ€‚ğ•\¦‚µ‚Ü‚·B"
-        $ÀsƒtƒH[ƒ€.ShowDialog()
-        ###Write-Host "ƒXƒNƒŠƒvƒgÀsƒtƒH[ƒ€‚ª•Â‚¶‚ç‚ê‚Ü‚µ‚½B"
+        # ãƒ•ã‚©ãƒ¼ãƒ ã‚’ãƒ¢ãƒ¼ãƒ€ãƒ«ã§è¡¨ç¤º
+        ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚"
+        $å®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ .ShowDialog()
+        ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œãƒ•ã‚©ãƒ¼ãƒ ãŒé–‰ã˜ã‚‰ã‚Œã¾ã—ãŸã€‚"
     }
     else {
-        Write-Warning "ƒ{ƒ^ƒ“‚ªæ“¾‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B"
+        Write-Warning "ãƒœã‚¿ãƒ³ãŒå–å¾—ã§ãã¾ã›ã‚“ã§ã—ãŸã€‚"
     }
 
-    if ($null -ne $ƒƒCƒ“ƒtƒH[ƒ€) {
-        ###Write-Host "ƒƒCƒ“ƒtƒH[ƒ€‚ğÄ•\¦‚µ‚Ü‚·B"
-        $ƒƒCƒ“ƒtƒH[ƒ€.Show()
+    if ($null -ne $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ) {
+        ###Write-Host "ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ ã‚’å†è¡¨ç¤ºã—ã¾ã™ã€‚"
+        $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ .Show()
     }
-    ###Write-Host "ƒXƒNƒŠƒvƒgÀsˆ—‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
+    ###Write-Host "ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œå‡¦ç†ãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
 }
 
 
-function ğŒ•ªŠòƒ{ƒ^ƒ“íœˆ— {
+function æ¡ä»¶åˆ†å²ãƒœã‚¿ãƒ³å‰Šé™¤å‡¦ç† {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [System.Windows.Forms.Button]$ƒ{ƒ^ƒ“
+        [System.Windows.Forms.Button]$ãƒœã‚¿ãƒ³
     )
 
     #-----------------------------
-    # ‡@ Šî–{î•ñ‚Ìæ“¾
+    # â‘  åŸºæœ¬æƒ…å ±ã®å–å¾—
     #-----------------------------
-    $parent  = $ƒ{ƒ^ƒ“.Parent
+    $parent  = $ãƒœã‚¿ãƒ³.Parent
     if (-not $parent) { return }
 
-    $myY     = $ƒ{ƒ^ƒ“.Location.Y
-    $myText  = $ƒ{ƒ^ƒ“.Text.Trim()
+    $myY     = $ãƒœã‚¿ãƒ³.Location.Y
+    $myText  = $ãƒœã‚¿ãƒ³.Text.Trim()
 
     #-----------------------------
-    # ‡A ’Tõƒ^[ƒQƒbƒg‚ğŒˆ’è
+    # â‘¡ æ¢ç´¢ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’æ±ºå®š
     #-----------------------------
     switch ($myText) {
-        'ğŒ•ªŠò ŠJn' {
-            $•ûŒü     = '‰º'       # ©•ª‚æ‚è‰º‘¤‚ğ’T‚·
-            $—~‚µ‚¢‡ = @('ğŒ•ªŠò ’†ŠÔ','ğŒ•ªŠò I—¹')
+        'æ¡ä»¶åˆ†å² é–‹å§‹' {
+            $æ–¹å‘     = 'ä¸‹'       # è‡ªåˆ†ã‚ˆã‚Šä¸‹å´ã‚’æ¢ã™
+            $æ¬²ã—ã„é † = @('æ¡ä»¶åˆ†å² ä¸­é–“','æ¡ä»¶åˆ†å² çµ‚äº†')
         }
-        'ğŒ•ªŠò I—¹' {
-            $•ûŒü     = 'ã'       # ©•ª‚æ‚èã‘¤‚ğ’T‚·
-            $—~‚µ‚¢‡ = @('ğŒ•ªŠò ’†ŠÔ','ğŒ•ªŠò ŠJn')
+        'æ¡ä»¶åˆ†å² çµ‚äº†' {
+            $æ–¹å‘     = 'ä¸Š'       # è‡ªåˆ†ã‚ˆã‚Šä¸Šå´ã‚’æ¢ã™
+            $æ¬²ã—ã„é † = @('æ¡ä»¶åˆ†å² ä¸­é–“','æ¡ä»¶åˆ†å² é–‹å§‹')
         }
         default {
-            Write-Verbose "SpringGreen ‚¾‚ª‘ÎÛŠOƒeƒLƒXƒg [$myText]"
+            Write-Verbose "SpringGreen ã ãŒå¯¾è±¡å¤–ãƒ†ã‚­ã‚¹ãƒˆ [$myText]"
             return
         }
     }
 
     #-----------------------------
-    # ‡B ŒZ’íƒRƒ“ƒgƒ[ƒ‹‚©‚çŒó•â‚ğ’Šo
+    # â‘¢ å…„å¼Ÿã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‹ã‚‰å€™è£œã‚’æŠ½å‡º
     #-----------------------------
-    #   $Œó•âƒnƒbƒVƒ…[ƒeƒLƒXƒg] = Å‚à‹ß‚¢ Control
-    $Œó•âƒnƒbƒVƒ… = @{}
+    #   $å€™è£œãƒãƒƒã‚·ãƒ¥[ãƒ†ã‚­ã‚¹ãƒˆ] = æœ€ã‚‚è¿‘ã„ Control
+    $å€™è£œãƒãƒƒã‚·ãƒ¥ = @{}
 
     foreach ($ctrl in $parent.Controls) {
         if (-not ($ctrl -is [System.Windows.Forms.Button])) { continue }
         $txt = $ctrl.Text.Trim()
-        if ($txt -notin $—~‚µ‚¢‡) { continue }
+        if ($txt -notin $æ¬²ã—ã„é †) { continue }
 
         $delta = $ctrl.Location.Y - $myY
-        if (($•ûŒü -eq '‰º' -and $delta -le 0) -or
-            ($•ûŒü -eq 'ã' -and $delta -ge 0)) { continue }   # •ûŒü‚ª‹t‚È‚çœŠO
+        if (($æ–¹å‘ -eq 'ä¸‹' -and $delta -le 0) -or
+            ($æ–¹å‘ -eq 'ä¸Š' -and $delta -ge 0)) { continue }   # æ–¹å‘ãŒé€†ãªã‚‰é™¤å¤–
 
-        $‹——£ = [math]::Abs($delta)
+        $è·é›¢ = [math]::Abs($delta)
 
-        # ‚Ü‚¾“o˜^‚³‚ê‚Ä‚¢‚È‚¢ or ‚à‚Á‚Æ‹ß‚¢ƒ{ƒ^ƒ“‚È‚çÌ—p
-        if (-not $Œó•âƒnƒbƒVƒ….ContainsKey($txt) -or
-            $‹——£ -lt $Œó•âƒnƒbƒVƒ…[$txt].‹——£) {
+        # ã¾ã ç™»éŒ²ã•ã‚Œã¦ã„ãªã„ or ã‚‚ã£ã¨è¿‘ã„ãƒœã‚¿ãƒ³ãªã‚‰æ¡ç”¨
+        if (-not $å€™è£œãƒãƒƒã‚·ãƒ¥.ContainsKey($txt) -or
+            $è·é›¢ -lt $å€™è£œãƒãƒƒã‚·ãƒ¥[$txt].è·é›¢) {
 
-            $Œó•âƒnƒbƒVƒ…[$txt] = [pscustomobject]@{
+            $å€™è£œãƒãƒƒã‚·ãƒ¥[$txt] = [pscustomobject]@{
                 Ctrl  = $ctrl
-                ‹——£  = $‹——£
+                è·é›¢  = $è·é›¢
             }
         }
     }
 
     #-----------------------------
-    # ‡C ‚R‚Â‘µ‚Á‚Ä‚¢‚é‚©”»’è
+    # â‘£ ï¼“ã¤æƒã£ã¦ã„ã‚‹ã‹åˆ¤å®š
     #-----------------------------
-    $íœ‘ÎÛ = @($ƒ{ƒ^ƒ“)   # ©•ª©g‚Í•K‚¸íœ
-    foreach ($name in $—~‚µ‚¢‡) {
-        if ($Œó•âƒnƒbƒVƒ….ContainsKey($name)) {
-            $íœ‘ÎÛ += $Œó•âƒnƒbƒVƒ…[$name].Ctrl
+    $å‰Šé™¤å¯¾è±¡ = @($ãƒœã‚¿ãƒ³)   # è‡ªåˆ†è‡ªèº«ã¯å¿…ãšå‰Šé™¤
+    foreach ($name in $æ¬²ã—ã„é †) {
+        if ($å€™è£œãƒãƒƒã‚·ãƒ¥.ContainsKey($name)) {
+            $å‰Šé™¤å¯¾è±¡ += $å€™è£œãƒãƒƒã‚·ãƒ¥[$name].Ctrl
         }
     }
 
-    if ($íœ‘ÎÛ.Count -lt 3) {
-        Write-Warning "ƒZƒbƒg‚ª‘µ‚í‚È‚¢‚½‚ßíœ‚µ‚Ü‚¹‚ñB"
+    if ($å‰Šé™¤å¯¾è±¡.Count -lt 3) {
+        Write-Warning "ã‚»ãƒƒãƒˆãŒæƒã‚ãªã„ãŸã‚å‰Šé™¤ã—ã¾ã›ã‚“ã€‚"
         return
     }
 
     #-----------------------------
-    # ‡D íœÀs
+    # â‘¤ å‰Šé™¤å®Ÿè¡Œ
     #-----------------------------
-    foreach ($b in $íœ‘ÎÛ) {
+    foreach ($b in $å‰Šé™¤å¯¾è±¡) {
         try {
             $parent.Controls.Remove($b)
             $b.Dispose()
         }
         catch {
-            Write-Warning "ƒ{ƒ^ƒ“ [$($b.Text)] ‚Ìíœ‚É¸”s: $_"
+            Write-Warning "ãƒœã‚¿ãƒ³ [$($b.Text)] ã®å‰Šé™¤ã«å¤±æ•—: $_"
         }
     }
 
     #-----------------------------
-    # ‡E Œãˆ—i”z’u’²®‚È‚Çj
+    # â‘¥ å¾Œå‡¦ç†ï¼ˆé…ç½®èª¿æ•´ãªã©ï¼‰
     #-----------------------------
-    if (Get-Command 00_ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ” -ErrorAction SilentlyContinue) {
-        00_ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ” -ƒtƒŒ[ƒ€ $parent
+    if (Get-Command 00_ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•° -ErrorAction SilentlyContinue) {
+        00_ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•° -ãƒ•ãƒ¬ãƒ¼ãƒ  $parent
     }
-    if (Get-Command 00_–îˆó’Ç‹Lˆ— -ErrorAction SilentlyContinue) {
-        00_–îˆó’Ç‹Lˆ— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
+    if (Get-Command 00_çŸ¢å°è¿½è¨˜å‡¦ç† -ErrorAction SilentlyContinue) {
+        00_çŸ¢å°è¿½è¨˜å‡¦ç† -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
     }
 }
 
-function ƒ‹[ƒvƒ{ƒ^ƒ“íœˆ— {
+function ãƒ«ãƒ¼ãƒ—ãƒœã‚¿ãƒ³å‰Šé™¤å‡¦ç† {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [System.Windows.Forms.Button]$ƒ{ƒ^ƒ“
+        [System.Windows.Forms.Button]$ãƒœã‚¿ãƒ³
     )
 
     #-----------------------------
-    # ‡@ eƒRƒ“ƒeƒi‚ÆGroupID‚Ìæ“¾
+    # â‘  è¦ªã‚³ãƒ³ãƒ†ãƒŠã¨GroupIDã®å–å¾—
     #-----------------------------
-    $parent = $ƒ{ƒ^ƒ“.Parent
+    $parent = $ãƒœã‚¿ãƒ³.Parent
     if (-not $parent) { return }
 
-    # ƒ‹[ƒvŠJn^I—¹ƒ{ƒ^ƒ“‚É‚Í“¯‚¶GroupID‚ª“ü‚Á‚Ä‚¢‚é‘z’è
-    $targetGroupID = $ƒ{ƒ^ƒ“.Tag.GroupID
+    # ãƒ«ãƒ¼ãƒ—é–‹å§‹ï¼çµ‚äº†ãƒœã‚¿ãƒ³ã«ã¯åŒã˜GroupIDãŒå…¥ã£ã¦ã„ã‚‹æƒ³å®š
+    $targetGroupID = $ãƒœã‚¿ãƒ³.Tag.GroupID
 
     #-----------------------------
-    # ‡A “¯‚¶GroupID‚ğ‚Â LemonChiffon ƒ{ƒ^ƒ“‚ğûW
-    #    iŠJnEI—¹‚Ì2ŒÂ‚ª‚»‚ë‚¤‚Í‚¸j
+    # â‘¡ åŒã˜GroupIDã‚’æŒã¤ LemonChiffon ãƒœã‚¿ãƒ³ã‚’åé›†
+    #    ï¼ˆé–‹å§‹ãƒ»çµ‚äº†ã®2å€‹ãŒãã‚ã†ã¯ãšï¼‰
     #-----------------------------
-    $Œó•âƒ{ƒ^ƒ“ˆê—— = @()
+    $å€™è£œãƒœã‚¿ãƒ³ä¸€è¦§ = @()
 
     foreach ($ctrl in $parent.Controls) {
-        # ƒ{ƒ^ƒ“ˆÈŠO‚Í–³‹
+        # ãƒœã‚¿ãƒ³ä»¥å¤–ã¯ç„¡è¦–
         if (-not ($ctrl -is [System.Windows.Forms.Button])) {
             continue
         }
 
-        # F‚ªLemonChiffonˆÈŠO‚Í–³‹iƒ‹[ƒvˆÈŠO‚Í‘ÎÛŠOj
+        # è‰²ãŒLemonChiffonä»¥å¤–ã¯ç„¡è¦–ï¼ˆãƒ«ãƒ¼ãƒ—ä»¥å¤–ã¯å¯¾è±¡å¤–ï¼‰
         if ($ctrl.BackColor.ToArgb() -ne [System.Drawing.Color]::LemonChiffon.ToArgb()) {
             continue
         }
 
-        # GroupID‚ªˆê’v‚·‚é‚à‚Ì‚¾‚¯E‚¤
+        # GroupIDãŒä¸€è‡´ã™ã‚‹ã‚‚ã®ã ã‘æ‹¾ã†
         if ($ctrl.Tag.GroupID -eq $targetGroupID) {
-            $Œó•âƒ{ƒ^ƒ“ˆê—— += $ctrl
+            $å€™è£œãƒœã‚¿ãƒ³ä¸€è¦§ += $ctrl
         }
     }
 
     #-----------------------------
-    # ‡B 2‚Â‘µ‚Á‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN
-    #    •Ğ•û‚¾‚¯‰ó‚ê‚Ä‚éê‡‚Í‰½‚à‚µ‚È‚¢‚ÅŒx
+    # â‘¢ 2ã¤æƒã£ã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
+    #    ç‰‡æ–¹ã ã‘å£Šã‚Œã¦ã‚‹å ´åˆã¯ä½•ã‚‚ã—ãªã„ã§è­¦å‘Š
     #-----------------------------
-    if ($Œó•âƒ{ƒ^ƒ“ˆê——.Count -lt 2) {
-        Write-Warning "ƒ‹[ƒvŠJn/I—¹‚ÌƒZƒbƒg‚ª‘µ‚í‚È‚¢‚½‚ßíœ‚µ‚Ü‚¹‚ñB"
+    if ($å€™è£œãƒœã‚¿ãƒ³ä¸€è¦§.Count -lt 2) {
+        Write-Warning "ãƒ«ãƒ¼ãƒ—é–‹å§‹/çµ‚äº†ã®ã‚»ãƒƒãƒˆãŒæƒã‚ãªã„ãŸã‚å‰Šé™¤ã—ã¾ã›ã‚“ã€‚"
         return
     }
 
     #-----------------------------
-    # ‡C ÀÛ‚Éíœ
+    # â‘£ å®Ÿéš›ã«å‰Šé™¤
     #-----------------------------
-    foreach ($b in $Œó•âƒ{ƒ^ƒ“ˆê——) {
+    foreach ($b in $å€™è£œãƒœã‚¿ãƒ³ä¸€è¦§) {
         try {
             $parent.Controls.Remove($b)
             $b.Dispose()
         }
         catch {
-            Write-Warning "ƒ‹[ƒvƒ{ƒ^ƒ“ [$($b.Text)] ‚Ìíœ‚É¸”s: $_"
+            Write-Warning "ãƒ«ãƒ¼ãƒ—ãƒœã‚¿ãƒ³ [$($b.Text)] ã®å‰Šé™¤ã«å¤±æ•—: $_"
         }
     }
 
     #-----------------------------
-    # ‡D Œãˆ—i‹l‚ß’¼‚µ‚Æ–îˆóÄ•`‰æj
-    #    ğŒ•ªŠòƒ{ƒ^ƒ“íœˆ—‚Æ“¯‚¶—¬‚ê‚É‚»‚ë‚¦‚é
+    # â‘¤ å¾Œå‡¦ç†ï¼ˆè©°ã‚ç›´ã—ã¨çŸ¢å°å†æç”»ï¼‰
+    #    æ¡ä»¶åˆ†å²ãƒœã‚¿ãƒ³å‰Šé™¤å‡¦ç†ã¨åŒã˜æµã‚Œã«ãã‚ãˆã‚‹
     #-----------------------------
-    if (Get-Command 00_ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ” -ErrorAction SilentlyContinue) {
-        00_ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ” -ƒtƒŒ[ƒ€ $parent
+    if (Get-Command 00_ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•° -ErrorAction SilentlyContinue) {
+        00_ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•° -ãƒ•ãƒ¬ãƒ¼ãƒ  $parent
     }
-    if (Get-Command 00_–îˆó’Ç‹Lˆ— -ErrorAction SilentlyContinue) {
-        00_–îˆó’Ç‹Lˆ— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
+    if (Get-Command 00_çŸ¢å°è¿½è¨˜å‡¦ç† -ErrorAction SilentlyContinue) {
+        00_çŸ¢å°è¿½è¨˜å‡¦ç† -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
     }
 }
 
@@ -1130,94 +1130,94 @@ function ƒ‹[ƒvƒ{ƒ^ƒ“íœˆ— {
 
 
 
-function script:íœˆ— {
-    ###Write-Host "íœˆ—‚ğŠJn‚µ‚Ü‚·B"
-    # ‰EƒNƒŠƒbƒN‚ÉŠi”[‚µ‚½ƒ{ƒ^ƒ“‚ğæ“¾
-    $btn = $script:‰EƒNƒŠƒbƒNƒƒjƒ…[.Tag
-    ###Write-Host "æ“¾‚µ‚½ƒ{ƒ^ƒ“: $($btn.Name)"
+function script:å‰Šé™¤å‡¦ç† {
+    ###Write-Host "å‰Šé™¤å‡¦ç†ã‚’é–‹å§‹ã—ã¾ã™ã€‚"
+    # å³ã‚¯ãƒªãƒƒã‚¯æ™‚ã«æ ¼ç´ã—ãŸãƒœã‚¿ãƒ³ã‚’å–å¾—
+    $btn = $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼.Tag
+    ###Write-Host "å–å¾—ã—ãŸãƒœã‚¿ãƒ³: $($btn.Name)"
 
 
-    # šš ğŒ•ªŠòi—Îjê—píœ šš
+    # â˜…â˜… æ¡ä»¶åˆ†å²ï¼ˆç·‘ï¼‰å°‚ç”¨å‰Šé™¤ â˜…â˜…
     if ($btn.BackColor -eq [System.Drawing.Color]::SpringGreen) {
-        ğŒ•ªŠòƒ{ƒ^ƒ“íœˆ— -ƒ{ƒ^ƒ“ $btn
-        return   # ğŒ•ªŠò‚Í‚±‚±‚ÅŠ®Œ‹
+        æ¡ä»¶åˆ†å²ãƒœã‚¿ãƒ³å‰Šé™¤å‡¦ç† -ãƒœã‚¿ãƒ³ $btn
+        return   # æ¡ä»¶åˆ†å²ã¯ã“ã“ã§å®Œçµ
     }
-    # šš ƒ‹[ƒvi‰©jê—píœ šš
+    # â˜…â˜… ãƒ«ãƒ¼ãƒ—ï¼ˆé»„ï¼‰å°‚ç”¨å‰Šé™¤ â˜…â˜…
     elseif ($btn.BackColor -eq [System.Drawing.Color]::LemonChiffon) {
-        ƒ‹[ƒvƒ{ƒ^ƒ“íœˆ— -ƒ{ƒ^ƒ“ $btn
-        return   # ƒ‹[ƒv‚Í‚±‚±‚ÅŠ®Œ‹
+        ãƒ«ãƒ¼ãƒ—ãƒœã‚¿ãƒ³å‰Šé™¤å‡¦ç† -ãƒœã‚¿ãƒ³ $btn
+        return   # ãƒ«ãƒ¼ãƒ—ã¯ã“ã“ã§å®Œçµ
     }
 
-    # ‚±‚±‚©‚ç‰º‚Í]—ˆ‚Ìu•’Ê‚Ì1ŒÂ‚¾‚¯Á‚·vƒ‹[ƒg
+    # ã“ã“ã‹ã‚‰ä¸‹ã¯å¾“æ¥ã®ã€Œæ™®é€šã®1å€‹ã ã‘æ¶ˆã™ã€ãƒ«ãƒ¼ãƒˆ
 
 
     if ($btn -ne $null) {
         if ($btn.Parent -ne $null) {
-            ###Write-Host "ƒ{ƒ^ƒ“‚ÌeƒRƒ“ƒeƒi‚ğæ“¾‚µ‚Ü‚µ‚½B"
+            ###Write-Host "ãƒœã‚¿ãƒ³ã®è¦ªã‚³ãƒ³ãƒ†ãƒŠã‚’å–å¾—ã—ã¾ã—ãŸã€‚"
             try {
-                ###Write-Host "ƒ{ƒ^ƒ“‚ğeƒRƒ“ƒeƒi‚©‚çíœ‚µ‚Ü‚·B"
+                ###Write-Host "ãƒœã‚¿ãƒ³ã‚’è¦ªã‚³ãƒ³ãƒ†ãƒŠã‹ã‚‰å‰Šé™¤ã—ã¾ã™ã€‚"
                 $btn.Parent.Controls.Remove($btn)
                 $btn.Dispose()
-                ###Write-Host "ƒ{ƒ^ƒ“‚ğíœ‚µ‚Ü‚µ‚½B"
+                ###Write-Host "ãƒœã‚¿ãƒ³ã‚’å‰Šé™¤ã—ã¾ã—ãŸã€‚"
 
-                # ŠO•”ŠÖ”‚ª’è‹`‚³‚ê‚Ä‚¢‚éê‡‚Ì‚İÀs
-                if (Get-Command 00_ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ” -ErrorAction SilentlyContinue) {
-                    ###Write-Host "ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ”‚ğŒÄ‚Ño‚µ‚Ü‚·B"
-                    00_ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ” -ƒtƒŒ[ƒ€ $btn.Parent
+                # å¤–éƒ¨é–¢æ•°ãŒå®šç¾©ã•ã‚Œã¦ã„ã‚‹å ´åˆã®ã¿å®Ÿè¡Œ
+                if (Get-Command 00_ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•° -ErrorAction SilentlyContinue) {
+                    ###Write-Host "ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•°ã‚’å‘¼ã³å‡ºã—ã¾ã™ã€‚"
+                    00_ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•° -ãƒ•ãƒ¬ãƒ¼ãƒ  $btn.Parent
                 }
                 else {
-                    Write-Warning "ŠÖ” '00_ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ”' ‚ª’è‹`‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB"
+                    Write-Warning "é–¢æ•° '00_ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•°' ãŒå®šç¾©ã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"
                 }
 
-                if (Get-Command 00_–îˆó’Ç‹Lˆ— -ErrorAction SilentlyContinue) {
-                    ###Write-Host "–îˆó’Ç‹Lˆ—‚ğŒÄ‚Ño‚µ‚Ü‚·B"
-                    00_–îˆó’Ç‹Lˆ— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
+                if (Get-Command 00_çŸ¢å°è¿½è¨˜å‡¦ç† -ErrorAction SilentlyContinue) {
+                    ###Write-Host "çŸ¢å°è¿½è¨˜å‡¦ç†ã‚’å‘¼ã³å‡ºã—ã¾ã™ã€‚"
+                    00_çŸ¢å°è¿½è¨˜å‡¦ç† -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
                 }
                 else {
-                    Write-Warning "ŠÖ” '00_–îˆó’Ç‹Lˆ—' ‚ª’è‹`‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB"
+                    Write-Warning "é–¢æ•° '00_çŸ¢å°è¿½è¨˜å‡¦ç†' ãŒå®šç¾©ã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"
                 }
             }
             catch {
-                Write-Error "ƒ{ƒ^ƒ“‚Ìíœ’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: $_"
+                Write-Error "ãƒœã‚¿ãƒ³ã®å‰Šé™¤ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: $_"
             }
         }
         else {
-            Write-Warning "ƒ{ƒ^ƒ“‚Ìe‚ª‘¶İ‚µ‚Ü‚¹‚ñB"
+            Write-Warning "ãƒœã‚¿ãƒ³ã®è¦ªãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚"
         }
     }
     else {
-        Write-Warning "íœ‘ÎÛ‚Ìƒ{ƒ^ƒ“‚ªæ“¾‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B"
+        Write-Warning "å‰Šé™¤å¯¾è±¡ã®ãƒœã‚¿ãƒ³ãŒå–å¾—ã§ãã¾ã›ã‚“ã§ã—ãŸã€‚"
     }
-    ###Write-Host "íœˆ—‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
+    ###Write-Host "å‰Šé™¤å‡¦ç†ãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
 }
 
-function script:ƒ{ƒ^ƒ“ƒNƒŠƒbƒNî•ñ•\¦ {
+function script:ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æƒ…å ±è¡¨ç¤º {
     param (
         [System.Windows.Forms.Button]$sender
     )
    
-#    if ($global:ƒOƒ‹[ƒvƒ‚[ƒh -eq 1 -and $sender.Parent.Name -eq $Global:‰Â‹¶ƒpƒlƒ‹.Name) {
+#    if ($global:ã‚°ãƒ«ãƒ¼ãƒ—ãƒ¢ãƒ¼ãƒ‰ -eq 1 -and $sender.Parent.Name -eq $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«.Name) {
    
 
 
-    # ShiftƒL[‚ª‰Ÿ‚³‚ê‚Ä‚¢‚éê‡‚Éˆ—‚ğ•ÏX
-    if ([System.Windows.Forms.Control]::ModifierKeys -band [System.Windows.Forms.Keys]::Shift -and $sender.Parent.Name -eq $Global:‰Â‹¶ƒpƒlƒ‹.Name) {
+    # Shiftã‚­ãƒ¼ãŒæŠ¼ã•ã‚Œã¦ã„ã‚‹å ´åˆã«å‡¦ç†ã‚’å¤‰æ›´
+    if ([System.Windows.Forms.Control]::ModifierKeys -band [System.Windows.Forms.Keys]::Shift -and $sender.Parent.Name -eq $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«.Name) {
 
 
 
 
 
-        # ƒOƒ‹[ƒvƒ‚[ƒh‚Ìê‡‚Ìˆ—“à—e‚ğ‚±‚±‚É‹Lq
- $ƒOƒ‹[ƒvî•ñ = @"
-ƒOƒ‹[ƒvƒ‚[ƒhî•ñ:
-  ƒ{ƒ^ƒ“–¼: $($sender.Name)
-  ƒ{ƒ^ƒ“ƒeƒLƒXƒg: $($sender.Text)
-  ƒOƒ‹[ƒv“à‚Å‚Ìˆ—‚ğÀs’†...
+        # ã‚°ãƒ«ãƒ¼ãƒ—ãƒ¢ãƒ¼ãƒ‰ã®å ´åˆã®å‡¦ç†å†…å®¹ã‚’ã“ã“ã«è¨˜è¿°
+ $ã‚°ãƒ«ãƒ¼ãƒ—æƒ…å ± = @"
+ã‚°ãƒ«ãƒ¼ãƒ—ãƒ¢ãƒ¼ãƒ‰æƒ…å ±:
+  ãƒœã‚¿ãƒ³å: $($sender.Name)
+  ãƒœã‚¿ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ: $($sender.Text)
+  ã‚°ãƒ«ãƒ¼ãƒ—å†…ã§ã®å‡¦ç†ã‚’å®Ÿè¡Œä¸­...
 "@
 
-        # Šù‚ÉƒOƒ‹[ƒvƒ‚[ƒh‚ª“K—p‚³‚ê‚Ä‚¢‚éê‡‚ÍƒŠƒZƒbƒg
+        # æ—¢ã«ã‚°ãƒ«ãƒ¼ãƒ—ãƒ¢ãƒ¼ãƒ‰ãŒé©ç”¨ã•ã‚Œã¦ã„ã‚‹å ´åˆã¯ãƒªã‚»ãƒƒãƒˆ
         if ($sender.FlatStyle -eq [System.Windows.Forms.FlatStyle]::Flat -and $sender.FlatAppearance.BorderColor -eq [System.Drawing.Color]::Red) {
-            ###Write-Host "Šù‚ÉƒOƒ‹[ƒvƒ‚[ƒh‚ª“K—p‚³‚ê‚Ä‚¢‚é‚½‚ßAƒŠƒZƒbƒg‚µ‚Ü‚·B"
+            ###Write-Host "æ—¢ã«ã‚°ãƒ«ãƒ¼ãƒ—ãƒ¢ãƒ¼ãƒ‰ãŒé©ç”¨ã•ã‚Œã¦ã„ã‚‹ãŸã‚ã€ãƒªã‚»ãƒƒãƒˆã—ã¾ã™ã€‚"
 
             #$sender.FlatStyle = [System.Windows.Forms.FlatStyle]::Standard
             $sender.FlatAppearance.BorderColor = [System.Drawing.Color]::Black
@@ -1225,1068 +1225,1068 @@ function script:ƒ{ƒ^ƒ“ƒNƒŠƒbƒNî•ñ•\¦ {
 
         }
         else {
-            ###Write-Host "ƒOƒ‹[ƒvƒ‚[ƒh‚ğ“K—p‚µ‚Ü‚·B"
+            ###Write-Host "ã‚°ãƒ«ãƒ¼ãƒ—ãƒ¢ãƒ¼ãƒ‰ã‚’é©ç”¨ã—ã¾ã™ã€‚"
 
-            # ƒOƒ‹[ƒvƒ‚[ƒh‚Ì“K—pˆ—
+            # ã‚°ãƒ«ãƒ¼ãƒ—ãƒ¢ãƒ¼ãƒ‰ã®é©ç”¨å‡¦ç†
             #$sender.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
             $sender.FlatAppearance.BorderColor = [System.Drawing.Color]::Red
             $sender.FlatAppearance.BorderSize = 3
         }
-        “K—p-Ô˜g‚É‹²‚Ü‚ê‚½ƒ{ƒ^ƒ“ƒXƒ^ƒCƒ‹ -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹ #$global:ƒŒƒCƒ„[ƒpƒlƒ‹
-               #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("g3", "ƒ^ƒCƒgƒ‹")
+        é©ç”¨-èµ¤æ ã«æŒŸã¾ã‚ŒãŸãƒœã‚¿ãƒ³ã‚¹ã‚¿ã‚¤ãƒ« -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ« #$global:ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ‘ãƒãƒ«
+               #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("g3", "ã‚¿ã‚¤ãƒˆãƒ«")
 
     }
     else {
-        ##Write-Host "’Êíƒ‚[ƒh‚Åˆ—‚ğÀs‚µ‚Ü‚·B"
+        ##Write-Host "é€šå¸¸ãƒ¢ãƒ¼ãƒ‰ã§å‡¦ç†ã‚’å®Ÿè¡Œã—ã¾ã™ã€‚"
 
-      #  if ($sender.BackColor -eq [System.Drawing.Color]::Pink -and $sender.Parent.Name -eq $Global:‰Â‹¶ƒpƒlƒ‹.Name) {
-        if ($sender.Tag.script -eq "ƒXƒNƒŠƒvƒg" -and $sender.Parent.Name -eq $Global:‰Â‹¶ƒpƒlƒ‹.Name) {
-            ##Write-Host "”wŒiF‚ªPink‚Ìƒ{ƒ^ƒ“‚Å‚·B"
-            ####Write-Host "ƒ{ƒ^ƒ“–¼: $($sender.Name)"
-                        # ƒOƒ[ƒoƒ‹•Ï”‚ÉÀ•W‚ğŠi”[
-            $ÅŒã‚Ì•¶š = ƒOƒ[ƒoƒ‹•Ï”‚©‚ç”’læ“¾@-ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹ 
+      #  if ($sender.BackColor -eq [System.Drawing.Color]::Pink -and $sender.Parent.Name -eq $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«.Name) {
+        if ($sender.Tag.script -eq "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ" -and $sender.Parent.Name -eq $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«.Name) {
+            ##Write-Host "èƒŒæ™¯è‰²ãŒPinkã®ãƒœã‚¿ãƒ³ã§ã™ã€‚"
+            ####Write-Host "ãƒœã‚¿ãƒ³å: $($sender.Name)"
+                        # ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã«åº§æ¨™ã‚’æ ¼ç´
+            $æœ€å¾Œã®æ–‡å­— = ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã‹ã‚‰æ•°å€¤å–å¾—ã€€-ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ« 
 
-            $A = [int]$ÅŒã‚Ì•¶š
+            $A = [int]$æœ€å¾Œã®æ–‡å­—
 
-             $Global:Pink‘I‘ğ”z—ñ[$A].YÀ•W = $sender.Location.Y +15
-@@@@@@ $Global:Pink‘I‘ğ”z—ñ[$A].’l = 1
-            $Global:Pink‘I‘ğ”z—ñ[$A].“WŠJƒ{ƒ^ƒ“ = $sender.Name
+             $Global:Pinké¸æŠé…åˆ—[$A].Yåº§æ¨™ = $sender.Location.Y +15
+ã€€ã€€ã€€ã€€ã€€ã€€ $Global:Pinké¸æŠé…åˆ—[$A].å€¤ = 1
+            $Global:Pinké¸æŠé…åˆ—[$A].å±•é–‹ãƒœã‚¿ãƒ³ = $sender.Name
 
-            $Global:Œ»İ“WŠJ’†‚ÌƒXƒNƒŠƒvƒg–¼ = $sender.Name
+            $Global:ç¾åœ¨å±•é–‹ä¸­ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆå = $sender.Name
 
 
-            Write-Host $Global:Œ»İ“WŠJ’†‚ÌƒXƒNƒŠƒvƒg–¼ -ForegroundColor Red
+            Write-Host $Global:ç¾åœ¨å±•é–‹ä¸­ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆå -ForegroundColor Red
 
-            ##Write-Host "AA-" $Global:Œ»İ“WŠJ’†‚ÌƒXƒNƒŠƒvƒg–¼
+            ##Write-Host "AA-" $Global:ç¾åœ¨å±•é–‹ä¸­ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆå
 
-                       $Global:Pink‘I‘ğ’† = $true
-                       #–îˆó‚ğ•\¦‚·‚é -ƒtƒH[ƒ€ $ƒƒCƒ“ƒtƒH[ƒ€ -• 1400 -‚‚³ 900 -–îˆóƒTƒCƒY 10 -–îˆóŠp“x 30 -PictureBoxX 850 -PictureBoxY 100 -PictureBox• 90 -PictureBox‚‚³ 20
-               ƒtƒŒ[ƒ€ƒpƒlƒ‹‚©‚ç‚·‚×‚Ä‚Ìƒ{ƒ^ƒ“‚ğíœ‚·‚é -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹‰Eƒpƒlƒ‹
-            $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ = ID‚ÅƒGƒ“ƒgƒŠ‚ğæ“¾ -ID $sender.Name
-                Write-Host $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ -ForegroundColor Red
-            PINK‚©‚çƒ{ƒ^ƒ“ì¬ -•¶š—ñ $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ
+                       $Global:Pinké¸æŠä¸­ = $true
+                       #çŸ¢å°ã‚’è¡¨ç¤ºã™ã‚‹ -ãƒ•ã‚©ãƒ¼ãƒ  $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ  -å¹… 1400 -é«˜ã• 900 -çŸ¢å°ã‚µã‚¤ã‚º 10 -çŸ¢å°è§’åº¦ 30 -PictureBoxX 850 -PictureBoxY 100 -PictureBoxå¹… 90 -PictureBoxé«˜ã• 20
+               ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«ã‹ã‚‰ã™ã¹ã¦ã®ãƒœã‚¿ãƒ³ã‚’å‰Šé™¤ã™ã‚‹ -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å³ãƒ‘ãƒãƒ«
+            $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª = IDã§ã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾— -ID $sender.Name
+                Write-Host $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª -ForegroundColor Red
+            PINKã‹ã‚‰ãƒœã‚¿ãƒ³ä½œæˆ -æ–‡å­—åˆ— $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª
 
-        $ÅŒã‚Ì•¶š = ƒOƒ[ƒoƒ‹•Ï”‚©‚ç”’læ“¾@-ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
-        $Global:ƒŒƒCƒ„[ŠK‘w‚Ì[‚³ = [int]$ÅŒã‚Ì•¶š + 1
+        $æœ€å¾Œã®æ–‡å­— = ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã‹ã‚‰æ•°å€¤å–å¾—ã€€-ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
+        $Global:ãƒ¬ã‚¤ãƒ¤ãƒ¼éšå±¤ã®æ·±ã• = [int]$æœ€å¾Œã®æ–‡å­— + 1
 
-        # Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show($Global:ƒŒƒCƒ„[ŠK‘w‚Ì[‚³, "ƒ^^ƒCCƒggƒ‹?A") 
+        # Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show($Global:ãƒ¬ã‚¤ãƒ¤ãƒ¼éšå±¤ã®æ·±ã•, "ã‚¿^ã‚¤Cãƒˆgãƒ«?A") 
  
 
 
-           00_–îˆó’Ç‹Lˆ— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
-            #[System.Windows.Forms.MessageBox]::Show("”wŒiF‚ªPink‚Ìƒ{ƒ^ƒ“–¼: $æ“¾‚µ‚½ƒGƒ“ƒgƒŠ", "”wŒiFPink", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+           00_çŸ¢å°è¿½è¨˜å‡¦ç† -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
+            #[System.Windows.Forms.MessageBox]::Show("èƒŒæ™¯è‰²ãŒPinkã®ãƒœã‚¿ãƒ³å: $å–å¾—ã—ãŸã‚¨ãƒ³ãƒˆãƒª", "èƒŒæ™¯è‰²Pink", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
         }
 
-$î•ñ = @"
-ƒ{ƒ^ƒ“î•ñ:
-  –¼‘O: $($sender.Name)
-  ƒeƒLƒXƒg: $($sender.Text)
-  ƒTƒCƒY: $($sender.Size.Width) x $($sender.Size.Height)
-  ˆÊ’u: X=$($sender.Location.X), Y=$($sender.Location.Y)
-  ”wŒiF: $($sender.BackColor)
+$æƒ…å ± = @"
+ãƒœã‚¿ãƒ³æƒ…å ±:
+  åå‰: $($sender.Name)
+  ãƒ†ã‚­ã‚¹ãƒˆ: $($sender.Text)
+  ã‚µã‚¤ã‚º: $($sender.Size.Width) x $($sender.Size.Height)
+  ä½ç½®: X=$($sender.Location.X), Y=$($sender.Location.Y)
+  èƒŒæ™¯è‰²: $($sender.BackColor)
 "@
 
-        ##Write-Host "î•ñ‚ğƒƒbƒZ[ƒWƒ{ƒbƒNƒX‚Å•\¦‚µ‚Ü‚·B"
-        [System.Windows.Forms.MessageBox]::Show($î•ñ, "ƒ{ƒ^ƒ“î•ñ", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        ##Write-Host "æƒ…å ±ã‚’ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒœãƒƒã‚¯ã‚¹ã§è¡¨ç¤ºã—ã¾ã™ã€‚"
+        [System.Windows.Forms.MessageBox]::Show($æƒ…å ±, "ãƒœã‚¿ãƒ³æƒ…å ±", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
     }
 
-    ###Write-Host "ƒ{ƒ^ƒ“ƒNƒŠƒbƒNî•ñ•\¦ˆ—‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
+    ###Write-Host "ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æƒ…å ±è¡¨ç¤ºå‡¦ç†ãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
 }
 
 
 
-function PINK‚©‚çƒ{ƒ^ƒ“ì¬ {
+function PINKã‹ã‚‰ãƒœã‚¿ãƒ³ä½œæˆ {
     param (
-        [string]$•¶š—ñ
+        [string]$æ–‡å­—åˆ—
     )
 
     Write-Host " !!!!!!" -ForegroundColor Yellow
 
-    $‰ŠúY = 20 # YÀ•W‚Ì‰Šú’l
+    $åˆæœŸY = 20 # Yåº§æ¨™ã®åˆæœŸå€¤
 
-    # •¶š—ñ‚ğ‰üs‚Å•ªŠ„‚µAÅ‰‚Ì1s‚ğƒXƒLƒbƒv
-    $•¶š—ñ -split "`r?`n" | Select-Object -Skip 1 | ForEach-Object {
-        # Šes‚ğƒZƒ~ƒRƒƒ“‚Å•ªŠ„
+    # æ–‡å­—åˆ—ã‚’æ”¹è¡Œã§åˆ†å‰²ã—ã€æœ€åˆã®1è¡Œã‚’ã‚¹ã‚­ãƒƒãƒ—
+    $æ–‡å­—åˆ— -split "`r?`n" | Select-Object -Skip 1 | ForEach-Object {
+        # å„è¡Œã‚’ã‚»ãƒŸã‚³ãƒ­ãƒ³ã§åˆ†å‰²
         $parts = $_ -split ';'
 
-        # Še•”•ª‚ğ•Ï”‚ÉŠ„‚è“–‚Ä
-        $ƒ{ƒ^ƒ“–¼ = $parts[0].Trim()
-        $”wŒiF–¼ = $parts[1].Trim()
-        $ƒeƒLƒXƒg = $parts[2].Trim()
-        $ƒ^ƒCƒv = $parts[3].Trim()
+        # å„éƒ¨åˆ†ã‚’å¤‰æ•°ã«å‰²ã‚Šå½“ã¦
+        $ãƒœã‚¿ãƒ³å = $parts[0].Trim()
+        $èƒŒæ™¯è‰²å = $parts[1].Trim()
+        $ãƒ†ã‚­ã‚¹ãƒˆ = $parts[2].Trim()
+        $ã‚¿ã‚¤ãƒ— = $parts[3].Trim()
 
         #-----------------------------------------------------------------------------------------------------
 
-        # F–¼‚©‚çSystem.Drawing.ColorƒIƒuƒWƒFƒNƒg‚ğæ“¾
+        # è‰²åã‹ã‚‰System.Drawing.Colorã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å–å¾—
         try {
-            # F–¼‚©‚çF‚ğæ“¾
-            $”wŒiF = [System.Drawing.Color]::FromName($”wŒiF–¼)
-            if (!$”wŒiF.IsKnownColor) {
-                throw "–³Œø‚ÈF–¼"
+            # è‰²åã‹ã‚‰è‰²ã‚’å–å¾—
+            $èƒŒæ™¯è‰² = [System.Drawing.Color]::FromName($èƒŒæ™¯è‰²å)
+            if (!$èƒŒæ™¯è‰².IsKnownColor) {
+                throw "ç„¡åŠ¹ãªè‰²å"
             }
         }
         catch {
-            # F–¼‚ª–³Œø‚Èê‡AFƒR[ƒh‚Æ‚µ‚Ä‰ğÍ‚ğ‚İ‚é
+            # è‰²åãŒç„¡åŠ¹ãªå ´åˆã€è‰²ã‚³ãƒ¼ãƒ‰ã¨ã—ã¦è§£æã‚’è©¦ã¿ã‚‹
             try {
-                # HEXƒJƒ‰[ƒR[ƒhi#‚È‚µj‚ğŒŸo‚µA©“®‚Å#‚ğ•t‰Á
-                if ($”wŒiF–¼ -match '^[0-9A-Fa-f]{6}$' -or $”wŒiF–¼ -match '^[0-9A-Fa-f]{8}$') {
-                    $hexColor = "#$”wŒiF–¼"
-                    $”wŒiF = [System.Drawing.ColorTranslator]::FromHtml($hexColor)
+                # HEXã‚«ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰ï¼ˆ#ãªã—ï¼‰ã‚’æ¤œå‡ºã—ã€è‡ªå‹•ã§#ã‚’ä»˜åŠ 
+                if ($èƒŒæ™¯è‰²å -match '^[0-9A-Fa-f]{6}$' -or $èƒŒæ™¯è‰²å -match '^[0-9A-Fa-f]{8}$') {
+                    $hexColor = "#$èƒŒæ™¯è‰²å"
+                    $èƒŒæ™¯è‰² = [System.Drawing.ColorTranslator]::FromHtml($hexColor)
                 }
-                # HEXƒJƒ‰[ƒR[ƒhi#‚ ‚èj‚ğŒŸo
-                elseif ($”wŒiF–¼ -match '^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$') {
-                    $”wŒiF = [System.Drawing.ColorTranslator]::FromHtml($”wŒiF–¼)
+                # HEXã‚«ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰ï¼ˆ#ã‚ã‚Šï¼‰ã‚’æ¤œå‡º
+                elseif ($èƒŒæ™¯è‰²å -match '^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$') {
+                    $èƒŒæ™¯è‰² = [System.Drawing.ColorTranslator]::FromHtml($èƒŒæ™¯è‰²å)
                 }
-                # RGBŒ`®i—á: 255,0,255j‚ğŒŸo
-                elseif ($”wŒiF–¼ -match '^\d{1,3},\d{1,3},\d{1,3}$') {
-                    $rgb = $”wŒiF–¼ -split ','
-                    $”wŒiF = [System.Drawing.Color]::FromArgb(
+                # RGBå½¢å¼ï¼ˆä¾‹: 255,0,255ï¼‰ã‚’æ¤œå‡º
+                elseif ($èƒŒæ™¯è‰²å -match '^\d{1,3},\d{1,3},\d{1,3}$') {
+                    $rgb = $èƒŒæ™¯è‰²å -split ','
+                    $èƒŒæ™¯è‰² = [System.Drawing.Color]::FromArgb(
                         [int]$rgb[0],
                         [int]$rgb[1],
                         [int]$rgb[2]
                     )
                 }
                 else {
-                    throw "–³Œø‚ÈFw’è"
+                    throw "ç„¡åŠ¹ãªè‰²æŒ‡å®š"
                 }
             }
             catch {
-                ##Write-Host "Œx: F–¼‚Ü‚½‚ÍFƒR[ƒh‚ª–³Œø‚Å‚·Bƒ{ƒ^ƒ“‚Ìì¬‚ğƒXƒLƒbƒv‚µ‚Ü‚·B - F–¼: $”wŒiF–¼" -ForegroundColor Yellow
-                ##Write-Host " - “à—e: $_" -ForegroundColor Yellow
+                ##Write-Host "è­¦å‘Š: è‰²åã¾ãŸã¯è‰²ã‚³ãƒ¼ãƒ‰ãŒç„¡åŠ¹ã§ã™ã€‚ãƒœã‚¿ãƒ³ã®ä½œæˆã‚’ã‚¹ã‚­ãƒƒãƒ—ã—ã¾ã™ã€‚ - è‰²å: $èƒŒæ™¯è‰²å" -ForegroundColor Yellow
+                ##Write-Host " - å†…å®¹: $_" -ForegroundColor Yellow
                 return
             }
         }
 
-        # ƒfƒoƒbƒOo—Í
-        ##Write-Host "ƒ{ƒ^ƒ“–¼: $ƒ{ƒ^ƒ“–¼, ”wŒiF: $”wŒiF–¼, ƒeƒLƒXƒg: $ƒeƒLƒXƒg" -ForegroundColor Green
+        # ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›
+        ##Write-Host "ãƒœã‚¿ãƒ³å: $ãƒœã‚¿ãƒ³å, èƒŒæ™¯è‰²: $èƒŒæ™¯è‰²å, ãƒ†ã‚­ã‚¹ãƒˆ: $ãƒ†ã‚­ã‚¹ãƒˆ" -ForegroundColor Green
 
-        $• = 120        
-        $‰ŠúX = [Math]::Floor(($Global:‰Â‹‰Eƒpƒlƒ‹.ClientSize.Width - $•) / 2)# ’†‰›”z’u‚Ì‚½‚ß‚ÌXÀ•W‚ğŒvZ
+        $å¹… = 120        
+        $åˆæœŸX = [Math]::Floor(($Global:å¯è¦–å³ãƒ‘ãƒãƒ«.ClientSize.Width - $å¹…) / 2)# ä¸­å¤®é…ç½®ã®ãŸã‚ã®Xåº§æ¨™ã‚’è¨ˆç®—
 
-        # ƒ{ƒ^ƒ“ƒeƒLƒXƒg‚ª "ğŒ•ªŠò ’†ŠÔ" ‚Ìê‡
-        if ($ƒeƒLƒXƒg -eq "ğŒ•ªŠò ’†ŠÔ") {
-        $’²®Y = $‰ŠúY - 5
-        $Vƒ{ƒ^ƒ“ = 00_ƒ{ƒ^ƒ“‚ğì¬‚·‚é -ƒRƒ“ƒeƒi $Global:‰Â‹‰Eƒpƒlƒ‹ -ƒeƒLƒXƒg $ƒeƒLƒXƒg -ƒ{ƒ^ƒ“–¼ $ƒ{ƒ^ƒ“–¼ -• $• -‚‚³ 1 -XˆÊ’u $‰ŠúX -YˆÊ’u $’²®Y -˜gü 1 -”wŒiF $”wŒiF -ƒhƒ‰ƒbƒO‰Â”\ $false 
+        # ãƒœã‚¿ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãŒ "æ¡ä»¶åˆ†å² ä¸­é–“" ã®å ´åˆ
+        if ($ãƒ†ã‚­ã‚¹ãƒˆ -eq "æ¡ä»¶åˆ†å² ä¸­é–“") {
+        $èª¿æ•´Y = $åˆæœŸY - 5
+        $æ–°ãƒœã‚¿ãƒ³ = 00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ -ã‚³ãƒ³ãƒ†ãƒŠ $Global:å¯è¦–å³ãƒ‘ãƒãƒ« -ãƒ†ã‚­ã‚¹ãƒˆ $ãƒ†ã‚­ã‚¹ãƒˆ -ãƒœã‚¿ãƒ³å $ãƒœã‚¿ãƒ³å -å¹… $å¹… -é«˜ã• 1 -Xä½ç½® $åˆæœŸX -Yä½ç½® $èª¿æ•´Y -æ ç·š 1 -èƒŒæ™¯è‰² $èƒŒæ™¯è‰² -ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ $false 
 
-        $‰ŠúY += 10         
+        $åˆæœŸY += 10         
         }else{
             Write-Host "AAAA" -ForegroundColor Yellow
-        $Vƒ{ƒ^ƒ“ = 00_ƒ{ƒ^ƒ“‚ğì¬‚·‚é -ƒRƒ“ƒeƒi $Global:‰Â‹‰Eƒpƒlƒ‹ -ƒeƒLƒXƒg $ƒeƒLƒXƒg -ƒ{ƒ^ƒ“–¼ $ƒ{ƒ^ƒ“–¼ -• $• -‚‚³ 30 -XˆÊ’u $‰ŠúX -YˆÊ’u $‰ŠúY -˜gü 1 -”wŒiF $”wŒiF -ƒhƒ‰ƒbƒO‰Â”\ $true@-ƒ{ƒ^ƒ“ƒ^ƒCƒv "ƒm[ƒh"@-ƒ{ƒ^ƒ“ƒ^ƒCƒv2 $ƒ^ƒCƒv
+        $æ–°ãƒœã‚¿ãƒ³ = 00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ -ã‚³ãƒ³ãƒ†ãƒŠ $Global:å¯è¦–å³ãƒ‘ãƒãƒ« -ãƒ†ã‚­ã‚¹ãƒˆ $ãƒ†ã‚­ã‚¹ãƒˆ -ãƒœã‚¿ãƒ³å $ãƒœã‚¿ãƒ³å -å¹… $å¹… -é«˜ã• 30 -Xä½ç½® $åˆæœŸX -Yä½ç½® $åˆæœŸY -æ ç·š 1 -èƒŒæ™¯è‰² $èƒŒæ™¯è‰² -ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ $trueã€€-ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ— "ãƒãƒ¼ãƒ‰"ã€€-ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ—2 $ã‚¿ã‚¤ãƒ—
 
-        $‰ŠúY += 50
+        $åˆæœŸY += 50
         }
 
 
 
     }
-    00_ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹‚ÌPaintƒCƒxƒ“ƒg‚ğİ’è‚·‚é -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹‰Eƒpƒlƒ‹
-    00_–îˆó’Ç‹Lˆ— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹‰Eƒpƒlƒ‹
+    00_ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«ã®Paintã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®šã™ã‚‹ -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å³ãƒ‘ãƒãƒ«
+    00_çŸ¢å°è¿½è¨˜å‡¦ç† -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å³ãƒ‘ãƒãƒ«
 }
 
-function 00_ƒ{ƒ^ƒ“‚ğì¬‚·‚é {
+function 00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ {
     param (
-        [System.Windows.Forms.Control]$ƒRƒ“ƒeƒi,          # ƒ{ƒ^ƒ“‚ğ’Ç‰Á‚·‚éƒRƒ“ƒeƒiiƒtƒŒ[ƒ€j
-        [string]$ƒeƒLƒXƒg = "ƒhƒ‰ƒbƒO‚ÅˆÚ“®",              # ƒ{ƒ^ƒ“‚ÌƒeƒLƒXƒg
-        [string]$ƒ{ƒ^ƒ“–¼,                                # ƒ{ƒ^ƒ“–¼
-        [int]$• = 120,                                   # ƒ{ƒ^ƒ“‚Ì•
-        [int]$‚‚³ = 30,                                  # ƒ{ƒ^ƒ“‚Ì‚‚³
-        [int]$XˆÊ’u = 10,                                 # ƒ{ƒ^ƒ“‚ÌXÀ•W
-        [int]$YˆÊ’u = 20,                                 # ƒ{ƒ^ƒ“‚ÌYÀ•W
-        [int]$˜gü = 0,                                   # ƒ{ƒ^ƒ“‚Ì˜güƒTƒCƒY
-        [System.Drawing.Color]$”wŒiF,                    # ƒ{ƒ^ƒ“‚Ì”wŒiFi•K{j
-        [bool]$ƒhƒ‰ƒbƒO‰Â”\ = $true,                      # ƒhƒ‰ƒbƒO‰Â”\‚©‚Ç‚¤‚©
-        [int]$ƒtƒHƒ“ƒgƒTƒCƒY = 10,
-        [string]$ƒ{ƒ^ƒ“ƒ^ƒCƒv = "‚È‚µ",
-        [string]$ƒ{ƒ^ƒ“ƒ^ƒCƒv2 = "‚È‚µ",
-        [string]$ˆ—”Ô† = "‚È‚µ"
+        [System.Windows.Forms.Control]$ã‚³ãƒ³ãƒ†ãƒŠ,          # ãƒœã‚¿ãƒ³ã‚’è¿½åŠ ã™ã‚‹ã‚³ãƒ³ãƒ†ãƒŠï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ ï¼‰
+        [string]$ãƒ†ã‚­ã‚¹ãƒˆ = "ãƒ‰ãƒ©ãƒƒã‚°ã§ç§»å‹•",              # ãƒœã‚¿ãƒ³ã®ãƒ†ã‚­ã‚¹ãƒˆ
+        [string]$ãƒœã‚¿ãƒ³å,                                # ãƒœã‚¿ãƒ³å
+        [int]$å¹… = 120,                                   # ãƒœã‚¿ãƒ³ã®å¹…
+        [int]$é«˜ã• = 30,                                  # ãƒœã‚¿ãƒ³ã®é«˜ã•
+        [int]$Xä½ç½® = 10,                                 # ãƒœã‚¿ãƒ³ã®Xåº§æ¨™
+        [int]$Yä½ç½® = 20,                                 # ãƒœã‚¿ãƒ³ã®Yåº§æ¨™
+        [int]$æ ç·š = 0,                                   # ãƒœã‚¿ãƒ³ã®æ ç·šã‚µã‚¤ã‚º
+        [System.Drawing.Color]$èƒŒæ™¯è‰²,                    # ãƒœã‚¿ãƒ³ã®èƒŒæ™¯è‰²ï¼ˆå¿…é ˆï¼‰
+        [bool]$ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ = $true,                      # ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ã‹ã©ã†ã‹
+        [int]$ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º = 10,
+        [string]$ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ— = "ãªã—",
+        [string]$ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ—2 = "ãªã—",
+        [string]$å‡¦ç†ç•ªå· = "ãªã—"
     )
 
-    ###Write-Host "00_ƒ{ƒ^ƒ“‚ğì¬‚µ‚Ü‚·Bƒ{ƒ^ƒ“–¼: $ƒ{ƒ^ƒ“–¼"
+    ###Write-Host "00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã—ã¾ã™ã€‚ãƒœã‚¿ãƒ³å: $ãƒœã‚¿ãƒ³å"
     
-    # ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚Ì‰Šú‰»
-    script:ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚ğ‰Šú‰»‚·‚é
+    # ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®åˆæœŸåŒ–
+    script:ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’åˆæœŸåŒ–ã™ã‚‹
 
-    # ƒ{ƒ^ƒ“‚Ìì¬
-    ###Write-Host "ƒ{ƒ^ƒ“‚ğì¬‚µ‚Ü‚·B"
-    $ƒ{ƒ^ƒ“ = New-Object System.Windows.Forms.Button
-    $ƒ{ƒ^ƒ“.Text = $ƒeƒLƒXƒg #$ƒ{ƒ^ƒ“–¼ # 
-    $ƒ{ƒ^ƒ“.Size = New-Object System.Drawing.Size($•, $‚‚³)
-    $ƒ{ƒ^ƒ“.Location = New-Object System.Drawing.Point($XˆÊ’u, $YˆÊ’u)
-    $ƒ{ƒ^ƒ“.AllowDrop = $false                            # ƒ{ƒ^ƒ“©‘Ì‚Ìƒhƒƒbƒv‚ğ–³Œø‰»
-    $ƒ{ƒ^ƒ“.Name = $ƒ{ƒ^ƒ“–¼                              # ƒ{ƒ^ƒ“‚ÌNameƒvƒƒpƒeƒB‚ğİ’è
-    $ƒ{ƒ^ƒ“.BackColor = $”wŒiF                           # ƒ{ƒ^ƒ“‚Ì”wŒiF‚ğİ’è
-    $ƒ{ƒ^ƒ“.UseVisualStyleBackColor = $false              # BackColor‚ğ—LŒø‚É‚·‚é
+    # ãƒœã‚¿ãƒ³ã®ä½œæˆ
+    ###Write-Host "ãƒœã‚¿ãƒ³ã‚’ä½œæˆã—ã¾ã™ã€‚"
+    $ãƒœã‚¿ãƒ³ = New-Object System.Windows.Forms.Button
+    $ãƒœã‚¿ãƒ³.Text = $ãƒ†ã‚­ã‚¹ãƒˆ #$ãƒœã‚¿ãƒ³å # 
+    $ãƒœã‚¿ãƒ³.Size = New-Object System.Drawing.Size($å¹…, $é«˜ã•)
+    $ãƒœã‚¿ãƒ³.Location = New-Object System.Drawing.Point($Xä½ç½®, $Yä½ç½®)
+    $ãƒœã‚¿ãƒ³.AllowDrop = $false                            # ãƒœã‚¿ãƒ³è‡ªä½“ã®ãƒ‰ãƒ­ãƒƒãƒ—ã‚’ç„¡åŠ¹åŒ–
+    $ãƒœã‚¿ãƒ³.Name = $ãƒœã‚¿ãƒ³å                              # ãƒœã‚¿ãƒ³ã®Nameãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’è¨­å®š
+    $ãƒœã‚¿ãƒ³.BackColor = $èƒŒæ™¯è‰²                           # ãƒœã‚¿ãƒ³ã®èƒŒæ™¯è‰²ã‚’è¨­å®š
+    $ãƒœã‚¿ãƒ³.UseVisualStyleBackColor = $false              # BackColorã‚’æœ‰åŠ¹ã«ã™ã‚‹
 
-    ###Write-Host "ƒ{ƒ^ƒ“‚ÌƒtƒHƒ“ƒg‚ğİ’è‚µ‚Ü‚·B"
-    # ƒtƒHƒ“ƒgƒTƒCƒY‚Ìİ’è
-    $ƒ{ƒ^ƒ“.Font = New-Object System.Drawing.Font("Microsoft Sans Serif", $ƒtƒHƒ“ƒgƒTƒCƒY)
+    ###Write-Host "ãƒœã‚¿ãƒ³ã®ãƒ•ã‚©ãƒ³ãƒˆã‚’è¨­å®šã—ã¾ã™ã€‚"
+    # ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºã®è¨­å®š
+    $ãƒœã‚¿ãƒ³.Font = New-Object System.Drawing.Font("Microsoft Sans Serif", $ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º)
 
-    $ƒ{ƒ^ƒ“.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-    $ƒ{ƒ^ƒ“.FlatAppearance.BorderSize = $˜gü
+    $ãƒœã‚¿ãƒ³.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $ãƒœã‚¿ãƒ³.FlatAppearance.BorderSize = $æ ç·š
 
-    $ƒ{ƒ^ƒ“.Tag = @{
-        BackgroundColor = $”wŒiF
+    $ãƒœã‚¿ãƒ³.Tag = @{
+        BackgroundColor = $èƒŒæ™¯è‰²
         GroupID = $null
-        MultiLineTags = $null # •K—v‚É‰‚¶‚Äİ’è
-        script = $null # •K—v‚É‰‚¶‚Äİ’è
-        ˆ—”Ô† = $ˆ—”Ô†
-    } # ”wŒiF‚ğTagƒvƒƒpƒeƒB‚É•Û‘¶
+        MultiLineTags = $null # å¿…è¦ã«å¿œã˜ã¦è¨­å®š
+        script = $null # å¿…è¦ã«å¿œã˜ã¦è¨­å®š
+        å‡¦ç†ç•ªå· = $å‡¦ç†ç•ªå·
+    } # èƒŒæ™¯è‰²ã‚’Tagãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã«ä¿å­˜
 
-      if ($ƒ{ƒ^ƒ“ƒ^ƒCƒv2 -eq "ƒXƒNƒŠƒvƒg") {
-      $ƒ{ƒ^ƒ“.Tag.script = "ƒXƒNƒŠƒvƒg"
+      if ($ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ—2 -eq "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ") {
+      $ãƒœã‚¿ãƒ³.Tag.script = "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ"
       }
 
-    # ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚ğİ’è
-    $ƒ{ƒ^ƒ“.ContextMenuStrip = $script:‰EƒNƒŠƒbƒNƒƒjƒ…[
+    # ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’è¨­å®š
+    $ãƒœã‚¿ãƒ³.ContextMenuStrip = $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 
-    if ($ƒhƒ‰ƒbƒO‰Â”\) {
-        ###Write-Host "ƒhƒ‰ƒbƒO‰Â”\‚Èƒ{ƒ^ƒ“‚Ìİ’è‚ğ‚µ‚Ü‚·B"
-        # ƒtƒ‰ƒO‚ğ’Ç‰Á
-        $ƒ{ƒ^ƒ“.Tag.IsDragging = $false
-        $ƒ{ƒ^ƒ“.Tag.StartPoint = [System.Drawing.Point]::Empty
+    if ($ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½) {
+        ###Write-Host "ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ãªãƒœã‚¿ãƒ³ã®è¨­å®šã‚’ã—ã¾ã™ã€‚"
+        # ãƒ•ãƒ©ã‚°ã‚’è¿½åŠ 
+        $ãƒœã‚¿ãƒ³.Tag.IsDragging = $false
+        $ãƒœã‚¿ãƒ³.Tag.StartPoint = [System.Drawing.Point]::Empty
 
-        # ƒ{ƒ^ƒ“‚ÌMouseDownƒCƒxƒ“ƒg‚Åƒhƒ‰ƒbƒO‚ÌŠJn‚Æ‰EƒNƒŠƒbƒN‚Ìˆ—‚ğİ’è
-        ###Write-Host "MouseDownƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰[‚ğ’Ç‰Á‚µ‚Ü‚·B"
-        $ƒ{ƒ^ƒ“.Add_MouseDown({
+        # ãƒœã‚¿ãƒ³ã®MouseDownã‚¤ãƒ™ãƒ³ãƒˆã§ãƒ‰ãƒ©ãƒƒã‚°ã®é–‹å§‹ã¨å³ã‚¯ãƒªãƒƒã‚¯ã®å‡¦ç†ã‚’è¨­å®š
+        ###Write-Host "MouseDownã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ãƒ¼ã‚’è¿½åŠ ã—ã¾ã™ã€‚"
+        $ãƒœã‚¿ãƒ³.Add_MouseDown({
             param($sender, $e)
-            ###Write-Host "MouseDownƒCƒxƒ“ƒg‚ª”­¶‚µ‚Ü‚µ‚½Bƒ{ƒ^ƒ“: $($sender.Name), ƒ{ƒ^ƒ“: $($e.Button)"
+            ###Write-Host "MouseDownã‚¤ãƒ™ãƒ³ãƒˆãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚ãƒœã‚¿ãƒ³: $($sender.Name), ãƒœã‚¿ãƒ³: $($e.Button)"
             if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-                # ƒhƒ‰ƒbƒOŠJnˆÊ’u‚ğ‹L˜^
-                ###Write-Host "¶ƒNƒŠƒbƒN‚ªŒŸo‚³‚ê‚Ü‚µ‚½Bƒhƒ‰ƒbƒOŠJnˆÊ’u‚ğ‹L˜^‚µ‚Ü‚·B"
+                # ãƒ‰ãƒ©ãƒƒã‚°é–‹å§‹ä½ç½®ã‚’è¨˜éŒ²
+                ###Write-Host "å·¦ã‚¯ãƒªãƒƒã‚¯ãŒæ¤œå‡ºã•ã‚Œã¾ã—ãŸã€‚ãƒ‰ãƒ©ãƒƒã‚°é–‹å§‹ä½ç½®ã‚’è¨˜éŒ²ã—ã¾ã™ã€‚"
                 $sender.Tag.StartPoint = $e.Location
                 $sender.Tag.IsDragging = $false
             }
             elseif ($e.Button -eq [System.Windows.Forms.MouseButtons]::Right) {
-                ###Write-Host "‰EƒNƒŠƒbƒN‚ªŒŸo‚³‚ê‚Ü‚µ‚½B"
-                # ‰EƒNƒŠƒbƒNˆ—i•K—v‚É‰‚¶‚Ä’Ç‰Áj
+                ###Write-Host "å³ã‚¯ãƒªãƒƒã‚¯ãŒæ¤œå‡ºã•ã‚Œã¾ã—ãŸã€‚"
+                # å³ã‚¯ãƒªãƒƒã‚¯å‡¦ç†ï¼ˆå¿…è¦ã«å¿œã˜ã¦è¿½åŠ ï¼‰
             }
         })
 
-        # ƒ{ƒ^ƒ“‚ÌMouseMoveƒCƒxƒ“ƒg‚Åƒhƒ‰ƒbƒO‚Ì”»’è
-        ###Write-Host "MouseMoveƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰[‚ğ’Ç‰Á‚µ‚Ü‚·B"
-        $ƒ{ƒ^ƒ“.Add_MouseMove({
+        # ãƒœã‚¿ãƒ³ã®MouseMoveã‚¤ãƒ™ãƒ³ãƒˆã§ãƒ‰ãƒ©ãƒƒã‚°ã®åˆ¤å®š
+        ###Write-Host "MouseMoveã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ãƒ¼ã‚’è¿½åŠ ã—ã¾ã™ã€‚"
+        $ãƒœã‚¿ãƒ³.Add_MouseMove({
             param($sender, $e)
             if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
                 if (-not $sender.Tag.IsDragging) {
-                    # ƒ}ƒEƒX‚ªˆÚ“®‚µ‚½‹——£‚ğŒvZ
+                    # ãƒã‚¦ã‚¹ãŒç§»å‹•ã—ãŸè·é›¢ã‚’è¨ˆç®—
                     $dx = [Math]::Abs($e.X - $sender.Tag.StartPoint.X)
                     $dy = [Math]::Abs($e.Y - $sender.Tag.StartPoint.Y)
-                    ###Write-Host "ƒ}ƒEƒXˆÚ“®‹——£: dx=$dx, dy=$dy"
+                    ###Write-Host "ãƒã‚¦ã‚¹ç§»å‹•è·é›¢: dx=$dx, dy=$dy"
                     if ($dx -ge 5 -or $dy -ge 5) {
-                        ###Write-Host "ƒhƒ‰ƒbƒO‚ğŠJn‚µ‚Ü‚·B"
+                        ###Write-Host "ãƒ‰ãƒ©ãƒƒã‚°ã‚’é–‹å§‹ã—ã¾ã™ã€‚"
                         $sender.Tag.IsDragging = $true
-                        # ƒhƒ‰ƒbƒO’†‚Ìƒ{ƒ^ƒ“‚ğİ’è
-                        $global:ƒhƒ‰ƒbƒO’†‚Ìƒ{ƒ^ƒ“ = $sender
-                        # ƒhƒ‰ƒbƒO‚ğŠJn
+                        # ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®ãƒœã‚¿ãƒ³ã‚’è¨­å®š
+                        $global:ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®ãƒœã‚¿ãƒ³ = $sender
+                        # ãƒ‰ãƒ©ãƒƒã‚°ã‚’é–‹å§‹
                         $sender.DoDragDrop($sender, [System.Windows.Forms.DragDropEffects]::Move)
                     }
                 }
             }
         })
 
-        # ƒ{ƒ^ƒ“‚ÌDragDropƒCƒxƒ“ƒg‚ÅˆÊ’u‚ğXV
-        ###Write-Host "DragDropƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰[‚ğ’Ç‰Á‚µ‚Ü‚·B"
-        $ƒ{ƒ^ƒ“.Add_DragDrop({
+        # ãƒœã‚¿ãƒ³ã®DragDropã‚¤ãƒ™ãƒ³ãƒˆã§ä½ç½®ã‚’æ›´æ–°
+        ###Write-Host "DragDropã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ãƒ¼ã‚’è¿½åŠ ã—ã¾ã™ã€‚"
+        $ãƒœã‚¿ãƒ³.Add_DragDrop({
             param($sender, $e)
-            ###Write-Host "DragDropƒCƒxƒ“ƒg‚ª”­¶‚µ‚Ü‚µ‚½B"
-            if ($global:ƒhƒ‰ƒbƒO’†‚Ìƒ{ƒ^ƒ“ -ne $null) {
+            ###Write-Host "DragDropã‚¤ãƒ™ãƒ³ãƒˆãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚"
+            if ($global:ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®ãƒœã‚¿ãƒ³ -ne $null) {
                 $targetButton = $e.Data.GetData([System.Windows.Forms.DataFormats]::Object)
                 if ($targetButton -ne $null -and $targetButton -is [System.Windows.Forms.Button]) {
-                    ###Write-Host "ƒhƒ‰ƒbƒO’†‚Ìƒ{ƒ^ƒ“‚ğˆÚ“®‚µ‚Ü‚·Bƒ{ƒ^ƒ“: $($targetButton.Name)"
-                    # eƒRƒ“ƒeƒi“à‚Åƒ{ƒ^ƒ“‚ÌƒCƒ“ƒfƒbƒNƒX‚ğ•ÏX
+                    ###Write-Host "ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®ãƒœã‚¿ãƒ³ã‚’ç§»å‹•ã—ã¾ã™ã€‚ãƒœã‚¿ãƒ³: $($targetButton.Name)"
+                    # è¦ªã‚³ãƒ³ãƒ†ãƒŠå†…ã§ãƒœã‚¿ãƒ³ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’å¤‰æ›´
                     $sender.Parent.Controls.SetChildIndex($targetButton, 0)
-                    # V‚µ‚¢ˆÊ’u‚ğŒvZ
+                    # æ–°ã—ã„ä½ç½®ã‚’è¨ˆç®—
                     $newLocation = $sender.PointToClient($e.Location)
-                    ###Write-Host "V‚µ‚¢ˆÊ’u: X=$($newLocation.X), Y=$($newLocation.Y)"
+                    ###Write-Host "æ–°ã—ã„ä½ç½®: X=$($newLocation.X), Y=$($newLocation.Y)"
                     $targetButton.Location = $newLocation
-                    $global:ƒhƒ‰ƒbƒO’†‚Ìƒ{ƒ^ƒ“ = $null
+                    $global:ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®ãƒœã‚¿ãƒ³ = $null
                 }
                 else {
-                    Write-Warning "ƒhƒ‰ƒbƒOƒf[ƒ^‚ªƒ{ƒ^ƒ“‚Å‚Í‚ ‚è‚Ü‚¹‚ñB"
+                    Write-Warning "ãƒ‰ãƒ©ãƒƒã‚°ãƒ‡ãƒ¼ã‚¿ãŒãƒœã‚¿ãƒ³ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚"
                 }
             }
             else {
-                Write-Warning "ƒhƒ‰ƒbƒO’†‚Ìƒ{ƒ^ƒ“‚ª‘¶İ‚µ‚Ü‚¹‚ñB"
+                Write-Warning "ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®ãƒœã‚¿ãƒ³ãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚"
             }
         })
 
-        # ƒ{ƒ^ƒ“‚ÌDragEnterƒCƒxƒ“ƒg‚ÅƒGƒtƒFƒNƒg‚ğİ’è
-        ###Write-Host "DragEnterƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰[‚ğ’Ç‰Á‚µ‚Ü‚·B"
-        $ƒ{ƒ^ƒ“.Add_DragEnter({
+        # ãƒœã‚¿ãƒ³ã®DragEnterã‚¤ãƒ™ãƒ³ãƒˆã§ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¨­å®š
+        ###Write-Host "DragEnterã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ãƒ¼ã‚’è¿½åŠ ã—ã¾ã™ã€‚"
+        $ãƒœã‚¿ãƒ³.Add_DragEnter({
             param($sender, $e)
             if ($e.Data.GetDataPresent([System.Windows.Forms.DataFormats]::Object)) {
-                ###Write-Host "DragEnter: MoveƒGƒtƒFƒNƒg‚ğİ’è‚µ‚Ü‚·B"
+                ###Write-Host "DragEnter: Moveã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¨­å®šã—ã¾ã™ã€‚"
                 $e.Effect = [System.Windows.Forms.DragDropEffects]::Move
             }
             else {
-                ###Write-Host "DragEnter: MoveƒGƒtƒFƒNƒg‚ğİ’è‚Å‚«‚Ü‚¹‚ñB"
+                ###Write-Host "DragEnter: Moveã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¨­å®šã§ãã¾ã›ã‚“ã€‚"
             }
         })
     }
 
-    # ƒ{ƒ^ƒ“ƒNƒŠƒbƒN‚Éî•ñ‚ğ•\¦‚·‚éƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰[‚ğ’Ç‰Á
-    ###Write-Host "ClickƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰[‚ğ’Ç‰Á‚µ‚Ü‚·B"
-    if ($ƒ{ƒ^ƒ“ƒ^ƒCƒv -eq "ƒm[ƒh") {
+    # ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æ™‚ã«æƒ…å ±ã‚’è¡¨ç¤ºã™ã‚‹ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ãƒ¼ã‚’è¿½åŠ 
+    ###Write-Host "Clickã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ãƒ¼ã‚’è¿½åŠ ã—ã¾ã™ã€‚"
+    if ($ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ— -eq "ãƒãƒ¼ãƒ‰") {
 
-    $ƒ{ƒ^ƒ“.Add_Click({
+    $ãƒœã‚¿ãƒ³.Add_Click({
         param($sender, $e)
 
 
-        ###Write-Host "ClickƒCƒxƒ“ƒg‚ª”­¶‚µ‚Ü‚µ‚½Bƒ{ƒ^ƒ“: $($sender.Name)"
-        script:ƒ{ƒ^ƒ“ƒNƒŠƒbƒNî•ñ•\¦ -sender $sender
+        ###Write-Host "Clickã‚¤ãƒ™ãƒ³ãƒˆãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚ãƒœã‚¿ãƒ³: $($sender.Name)"
+        script:ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æƒ…å ±è¡¨ç¤º -sender $sender
     })
     } else {
-        # False‚Ìˆ—“à—e
+        # Falseã®å‡¦ç†å†…å®¹
     }
 
     
 
 
-    # ‰EƒNƒŠƒbƒN‚Éƒƒjƒ…[•\¦A‚»‚Ì“_‚Å‘ÎÛƒ{ƒ^ƒ“‚ğTag‚Ö
-    ###Write-Host "MouseUpƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰[‚ğ’Ç‰Á‚µ‚Ü‚·B"
-    $ƒ{ƒ^ƒ“.Add_MouseUp({
+    # å³ã‚¯ãƒªãƒƒã‚¯æ™‚ã«ãƒ¡ãƒ‹ãƒ¥ãƒ¼è¡¨ç¤ºã€ãã®æ™‚ç‚¹ã§å¯¾è±¡ãƒœã‚¿ãƒ³ã‚’Tagã¸
+    ###Write-Host "MouseUpã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ãƒ¼ã‚’è¿½åŠ ã—ã¾ã™ã€‚"
+    $ãƒœã‚¿ãƒ³.Add_MouseUp({
         param($sender, $e)
         if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Right) {
-            ###Write-Host "‰EƒNƒŠƒbƒN‚ªŒŸo‚³‚ê‚Ü‚µ‚½Bƒƒjƒ…[‚ğ•\¦‚µ‚Ü‚·B"
-            $script:‰EƒNƒŠƒbƒNƒƒjƒ…[.Tag = $sender
-            $script:‰EƒNƒŠƒbƒNƒƒjƒ…[.Show($sender, $e.Location)
+            ###Write-Host "å³ã‚¯ãƒªãƒƒã‚¯ãŒæ¤œå‡ºã•ã‚Œã¾ã—ãŸã€‚ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚"
+            $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼.Tag = $sender
+            $script:å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼.Show($sender, $e.Location)
         }
     })
 
-    # ƒRƒ“ƒeƒi‚Éƒ{ƒ^ƒ“‚ğ’Ç‰Á
-    ###Write-Host "ƒ{ƒ^ƒ“‚ğƒRƒ“ƒeƒi‚É’Ç‰Á‚µ‚Ü‚·B"
-    $ƒRƒ“ƒeƒi.Controls.Add($ƒ{ƒ^ƒ“)
+    # ã‚³ãƒ³ãƒ†ãƒŠã«ãƒœã‚¿ãƒ³ã‚’è¿½åŠ 
+    ###Write-Host "ãƒœã‚¿ãƒ³ã‚’ã‚³ãƒ³ãƒ†ãƒŠã«è¿½åŠ ã—ã¾ã™ã€‚"
+    $ã‚³ãƒ³ãƒ†ãƒŠ.Controls.Add($ãƒœã‚¿ãƒ³)
 
-    # ƒ{ƒ^ƒ“ƒIƒuƒWƒFƒNƒg‚ğ•Ô‚·
-    ###Write-Host "ƒ{ƒ^ƒ“‚Ìì¬‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
-    return $ƒ{ƒ^ƒ“
+    # ãƒœã‚¿ãƒ³ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’è¿”ã™
+    ###Write-Host "ãƒœã‚¿ãƒ³ã®ä½œæˆãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
+    return $ãƒœã‚¿ãƒ³
 }
 
-function 00_ƒƒCƒ“‚Éƒ{ƒ^ƒ“‚ğì¬‚·‚é {
+function 00_ãƒ¡ã‚¤ãƒ³ã«ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ {
     param (
-        [System.Windows.Forms.Control]$ƒRƒ“ƒeƒi,          # ƒ{ƒ^ƒ“‚ğ’Ç‰Á‚·‚éƒRƒ“ƒeƒiiƒtƒŒ[ƒ€j
-        [string]$ƒeƒLƒXƒg = "ƒhƒ‰ƒbƒO‚ÅˆÚ“®",              # ƒ{ƒ^ƒ“‚ÌƒeƒLƒXƒg
-        [string]$ƒ{ƒ^ƒ“–¼,                                # ƒ{ƒ^ƒ“–¼
-        [int]$• = 120,                                   # ƒ{ƒ^ƒ“‚Ì•
-        [int]$‚‚³ = 30,                                  # ƒ{ƒ^ƒ“‚Ì‚‚³
-        [int]$XˆÊ’u = 10,                                 # ƒ{ƒ^ƒ“‚ÌXÀ•W
-        [int]$YˆÊ’u = 20,                                 # ƒ{ƒ^ƒ“‚ÌYÀ•W
-        [int]$˜gü = 1,                                   # ƒ{ƒ^ƒ“‚Ì˜güƒTƒCƒY
-        [System.Drawing.Color]$”wŒiF,                    # ƒ{ƒ^ƒ“‚Ì”wŒiFi•K{j
-        [int]$ƒtƒHƒ“ƒgƒTƒCƒY = 10,                        # ƒtƒHƒ“ƒgƒTƒCƒY
-        [scriptblock]$ƒNƒŠƒbƒNƒAƒNƒVƒ‡ƒ“                   # ƒ{ƒ^ƒ“ƒNƒŠƒbƒN‚ÌƒAƒNƒVƒ‡ƒ“
+        [System.Windows.Forms.Control]$ã‚³ãƒ³ãƒ†ãƒŠ,          # ãƒœã‚¿ãƒ³ã‚’è¿½åŠ ã™ã‚‹ã‚³ãƒ³ãƒ†ãƒŠï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ ï¼‰
+        [string]$ãƒ†ã‚­ã‚¹ãƒˆ = "ãƒ‰ãƒ©ãƒƒã‚°ã§ç§»å‹•",              # ãƒœã‚¿ãƒ³ã®ãƒ†ã‚­ã‚¹ãƒˆ
+        [string]$ãƒœã‚¿ãƒ³å,                                # ãƒœã‚¿ãƒ³å
+        [int]$å¹… = 120,                                   # ãƒœã‚¿ãƒ³ã®å¹…
+        [int]$é«˜ã• = 30,                                  # ãƒœã‚¿ãƒ³ã®é«˜ã•
+        [int]$Xä½ç½® = 10,                                 # ãƒœã‚¿ãƒ³ã®Xåº§æ¨™
+        [int]$Yä½ç½® = 20,                                 # ãƒœã‚¿ãƒ³ã®Yåº§æ¨™
+        [int]$æ ç·š = 1,                                   # ãƒœã‚¿ãƒ³ã®æ ç·šã‚µã‚¤ã‚º
+        [System.Drawing.Color]$èƒŒæ™¯è‰²,                    # ãƒœã‚¿ãƒ³ã®èƒŒæ™¯è‰²ï¼ˆå¿…é ˆï¼‰
+        [int]$ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º = 10,                        # ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º
+        [scriptblock]$ã‚¯ãƒªãƒƒã‚¯ã‚¢ã‚¯ã‚·ãƒ§ãƒ³                   # ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æ™‚ã®ã‚¢ã‚¯ã‚·ãƒ§ãƒ³
     )
 
-    $ƒ{ƒ^ƒ“ = New-Object System.Windows.Forms.Button
-    $ƒ{ƒ^ƒ“.Text = $ƒeƒLƒXƒg -replace "`n", [Environment]::NewLine # ‰üs‚ğ”½‰f
-    $ƒ{ƒ^ƒ“.Size = New-Object System.Drawing.Size($•, $‚‚³)
-    $ƒ{ƒ^ƒ“.Location = New-Object System.Drawing.Point($XˆÊ’u, $YˆÊ’u)
-    $ƒ{ƒ^ƒ“.AllowDrop = $false                            # ƒ{ƒ^ƒ“©‘Ì‚Ìƒhƒƒbƒv‚ğ–³Œø‰»
-    $ƒ{ƒ^ƒ“.Name = $ƒ{ƒ^ƒ“–¼                              # ƒ{ƒ^ƒ“‚ÌNameƒvƒƒpƒeƒB‚ğİ’è
-    $ƒ{ƒ^ƒ“.BackColor = $”wŒiF                           # ƒ{ƒ^ƒ“‚Ì”wŒiF‚ğİ’è
-    $ƒ{ƒ^ƒ“.UseVisualStyleBackColor = $false              # BackColor‚ğ—LŒø‚É‚·‚é
-    $ƒ{ƒ^ƒ“.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+    $ãƒœã‚¿ãƒ³ = New-Object System.Windows.Forms.Button
+    $ãƒœã‚¿ãƒ³.Text = $ãƒ†ã‚­ã‚¹ãƒˆ -replace "`n", [Environment]::NewLine # æ”¹è¡Œã‚’åæ˜ 
+    $ãƒœã‚¿ãƒ³.Size = New-Object System.Drawing.Size($å¹…, $é«˜ã•)
+    $ãƒœã‚¿ãƒ³.Location = New-Object System.Drawing.Point($Xä½ç½®, $Yä½ç½®)
+    $ãƒœã‚¿ãƒ³.AllowDrop = $false                            # ãƒœã‚¿ãƒ³è‡ªä½“ã®ãƒ‰ãƒ­ãƒƒãƒ—ã‚’ç„¡åŠ¹åŒ–
+    $ãƒœã‚¿ãƒ³.Name = $ãƒœã‚¿ãƒ³å                              # ãƒœã‚¿ãƒ³ã®Nameãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’è¨­å®š
+    $ãƒœã‚¿ãƒ³.BackColor = $èƒŒæ™¯è‰²                           # ãƒœã‚¿ãƒ³ã®èƒŒæ™¯è‰²ã‚’è¨­å®š
+    $ãƒœã‚¿ãƒ³.UseVisualStyleBackColor = $false              # BackColorã‚’æœ‰åŠ¹ã«ã™ã‚‹
+    $ãƒœã‚¿ãƒ³.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
 
-    ###Write-Host "ƒ{ƒ^ƒ“‚ÌƒtƒHƒ“ƒg‚ğİ’è‚µ‚Ü‚·B"
-    # ƒtƒHƒ“ƒgƒTƒCƒY‚Ìİ’è
-    $ƒ{ƒ^ƒ“.Font = New-Object System.Drawing.Font("Microsoft Sans Serif", $ƒtƒHƒ“ƒgƒTƒCƒY)
+    ###Write-Host "ãƒœã‚¿ãƒ³ã®ãƒ•ã‚©ãƒ³ãƒˆã‚’è¨­å®šã—ã¾ã™ã€‚"
+    # ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºã®è¨­å®š
+    $ãƒœã‚¿ãƒ³.Font = New-Object System.Drawing.Font("Microsoft Sans Serif", $ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º)
 
-    $ƒ{ƒ^ƒ“.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-    $ƒ{ƒ^ƒ“.FlatAppearance.BorderSize = $˜gü
+    $ãƒœã‚¿ãƒ³.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $ãƒœã‚¿ãƒ³.FlatAppearance.BorderSize = $æ ç·š
 
-    # ƒNƒŠƒbƒNƒCƒxƒ“ƒg‚Ì“o˜^
-    $ƒ{ƒ^ƒ“.Add_Click({
+    # ã‚¯ãƒªãƒƒã‚¯ã‚¤ãƒ™ãƒ³ãƒˆã®ç™»éŒ²
+    $ãƒœã‚¿ãƒ³.Add_Click({
         param($sender, $e)
-        ###Write-Host "ClickƒCƒxƒ“ƒg‚ª”­¶‚µ‚Ü‚µ‚½Bƒ{ƒ^ƒ“: $($sender.Name)"
+        ###Write-Host "Clickã‚¤ãƒ™ãƒ³ãƒˆãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚ãƒœã‚¿ãƒ³: $($sender.Name)"
     
         if ($sender.Name -eq "001") {
-            # 001 ‚É‘Î‚·‚éƒAƒNƒVƒ‡ƒ“
-            •\¦-Ô˜gƒ{ƒ^ƒ“–¼ˆê—— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
+            # 001 ã«å¯¾ã™ã‚‹ã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+            è¡¨ç¤º-èµ¤æ ãƒœã‚¿ãƒ³åä¸€è¦§ -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
         } elseif ($sender.Name -eq "002") {
-            # 002 ‚É‘Î‚·‚éƒAƒNƒVƒ‡ƒ“
-        $global:ƒOƒ‹[ƒvƒ‚[ƒh = 1
-        } elseif ($sender.Name -eq "003‰E") {
+            # 002 ã«å¯¾ã™ã‚‹ã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+        $global:ã‚°ãƒ«ãƒ¼ãƒ—ãƒ¢ãƒ¼ãƒ‰ = 1
+        } elseif ($sender.Name -eq "003å³") {
 
 
 
-        @   $ÅŒã‚Ì•¶š = ƒOƒ[ƒoƒ‹•Ï”‚©‚ç”’læ“¾@-ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹ 
-@@@##Write-Host "¶ƒpƒlƒ‹" $ÅŒã‚Ì•¶š
+        ã€€   $æœ€å¾Œã®æ–‡å­— = ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã‹ã‚‰æ•°å€¤å–å¾—ã€€-ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ« 
+ã€€ã€€ã€€##Write-Host "å·¦ãƒ‘ãƒãƒ«" $æœ€å¾Œã®æ–‡å­—
 
 
 
-if ($ÅŒã‚Ì•¶š -ge 2) { 
-    # True‚Ìˆ—“à—ei$”’l‚ª2ˆÈã‚Ìê‡j
-    –îˆó‚ğíœ‚·‚é -ƒtƒH[ƒ€ $ƒƒCƒ“ƒtƒH[ƒ€
-            ƒƒCƒ“ƒtƒŒ[ƒ€‚Ì‰E‚ğ‰Ÿ‚µ‚½ê‡‚Ìˆ—
+if ($æœ€å¾Œã®æ–‡å­— -ge 2) { 
+    # Trueã®å‡¦ç†å†…å®¹ï¼ˆ$æ•°å€¤ãŒ2ä»¥ä¸Šã®å ´åˆï¼‰
+    çŸ¢å°ã‚’å‰Šé™¤ã™ã‚‹ -ãƒ•ã‚©ãƒ¼ãƒ  $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ 
+            ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ã®å³ã‚’æŠ¼ã—ãŸå ´åˆã®å‡¦ç†
 
   
 } else {
-    # False‚Ìˆ—“à—ei$”’l‚ª1ˆÈ‰º‚Ìê‡j
+    # Falseã®å‡¦ç†å†…å®¹ï¼ˆ$æ•°å€¤ãŒ1ä»¥ä¸‹ã®å ´åˆï¼‰
 }
 
-00_–îˆó’Ç‹Lˆ— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
-       } elseif ($sender.Name -eq "004¶") {
+00_çŸ¢å°è¿½è¨˜å‡¦ç† -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
+       } elseif ($sender.Name -eq "004å·¦") {
 
 
-@   $ÅŒã‚Ì•¶š = ƒOƒ[ƒoƒ‹•Ï”‚©‚ç”’læ“¾@-ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹ 
-@@@##Write-Host "¶ƒpƒlƒ‹" $ÅŒã‚Ì•¶š
+ã€€   $æœ€å¾Œã®æ–‡å­— = ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã‹ã‚‰æ•°å€¤å–å¾—ã€€-ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ« 
+ã€€ã€€ã€€##Write-Host "å·¦ãƒ‘ãƒãƒ«" $æœ€å¾Œã®æ–‡å­—
         
-        if ($ÅŒã‚Ì•¶š -le 3) { 
-            # True‚Ìˆ—“à—ei$”’l‚ª3ˆÈ‰º‚Ìê‡j
-            –îˆó‚ğíœ‚·‚é -ƒtƒH[ƒ€ $ƒƒCƒ“ƒtƒH[ƒ€
-             ƒƒCƒ“ƒtƒŒ[ƒ€‚Ì¶‚ğ‰Ÿ‚µ‚½ê‡‚Ìˆ—
+        if ($æœ€å¾Œã®æ–‡å­— -le 3) { 
+            # Trueã®å‡¦ç†å†…å®¹ï¼ˆ$æ•°å€¤ãŒ3ä»¥ä¸‹ã®å ´åˆï¼‰
+            çŸ¢å°ã‚’å‰Šé™¤ã™ã‚‹ -ãƒ•ã‚©ãƒ¼ãƒ  $ãƒ¡ã‚¤ãƒ³ãƒ•ã‚©ãƒ¼ãƒ 
+             ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ã®å·¦ã‚’æŠ¼ã—ãŸå ´åˆã®å‡¦ç†
         } else {
-            # False‚Ìˆ—“à—ei$”’l‚ª4ˆÈã‚Ìê‡j
+            # Falseã®å‡¦ç†å†…å®¹ï¼ˆ$æ•°å€¤ãŒ4ä»¥ä¸Šã®å ´åˆï¼‰
         }
 
-        00_–îˆó’Ç‹Lˆ— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
+        00_çŸ¢å°è¿½è¨˜å‡¦ç† -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
      
 
         }else {
-            ###Write-Host "ƒ{ƒ^ƒ“–¼‚ª001‚Ü‚½‚Í002‚Å‚Í‚ ‚è‚Ü‚¹‚ñBƒAƒNƒVƒ‡ƒ“‚ÍÀs‚³‚ê‚Ü‚¹‚ñB"
+            ###Write-Host "ãƒœã‚¿ãƒ³åãŒ001ã¾ãŸã¯002ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã¯å®Ÿè¡Œã•ã‚Œã¾ã›ã‚“ã€‚"
         }
 
-# ƒƒCƒ“ƒtƒŒ[ƒ€‚ÌPaintƒCƒxƒ“ƒg‚ğİ’è
-00_ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹‚ÌPaintƒCƒxƒ“ƒg‚ğİ’è‚·‚é -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
+# ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ã®Paintã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®š
+00_ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«ã®Paintã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®šã™ã‚‹ -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
 
-# ƒƒCƒ“ƒtƒŒ[ƒ€‚ÌDragEnterƒCƒxƒ“ƒg‚ğİ’è
-00_ƒtƒŒ[ƒ€‚ÌDragEnterƒCƒxƒ“ƒg‚ğİ’è‚·‚é -ƒtƒŒ[ƒ€ $Global:‰Â‹¶ƒpƒlƒ‹
+# ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ã®DragEnterã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®š
+00_ãƒ•ãƒ¬ãƒ¼ãƒ ã®DragEnterã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®šã™ã‚‹ -ãƒ•ãƒ¬ãƒ¼ãƒ  $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
 
-# ƒƒCƒ“ƒtƒŒ[ƒ€‚ÌDragDropƒCƒxƒ“ƒg‚ğİ’è
-00_ƒtƒŒ[ƒ€‚ÌDragDropƒCƒxƒ“ƒg‚ğİ’è‚·‚é -ƒtƒŒ[ƒ€ $Global:‰Â‹¶ƒpƒlƒ‹
+# ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ã®DragDropã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®š
+00_ãƒ•ãƒ¬ãƒ¼ãƒ ã®DragDropã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®šã™ã‚‹ -ãƒ•ãƒ¬ãƒ¼ãƒ  $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
 
 
 
     })
 
-    # ƒRƒ“ƒeƒi‚Éƒ{ƒ^ƒ“‚ğ’Ç‰Á
-    ###Write-Host "ƒ{ƒ^ƒ“‚ğƒRƒ“ƒeƒi‚É’Ç‰Á‚µ‚Ü‚·B"
-    $ƒRƒ“ƒeƒi.Controls.Add($ƒ{ƒ^ƒ“)
+    # ã‚³ãƒ³ãƒ†ãƒŠã«ãƒœã‚¿ãƒ³ã‚’è¿½åŠ 
+    ###Write-Host "ãƒœã‚¿ãƒ³ã‚’ã‚³ãƒ³ãƒ†ãƒŠã«è¿½åŠ ã—ã¾ã™ã€‚"
+    $ã‚³ãƒ³ãƒ†ãƒŠ.Controls.Add($ãƒœã‚¿ãƒ³)
 
-    # ƒ{ƒ^ƒ“ƒIƒuƒWƒFƒNƒg‚ğ•Ô‚·
-    ###Write-Host "ƒ{ƒ^ƒ“‚Ìì¬‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
-    return $ƒ{ƒ^ƒ“
+    # ãƒœã‚¿ãƒ³ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’è¿”ã™
+    ###Write-Host "ãƒœã‚¿ãƒ³ã®ä½œæˆãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
+    return $ãƒœã‚¿ãƒ³
 }
 
 
-function 00_”Ä—pFƒ{ƒ^ƒ“‚ğì¬‚·‚é {
+function 00_æ±ç”¨è‰²ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ {
   param (
-    [System.Windows.Forms.Control]$ƒRƒ“ƒeƒi,     # ƒ{ƒ^ƒ“‚ğ’Ç‰Á‚·‚éƒRƒ“ƒeƒiiƒtƒŒ[ƒ€j
-    [string]$ƒeƒLƒXƒg,                # ƒ{ƒ^ƒ“‚ÌƒeƒLƒXƒg
-    [string]$ƒ{ƒ^ƒ“–¼,                # ƒ{ƒ^ƒ“–¼
-    [int]$•,                     # ƒ{ƒ^ƒ“‚Ì•
-    [int]$‚‚³,                    # ƒ{ƒ^ƒ“‚Ì‚‚³
-    [int]$XˆÊ’u,                   # ƒ{ƒ^ƒ“‚ÌXÀ•W
-    [int]$YˆÊ’u,                   # ƒ{ƒ^ƒ“‚ÌYÀ•W
-    [System.Drawing.Color]$”wŒiF           # ƒ{ƒ^ƒ“‚Ì”wŒiF
+    [System.Windows.Forms.Control]$ã‚³ãƒ³ãƒ†ãƒŠ,     # ãƒœã‚¿ãƒ³ã‚’è¿½åŠ ã™ã‚‹ã‚³ãƒ³ãƒ†ãƒŠï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ ï¼‰
+    [string]$ãƒ†ã‚­ã‚¹ãƒˆ,                # ãƒœã‚¿ãƒ³ã®ãƒ†ã‚­ã‚¹ãƒˆ
+    [string]$ãƒœã‚¿ãƒ³å,                # ãƒœã‚¿ãƒ³å
+    [int]$å¹…,                     # ãƒœã‚¿ãƒ³ã®å¹…
+    [int]$é«˜ã•,                    # ãƒœã‚¿ãƒ³ã®é«˜ã•
+    [int]$Xä½ç½®,                   # ãƒœã‚¿ãƒ³ã®Xåº§æ¨™
+    [int]$Yä½ç½®,                   # ãƒœã‚¿ãƒ³ã®Yåº§æ¨™
+    [System.Drawing.Color]$èƒŒæ™¯è‰²           # ãƒœã‚¿ãƒ³ã®èƒŒæ™¯è‰²
   )
 
-  # ƒ{ƒ^ƒ“‚Ìì¬
-  $Fƒ{ƒ^ƒ“ = New-Object System.Windows.Forms.Button
+  # ãƒœã‚¿ãƒ³ã®ä½œæˆ
+  $è‰²ãƒœã‚¿ãƒ³ = New-Object System.Windows.Forms.Button
 
-  # --- Šî–{ƒŒƒCƒAƒEƒgŠÖ˜A ---
-  $Fƒ{ƒ^ƒ“.Text = $ƒeƒLƒXƒg                                     # ƒ{ƒ^ƒ“ã‚É•\¦‚·‚éƒeƒLƒXƒg
-  $Fƒ{ƒ^ƒ“.Size = New-Object System.Drawing.Size($•, $‚‚³)     # ƒ{ƒ^ƒ“‚Ì•\¦ƒTƒCƒY
-  $Fƒ{ƒ^ƒ“.Location = New-Object System.Drawing.Point($XˆÊ’u, $YˆÊ’u) # ƒ{ƒ^ƒ“‚Ì”z’uÀ•W
-  $Fƒ{ƒ^ƒ“.Name = $ƒ{ƒ^ƒ“–¼                                     # ƒRƒ“ƒgƒ[ƒ‹–¼
-  $Fƒ{ƒ^ƒ“.Font = New-Object System.Drawing.Font("Meiryo UI", 10, [System.Drawing.FontStyle]::Bold)
-  # ª ‘¾š{“Ç‚İ‚â‚·‚¢ƒtƒHƒ“ƒgB×š‚ª‚¢‚¢‚È‚ç Bold ŠO‚µ‚Ä‚àOKB
+  # --- åŸºæœ¬ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆé–¢é€£ ---
+  $è‰²ãƒœã‚¿ãƒ³.Text = $ãƒ†ã‚­ã‚¹ãƒˆ                                     # ãƒœã‚¿ãƒ³ä¸Šã«è¡¨ç¤ºã™ã‚‹ãƒ†ã‚­ã‚¹ãƒˆ
+  $è‰²ãƒœã‚¿ãƒ³.Size = New-Object System.Drawing.Size($å¹…, $é«˜ã•)     # ãƒœã‚¿ãƒ³ã®è¡¨ç¤ºã‚µã‚¤ã‚º
+  $è‰²ãƒœã‚¿ãƒ³.Location = New-Object System.Drawing.Point($Xä½ç½®, $Yä½ç½®) # ãƒœã‚¿ãƒ³ã®é…ç½®åº§æ¨™
+  $è‰²ãƒœã‚¿ãƒ³.Name = $ãƒœã‚¿ãƒ³å                                     # ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«å
+  $è‰²ãƒœã‚¿ãƒ³.Font = New-Object System.Drawing.Font("Meiryo UI", 10, [System.Drawing.FontStyle]::Bold)
+  # â†‘ å¤ªå­—ï¼‹èª­ã¿ã‚„ã™ã„ãƒ•ã‚©ãƒ³ãƒˆã€‚ç´°å­—ãŒã„ã„ãªã‚‰ Bold å¤–ã—ã¦ã‚‚OKã€‚
 
-  # --- ”wŒiF‚Æ•¶šF‚Ì“K—p ---
-  $Fƒ{ƒ^ƒ“.BackColor = $”wŒiF
-  $Fƒ{ƒ^ƒ“.ForeColor = [System.Drawing.Color]::Black             # © •¶šF‚ğ•‚ÉŒÅ’è
-  $Fƒ{ƒ^ƒ“.UseVisualStyleBackColor = $false                      # ƒe[ƒ}ˆË‘¶‚É‚µ‚È‚¢
+  # --- èƒŒæ™¯è‰²ã¨æ–‡å­—è‰²ã®é©ç”¨ ---
+  $è‰²ãƒœã‚¿ãƒ³.BackColor = $èƒŒæ™¯è‰²
+  $è‰²ãƒœã‚¿ãƒ³.ForeColor = [System.Drawing.Color]::Black             # â† æ–‡å­—è‰²ã‚’é»’ã«å›ºå®š
+  $è‰²ãƒœã‚¿ãƒ³.UseVisualStyleBackColor = $false                      # ãƒ†ãƒ¼ãƒä¾å­˜ã«ã—ãªã„
 
-  # --- ƒtƒ‰ƒbƒg&˜gü‚È‚µİ’è ---
-  $Fƒ{ƒ^ƒ“.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat    # ƒtƒ‰ƒbƒg•\¦
-  $Fƒ{ƒ^ƒ“.FlatAppearance.BorderSize = 0                         # ˜gü‚È‚µ
-  $Fƒ{ƒ^ƒ“.FlatAppearance.BorderColor = $”wŒiF                  # ”O‚Ì‚½‚ß“¯F‚Å“h‚è‚Â‚Ô‚µˆµ‚¢
+  # --- ãƒ•ãƒ©ãƒƒãƒˆ&æ ç·šãªã—è¨­å®š ---
+  $è‰²ãƒœã‚¿ãƒ³.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat    # ãƒ•ãƒ©ãƒƒãƒˆè¡¨ç¤º
+  $è‰²ãƒœã‚¿ãƒ³.FlatAppearance.BorderSize = 0                         # æ ç·šãªã—
+  $è‰²ãƒœã‚¿ãƒ³.FlatAppearance.BorderColor = $èƒŒæ™¯è‰²                  # å¿µã®ãŸã‚åŒè‰²ã§å¡—ã‚Šã¤ã¶ã—æ‰±ã„
 
-  # --- ƒzƒo[EƒNƒŠƒbƒN‚ÌF•Ï‰»‚ğ—}~ ---
-  $Fƒ{ƒ^ƒ“.FlatAppearance.MouseOverBackColor = $”wŒiF           # ƒzƒo[‚Ì”wŒiF
-  $Fƒ{ƒ^ƒ“.FlatAppearance.MouseDownBackColor = $”wŒiF           # ƒNƒŠƒbƒN‚Ì”wŒiF
+  # --- ãƒ›ãƒãƒ¼ãƒ»ã‚¯ãƒªãƒƒã‚¯æ™‚ã®è‰²å¤‰åŒ–ã‚’æŠ‘æ­¢ ---
+  $è‰²ãƒœã‚¿ãƒ³.FlatAppearance.MouseOverBackColor = $èƒŒæ™¯è‰²           # ãƒ›ãƒãƒ¼æ™‚ã®èƒŒæ™¯è‰²
+  $è‰²ãƒœã‚¿ãƒ³.FlatAppearance.MouseDownBackColor = $èƒŒæ™¯è‰²           # ã‚¯ãƒªãƒƒã‚¯æ™‚ã®èƒŒæ™¯è‰²
 
-  # --- ƒƒ^î•ñ‚ğTag‚É•Û‘¶iŒ³ƒR[ƒh‚ÌˆÓ}‚ğˆÛj---
-  $Fƒ{ƒ^ƒ“.Tag = @{
-    BackgroundColor = $”wŒiF
+  # --- ãƒ¡ã‚¿æƒ…å ±ã‚’Tagã«ä¿å­˜ï¼ˆå…ƒã‚³ãƒ¼ãƒ‰ã®æ„å›³ã‚’ç¶­æŒï¼‰---
+  $è‰²ãƒœã‚¿ãƒ³.Tag = @{
+    BackgroundColor = $èƒŒæ™¯è‰²
     GroupID = $null
   }
 
-  # --- ƒRƒ“ƒeƒi‚É’Ç‰Á ---
-  $ƒRƒ“ƒeƒi.Controls.Add($Fƒ{ƒ^ƒ“)
+  # --- ã‚³ãƒ³ãƒ†ãƒŠã«è¿½åŠ  ---
+  $ã‚³ãƒ³ãƒ†ãƒŠ.Controls.Add($è‰²ãƒœã‚¿ãƒ³)
 
-  # --- ì‚Á‚½ƒ{ƒ^ƒ“‚ğ•Ô‚·iŒã‚ÅƒCƒxƒ“ƒg‚Æ‚©“\‚é—pj---
-  return $Fƒ{ƒ^ƒ“
+  # --- ä½œã£ãŸãƒœã‚¿ãƒ³ã‚’è¿”ã™ï¼ˆå¾Œã§ã‚¤ãƒ™ãƒ³ãƒˆã¨ã‹è²¼ã‚‹ç”¨ï¼‰---
+  return $è‰²ãƒœã‚¿ãƒ³
 }
 
 
-function 00_”Ä—pFƒ{ƒ^ƒ“‚ÌƒNƒŠƒbƒNƒCƒxƒ“ƒg‚ğİ’è‚·‚é {
+function 00_æ±ç”¨è‰²ãƒœã‚¿ãƒ³ã®ã‚¯ãƒªãƒƒã‚¯ã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®šã™ã‚‹ {
     param(
-        [System.Windows.Forms.Button]$ƒ{ƒ^ƒ“,
-        [int]$¶¬ƒ{ƒ^ƒ“‚Ì‚‚³ = 30,
-        [int]$¶¬ƒ{ƒ^ƒ“‚Ì• = 120,
-        [int]$¶¬ƒ{ƒ^ƒ“‚ÌŠÔŠu = 20,
-        [int]$ˆø” = 0,
-        [string]$ˆ—”Ô†
+        [System.Windows.Forms.Button]$ãƒœã‚¿ãƒ³,
+        [int]$ç”Ÿæˆãƒœã‚¿ãƒ³ã®é«˜ã• = 30,
+        [int]$ç”Ÿæˆãƒœã‚¿ãƒ³ã®å¹… = 120,
+        [int]$ç”Ÿæˆãƒœã‚¿ãƒ³ã®é–“éš” = 20,
+        [int]$å¼•æ•° = 0,
+        [string]$å‡¦ç†ç•ªå·
     )
 
-    # ƒ{ƒ^ƒ“‚ÌTag‚ÉŠÖ˜Aî•ñ‚ğ•Û‘¶
-    $ƒ{ƒ^ƒ“.Tag = @{
-        ƒ{ƒ^ƒ“‚‚³      = $¶¬ƒ{ƒ^ƒ“‚Ì‚‚³
-        ŠÔŠu           = $¶¬ƒ{ƒ^ƒ“‚ÌŠÔŠu
-        •             = $¶¬ƒ{ƒ^ƒ“‚Ì•
-        ˆ—”Ô†       = $ˆ—”Ô†
-        BackgroundColor = $ƒ{ƒ^ƒ“.BackColor
+    # ãƒœã‚¿ãƒ³ã®Tagã«é–¢é€£æƒ…å ±ã‚’ä¿å­˜
+    $ãƒœã‚¿ãƒ³.Tag = @{
+        ãƒœã‚¿ãƒ³é«˜ã•      = $ç”Ÿæˆãƒœã‚¿ãƒ³ã®é«˜ã•
+        é–“éš”           = $ç”Ÿæˆãƒœã‚¿ãƒ³ã®é–“éš”
+        å¹…             = $ç”Ÿæˆãƒœã‚¿ãƒ³ã®å¹…
+        å‡¦ç†ç•ªå·       = $å‡¦ç†ç•ªå·
+        BackgroundColor = $ãƒœã‚¿ãƒ³.BackColor
     }
 
-    # ƒNƒŠƒbƒNƒCƒxƒ“ƒg‚ğİ’è
-    $ƒ{ƒ^ƒ“.Add_Click({
+    # ã‚¯ãƒªãƒƒã‚¯ã‚¤ãƒ™ãƒ³ãƒˆã‚’è¨­å®š
+    $ãƒœã‚¿ãƒ³.Add_Click({
         param($sender, $e)
 
-        # Tag‚©‚ç•K—v‚Èî•ñ‚ğæ“¾
+        # Tagã‹ã‚‰å¿…è¦ãªæƒ…å ±ã‚’å–å¾—
         $tag = $sender.Tag
         $buttonColor = $tag.BackgroundColor
         $buttonText  = $sender.Text
-        $buttonName  = ID‚ğ©“®¶¬‚·‚é
+        $buttonName  = IDã‚’è‡ªå‹•ç”Ÿæˆã™ã‚‹
 
-        $ƒ{ƒ^ƒ“‚‚³ = $tag.ƒ{ƒ^ƒ“‚‚³
-        $ŠÔŠu     = $tag.ŠÔŠu
-        $•       = $tag.•
+        $ãƒœã‚¿ãƒ³é«˜ã• = $tag.ãƒœã‚¿ãƒ³é«˜ã•
+        $é–“éš”     = $tag.é–“éš”
+        $å¹…       = $tag.å¹…
 
-        $ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹ = $Global:‰Â‹¶ƒpƒlƒ‹
-        $global:ƒŒƒCƒ„[ƒpƒlƒ‹ = $ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹
-        $‰ŠúX = [Math]::Floor(($ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹.ClientSize.Width - $•) / 2)
+        $ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« = $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
+        $global:ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ‘ãƒãƒ« = $ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«
+        $åˆæœŸX = [Math]::Floor(($ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.ClientSize.Width - $å¹…) / 2)
 
-        # ‰ŠúYˆÊ’u‚ğŒvZ‚·‚éŠÖ”
+        # åˆæœŸYä½ç½®ã‚’è¨ˆç®—ã™ã‚‹é–¢æ•°
         function Get-NextYPosition {
             param(
                 [System.Windows.Forms.Control]$panel,
-                [int]$‚‚³,
-                [int]$ŠÔŠu
+                [int]$é«˜ã•,
+                [int]$é–“éš”
             )
             if ($panel.Controls.Count -eq 0) {
-                return $ŠÔŠu
+                return $é–“éš”
             }
             else {
-                $Å‰ºƒ{ƒ^ƒ“ = $panel.Controls |
+                $æœ€ä¸‹ãƒœã‚¿ãƒ³ = $panel.Controls |
                     Where-Object { $_ -is [System.Windows.Forms.Button] } |
                     Sort-Object { $_.Location.Y } |
                     Select-Object -Last 1
-                return $Å‰ºƒ{ƒ^ƒ“.Location.Y + $‚‚³ + $ŠÔŠu
+                return $æœ€ä¸‹ãƒœã‚¿ãƒ³.Location.Y + $é«˜ã• + $é–“éš”
             }
         }
 
-        $‰ŠúY = Get-NextYPosition -panel $ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹ -‚‚³ $ƒ{ƒ^ƒ“‚‚³ -ŠÔŠu $ŠÔŠu
+        $åˆæœŸY = Get-NextYPosition -panel $ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« -é«˜ã• $ãƒœã‚¿ãƒ³é«˜ã• -é–“éš” $é–“éš”
 
         switch ($buttonText) {
-            "ƒ‹[ƒv" {
-                # ƒOƒ‹[ƒvID‚ğæ“¾EXV
-                $currentGroupID = $global:‰©Fƒ{ƒ^ƒ“ƒOƒ‹[ƒvƒJƒEƒ“ƒ^
-                $global:‰©Fƒ{ƒ^ƒ“ƒOƒ‹[ƒvƒJƒEƒ“ƒ^++
+            "ãƒ«ãƒ¼ãƒ—" {
+                # ã‚°ãƒ«ãƒ¼ãƒ—IDã‚’å–å¾—ãƒ»æ›´æ–°
+                $currentGroupID = $global:é»„è‰²ãƒœã‚¿ãƒ³ã‚°ãƒ«ãƒ¼ãƒ—ã‚«ã‚¦ãƒ³ã‚¿
+                $global:é»„è‰²ãƒœã‚¿ãƒ³ã‚°ãƒ«ãƒ¼ãƒ—ã‚«ã‚¦ãƒ³ã‚¿++
 
-                # ŠJnƒ{ƒ^ƒ“‚Ìì¬
-                $ƒ{ƒ^ƒ“1 = 00_ƒ{ƒ^ƒ“‚ğì¬‚·‚é -ƒRƒ“ƒeƒi $ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹ -ƒeƒLƒXƒg "$buttonText ŠJn" -ƒ{ƒ^ƒ“–¼ "$buttonName-1" -• $• -‚‚³ $ƒ{ƒ^ƒ“‚‚³ -XˆÊ’u $‰ŠúX -YˆÊ’u $‰ŠúY -˜gü 1 -”wŒiF $buttonColor -ƒhƒ‰ƒbƒO‰Â”\ $true@-ƒ{ƒ^ƒ“ƒ^ƒCƒv "ƒm[ƒh" -ˆ—”Ô† $tag.ˆ—”Ô†
-                $ƒ{ƒ^ƒ“1.Tag.GroupID = $currentGroupID
-                $global:ƒ{ƒ^ƒ“ƒJƒEƒ“ƒ^++
+                # é–‹å§‹ãƒœã‚¿ãƒ³ã®ä½œæˆ
+                $ãƒœã‚¿ãƒ³1 = 00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ -ã‚³ãƒ³ãƒ†ãƒŠ $ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« -ãƒ†ã‚­ã‚¹ãƒˆ "$buttonText é–‹å§‹" -ãƒœã‚¿ãƒ³å "$buttonName-1" -å¹… $å¹… -é«˜ã• $ãƒœã‚¿ãƒ³é«˜ã• -Xä½ç½® $åˆæœŸX -Yä½ç½® $åˆæœŸY -æ ç·š 1 -èƒŒæ™¯è‰² $buttonColor -ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ $trueã€€-ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ— "ãƒãƒ¼ãƒ‰" -å‡¦ç†ç•ªå· $tag.å‡¦ç†ç•ªå·
+                $ãƒœã‚¿ãƒ³1.Tag.GroupID = $currentGroupID
+                $global:ãƒœã‚¿ãƒ³ã‚«ã‚¦ãƒ³ã‚¿++
 
-                # I—¹ƒ{ƒ^ƒ“‚Ìì¬
-                $‰ŠúY += $ƒ{ƒ^ƒ“‚‚³ + $ŠÔŠu
-                $ƒ{ƒ^ƒ“2 = 00_ƒ{ƒ^ƒ“‚ğì¬‚·‚é -ƒRƒ“ƒeƒi $ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹ -ƒeƒLƒXƒg "$buttonText I—¹" -ƒ{ƒ^ƒ“–¼ "$buttonName-2" -• $• -‚‚³ $ƒ{ƒ^ƒ“‚‚³ -XˆÊ’u $‰ŠúX -YˆÊ’u $‰ŠúY -˜gü 1 -”wŒiF $buttonColor -ƒhƒ‰ƒbƒO‰Â”\ $true@-ƒ{ƒ^ƒ“ƒ^ƒCƒv "ƒm[ƒh" -ˆ—”Ô† $tag.ˆ—”Ô†
-                00_•¶š—ñˆ—“à—e -ƒ{ƒ^ƒ“–¼ $buttonName -ˆ—”Ô† $tag.ˆ—”Ô†
-                $ƒ{ƒ^ƒ“2.Tag.GroupID = $currentGroupID
-                $global:ƒ{ƒ^ƒ“ƒJƒEƒ“ƒ^++
+                # çµ‚äº†ãƒœã‚¿ãƒ³ã®ä½œæˆ
+                $åˆæœŸY += $ãƒœã‚¿ãƒ³é«˜ã• + $é–“éš”
+                $ãƒœã‚¿ãƒ³2 = 00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ -ã‚³ãƒ³ãƒ†ãƒŠ $ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« -ãƒ†ã‚­ã‚¹ãƒˆ "$buttonText çµ‚äº†" -ãƒœã‚¿ãƒ³å "$buttonName-2" -å¹… $å¹… -é«˜ã• $ãƒœã‚¿ãƒ³é«˜ã• -Xä½ç½® $åˆæœŸX -Yä½ç½® $åˆæœŸY -æ ç·š 1 -èƒŒæ™¯è‰² $buttonColor -ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ $trueã€€-ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ— "ãƒãƒ¼ãƒ‰" -å‡¦ç†ç•ªå· $tag.å‡¦ç†ç•ªå·
+                00_æ–‡å­—åˆ—å‡¦ç†å†…å®¹ -ãƒœã‚¿ãƒ³å $buttonName -å‡¦ç†ç•ªå· $tag.å‡¦ç†ç•ªå·
+                $ãƒœã‚¿ãƒ³2.Tag.GroupID = $currentGroupID
+                $global:ãƒœã‚¿ãƒ³ã‚«ã‚¦ãƒ³ã‚¿++
             }
-            "ğŒ•ªŠò" {
-                # ƒOƒ‹[ƒvID‚ğæ“¾EXV
-                $currentGroupID = $global:—ÎFƒ{ƒ^ƒ“ƒOƒ‹[ƒvƒJƒEƒ“ƒ^
-                $global:—ÎFƒ{ƒ^ƒ“ƒOƒ‹[ƒvƒJƒEƒ“ƒ^++
+            "æ¡ä»¶åˆ†å²" {
+                # ã‚°ãƒ«ãƒ¼ãƒ—IDã‚’å–å¾—ãƒ»æ›´æ–°
+                $currentGroupID = $global:ç·‘è‰²ãƒœã‚¿ãƒ³ã‚°ãƒ«ãƒ¼ãƒ—ã‚«ã‚¦ãƒ³ã‚¿
+                $global:ç·‘è‰²ãƒœã‚¿ãƒ³ã‚°ãƒ«ãƒ¼ãƒ—ã‚«ã‚¦ãƒ³ã‚¿++
 
-                # ŠJnƒ{ƒ^ƒ“‚Ìì¬
-                $ƒ{ƒ^ƒ“1 = 00_ƒ{ƒ^ƒ“‚ğì¬‚·‚é -ƒRƒ“ƒeƒi $ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹ -ƒeƒLƒXƒg "$buttonText ŠJn" -ƒ{ƒ^ƒ“–¼ "$buttonName-1" -• $• -‚‚³ $ƒ{ƒ^ƒ“‚‚³ -XˆÊ’u $‰ŠúX -YˆÊ’u $‰ŠúY -˜gü 1 -”wŒiF $buttonColor -ƒhƒ‰ƒbƒO‰Â”\ $true@-ƒ{ƒ^ƒ“ƒ^ƒCƒv "ƒm[ƒh" -ˆ—”Ô† $tag.ˆ—”Ô†
-                $ƒ{ƒ^ƒ“1.Tag.GroupID = $currentGroupID
-                $global:ƒ{ƒ^ƒ“ƒJƒEƒ“ƒ^++
+                # é–‹å§‹ãƒœã‚¿ãƒ³ã®ä½œæˆ
+                $ãƒœã‚¿ãƒ³1 = 00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ -ã‚³ãƒ³ãƒ†ãƒŠ $ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« -ãƒ†ã‚­ã‚¹ãƒˆ "$buttonText é–‹å§‹" -ãƒœã‚¿ãƒ³å "$buttonName-1" -å¹… $å¹… -é«˜ã• $ãƒœã‚¿ãƒ³é«˜ã• -Xä½ç½® $åˆæœŸX -Yä½ç½® $åˆæœŸY -æ ç·š 1 -èƒŒæ™¯è‰² $buttonColor -ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ $trueã€€-ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ— "ãƒãƒ¼ãƒ‰" -å‡¦ç†ç•ªå· $tag.å‡¦ç†ç•ªå·
+                $ãƒœã‚¿ãƒ³1.Tag.GroupID = $currentGroupID
+                $global:ãƒœã‚¿ãƒ³ã‚«ã‚¦ãƒ³ã‚¿++
 
-                # ’†ŠÔƒ{ƒ^ƒ“iƒOƒŒ[ƒ‰ƒCƒ“j‚Ìì¬
-                $‰ŠúY += $ƒ{ƒ^ƒ“‚‚³ + $ŠÔŠu
-                $ƒ{ƒ^ƒ“’†ŠÔ = 00_ƒ{ƒ^ƒ“‚ğì¬‚·‚é -ƒRƒ“ƒeƒi $ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹ -ƒeƒLƒXƒg "$buttonText ’†ŠÔ" -ƒ{ƒ^ƒ“–¼ "$buttonName-2" -• $• -‚‚³ 1 -XˆÊ’u $‰ŠúX -YˆÊ’u ($‰ŠúY - 10) -˜gü 1 -”wŒiF ([System.Drawing.Color]::Gray) -ƒhƒ‰ƒbƒO‰Â”\ $false@-ƒ{ƒ^ƒ“ƒ^ƒCƒv "ƒm[ƒh" -ˆ—”Ô† $tag.ˆ—”Ô†
+                # ä¸­é–“ãƒœã‚¿ãƒ³ï¼ˆã‚°ãƒ¬ãƒ¼ãƒ©ã‚¤ãƒ³ï¼‰ã®ä½œæˆ
+                $åˆæœŸY += $ãƒœã‚¿ãƒ³é«˜ã• + $é–“éš”
+                $ãƒœã‚¿ãƒ³ä¸­é–“ = 00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ -ã‚³ãƒ³ãƒ†ãƒŠ $ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« -ãƒ†ã‚­ã‚¹ãƒˆ "$buttonText ä¸­é–“" -ãƒœã‚¿ãƒ³å "$buttonName-2" -å¹… $å¹… -é«˜ã• 1 -Xä½ç½® $åˆæœŸX -Yä½ç½® ($åˆæœŸY - 10) -æ ç·š 1 -èƒŒæ™¯è‰² ([System.Drawing.Color]::Gray) -ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ $falseã€€-ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ— "ãƒãƒ¼ãƒ‰" -å‡¦ç†ç•ªå· $tag.å‡¦ç†ç•ªå·
 
-                # I—¹ƒ{ƒ^ƒ“‚Ìì¬
-                $ƒ{ƒ^ƒ“2 = 00_ƒ{ƒ^ƒ“‚ğì¬‚·‚é -ƒRƒ“ƒeƒi $ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹ -ƒeƒLƒXƒg "$buttonText I—¹" -ƒ{ƒ^ƒ“–¼ "$buttonName-3" -• $• -‚‚³ $ƒ{ƒ^ƒ“‚‚³ -XˆÊ’u $‰ŠúX -YˆÊ’u $‰ŠúY -˜gü 1 -”wŒiF $buttonColor -ƒhƒ‰ƒbƒO‰Â”\ $true@-ƒ{ƒ^ƒ“ƒ^ƒCƒv "ƒm[ƒh" -ˆ—”Ô† $tag.ˆ—”Ô†
-                00_•¶š—ñˆ—“à—e -ƒ{ƒ^ƒ“–¼ $buttonName -ˆ—”Ô† $tag.ˆ—”Ô†
-                $ƒ{ƒ^ƒ“2.Tag.GroupID = $currentGroupID
-                $global:ƒ{ƒ^ƒ“ƒJƒEƒ“ƒ^++
+                # çµ‚äº†ãƒœã‚¿ãƒ³ã®ä½œæˆ
+                $ãƒœã‚¿ãƒ³2 = 00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ -ã‚³ãƒ³ãƒ†ãƒŠ $ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« -ãƒ†ã‚­ã‚¹ãƒˆ "$buttonText çµ‚äº†" -ãƒœã‚¿ãƒ³å "$buttonName-3" -å¹… $å¹… -é«˜ã• $ãƒœã‚¿ãƒ³é«˜ã• -Xä½ç½® $åˆæœŸX -Yä½ç½® $åˆæœŸY -æ ç·š 1 -èƒŒæ™¯è‰² $buttonColor -ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ $trueã€€-ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ— "ãƒãƒ¼ãƒ‰" -å‡¦ç†ç•ªå· $tag.å‡¦ç†ç•ªå·
+                00_æ–‡å­—åˆ—å‡¦ç†å†…å®¹ -ãƒœã‚¿ãƒ³å $buttonName -å‡¦ç†ç•ªå· $tag.å‡¦ç†ç•ªå·
+                $ãƒœã‚¿ãƒ³2.Tag.GroupID = $currentGroupID
+                $global:ãƒœã‚¿ãƒ³ã‚«ã‚¦ãƒ³ã‚¿++
             }
             default {
 
-                # ‡ŸÀsƒ{ƒ^ƒ“‚Ìì¬
-                $Vƒ{ƒ^ƒ“ = 00_ƒ{ƒ^ƒ“‚ğì¬‚·‚é -ƒRƒ“ƒeƒi $ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹ -ƒeƒLƒXƒg $buttonText -ƒ{ƒ^ƒ“–¼ "$buttonName-1" -• $• -‚‚³ $ƒ{ƒ^ƒ“‚‚³ -XˆÊ’u $‰ŠúX -YˆÊ’u $‰ŠúY -˜gü 1 -”wŒiF $buttonColor -ƒhƒ‰ƒbƒO‰Â”\ $true@-ƒ{ƒ^ƒ“ƒ^ƒCƒv "ƒm[ƒh" -ˆ—”Ô† $tag.ˆ—”Ô†
-                00_•¶š—ñˆ—“à—e -ƒ{ƒ^ƒ“–¼ $buttonName -ˆ—”Ô† $tag.ˆ—”Ô† -ƒ{ƒ^ƒ“ $Vƒ{ƒ^ƒ“
+                # é †æ¬¡å®Ÿè¡Œãƒœã‚¿ãƒ³ã®ä½œæˆ
+                $æ–°ãƒœã‚¿ãƒ³ = 00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ -ã‚³ãƒ³ãƒ†ãƒŠ $ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« -ãƒ†ã‚­ã‚¹ãƒˆ $buttonText -ãƒœã‚¿ãƒ³å "$buttonName-1" -å¹… $å¹… -é«˜ã• $ãƒœã‚¿ãƒ³é«˜ã• -Xä½ç½® $åˆæœŸX -Yä½ç½® $åˆæœŸY -æ ç·š 1 -èƒŒæ™¯è‰² $buttonColor -ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ $trueã€€-ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ— "ãƒãƒ¼ãƒ‰" -å‡¦ç†ç•ªå· $tag.å‡¦ç†ç•ªå·
+                00_æ–‡å­—åˆ—å‡¦ç†å†…å®¹ -ãƒœã‚¿ãƒ³å $buttonName -å‡¦ç†ç•ªå· $tag.å‡¦ç†ç•ªå· -ãƒœã‚¿ãƒ³ $æ–°ãƒœã‚¿ãƒ³
 
-                #$currentIndex = Get-ButtonIndex -‘ÎÛƒ{ƒ^ƒ“ $Vƒ{ƒ^ƒ“ -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $ƒƒCƒ“ƒtƒŒ[ƒ€ƒpƒlƒ‹
-                $global:ƒ{ƒ^ƒ“ƒJƒEƒ“ƒ^++
+                #$currentIndex = Get-ButtonIndex -å¯¾è±¡ãƒœã‚¿ãƒ³ $æ–°ãƒœã‚¿ãƒ³ -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«
+                $global:ãƒœã‚¿ãƒ³ã‚«ã‚¦ãƒ³ã‚¿++
 
             }
         }
 
-        # –îˆó‚Ì’Ç‹Lˆ—
-        00_–îˆó’Ç‹Lˆ— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹
+        # çŸ¢å°ã®è¿½è¨˜å‡¦ç†
+        00_çŸ¢å°è¿½è¨˜å‡¦ç† -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ«
     })
 }
 
-# JSONƒtƒ@ƒCƒ‹‚©‚çw’èƒL[‚Ì’l‚ğæ“¾‚·‚éŠÖ”
-function æ“¾-JSON’l {
+# JSONãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰æŒ‡å®šã‚­ãƒ¼ã®å€¤ã‚’å–å¾—ã™ã‚‹é–¢æ•°
+function å–å¾—-JSONå€¤ {
     param (
-        [string]$jsonFilePath, # JSONƒtƒ@ƒCƒ‹‚ÌƒpƒX
-        [string]$keyName       # æ“¾‚µ‚½‚¢ƒL[–¼
+        [string]$jsonFilePath, # JSONãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹
+        [string]$keyName       # å–å¾—ã—ãŸã„ã‚­ãƒ¼å
     )
-    # ƒtƒ@ƒCƒ‹‚ğŠm”F
+    # ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç¢ºèª
     if (-Not (Test-Path $jsonFilePath)) {
-        throw "w’è‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: $jsonFilePath"
+        throw "æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: $jsonFilePath"
     }
 
-    # JSONƒtƒ@ƒCƒ‹‚ğ“Ç‚İ‚İ
+    # JSONãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã¿
     $jsonContent = Get-Content -Path $jsonFilePath | ConvertFrom-Json
 
-    # w’è‚³‚ê‚½ƒL[‚Ì’l‚ğæ“¾
+    # æŒ‡å®šã•ã‚ŒãŸã‚­ãƒ¼ã®å€¤ã‚’å–å¾—
     if ($jsonContent.PSObject.Properties[$keyName]) {
         return $jsonContent.$keyName
     } else {
-        throw "w’è‚³‚ê‚½ƒL[‚ªJSON‚É‘¶İ‚µ‚Ü‚¹‚ñ: $keyName"
+        throw "æŒ‡å®šã•ã‚ŒãŸã‚­ãƒ¼ãŒJSONã«å­˜åœ¨ã—ã¾ã›ã‚“: $keyName"
     }
 }
 
-function ƒtƒH[ƒ€‚Éƒ‰ƒxƒ‹’Ç‰Á {
+function ãƒ•ã‚©ãƒ¼ãƒ ã«ãƒ©ãƒ™ãƒ«è¿½åŠ  {
     param (
         [Parameter(Mandatory)]
-        [System.Windows.Forms.Form]$ƒtƒH[ƒ€, # ƒtƒH[ƒ€ƒIƒuƒWƒFƒNƒg
+        [System.Windows.Forms.Form]$ãƒ•ã‚©ãƒ¼ãƒ , # ãƒ•ã‚©ãƒ¼ãƒ ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
         
         [Parameter(Mandatory)]
-        [string]$ƒeƒLƒXƒg, # ƒ‰ƒxƒ‹‚É•\¦‚·‚éƒeƒLƒXƒg
+        [string]$ãƒ†ã‚­ã‚¹ãƒˆ, # ãƒ©ãƒ™ãƒ«ã«è¡¨ç¤ºã™ã‚‹ãƒ†ã‚­ã‚¹ãƒˆ
         
         [Parameter(Mandatory)]
-        [int]$XÀ•W, # ƒ‰ƒxƒ‹‚ÌXÀ•W
+        [int]$Xåº§æ¨™, # ãƒ©ãƒ™ãƒ«ã®Xåº§æ¨™
         
         [Parameter(Mandatory)]
-        [int]$YÀ•W  # ƒ‰ƒxƒ‹‚ÌYÀ•W
+        [int]$Yåº§æ¨™  # ãƒ©ãƒ™ãƒ«ã®Yåº§æ¨™
     )
-    # ƒ‰ƒxƒ‹‚ğì¬
-    $ƒ‰ƒxƒ‹ = New-Object System.Windows.Forms.Label
-    $ƒ‰ƒxƒ‹.Text = $ƒeƒLƒXƒg
-    $ƒ‰ƒxƒ‹.Location = New-Object System.Drawing.Point($XÀ•W, $YÀ•W)
-    #$ƒ‰ƒxƒ‹.AutoSize = $true
+    # ãƒ©ãƒ™ãƒ«ã‚’ä½œæˆ
+    $ãƒ©ãƒ™ãƒ« = New-Object System.Windows.Forms.Label
+    $ãƒ©ãƒ™ãƒ«.Text = $ãƒ†ã‚­ã‚¹ãƒˆ
+    $ãƒ©ãƒ™ãƒ«.Location = New-Object System.Drawing.Point($Xåº§æ¨™, $Yåº§æ¨™)
+    #$ãƒ©ãƒ™ãƒ«.AutoSize = $true
 
-    # ƒtƒHƒ“ƒgƒXƒ^ƒCƒ‹‚ğİ’èiŒ^ƒLƒƒƒXƒg‚ğ’Ç‰Áj
-    $ƒtƒHƒ“ƒgƒXƒ^ƒCƒ‹ = [System.Drawing.FontStyle]([System.Drawing.FontStyle]::Bold)
-    $ƒ‰ƒxƒ‹.Font = New-Object System.Drawing.Font("Arial", 10, $ƒtƒHƒ“ƒgƒXƒ^ƒCƒ‹)
+    # ãƒ•ã‚©ãƒ³ãƒˆã‚¹ã‚¿ã‚¤ãƒ«ã‚’è¨­å®šï¼ˆå‹ã‚­ãƒ£ã‚¹ãƒˆã‚’è¿½åŠ ï¼‰
+    $ãƒ•ã‚©ãƒ³ãƒˆã‚¹ã‚¿ã‚¤ãƒ« = [System.Drawing.FontStyle]([System.Drawing.FontStyle]::Bold)
+    $ãƒ©ãƒ™ãƒ«.Font = New-Object System.Drawing.Font("Arial", 10, $ãƒ•ã‚©ãƒ³ãƒˆã‚¹ã‚¿ã‚¤ãƒ«)
 
-    # ƒeƒLƒXƒg‚ÌF‚ğİ’è
-    $ƒ‰ƒxƒ‹.ForeColor = [System.Drawing.Color]::black
+    # ãƒ†ã‚­ã‚¹ãƒˆã®è‰²ã‚’è¨­å®š
+    $ãƒ©ãƒ™ãƒ«.ForeColor = [System.Drawing.Color]::black
 
-    # ”wŒiF‚ğİ’èi“§–¾‚É‚·‚éê‡‚Í•s—vj
-    #$ƒ‰ƒxƒ‹.BackColor = [System.Drawing.Color]::LightYellow
+    # èƒŒæ™¯è‰²ã‚’è¨­å®šï¼ˆé€æ˜ã«ã™ã‚‹å ´åˆã¯ä¸è¦ï¼‰
+    #$ãƒ©ãƒ™ãƒ«.BackColor = [System.Drawing.Color]::LightYellow
 
-    # ƒeƒLƒXƒg‚Ì”z’u‚ğİ’è
-    $ƒ‰ƒxƒ‹.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+    # ãƒ†ã‚­ã‚¹ãƒˆã®é…ç½®ã‚’è¨­å®š
+    $ãƒ©ãƒ™ãƒ«.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
 
-    # ƒtƒH[ƒ€‚Éƒ‰ƒxƒ‹‚ğ’Ç‰Á
-    $ƒtƒH[ƒ€.Controls.Add($ƒ‰ƒxƒ‹)
+    # ãƒ•ã‚©ãƒ¼ãƒ ã«ãƒ©ãƒ™ãƒ«ã‚’è¿½åŠ 
+    $ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($ãƒ©ãƒ™ãƒ«)
 }
 
-# ƒ{ƒ^ƒ“‚ÌƒCƒ“ƒfƒbƒNƒX‚ğæ“¾‚·‚éŠÖ”
+# ãƒœã‚¿ãƒ³ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’å–å¾—ã™ã‚‹é–¢æ•°
 function Get-ButtonIndex {
     param (
-        [System.Windows.Forms.Button]$‘ÎÛƒ{ƒ^ƒ“,
-        [System.Windows.Forms.Panel]$ƒtƒŒ[ƒ€ƒpƒlƒ‹
+        [System.Windows.Forms.Button]$å¯¾è±¡ãƒœã‚¿ãƒ³,
+        [System.Windows.Forms.Panel]$ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«
     )
 
-    # ƒtƒŒ[ƒ€“à‚Ìƒ{ƒ^ƒ“‚ğYÀ•W‚Åƒ\[ƒg
-    $sortedButtons = $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Controls |
+    # ãƒ•ãƒ¬ãƒ¼ãƒ å†…ã®ãƒœã‚¿ãƒ³ã‚’Yåº§æ¨™ã§ã‚½ãƒ¼ãƒˆ
+    $sortedButtons = $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Controls |
                      Where-Object { $_ -is [System.Windows.Forms.Button] } |
                      Sort-Object { $_.Location.Y }
 
-    # ƒCƒ“ƒfƒbƒNƒX‚ğæ“¾
+    # ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’å–å¾—
     $index = 0
     foreach ($btn in $sortedButtons) {
-        if ($btn -eq $‘ÎÛƒ{ƒ^ƒ“) {
+        if ($btn -eq $å¯¾è±¡ãƒœã‚¿ãƒ³) {
             return $index
         }
         $index++
     }
 
-    # ƒ{ƒ^ƒ“‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡‚Í-1‚ğ•Ô‚·
+    # ãƒœã‚¿ãƒ³ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯-1ã‚’è¿”ã™
     return -1
 }
 
-function “K—p-Ô˜g‚É‹²‚Ü‚ê‚½ƒ{ƒ^ƒ“ƒXƒ^ƒCƒ‹ {
+function é©ç”¨-èµ¤æ ã«æŒŸã¾ã‚ŒãŸãƒœã‚¿ãƒ³ã‚¹ã‚¿ã‚¤ãƒ« {
     param (
-        [System.Windows.Forms.Panel]$ƒtƒŒ[ƒ€ƒpƒlƒ‹
+        [System.Windows.Forms.Panel]$ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«
     )
-          #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show($ƒtƒŒ[ƒ€ƒpƒlƒ‹.Name, "ƒ^ƒCƒgƒ‹")
-    # ƒRƒ“ƒgƒ[ƒ‹‚ğƒfƒoƒbƒOo—Í
-    ###Write-Host "=== ƒfƒoƒbƒO: ƒRƒ“ƒgƒ[ƒ‹ˆê—— ==="
-    foreach ($control in $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Controls) {
-        ##Write-Host "ƒRƒ“ƒgƒ[ƒ‹: $($control.GetType().Name), Text: $($control.Text)"
+          #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show($ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Name, "ã‚¿ã‚¤ãƒˆãƒ«")
+    # ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚’ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›
+    ###Write-Host "=== ãƒ‡ãƒãƒƒã‚°: ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ä¸€è¦§ ==="
+    foreach ($control in $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Controls) {
+        ##Write-Host "ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«: $($control.GetType().Name), Text: $($control.Text)"
     }
     ###Write-Host "==============================="
 
-    # ƒtƒŒ[ƒ€“à‚Ìƒ{ƒ^ƒ“‚ğæ“¾‚µ‚Äƒ\[ƒg
-    $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“ = $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Controls |
+    # ãƒ•ãƒ¬ãƒ¼ãƒ å†…ã®ãƒœã‚¿ãƒ³ã‚’å–å¾—ã—ã¦ã‚½ãƒ¼ãƒˆ
+    $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³ = $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Controls |
                         Where-Object { $_ -is [System.Windows.Forms.Button] } |
                         Sort-Object { $_.Location.Y }
 
-    #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show($ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“.Count, "ƒ^ƒCƒgƒ‹")
+    #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show($ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³.Count, "ã‚¿ã‚¤ãƒˆãƒ«")
 
-    # ƒfƒoƒbƒO: ƒ{ƒ^ƒ“î•ñ‚ğo—Í
-    ###Write-Host "=== ƒfƒoƒbƒO: ƒ{ƒ^ƒ“î•ñ ==="
-    foreach ($ƒ{ƒ^ƒ“ in $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“) {
-        $˜gF = if ($ƒ{ƒ^ƒ“.FlatStyle -eq 'Flat') {
-            $ƒ{ƒ^ƒ“.FlatAppearance.BorderColor
-                      #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("q", "ƒ^ƒCƒgƒ‹")
+    # ãƒ‡ãƒãƒƒã‚°: ãƒœã‚¿ãƒ³æƒ…å ±ã‚’å‡ºåŠ›
+    ###Write-Host "=== ãƒ‡ãƒãƒƒã‚°: ãƒœã‚¿ãƒ³æƒ…å ± ==="
+    foreach ($ãƒœã‚¿ãƒ³ in $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³) {
+        $æ è‰² = if ($ãƒœã‚¿ãƒ³.FlatStyle -eq 'Flat') {
+            $ãƒœã‚¿ãƒ³.FlatAppearance.BorderColor
+                      #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("q", "ã‚¿ã‚¤ãƒˆãƒ«")
         } else {
-            "–¢İ’è"
+            "æœªè¨­å®š"
 
         }
-        ###Write-Host "ƒ{ƒ^ƒ“: $($ƒ{ƒ^ƒ“.Text), ˜g‚ÌF: $˜gF, FlatStyle: $($ƒ{ƒ^ƒ“.FlatStyle), Location: $($ƒ{ƒ^ƒ“.Location)"
+        ###Write-Host "ãƒœã‚¿ãƒ³: $($ãƒœã‚¿ãƒ³.Text), æ ã®è‰²: $æ è‰², FlatStyle: $($ãƒœã‚¿ãƒ³.FlatStyle), Location: $($ãƒœã‚¿ãƒ³.Location)"
     }
     ###Write-Host "==========================="
 
-    # Ô˜g‚Ìƒ{ƒ^ƒ“‚ÌƒCƒ“ƒfƒbƒNƒX‚ğ’T‚·
-    $Ô˜gƒ{ƒ^ƒ“ƒCƒ“ƒfƒbƒNƒX = @()
-    for ($i = 0; $i -lt $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“.Count; $i++) {
-        $ƒ{ƒ^ƒ“ = $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$i]
-        # ƒfƒoƒbƒO: F”äŠr‚ÌŒ‹‰Ê‚ğÚ×‚Éo—Í
-        if ($ƒ{ƒ^ƒ“.FlatStyle -eq 'Flat') {
-            $Œ»İ‚ÌF = $ƒ{ƒ^ƒ“.FlatAppearance.BorderColor
-            ###Write-Host "ƒfƒoƒbƒO: ƒ{ƒ^ƒ“[$($ƒ{ƒ^ƒ“.Text)] ‚Ì˜gF (ARGB): $($Œ»İ‚ÌF.ToArgb())"
+    # èµ¤æ ã®ãƒœã‚¿ãƒ³ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’æ¢ã™
+    $èµ¤æ ãƒœã‚¿ãƒ³ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ = @()
+    for ($i = 0; $i -lt $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³.Count; $i++) {
+        $ãƒœã‚¿ãƒ³ = $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$i]
+        # ãƒ‡ãƒãƒƒã‚°: è‰²æ¯”è¼ƒã®çµæœã‚’è©³ç´°ã«å‡ºåŠ›
+        if ($ãƒœã‚¿ãƒ³.FlatStyle -eq 'Flat') {
+            $ç¾åœ¨ã®è‰² = $ãƒœã‚¿ãƒ³.FlatAppearance.BorderColor
+            ###Write-Host "ãƒ‡ãƒãƒƒã‚°: ãƒœã‚¿ãƒ³[$($ãƒœã‚¿ãƒ³.Text)] ã®æ è‰² (ARGB): $($ç¾åœ¨ã®è‰².ToArgb())"
 
-            if ($Œ»İ‚ÌF.ToArgb() -eq [System.Drawing.Color]::Red.ToArgb()) {
-                ###Write-Host "Ô˜gƒ{ƒ^ƒ“ŒŸo: $($ƒ{ƒ^ƒ“.Text) (ƒCƒ“ƒfƒbƒNƒX: $i)"
-                $Ô˜gƒ{ƒ^ƒ“ƒCƒ“ƒfƒbƒNƒX += $i
+            if ($ç¾åœ¨ã®è‰².ToArgb() -eq [System.Drawing.Color]::Red.ToArgb()) {
+                ###Write-Host "èµ¤æ ãƒœã‚¿ãƒ³æ¤œå‡º: $($ãƒœã‚¿ãƒ³.Text) (ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹: $i)"
+                $èµ¤æ ãƒœã‚¿ãƒ³ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ += $i
             }
         }
     }
 
-    # Ô˜gƒ{ƒ^ƒ“‚ª2‚ÂˆÈã‚ ‚éê‡‚Éˆ—‚ğÀs
-    if ($Ô˜gƒ{ƒ^ƒ“ƒCƒ“ƒfƒbƒNƒX.Count -ge 2) {
-        $ŠJnƒCƒ“ƒfƒbƒNƒX = $Ô˜gƒ{ƒ^ƒ“ƒCƒ“ƒfƒbƒNƒX[0]
-        $I—¹ƒCƒ“ƒfƒbƒNƒX = $Ô˜gƒ{ƒ^ƒ“ƒCƒ“ƒfƒbƒNƒX[-1]
-          #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("aka2izyo", "ƒ^ƒCƒgƒ‹")
-        # Ô˜g‚É‹²‚Ü‚ê‚½ƒ{ƒ^ƒ“‚ÉƒXƒ^ƒCƒ‹‚ğ“K—p
-        ###Write-Host "Ô˜g‚É‹²‚Ü‚ê‚½ƒ{ƒ^ƒ“:"
-        for ($i = $ŠJnƒCƒ“ƒfƒbƒNƒX + 1; $i -lt $I—¹ƒCƒ“ƒfƒbƒNƒX; $i++) {
-            $‹²‚Ü‚ê‚½ƒ{ƒ^ƒ“ = $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“[$i]
-            ###Write-Host " - $($‹²‚Ü‚ê‚½ƒ{ƒ^ƒ“.Text) ‚ÉƒXƒ^ƒCƒ‹‚ğ“K—p‚µ‚Ü‚·B"
+    # èµ¤æ ãƒœã‚¿ãƒ³ãŒ2ã¤ä»¥ä¸Šã‚ã‚‹å ´åˆã«å‡¦ç†ã‚’å®Ÿè¡Œ
+    if ($èµ¤æ ãƒœã‚¿ãƒ³ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹.Count -ge 2) {
+        $é–‹å§‹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ = $èµ¤æ ãƒœã‚¿ãƒ³ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹[0]
+        $çµ‚äº†ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ = $èµ¤æ ãƒœã‚¿ãƒ³ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹[-1]
+          #Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show("aka2izyo", "ã‚¿ã‚¤ãƒˆãƒ«")
+        # èµ¤æ ã«æŒŸã¾ã‚ŒãŸãƒœã‚¿ãƒ³ã«ã‚¹ã‚¿ã‚¤ãƒ«ã‚’é©ç”¨
+        ###Write-Host "èµ¤æ ã«æŒŸã¾ã‚ŒãŸãƒœã‚¿ãƒ³:"
+        for ($i = $é–‹å§‹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ + 1; $i -lt $çµ‚äº†ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹; $i++) {
+            $æŒŸã¾ã‚ŒãŸãƒœã‚¿ãƒ³ = $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³[$i]
+            ###Write-Host " - $($æŒŸã¾ã‚ŒãŸãƒœã‚¿ãƒ³.Text) ã«ã‚¹ã‚¿ã‚¤ãƒ«ã‚’é©ç”¨ã—ã¾ã™ã€‚"
 
-            # ƒXƒ^ƒCƒ‹‚ğ“K—p
-            $‹²‚Ü‚ê‚½ƒ{ƒ^ƒ“.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-            $‹²‚Ü‚ê‚½ƒ{ƒ^ƒ“.FlatAppearance.BorderColor = [System.Drawing.Color]::Red
-            $‹²‚Ü‚ê‚½ƒ{ƒ^ƒ“.FlatAppearance.BorderSize = 3
+            # ã‚¹ã‚¿ã‚¤ãƒ«ã‚’é©ç”¨
+            $æŒŸã¾ã‚ŒãŸãƒœã‚¿ãƒ³.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+            $æŒŸã¾ã‚ŒãŸãƒœã‚¿ãƒ³.FlatAppearance.BorderColor = [System.Drawing.Color]::Red
+            $æŒŸã¾ã‚ŒãŸãƒœã‚¿ãƒ³.FlatAppearance.BorderSize = 3
         }
 
 
     } else {
-        ###Write-Host "Ô˜g‚Ìƒ{ƒ^ƒ“‚ª2‚ÂˆÈã‘¶İ‚µ‚Ü‚¹‚ñB"
+        ###Write-Host "èµ¤æ ã®ãƒœã‚¿ãƒ³ãŒ2ã¤ä»¥ä¸Šå­˜åœ¨ã—ã¾ã›ã‚“ã€‚"
     }
 }
 
-function •\¦-Ô˜gƒ{ƒ^ƒ“–¼ˆê—— {
+function è¡¨ç¤º-èµ¤æ ãƒœã‚¿ãƒ³åä¸€è¦§ {
     param (
-        [System.Windows.Forms.Panel]$ƒtƒŒ[ƒ€ƒpƒlƒ‹
+        [System.Windows.Forms.Panel]$ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«
     )
-    $global:ƒOƒ‹[ƒvƒ‚[ƒh = 0
+    $global:ã‚°ãƒ«ãƒ¼ãƒ—ãƒ¢ãƒ¼ãƒ‰ = 0
 
-    # ƒtƒŒ[ƒ€“à‚Ìƒ{ƒ^ƒ“‚ğæ“¾‚µ‚Äƒ\[ƒg
-    $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“ = $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Controls |
+    # ãƒ•ãƒ¬ãƒ¼ãƒ å†…ã®ãƒœã‚¿ãƒ³ã‚’å–å¾—ã—ã¦ã‚½ãƒ¼ãƒˆ
+    $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³ = $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Controls |
                         Where-Object { $_ -is [System.Windows.Forms.Button] } |
                         Sort-Object { $_.Location.Y }
 
-    # Ô˜g‚Ìƒ{ƒ^ƒ“‚Ì–¼‘O‚ÆYˆÊ’u‚ğûW
-    $Ô˜gƒ{ƒ^ƒ“ƒŠƒXƒg = @()
-    foreach ($ƒ{ƒ^ƒ“ in $ƒ\[ƒgÏ‚İƒ{ƒ^ƒ“) {
-        if ($ƒ{ƒ^ƒ“.FlatStyle -eq 'Flat' -and 
-            $ƒ{ƒ^ƒ“.FlatAppearance.BorderColor.ToArgb() -eq [System.Drawing.Color]::Red.ToArgb()) {
-            $Ô˜gƒ{ƒ^ƒ“ƒŠƒXƒg += @{
-                Name = $ƒ{ƒ^ƒ“.Name
-                YˆÊ’u = $ƒ{ƒ^ƒ“.Location.Y
+    # èµ¤æ ã®ãƒœã‚¿ãƒ³ã®åå‰ã¨Yä½ç½®ã‚’åé›†
+    $èµ¤æ ãƒœã‚¿ãƒ³ãƒªã‚¹ãƒˆ = @()
+    foreach ($ãƒœã‚¿ãƒ³ in $ã‚½ãƒ¼ãƒˆæ¸ˆã¿ãƒœã‚¿ãƒ³) {
+        if ($ãƒœã‚¿ãƒ³.FlatStyle -eq 'Flat' -and 
+            $ãƒœã‚¿ãƒ³.FlatAppearance.BorderColor.ToArgb() -eq [System.Drawing.Color]::Red.ToArgb()) {
+            $èµ¤æ ãƒœã‚¿ãƒ³ãƒªã‚¹ãƒˆ += @{
+                Name = $ãƒœã‚¿ãƒ³.Name
+                Yä½ç½® = $ãƒœã‚¿ãƒ³.Location.Y
             }
         }
     }
 
 
 
-    # Ô˜g‚Ìƒ{ƒ^ƒ“‚Ì–¼‘Oˆê——‚ğo—Í‚µAíœ
-    if ($Ô˜gƒ{ƒ^ƒ“ƒŠƒXƒg.Count -gt 0) {
+    # èµ¤æ ã®ãƒœã‚¿ãƒ³ã®åå‰ä¸€è¦§ã‚’å‡ºåŠ›ã—ã€å‰Šé™¤
+    if ($èµ¤æ ãƒœã‚¿ãƒ³ãƒªã‚¹ãƒˆ.Count -gt 0) {
 
 
-        $Å¬YˆÊ’u = [int]::MaxValue  # íœ‘ÎÛƒ{ƒ^ƒ“‚ÌÅ¬YˆÊ’u‚ğæ“¾‚·‚é‚½‚ß‚Ì•Ï”
-        $íœ‚µ‚½ƒ{ƒ^ƒ“î•ñ = @()         # íœ‚µ‚½ƒ{ƒ^ƒ“‚Ìî•ñ‚ğŠi”[‚·‚é”z—ñ
+        $æœ€å°Yä½ç½® = [int]::MaxValue  # å‰Šé™¤å¯¾è±¡ãƒœã‚¿ãƒ³ã®æœ€å°Yä½ç½®ã‚’å–å¾—ã™ã‚‹ãŸã‚ã®å¤‰æ•°
+        $å‰Šé™¤ã—ãŸãƒœã‚¿ãƒ³æƒ…å ± = @()         # å‰Šé™¤ã—ãŸãƒœã‚¿ãƒ³ã®æƒ…å ±ã‚’æ ¼ç´ã™ã‚‹é…åˆ—
 
-        foreach ($ƒ{ƒ^ƒ“î•ñ in $Ô˜gƒ{ƒ^ƒ“ƒŠƒXƒg) {
-            $–¼‘O = $ƒ{ƒ^ƒ“î•ñ.Name
-            $YˆÊ’u = $ƒ{ƒ^ƒ“î•ñ.YˆÊ’u
+        foreach ($ãƒœã‚¿ãƒ³æƒ…å ± in $èµ¤æ ãƒœã‚¿ãƒ³ãƒªã‚¹ãƒˆ) {
+            $åå‰ = $ãƒœã‚¿ãƒ³æƒ…å ±.Name
+            $Yä½ç½® = $ãƒœã‚¿ãƒ³æƒ…å ±.Yä½ç½®
 
 
-            if ($YˆÊ’u -lt $Å¬YˆÊ’u) {            # Å¬YˆÊ’u‚ğXV
-                $Å¬YˆÊ’u = $YˆÊ’u
+            if ($Yä½ç½® -lt $æœ€å°Yä½ç½®) {            # æœ€å°Yä½ç½®ã‚’æ›´æ–°
+                $æœ€å°Yä½ç½® = $Yä½ç½®
             }
 
-            $íœ‘ÎÛƒ{ƒ^ƒ“ = $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Controls[$–¼‘O]            # ƒ{ƒ^ƒ“‚ğæ“¾
+            $å‰Šé™¤å¯¾è±¡ãƒœã‚¿ãƒ³ = $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Controls[$åå‰]            # ãƒœã‚¿ãƒ³ã‚’å–å¾—
             
-            if ($íœ‘ÎÛƒ{ƒ^ƒ“ -ne $null) {
-                $ƒ{ƒ^ƒ“F = $íœ‘ÎÛƒ{ƒ^ƒ“.BackColor.Name                # ƒ{ƒ^ƒ“‚Ì”wŒiF‚ÆƒeƒLƒXƒg‚ğæ“¾
-                $ƒeƒLƒXƒg = $íœ‘ÎÛƒ{ƒ^ƒ“.Text
-                $ƒ^ƒCƒv = $íœ‘ÎÛƒ{ƒ^ƒ“.Tag.script
+            if ($å‰Šé™¤å¯¾è±¡ãƒœã‚¿ãƒ³ -ne $null) {
+                $ãƒœã‚¿ãƒ³è‰² = $å‰Šé™¤å¯¾è±¡ãƒœã‚¿ãƒ³.BackColor.Name                # ãƒœã‚¿ãƒ³ã®èƒŒæ™¯è‰²ã¨ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—
+                $ãƒ†ã‚­ã‚¹ãƒˆ = $å‰Šé™¤å¯¾è±¡ãƒœã‚¿ãƒ³.Text
+                $ã‚¿ã‚¤ãƒ— = $å‰Šé™¤å¯¾è±¡ãƒœã‚¿ãƒ³.Tag.script
 
-                $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Controls.Remove($íœ‘ÎÛƒ{ƒ^ƒ“)                # ƒ{ƒ^ƒ“‚ğƒpƒlƒ‹‚©‚çíœ
-                $íœ‘ÎÛƒ{ƒ^ƒ“.Dispose()                # •K—v‚É‰‚¶‚Äƒ{ƒ^ƒ“‚ğ”jŠü
+                $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Controls.Remove($å‰Šé™¤å¯¾è±¡ãƒœã‚¿ãƒ³)                # ãƒœã‚¿ãƒ³ã‚’ãƒ‘ãƒãƒ«ã‹ã‚‰å‰Šé™¤
+                $å‰Šé™¤å¯¾è±¡ãƒœã‚¿ãƒ³.Dispose()                # å¿…è¦ã«å¿œã˜ã¦ãƒœã‚¿ãƒ³ã‚’ç ´æ£„
           
-                $íœ‚µ‚½ƒ{ƒ^ƒ“î•ñ += "$–¼‘O;$ƒ{ƒ^ƒ“F;$ƒeƒLƒXƒg;$ƒ^ƒCƒv"                # íœ‚µ‚½ƒ{ƒ^ƒ“‚Ìî•ñ‚ğ”z—ñ‚É’Ç‰Ái–¼‘O-ƒ{ƒ^ƒ“F-ƒeƒLƒXƒgj
+                $å‰Šé™¤ã—ãŸãƒœã‚¿ãƒ³æƒ…å ± += "$åå‰;$ãƒœã‚¿ãƒ³è‰²;$ãƒ†ã‚­ã‚¹ãƒˆ;$ã‚¿ã‚¤ãƒ—"                # å‰Šé™¤ã—ãŸãƒœã‚¿ãƒ³ã®æƒ…å ±ã‚’é…åˆ—ã«è¿½åŠ ï¼ˆåå‰-ãƒœã‚¿ãƒ³è‰²-ãƒ†ã‚­ã‚¹ãƒˆï¼‰
 
             }
             else {
-                ###Write-Host "ƒ{ƒ^ƒ“ '$–¼‘O' ‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½B"
+                ###Write-Host "ãƒœã‚¿ãƒ³ '$åå‰' ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸã€‚"
             }
         }
 
-        $‰ŠúY = $Å¬YˆÊ’u        # íœ‚³‚ê‚½Ô˜gƒ{ƒ^ƒ“‚Ì’†‚ÅÅ‚àã‚ÌYˆÊ’u‚ğ‰ŠúYˆÊ’u‚Æ‚µ‚Äİ’è
-        $entryString = $íœ‚µ‚½ƒ{ƒ^ƒ“î•ñ -join "_"         # íœ‚µ‚½ƒ{ƒ^ƒ“‚Ìî•ñ‚ğƒAƒ“ƒ_[ƒXƒRƒA‚Å˜AŒ‹‚µ‚½•¶š—ñ‚É•ÏŠ·
+        $åˆæœŸY = $æœ€å°Yä½ç½®        # å‰Šé™¤ã•ã‚ŒãŸèµ¤æ ãƒœã‚¿ãƒ³ã®ä¸­ã§æœ€ã‚‚ä¸Šã®Yä½ç½®ã‚’åˆæœŸYä½ç½®ã¨ã—ã¦è¨­å®š
+        $entryString = $å‰Šé™¤ã—ãŸãƒœã‚¿ãƒ³æƒ…å ± -join "_"         # å‰Šé™¤ã—ãŸãƒœã‚¿ãƒ³ã®æƒ…å ±ã‚’ã‚¢ãƒ³ãƒ€ãƒ¼ã‚¹ã‚³ã‚¢ã§é€£çµã—ãŸæ–‡å­—åˆ—ã«å¤‰æ›
 
-       # [System.Windows.Forms.MessageBox]::Show($entryString , "debugî•ñ•\¦", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+       # [System.Windows.Forms.MessageBox]::Show($entryString , "debugæƒ…å ±è¡¨ç¤º", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
 
-        $ÅŒã‚Ì•¶š = ƒOƒ[ƒoƒ‹•Ï”‚©‚ç”’læ“¾@-ƒpƒlƒ‹ $Global:‰Â‹¶ƒpƒlƒ‹ 
+        $æœ€å¾Œã®æ–‡å­— = ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã‹ã‚‰æ•°å€¤å–å¾—ã€€-ãƒ‘ãƒãƒ« $Global:å¯è¦–å·¦ãƒ‘ãƒãƒ« 
 
-        $A = [int]$ÅŒã‚Ì•¶š
+        $A = [int]$æœ€å¾Œã®æ–‡å­—
 
-        # $ƒtƒŒ[ƒ€ƒpƒlƒ‹   $‰ŠúY
-        $Global:Pink‘I‘ğ”z—ñ[$A].‰ŠúY = $‰ŠúY
-        $Global:Pink‘I‘ğ”z—ñ[$A].’l = 1
-
-
-
-        # V‚µ‚¢ƒ{ƒ^ƒ“‚Ìì¬
-        $buttonName  = ID‚ğ©“®¶¬‚·‚é
-        $• = 120
-        $‰ŠúX = [Math]::Floor(($ƒtƒŒ[ƒ€ƒpƒlƒ‹.ClientSize.Width - $•) / 2)
-        $Vƒ{ƒ^ƒ“ = 00_ƒ{ƒ^ƒ“‚ğì¬‚·‚é -ƒRƒ“ƒeƒi $ƒtƒŒ[ƒ€ƒpƒlƒ‹ -ƒeƒLƒXƒg "ƒXƒNƒŠƒvƒg" -ƒ{ƒ^ƒ“–¼ "$buttonName-1" -• 120 -‚‚³ 30 -XˆÊ’u $‰ŠúX -YˆÊ’u $‰ŠúY -˜gü 1 -”wŒiF ([System.Drawing.Color]::Pink) -ƒhƒ‰ƒbƒO‰Â”\ $true -ƒ{ƒ^ƒ“ƒ^ƒCƒv "ƒm[ƒh" -ƒ{ƒ^ƒ“ƒ^ƒCƒv2 "ƒXƒNƒŠƒvƒg"
-
-        00_•¶š—ñˆ—“à—e -ƒ{ƒ^ƒ“–¼ "$buttonName" -ˆ—”Ô† "99-1" -’¼ÚƒGƒ“ƒgƒŠ $entryString -ƒ{ƒ^ƒ“ $Vƒ{ƒ^ƒ“
+        # $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«   $åˆæœŸY
+        $Global:Pinké¸æŠé…åˆ—[$A].åˆæœŸY = $åˆæœŸY
+        $Global:Pinké¸æŠé…åˆ—[$A].å€¤ = 1
 
 
 
-        # ƒ{ƒ^ƒ“ƒJƒEƒ“ƒ^‚ÌƒCƒ“ƒNƒŠƒƒ“ƒg
-        $global:ƒ{ƒ^ƒ“ƒJƒEƒ“ƒ^++
+        # æ–°ã—ã„ãƒœã‚¿ãƒ³ã®ä½œæˆ
+        $buttonName  = IDã‚’è‡ªå‹•ç”Ÿæˆã™ã‚‹
+        $å¹… = 120
+        $åˆæœŸX = [Math]::Floor(($ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.ClientSize.Width - $å¹…) / 2)
+        $æ–°ãƒœã‚¿ãƒ³ = 00_ãƒœã‚¿ãƒ³ã‚’ä½œæˆã™ã‚‹ -ã‚³ãƒ³ãƒ†ãƒŠ $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« -ãƒ†ã‚­ã‚¹ãƒˆ "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ" -ãƒœã‚¿ãƒ³å "$buttonName-1" -å¹… 120 -é«˜ã• 30 -Xä½ç½® $åˆæœŸX -Yä½ç½® $åˆæœŸY -æ ç·š 1 -èƒŒæ™¯è‰² ([System.Drawing.Color]::Pink) -ãƒ‰ãƒ©ãƒƒã‚°å¯èƒ½ $true -ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ— "ãƒãƒ¼ãƒ‰" -ãƒœã‚¿ãƒ³ã‚¿ã‚¤ãƒ—2 "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ"
 
-        # ƒ{ƒ^ƒ“‚ÌÄ”z’ui•K—v‚É‰‚¶‚Äj
-        00_ƒ{ƒ^ƒ“‚Ìã‹l‚ßÄ”z’uŠÖ” -ƒtƒŒ[ƒ€ $ƒtƒŒ[ƒ€ƒpƒlƒ‹
-        00_–îˆó’Ç‹Lˆ— -ƒtƒŒ[ƒ€ƒpƒlƒ‹ $ƒtƒŒ[ƒ€ƒpƒlƒ‹
+        00_æ–‡å­—åˆ—å‡¦ç†å†…å®¹ -ãƒœã‚¿ãƒ³å "$buttonName" -å‡¦ç†ç•ªå· "99-1" -ç›´æ¥ã‚¨ãƒ³ãƒˆãƒª $entryString -ãƒœã‚¿ãƒ³ $æ–°ãƒœã‚¿ãƒ³
+
+
+
+        # ãƒœã‚¿ãƒ³ã‚«ã‚¦ãƒ³ã‚¿ã®ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆ
+        $global:ãƒœã‚¿ãƒ³ã‚«ã‚¦ãƒ³ã‚¿++
+
+        # ãƒœã‚¿ãƒ³ã®å†é…ç½®ï¼ˆå¿…è¦ã«å¿œã˜ã¦ï¼‰
+        00_ãƒœã‚¿ãƒ³ã®ä¸Šè©°ã‚å†é…ç½®é–¢æ•° -ãƒ•ãƒ¬ãƒ¼ãƒ  $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«
+        00_çŸ¢å°è¿½è¨˜å‡¦ç† -ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ« $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«
     } else {
-        #Write-Host "Ô˜g‚Ìƒ{ƒ^ƒ“‚ª‘¶İ‚µ‚Ü‚¹‚ñB"
+        #Write-Host "èµ¤æ ã®ãƒœã‚¿ãƒ³ãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚"
     }
 }
 
-function ƒtƒŒ[ƒ€ƒpƒlƒ‹‚©‚ç‚·‚×‚Ä‚Ìƒ{ƒ^ƒ“‚ğíœ‚·‚é {
+function ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«ã‹ã‚‰ã™ã¹ã¦ã®ãƒœã‚¿ãƒ³ã‚’å‰Šé™¤ã™ã‚‹ {
     param (
-        [System.Windows.Forms.Panel]$ƒtƒŒ[ƒ€ƒpƒlƒ‹
+        [System.Windows.Forms.Panel]$ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«
     )
 
-    # ƒpƒlƒ‹“à‚Ì‚·‚×‚Ä‚Ìƒ{ƒ^ƒ“‚ğæ“¾
-    $ƒ{ƒ^ƒ“ƒŠƒXƒg = $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }
+    # ãƒ‘ãƒãƒ«å†…ã®ã™ã¹ã¦ã®ãƒœã‚¿ãƒ³ã‚’å–å¾—
+    $ãƒœã‚¿ãƒ³ãƒªã‚¹ãƒˆ = $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }
 
-    foreach ($ƒ{ƒ^ƒ“ in $ƒ{ƒ^ƒ“ƒŠƒXƒg) {
+    foreach ($ãƒœã‚¿ãƒ³ in $ãƒœã‚¿ãƒ³ãƒªã‚¹ãƒˆ) {
         try {
-            # ƒ{ƒ^ƒ“‚ğƒpƒlƒ‹‚©‚çíœ
-            $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Controls.Remove($ƒ{ƒ^ƒ“)
+            # ãƒœã‚¿ãƒ³ã‚’ãƒ‘ãƒãƒ«ã‹ã‚‰å‰Šé™¤
+            $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Controls.Remove($ãƒœã‚¿ãƒ³)
 
-            # ƒ{ƒ^ƒ“‚ÌƒŠƒ\[ƒX‚ğ‰ğ•ú
-            $ƒ{ƒ^ƒ“.Dispose()
+            # ãƒœã‚¿ãƒ³ã®ãƒªã‚½ãƒ¼ã‚¹ã‚’è§£æ”¾
+            $ãƒœã‚¿ãƒ³.Dispose()
 
-            ##Write-Host "ƒ{ƒ^ƒ“ '$($ƒ{ƒ^ƒ“.Name)' ‚ğíœ‚µ‚Ü‚µ‚½B" -ForegroundColor Green
+            ##Write-Host "ãƒœã‚¿ãƒ³ '$($ãƒœã‚¿ãƒ³.Name)' ã‚’å‰Šé™¤ã—ã¾ã—ãŸã€‚" -ForegroundColor Green
         }
         catch {
-            ##Write-Host "ƒ{ƒ^ƒ“ '$($ƒ{ƒ^ƒ“.Name)' ‚Ìíœ’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B - $_" -ForegroundColor Red
+            ##Write-Host "ãƒœã‚¿ãƒ³ '$($ãƒœã‚¿ãƒ³.Name)' ã®å‰Šé™¤ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚ - $_" -ForegroundColor Red
         }
     }
 
-    # •K—v‚É‰‚¶‚ÄAÄ•`‰æ‚ğƒgƒŠƒK[
-    $ƒtƒŒ[ƒ€ƒpƒlƒ‹.Invalidate()
+    # å¿…è¦ã«å¿œã˜ã¦ã€å†æç”»ã‚’ãƒˆãƒªã‚¬ãƒ¼
+    $ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ‘ãƒãƒ«.Invalidate()
 }
 
-# –îˆó‚ğ•`‚­ŠÖ”
-function –îˆó‚ğ•`‚­ {
+# çŸ¢å°ã‚’æãé–¢æ•°
+function çŸ¢å°ã‚’æã {
     param (
-        [int]$•,
-        [int]$‚‚³,
-        [System.Drawing.Point]$n“_,
-        [System.Drawing.Point]$I“_,
-        [float]$–îˆóƒTƒCƒY = 10.0,    # –îˆóƒwƒbƒh‚ÌƒTƒCƒY
-        [float]$–îˆóŠp“x = 30.0      # –îˆóƒwƒbƒh‚ÌŠp“xi“x”–@j
+        [int]$å¹…,
+        [int]$é«˜ã•,
+        [System.Drawing.Point]$å§‹ç‚¹,
+        [System.Drawing.Point]$çµ‚ç‚¹,
+        [float]$çŸ¢å°ã‚µã‚¤ã‚º = 10.0,    # çŸ¢å°ãƒ˜ãƒƒãƒ‰ã®ã‚µã‚¤ã‚º
+        [float]$çŸ¢å°è§’åº¦ = 30.0      # çŸ¢å°ãƒ˜ãƒƒãƒ‰ã®è§’åº¦ï¼ˆåº¦æ•°æ³•ï¼‰
     )
 
-    # ƒfƒoƒbƒO: ó‚¯æ‚Á‚½n“_‚ÆI“_‚ğ•\¦
-    #Write-Host "–îˆó‚ğ•`‚­ - n“_: ($($n“_.X), $($n“_.Y)), I“_: ($($I“_.X), $($I“_.Y))"
+    # ãƒ‡ãƒãƒƒã‚°: å—ã‘å–ã£ãŸå§‹ç‚¹ã¨çµ‚ç‚¹ã‚’è¡¨ç¤º
+    #Write-Host "çŸ¢å°ã‚’æã - å§‹ç‚¹: ($($å§‹ç‚¹.X), $($å§‹ç‚¹.Y)), çµ‚ç‚¹: ($($çµ‚ç‚¹.X), $($çµ‚ç‚¹.Y))"
 
-    # Bitmap ‚ğì¬i32bppArgb ‚Å“§–¾“x‚ğƒTƒ|[ƒgj
-    $bitmap = New-Object System.Drawing.Bitmap($•, $‚‚³, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
-    $ƒOƒ‰ƒtƒBƒbƒNƒX = [System.Drawing.Graphics]::FromImage($bitmap)
+    # Bitmap ã‚’ä½œæˆï¼ˆ32bppArgb ã§é€æ˜åº¦ã‚’ã‚µãƒãƒ¼ãƒˆï¼‰
+    $bitmap = New-Object System.Drawing.Bitmap($å¹…, $é«˜ã•, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ã‚¹ = [System.Drawing.Graphics]::FromImage($bitmap)
 
-    # ”wŒiF‚ğ“§–¾‚Éİ’è
-    $ƒOƒ‰ƒtƒBƒbƒNƒX.Clear([System.Drawing.Color]::Transparent)
+    # èƒŒæ™¯è‰²ã‚’é€æ˜ã«è¨­å®š
+    $ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ã‚¹.Clear([System.Drawing.Color]::Transparent)
 
-    # ƒyƒ“‚Ìİ’è
-    $ƒyƒ“ = New-Object System.Drawing.Pen([System.Drawing.Color]::Pink, 2)
+    # ãƒšãƒ³ã®è¨­å®š
+    $ãƒšãƒ³ = New-Object System.Drawing.Pen([System.Drawing.Color]::Pink, 2)
 
     try {
-        # ƒƒCƒ“ƒ‰ƒCƒ“‚ğ•`‰æ
-        $ƒOƒ‰ƒtƒBƒbƒNƒX.DrawLine($ƒyƒ“, $n“_, $I“_)
+        # ãƒ¡ã‚¤ãƒ³ãƒ©ã‚¤ãƒ³ã‚’æç”»
+        $ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ã‚¹.DrawLine($ãƒšãƒ³, $å§‹ç‚¹, $çµ‚ç‚¹)
 
-        # ƒxƒNƒgƒ‹‚ÌŒvZ
-        $dx = $I“_.X - $n“_.X
-        $dy = $I“_.Y - $n“_.Y
-        $’·‚³ = [math]::Sqrt($dx * $dx + $dy * $dy)
+        # ãƒ™ã‚¯ãƒˆãƒ«ã®è¨ˆç®—
+        $dx = $çµ‚ç‚¹.X - $å§‹ç‚¹.X
+        $dy = $çµ‚ç‚¹.Y - $å§‹ç‚¹.Y
+        $é•·ã• = [math]::Sqrt($dx * $dx + $dy * $dy)
 
-        if ($’·‚³ -eq 0) { 
-            #Write-Host "–îˆó‚Ì’·‚³‚ª0‚Ì‚½‚ßA–îˆóƒwƒbƒh‚ğ•`‰æ‚Å‚«‚Ü‚¹‚ñB"
+        if ($é•·ã• -eq 0) { 
+            #Write-Host "çŸ¢å°ã®é•·ã•ãŒ0ã®ãŸã‚ã€çŸ¢å°ãƒ˜ãƒƒãƒ‰ã‚’æç”»ã§ãã¾ã›ã‚“ã€‚"
             return $bitmap
         }
 
-        # ’PˆÊƒxƒNƒgƒ‹
-        $ux = $dx / $’·‚³
-        $uy = $dy / $’·‚³
+        # å˜ä½ãƒ™ã‚¯ãƒˆãƒ«
+        $ux = $dx / $é•·ã•
+        $uy = $dy / $é•·ã•
 
-        # –îˆóƒwƒbƒh‚ÌŠp“x‚ğƒ‰ƒWƒAƒ“‚É•ÏŠ·
-        $Šp“xƒ‰ƒWƒAƒ“ = [math]::PI * $–îˆóŠp“x / 180.0
+        # çŸ¢å°ãƒ˜ãƒƒãƒ‰ã®è§’åº¦ã‚’ãƒ©ã‚¸ã‚¢ãƒ³ã«å¤‰æ›
+        $è§’åº¦ãƒ©ã‚¸ã‚¢ãƒ³ = [math]::PI * $çŸ¢å°è§’åº¦ / 180.0
 
-        # –îˆóƒwƒbƒh‚Ìƒ|ƒCƒ“ƒgŒvZ
-        $sin = [math]::Sin($Šp“xƒ‰ƒWƒAƒ“)
-        $cos = [math]::Cos($Šp“xƒ‰ƒWƒAƒ“)
+        # çŸ¢å°ãƒ˜ãƒƒãƒ‰ã®ãƒã‚¤ãƒ³ãƒˆè¨ˆç®—
+        $sin = [math]::Sin($è§’åº¦ãƒ©ã‚¸ã‚¢ãƒ³)
+        $cos = [math]::Cos($è§’åº¦ãƒ©ã‚¸ã‚¢ãƒ³)
 
-        $“_1X = [math]::Round($I“_.X - $–îˆóƒTƒCƒY * ($cos * $ux + $sin * $uy))
-        $“_1Y = [math]::Round($I“_.Y - $–îˆóƒTƒCƒY * ($cos * $uy - $sin * $ux))
-        $“_2X = [math]::Round($I“_.X - $–îˆóƒTƒCƒY * ($cos * $ux - $sin * $uy))
-        $“_2Y = [math]::Round($I“_.Y - $–îˆóƒTƒCƒY * ($cos * $uy + $sin * $ux))
+        $ç‚¹1X = [math]::Round($çµ‚ç‚¹.X - $çŸ¢å°ã‚µã‚¤ã‚º * ($cos * $ux + $sin * $uy))
+        $ç‚¹1Y = [math]::Round($çµ‚ç‚¹.Y - $çŸ¢å°ã‚µã‚¤ã‚º * ($cos * $uy - $sin * $ux))
+        $ç‚¹2X = [math]::Round($çµ‚ç‚¹.X - $çŸ¢å°ã‚µã‚¤ã‚º * ($cos * $ux - $sin * $uy))
+        $ç‚¹2Y = [math]::Round($çµ‚ç‚¹.Y - $çŸ¢å°ã‚µã‚¤ã‚º * ($cos * $uy + $sin * $ux))
 
-        $“_1 = New-Object System.Drawing.Point -ArgumentList $“_1X, $“_1Y
-        $“_2 = New-Object System.Drawing.Point -ArgumentList $“_2X, $“_2Y
+        $ç‚¹1 = New-Object System.Drawing.Point -ArgumentList $ç‚¹1X, $ç‚¹1Y
+        $ç‚¹2 = New-Object System.Drawing.Point -ArgumentList $ç‚¹2X, $ç‚¹2Y
 
-        # ƒfƒoƒbƒO: –îˆóƒwƒbƒh‚Ì“_‚ğ•\¦
-        #Write-Host "–îˆóƒwƒbƒh‚Ì“_1: ($($“_1.X), $($“_1.Y)), “_2: ($($“_2.X), $($“_2.Y))"
+        # ãƒ‡ãƒãƒƒã‚°: çŸ¢å°ãƒ˜ãƒƒãƒ‰ã®ç‚¹ã‚’è¡¨ç¤º
+        #Write-Host "çŸ¢å°ãƒ˜ãƒƒãƒ‰ã®ç‚¹1: ($($ç‚¹1.X), $($ç‚¹1.Y)), ç‚¹2: ($($ç‚¹2.X), $($ç‚¹2.Y))"
 
-        # –îˆóƒwƒbƒh‚ğ•`‰æ
-        $ƒOƒ‰ƒtƒBƒbƒNƒX.DrawLine($ƒyƒ“, $I“_, $“_1)
-        $ƒOƒ‰ƒtƒBƒbƒNƒX.DrawLine($ƒyƒ“, $I“_, $“_2)
+        # çŸ¢å°ãƒ˜ãƒƒãƒ‰ã‚’æç”»
+        $ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ã‚¹.DrawLine($ãƒšãƒ³, $çµ‚ç‚¹, $ç‚¹1)
+        $ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ã‚¹.DrawLine($ãƒšãƒ³, $çµ‚ç‚¹, $ç‚¹2)
     }
     catch {
-        #Write-Host "•`‰æ’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: $_"
+        #Write-Host "æç”»ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: $_"
     }
     finally {
-        # ƒŠƒ\[ƒX‚Ì‰ğ•ú
-        $ƒyƒ“.Dispose()
-        $ƒOƒ‰ƒtƒBƒbƒNƒX.Dispose()
+        # ãƒªã‚½ãƒ¼ã‚¹ã®è§£æ”¾
+        $ãƒšãƒ³.Dispose()
+        $ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ã‚¹.Dispose()
     }
 
     return $bitmap
 }
 
-# –îˆó‚ğ•\¦‚·‚éŠÖ”
-function –îˆó‚ğ•\¦‚·‚é {
+# çŸ¢å°ã‚’è¡¨ç¤ºã™ã‚‹é–¢æ•°
+function çŸ¢å°ã‚’è¡¨ç¤ºã™ã‚‹ {
     param (
-        [System.Windows.Forms.Form]$ƒtƒH[ƒ€,
-        [int]$•,
-        [int]$‚‚³,
-        [System.Drawing.Point]$n“_,
-        [System.Drawing.Point]$I“_,
-        [float]$–îˆóƒTƒCƒY = 10.0,    # –îˆóƒwƒbƒh‚ÌƒTƒCƒY
-        [float]$–îˆóŠp“x = 30.0,     # –îˆóƒwƒbƒh‚ÌŠp“xi“x”–@j
-        [int]$PictureBoxX = 0,        # PictureBox‚ÌXÀ•W
-        [int]$PictureBoxY = 0,        # PictureBox‚ÌYÀ•W
-        [int]$PictureBox• = 1400,    # PictureBox‚Ì•
-        [int]$PictureBox‚‚³ = 900     # PictureBox‚Ì‚‚³
+        [System.Windows.Forms.Form]$ãƒ•ã‚©ãƒ¼ãƒ ,
+        [int]$å¹…,
+        [int]$é«˜ã•,
+        [System.Drawing.Point]$å§‹ç‚¹,
+        [System.Drawing.Point]$çµ‚ç‚¹,
+        [float]$çŸ¢å°ã‚µã‚¤ã‚º = 10.0,    # çŸ¢å°ãƒ˜ãƒƒãƒ‰ã®ã‚µã‚¤ã‚º
+        [float]$çŸ¢å°è§’åº¦ = 30.0,     # çŸ¢å°ãƒ˜ãƒƒãƒ‰ã®è§’åº¦ï¼ˆåº¦æ•°æ³•ï¼‰
+        [int]$PictureBoxX = 0,        # PictureBoxã®Xåº§æ¨™
+        [int]$PictureBoxY = 0,        # PictureBoxã®Yåº§æ¨™
+        [int]$PictureBoxå¹… = 1400,    # PictureBoxã®å¹…
+        [int]$PictureBoxé«˜ã• = 900     # PictureBoxã®é«˜ã•
     )
 
-    # ƒfƒoƒbƒO: ó‚¯æ‚Á‚½n“_‚ÆI“_‚ğ•\¦
-    #Write-Host "–îˆó‚ğ•\¦‚·‚é - n“_: ($($n“_.X), $($n“_.Y)), I“_: ($($I“_.X), $($I“_.Y))"
+    # ãƒ‡ãƒãƒƒã‚°: å—ã‘å–ã£ãŸå§‹ç‚¹ã¨çµ‚ç‚¹ã‚’è¡¨ç¤º
+    #Write-Host "çŸ¢å°ã‚’è¡¨ç¤ºã™ã‚‹ - å§‹ç‚¹: ($($å§‹ç‚¹.X), $($å§‹ç‚¹.Y)), çµ‚ç‚¹: ($($çµ‚ç‚¹.X), $($çµ‚ç‚¹.Y))"
 
-    # –îˆó‚ğ•`‚­ŠÖ”‚ğŒÄ‚Ño‚µ‚Ä Bitmap ‚ğæ“¾
-    $bitmap = –îˆó‚ğ•`‚­ -• $• -‚‚³ $‚‚³ -n“_ $n“_ -I“_ $I“_ -–îˆóƒTƒCƒY $–îˆóƒTƒCƒY -–îˆóŠp“x $–îˆóŠp“x
-    #Write-Host "–îˆó‚Ì•`‰æ‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
+    # çŸ¢å°ã‚’æãé–¢æ•°ã‚’å‘¼ã³å‡ºã—ã¦ Bitmap ã‚’å–å¾—
+    $bitmap = çŸ¢å°ã‚’æã -å¹… $å¹… -é«˜ã• $é«˜ã• -å§‹ç‚¹ $å§‹ç‚¹ -çµ‚ç‚¹ $çµ‚ç‚¹ -çŸ¢å°ã‚µã‚¤ã‚º $çŸ¢å°ã‚µã‚¤ã‚º -çŸ¢å°è§’åº¦ $çŸ¢å°è§’åº¦
+    #Write-Host "çŸ¢å°ã®æç”»ãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
 
-    # PictureBox ‚ğì¬
+    # PictureBox ã‚’ä½œæˆ
     $pictureBox = New-Object System.Windows.Forms.PictureBox
-    $pictureBox.Name = "ArrowPictureBox"  # –¼‘O‚ğİ’è
+    $pictureBox.Name = "ArrowPictureBox"  # åå‰ã‚’è¨­å®š
     $pictureBox.Image = $bitmap
     $pictureBox.Location = New-Object System.Drawing.Point($PictureBoxX, $PictureBoxY)
-    $pictureBox.Size = New-Object System.Drawing.Size($PictureBox•, $PictureBox‚‚³)
-    $pictureBox.SizeMode = "Normal"  # AutoSize ‚Å‚Í‚È‚­ Normal ‚Éİ’è
-    $pictureBox.BackColor =  [System.Drawing.Color]::FromArgb(255, 255, 255)  # ”wŒi‚ğˆê“I‚É‰©F‚Éİ’è‚µ‚ÄŠm”F
-    $pictureBox.Parent = $ƒtƒH[ƒ€  # e‚ğƒtƒH[ƒ€‚Éİ’è
-    $pictureBox.BringToFront()      # PictureBox‚ğ‘O–Ê‚ÉˆÚ“®
+    $pictureBox.Size = New-Object System.Drawing.Size($PictureBoxå¹…, $PictureBoxé«˜ã•)
+    $pictureBox.SizeMode = "Normal"  # AutoSize ã§ã¯ãªã Normal ã«è¨­å®š
+    $pictureBox.BackColor =  [System.Drawing.Color]::FromArgb(255, 255, 255)  # èƒŒæ™¯ã‚’ä¸€æ™‚çš„ã«é»„è‰²ã«è¨­å®šã—ã¦ç¢ºèª
+    $pictureBox.Parent = $ãƒ•ã‚©ãƒ¼ãƒ   # è¦ªã‚’ãƒ•ã‚©ãƒ¼ãƒ ã«è¨­å®š
+    $pictureBox.BringToFront()      # PictureBoxã‚’å‰é¢ã«ç§»å‹•
 
-    # ƒfƒoƒbƒO: PictureBox ‚ÌˆÊ’u‚ÆƒTƒCƒY‚ğ•\¦
-    #Write-Host "PictureBox ‚ÌˆÊ’u: ($PictureBoxX, $PictureBoxY), ƒTƒCƒY: ($PictureBox•, $PictureBox‚‚³)"
+    # ãƒ‡ãƒãƒƒã‚°: PictureBox ã®ä½ç½®ã¨ã‚µã‚¤ã‚ºã‚’è¡¨ç¤º
+    #Write-Host "PictureBox ã®ä½ç½®: ($PictureBoxX, $PictureBoxY), ã‚µã‚¤ã‚º: ($PictureBoxå¹…, $PictureBoxé«˜ã•)"
 
-    # PictureBox ‚ğƒtƒH[ƒ€‚É’Ç‰Á
-    $ƒtƒH[ƒ€.Controls.Add($pictureBox)
+    # PictureBox ã‚’ãƒ•ã‚©ãƒ¼ãƒ ã«è¿½åŠ 
+    $ãƒ•ã‚©ãƒ¼ãƒ .Controls.Add($pictureBox)
 }
 
-function –îˆó‚ğíœ‚·‚é {
+function çŸ¢å°ã‚’å‰Šé™¤ã™ã‚‹ {
     param (
-        [System.Windows.Forms.Form]$ƒtƒH[ƒ€
+        [System.Windows.Forms.Form]$ãƒ•ã‚©ãƒ¼ãƒ 
     )
 
-    # –¼‘O‚ÅPictureBox‚ğŒŸõ
-    $pictureBox = $ƒtƒH[ƒ€.Controls | Where-Object { $_.Name -eq "ArrowPictureBox" }
+    # åå‰ã§PictureBoxã‚’æ¤œç´¢
+    $pictureBox = $ãƒ•ã‚©ãƒ¼ãƒ .Controls | Where-Object { $_.Name -eq "ArrowPictureBox" }
 
     if ($pictureBox) {
-        # PictureBox‚ğƒtƒH[ƒ€‚©‚çíœ
-        $ƒtƒH[ƒ€.Controls.Remove($pictureBox)
+        # PictureBoxã‚’ãƒ•ã‚©ãƒ¼ãƒ ã‹ã‚‰å‰Šé™¤
+        $ãƒ•ã‚©ãƒ¼ãƒ .Controls.Remove($pictureBox)
         $pictureBox.Dispose()
-        #Write-Host "–îˆó‚ğíœ‚µ‚Ü‚µ‚½B"
+        #Write-Host "çŸ¢å°ã‚’å‰Šé™¤ã—ã¾ã—ãŸã€‚"
     }
     else {
-        ##Write-Host "–îˆó‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½B"
+        ##Write-Host "çŸ¢å°ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸã€‚"
     }
 }
 
-function Check-Pink‘I‘ğ”z—ñObjects {
-    #Write-Host "---- Check-Pink‘I‘ğ”z—ñObjects ŠÖ”ŠJn ----"
+function Check-Pinké¸æŠé…åˆ—Objects {
+    #Write-Host "---- Check-Pinké¸æŠé…åˆ—Objects é–¢æ•°é–‹å§‹ ----"
 
-    # ƒOƒ[ƒoƒ‹•Ï”‚ª‘¶İ‚·‚é‚©Šm”F
-    if (-not (Test-Path variable:Global:Pink‘I‘ğ”z—ñ)) {
-        Write-Warning "ƒOƒ[ƒoƒ‹•Ï” 'Pink‘I‘ğ”z—ñ' ‚ª‘¶İ‚µ‚Ü‚¹‚ñB"
-        #Write-Host "Œ‹‰Ê: FALSE"
+    # ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ãŒå­˜åœ¨ã™ã‚‹ã‹ç¢ºèª
+    if (-not (Test-Path variable:Global:Pinké¸æŠé…åˆ—)) {
+        Write-Warning "ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•° 'Pinké¸æŠé…åˆ—' ãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚"
+        #Write-Host "çµæœ: FALSE"
         return $false
     } else {
-        #Write-Host "ƒOƒ[ƒoƒ‹•Ï” 'Pink‘I‘ğ”z—ñ' ‚Í‘¶İ‚µ‚Ü‚·B"
+        #Write-Host "ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•° 'Pinké¸æŠé…åˆ—' ã¯å­˜åœ¨ã—ã¾ã™ã€‚"
     }
 
-    # ƒOƒ[ƒoƒ‹•Ï”‚ª”z—ñ‚Å‚ ‚é‚©Šm”F
-    if (-not ($Global:Pink‘I‘ğ”z—ñ -is [System.Array])) {
-        Write-Warning "'Pink‘I‘ğ”z—ñ' ‚Í”z—ñ‚Å‚Í‚ ‚è‚Ü‚¹‚ñB"
-        #Write-Host "Œ»İ‚Ì’l: $($Global:Pink‘I‘ğ”z—ñ)"
-        #Write-Host "Œ‹‰Ê: FALSE"
+    # ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ãŒé…åˆ—ã§ã‚ã‚‹ã‹ç¢ºèª
+    if (-not ($Global:Pinké¸æŠé…åˆ— -is [System.Array])) {
+        Write-Warning "'Pinké¸æŠé…åˆ—' ã¯é…åˆ—ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚"
+        #Write-Host "ç¾åœ¨ã®å€¤: $($Global:Pinké¸æŠé…åˆ—)"
+        #Write-Host "çµæœ: FALSE"
         return $false
     } else {
-        #Write-Host "'Pink‘I‘ğ”z—ñ' ‚Í”z—ñ‚Å‚·B"
+        #Write-Host "'Pinké¸æŠé…åˆ—' ã¯é…åˆ—ã§ã™ã€‚"
     }
 
-    # ŠeƒIƒuƒWƒFƒNƒg‚ğƒ‹[ƒv‚µ‚ÄA'’l' ƒvƒƒpƒeƒB‚ª1‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN
-    foreach ($item in $Global:Pink‘I‘ğ”z—ñ) {
-        #Write-Host "`n--- ƒŒƒCƒ„[ $($item.ƒŒƒCƒ„[) ‚Ì“à—e ---"
-        #Write-Host "‰ŠúY: $($item.‰ŠúY)"
-        #Write-Host "’l: $($item.’l)"
+    # å„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ãƒ«ãƒ¼ãƒ—ã—ã¦ã€'å€¤' ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ãŒ1ã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯
+    foreach ($item in $Global:Pinké¸æŠé…åˆ—) {
+        #Write-Host "`n--- ãƒ¬ã‚¤ãƒ¤ãƒ¼ $($item.ãƒ¬ã‚¤ãƒ¤ãƒ¼) ã®å†…å®¹ ---"
+        #Write-Host "åˆæœŸY: $($item.åˆæœŸY)"
+        #Write-Host "å€¤: $($item.å€¤)"
 
-        if ($item.’l -eq 1) {
-            #Write-Host "ƒŒƒCƒ„[ $($item.ƒŒƒCƒ„[) ‚Ì’l‚ª1‚Å‚·B"
-            #Write-Host "Œ‹‰Ê: TRUE"
+        if ($item.å€¤ -eq 1) {
+            #Write-Host "ãƒ¬ã‚¤ãƒ¤ãƒ¼ $($item.ãƒ¬ã‚¤ãƒ¤ãƒ¼) ã®å€¤ãŒ1ã§ã™ã€‚"
+            #Write-Host "çµæœ: TRUE"
             return $true
         } else {
-            #Write-Host "ƒŒƒCƒ„[ $($item.ƒŒƒCƒ„[) ‚Ì’l‚Í1‚Å‚Í‚ ‚è‚Ü‚¹‚ñB"
+            #Write-Host "ãƒ¬ã‚¤ãƒ¤ãƒ¼ $($item.ãƒ¬ã‚¤ãƒ¤ãƒ¼) ã®å€¤ã¯1ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚"
         }
     }
 
-    # ‚·‚×‚Ä‚ÌƒŒƒCƒ„[‚Ì’l‚ª0‚Ìê‡
-    #Write-Host "`n‚·‚×‚Ä‚ÌƒŒƒCƒ„[‚Ì’l‚ª0‚Å‚·B"
-    #Write-Host "Œ‹‰Ê: FALSE"
+    # ã™ã¹ã¦ã®ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å€¤ãŒ0ã®å ´åˆ
+    #Write-Host "`nã™ã¹ã¦ã®ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å€¤ãŒ0ã§ã™ã€‚"
+    #Write-Host "çµæœ: FALSE"
     return $false
 }
 
