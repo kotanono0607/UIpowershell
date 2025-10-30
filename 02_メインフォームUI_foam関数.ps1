@@ -1302,41 +1302,61 @@ function script:ボタンクリック情報表示 {
         ##Write-Host "通常モードで処理を実行します。"
 
       #  if ($sender.BackColor -eq [System.Drawing.Color]::Pink -and $sender.Parent.Name -eq $Global:可視左パネル.Name) {
-        if ($sender.Tag.script -eq "スクリプト" -and $sender.Parent.Name -eq $Global:可視左パネル.Name) {
-            ##Write-Host "背景色がPinkのボタンです。"
-            ####Write-Host "ボタン名: $($sender.Name)"
-                        # グローバル変数に座標を格納
-            $最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル 
+        if ($sender.Tag.script -eq "スクリプト") {  # 親パネルチェックを削除
+            Write-Host "=== Pinkノード展開処理開始 ===" -ForegroundColor Magenta
+            Write-Host "クリックされたPinkノード: $($sender.Name)" -ForegroundColor Magenta
 
-            $A = [int]$最後の文字
+            # Pinkノードの親パネルを取得
+            $親パネル = $sender.Parent
+            Write-Host "親パネル: $($親パネル.Name)" -ForegroundColor Cyan
 
-             $Global:Pink選択配列[$A].Y座標 = $sender.Location.Y +15
-　　　　　　 $Global:Pink選択配列[$A].値 = 1
+            # 親パネルのレイヤー番号を取得
+            $親レイヤー番号 = グローバル変数から数値取得 -パネル $親パネル
+            Write-Host "親レイヤー番号: $親レイヤー番号" -ForegroundColor Cyan
+
+            if ($親レイヤー番号 -eq $null) {
+                Write-Host "エラー: 親パネルのレイヤー番号を取得できませんでした" -ForegroundColor Red
+                return
+            }
+
+            # 次のレイヤー番号を計算
+            $次のレイヤー番号 = [int]$親レイヤー番号 + 1
+            Write-Host "展開先レイヤー番号: $次のレイヤー番号" -ForegroundColor Cyan
+
+            # 次のレイヤーパネルを取得
+            $次のレイヤー変数名 = "レイヤー$次のレイヤー番号"
+            if (Get-Variable -Name $次のレイヤー変数名 -Scope Global -ErrorAction SilentlyContinue) {
+                $次のパネル = (Get-Variable -Name $次のレイヤー変数名 -Scope Global).Value
+                Write-Host "展開先パネル: $($次のパネル.Name)" -ForegroundColor Cyan
+            } else {
+                Write-Host "エラー: レイヤー$次のレイヤー番号 は存在しません（最大レイヤー数を超えています）" -ForegroundColor Red
+                return
+            }
+
+            # グローバル変数に座標を格納
+            $A = [int]$親レイヤー番号
+            $Global:Pink選択配列[$A].Y座標 = $sender.Location.Y +15
+            $Global:Pink選択配列[$A].値 = 1
             $Global:Pink選択配列[$A].展開ボタン = $sender.Name
-
             $Global:現在展開中のスクリプト名 = $sender.Name
+            $Global:Pink選択中 = $true
 
-
-            Write-Host $Global:現在展開中のスクリプト名 -ForegroundColor Red
-
-            ##Write-Host "AA-" $Global:現在展開中のスクリプト名
-
-                       $Global:Pink選択中 = $true
-                       #矢印を表示する -フォーム $メインフォーム -幅 1400 -高さ 900 -矢印サイズ 10 -矢印角度 30 -PictureBoxX 850 -PictureBoxY 100 -PictureBox幅 90 -PictureBox高さ 20
-               フレームパネルからすべてのボタンを削除する -フレームパネル $Global:可視右パネル
+            # 次のパネルをクリアして展開
+            フレームパネルからすべてのボタンを削除する -フレームパネル $次のパネル
             $取得したエントリ = IDでエントリを取得 -ID $sender.Name
-                Write-Host $取得したエントリ -ForegroundColor Red
-            PINKからボタン作成 -文字列 $取得したエントリ
+            Write-Host "取得したエントリ:`n$取得したエントリ" -ForegroundColor Yellow
 
-        $最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル
-        $Global:レイヤー階層の深さ = [int]$最後の文字 + 1
+            # 展開先パネルを指定してボタンを作成
+            PINKからボタン作成 -文字列 $取得したエントリ -展開先パネル $次のパネル
 
-        # Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show($Global:レイヤー階層の深さ, "タ^イCトgル?A") 
- 
+            # レイヤー階層の深さを更新
+            $Global:レイヤー階層の深さ = $次のレイヤー番号
+            Write-Host "レイヤー階層の深さを更新: $($Global:レイヤー階層の深さ)" -ForegroundColor Cyan
 
+            # 矢印追記処理
+            00_矢印追記処理 -フレームパネル $親パネル
 
-           00_矢印追記処理 -フレームパネル $Global:可視左パネル
-            #[System.Windows.Forms.MessageBox]::Show("背景色がPinkのボタン名: $取得したエントリ", "背景色Pink", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+            Write-Host "=== Pinkノード展開処理完了 ===" -ForegroundColor Magenta
         }
 
 $情報 = @"
@@ -1359,10 +1379,12 @@ $情報 = @"
 
 function PINKからボタン作成 {
     param (
-        [string]$文字列
+        [string]$文字列,
+        [System.Windows.Forms.Panel]$展開先パネル = $Global:可視右パネル  # デフォルトは可視右パネル
     )
 
     Write-Host " !!!!!!" -ForegroundColor Yellow
+    Write-Host "展開先パネル: $($展開先パネル.Name)" -ForegroundColor Cyan
 
     $初期Y = 20 # Y座標の初期値
 
@@ -1422,18 +1444,18 @@ function PINKからボタン作成 {
         # デバッグ出力
         ##Write-Host "ボタン名: $ボタン名, 背景色: $背景色名, テキスト: $テキスト" -ForegroundColor Green
 
-        $幅 = 120        
-        $初期X = [Math]::Floor(($Global:可視右パネル.ClientSize.Width - $幅) / 2)# 中央配置のためのX座標を計算
+        $幅 = 120
+        $初期X = [Math]::Floor(($展開先パネル.ClientSize.Width - $幅) / 2)# 中央配置のためのX座標を計算
 
         # ボタンテキストが "条件分岐 中間" の場合
         if ($テキスト -eq "条件分岐 中間") {
         $調整Y = $初期Y - 5
-        $新ボタン = 00_ボタンを作成する -コンテナ $Global:可視右パネル -テキスト $テキスト -ボタン名 $ボタン名 -幅 $幅 -高さ 1 -X位置 $初期X -Y位置 $調整Y -枠線 1 -背景色 $背景色 -ドラッグ可能 $false 
+        $新ボタン = 00_ボタンを作成する -コンテナ $展開先パネル -テキスト $テキスト -ボタン名 $ボタン名 -幅 $幅 -高さ 1 -X位置 $初期X -Y位置 $調整Y -枠線 1 -背景色 $背景色 -ドラッグ可能 $false
 
-        $初期Y += 10         
+        $初期Y += 10
         }else{
             Write-Host "AAAA" -ForegroundColor Yellow
-        $新ボタン = 00_ボタンを作成する -コンテナ $Global:可視右パネル -テキスト $テキスト -ボタン名 $ボタン名 -幅 $幅 -高さ 30 -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $背景色 -ドラッグ可能 $true　-ボタンタイプ "ノード"　-ボタンタイプ2 $タイプ
+        $新ボタン = 00_ボタンを作成する -コンテナ $展開先パネル -テキスト $テキスト -ボタン名 $ボタン名 -幅 $幅 -高さ 30 -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $背景色 -ドラッグ可能 $true　-ボタンタイプ "ノード"　-ボタンタイプ2 $タイプ
 
         $初期Y += 50
         }
@@ -1441,8 +1463,8 @@ function PINKからボタン作成 {
 
 
     }
-    00_メインフレームパネルのPaintイベントを設定する -フレームパネル $Global:可視右パネル
-    00_矢印追記処理 -フレームパネル $Global:可視右パネル
+    00_メインフレームパネルのPaintイベントを設定する -フレームパネル $展開先パネル
+    00_矢印追記処理 -フレームパネル $展開先パネル
 }
 
 function 00_ボタンを作成する {
