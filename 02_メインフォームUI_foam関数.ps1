@@ -1724,7 +1724,27 @@ if ($最後の文字 -ge 2) {
         }
 
         00_矢印追記処理 -フレームパネル $Global:可視左パネル
-     
+
+
+        } elseif ($sender.Name -eq "CLEAR_ALL") {
+            # 全ノード削除ボタンの処理
+            $result = [System.Windows.Forms.MessageBox]::Show(
+                "現在のレイヤーの全てのノードを削除しますか？`nこの操作は元に戻せません。",
+                "全ノード削除の確認",
+                [System.Windows.Forms.MessageBoxButtons]::YesNo,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            )
+
+            if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+                Write-Host "全ノード削除を実行します..." -ForegroundColor Yellow
+                # 現在のレイヤーの全ボタンを削除
+                フレームパネルからすべてのボタンを削除する -フレームパネル $Global:可視左パネル
+                # 矢印も更新
+                00_矢印追記処理 -フレームパネル $Global:可視左パネル
+                Write-Host "全ノード削除が完了しました。" -ForegroundColor Green
+            } else {
+                Write-Host "全ノード削除をキャンセルしました。" -ForegroundColor Cyan
+            }
 
         }else {
             ###Write-Host "ボタン名が001または002ではありません。アクションは実行されません。"
