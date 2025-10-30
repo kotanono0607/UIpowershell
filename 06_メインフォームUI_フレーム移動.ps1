@@ -3,7 +3,7 @@
 
 function メインフレームの左を押した場合の処理 {
 
-        00_フレームを表示する -フレームパネル $Global:不可視右の右パネル             
+        00_フレームを表示する -フレームパネル $Global:不可視右の右パネル
 
         $layers = @($Global:可視左パネル, $Global:可視右パネル, $Global:不可視右の右パネル) # レイヤーパネルを配列に格納
         $moveIterations = 3 # 移動を繰り返す回数を設定
@@ -22,7 +22,23 @@ function メインフレームの左を押した場合の処理 {
         $Global:可視右パネル = $Global:不可視右の右パネル
         $新しいレイヤー名 = 新しいレイヤー名を取得する -パネル $Global:不可視右の右パネル　-向き "左"# 関数を呼び出して新しいレイヤー名を取得
         $Global:不可視右の右パネル = (Get-Variable -Name $新しいレイヤー名 -Scope Global).Value　# レイヤー名から変数を取得して不可視右の右パネルに割り当て
-       # パネル名を表示する
+
+        # 現在のレイヤーより深いレイヤーをすべてクリア
+        $現在のレイヤー番号 = グローバル変数から数値取得 -パネル $Global:可視左パネル
+        Write-Host "左矢印: 現在のレイヤー $現在のレイヤー番号 より深いレイヤーをクリアします" -ForegroundColor Yellow
+
+        if ($null -ne $現在のレイヤー番号) {
+            for ($i = [int]$現在のレイヤー番号 + 1; $i -le 6; $i++) {
+                $レイヤー変数名 = "レイヤー$i"
+                if (Get-Variable -Name $レイヤー変数名 -Scope Global -ErrorAction SilentlyContinue) {
+                    $クリア対象パネル = (Get-Variable -Name $レイヤー変数名 -Scope Global).Value
+                    Write-Host "  レイヤー$i をクリア" -ForegroundColor Cyan
+                    フレームパネルからすべてのボタンを削除する -フレームパネル $クリア対象パネル
+                }
+            }
+            # レイヤー階層の深さを更新
+            $Global:レイヤー階層の深さ = [int]$現在のレイヤー番号
+        }
 }
 function メインフレームの右を押した場合の処理 {
 
@@ -47,8 +63,23 @@ function メインフレームの右を押した場合の処理 {
 
         $新しいレイヤー名 = 新しいレイヤー名を取得する -パネル $Global:不可視左の左パネル -向き "右"　# 関数を呼び出して新しいレイヤー名を取得
         $Global:不可視左の左パネル = (Get-Variable -Name $新しいレイヤー名 -Scope Global).Value　# レイヤー名から変数を取得して不可視右の右パネルに割り当て
-        #パネル名を表示する
 
+        # 現在のレイヤーより深いレイヤーをすべてクリア
+        $現在のレイヤー番号 = グローバル変数から数値取得 -パネル $Global:可視左パネル
+        Write-Host "右矢印: 現在のレイヤー $現在のレイヤー番号 より深いレイヤーをクリアします" -ForegroundColor Yellow
+
+        if ($null -ne $現在のレイヤー番号) {
+            for ($i = [int]$現在のレイヤー番号 + 1; $i -le 6; $i++) {
+                $レイヤー変数名 = "レイヤー$i"
+                if (Get-Variable -Name $レイヤー変数名 -Scope Global -ErrorAction SilentlyContinue) {
+                    $クリア対象パネル = (Get-Variable -Name $レイヤー変数名 -Scope Global).Value
+                    Write-Host "  レイヤー$i をクリア" -ForegroundColor Cyan
+                    フレームパネルからすべてのボタンを削除する -フレームパネル $クリア対象パネル
+                }
+            }
+            # レイヤー階層の深さを更新
+            $Global:レイヤー階層の深さ = [int]$現在のレイヤー番号
+        }
 }
 
 
