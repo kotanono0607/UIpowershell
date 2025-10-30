@@ -144,7 +144,17 @@ function 00_フレームのDragDropイベントを設定する {
                 $スナップX = [Math]::Floor(($sender.ClientSize.Width - $ボタン.Width) / 2)
 
                 # 実際に移動
+                $元の位置Y = $ボタン.Location.Y
                 $ボタン.Location = New-Object System.Drawing.Point($スナップX, $配置Y)
+
+                # レイヤー番号を取得
+                $レイヤー番号 = グローバル変数から数値取得 -パネル $sender
+                $レイヤー表示 = if ($レイヤー番号) { "レイヤー$レイヤー番号" } else { "不明" }
+
+                # 移動ログ（大きな移動のみ）
+                if ([Math]::Abs($元の位置Y - $配置Y) -gt 10) {
+                    Write-Host "[移動] $レイヤー表示`: $($ボタン.Name) - $($ボタン.Text)" -ForegroundColor Cyan
+                }
 
                 # ドラッグ状態のリセット
                 $ボタン.Tag.IsDragging = $false
@@ -369,30 +379,15 @@ function ドロップ禁止チェック_ネスト規制 {
     $isGreen  = ($元色 -ne $null -and $元色.ToArgb() -eq [System.Drawing.Color]::SpringGreen.ToArgb())
     $isYellow = ($元色 -ne $null -and $元色.ToArgb() -eq [System.Drawing.Color]::LemonChiffon.ToArgb())
 
-    Write-Host "=== ネスト規制チェック開始 ==="
-    Write-Host "移動ボタンID: $($移動ボタン.Name), GroupID: $($移動ボタン.Tag.GroupID)"
-    Write-Host "色: Green=$isGreen, Yellow=$isYellow"
-    Write-Host "設置希望Y: $設置希望Y"
-
     # パネル上の全条件分岐ブロック範囲と全ループブロック範囲を先に取っておく
     $allCondRanges = Get-AllGroupRanges -panel $フレーム -targetColor ([System.Drawing.Color]::SpringGreen)
     $allLoopRanges = Get-AllGroupRanges -panel $フレーム -targetColor ([System.Drawing.Color]::LemonChiffon)
-
-    Write-Host "条件分岐範囲数: $($allCondRanges.Count)"
-    foreach ($cr in $allCondRanges) {
-        Write-Host "  - GroupID:$($cr.GroupID) Y:$($cr.TopY)-$($cr.BottomY)"
-    }
-    Write-Host "ループ範囲数: $($allLoopRanges.Count)"
-    foreach ($lr in $allLoopRanges) {
-        Write-Host "  - GroupID:$($lr.GroupID) Y:$($lr.TopY)-$($lr.BottomY)"
-    }
 
     # まず「単体ノードが腹に落ちる」ケースの即時チェック
     if ($isYellow) {
         foreach ($cr in $allCondRanges) {
             if ($設置希望Y -ge $cr.TopY -and $設置希望Y -le $cr.BottomY) {
                 # ループの任意ノードを条件分岐の腹の中に入れるのは禁止
-                Write-Host ">>> 禁止: ループノードを条件分岐内に配置"
                 return $true
             }
         }
@@ -402,7 +397,6 @@ function ドロップ禁止チェック_ネスト規制 {
             if ($設置希望Y -ge $lr.TopY -and $設置希望Y -le $lr.BottomY) {
                 # 条件分岐ノードをループの腹に刺すのは禁止
                 # (＝ループの途中に条件分岐を割り込ませるのもダメ)
-                Write-Host ">>> 禁止: 条件分岐ノードをループ内に配置"
                 return $true
             }
         }
@@ -411,7 +405,6 @@ function ドロップ禁止チェック_ネスト規制 {
     # ★★★ 新規追加: グループ分断チェック ★★★
     if ($isGreen) {
         # 条件分岐グループがループの境界をまたぐかチェック
-        Write-Host "条件分岐グループ分断チェック開始"
         $isFragmented = Check-GroupFragmentation `
             -panel $フレーム `
             -movingBtn $移動ボタン `
@@ -419,16 +412,13 @@ function ドロップ禁止チェック_ネスト規制 {
             -groupColor ([System.Drawing.Color]::SpringGreen) `
             -boundaryColor ([System.Drawing.Color]::LemonChiffon)
 
-        Write-Host "分断チェック結果: $isFragmented"
         if ($isFragmented) {
-            Write-Host ">>> 禁止: 条件分岐グループが分断される"
             return $true
         }
     }
 
     if ($isYellow) {
         # ループグループが条件分岐の境界をまたぐかチェック
-        Write-Host "ループグループ分断チェック開始"
         $isFragmented = Check-GroupFragmentation `
             -panel $フレーム `
             -movingBtn $移動ボタン `
@@ -436,72 +426,47 @@ function ドロップ禁止チェック_ネスト規制 {
             -groupColor ([System.Drawing.Color]::LemonChiffon) `
             -boundaryColor ([System.Drawing.Color]::SpringGreen)
 
-        Write-Host "分断チェック結果: $isFragmented"
         if ($isFragmented) {
-            Write-Host ">>> 禁止: ループグループが分断される"
             return $true
         }
     }
 
     # 次に、グループ全体としての整合性チェック
     if ($isGreen) {
-        Write-Host "条件分岐グループ全体の整合性チェック開始"
         # この条件分岐グループが移動後どういう縦範囲になるか
         $movedCondRange = Get-GroupRangeAfterMove -panel $フレーム `
                                                  -movingBtn $移動ボタン `
                                                  -newY $設置希望Y `
                                                  -targetColor ([System.Drawing.Color]::SpringGreen)
 
-        if ($movedCondRange) {
-            Write-Host "移動後の条件分岐範囲: GroupID=$($movedCondRange.GroupID) Y=$($movedCondRange.TopY)-$($movedCondRange.BottomY)"
-        } else {
-            Write-Host "移動後の条件分岐範囲: null"
-        }
-
         foreach ($lr in $allLoopRanges) {
-            Write-Host "Is-IllegalPairチェック: 条件分岐 vs ループ(GroupID=$($lr.GroupID))"
             $isPairIllegal = Is-IllegalPair -condRange $movedCondRange -loopRange $lr
-            Write-Host "結果: $isPairIllegal"
             if ($isPairIllegal) {
-                Write-Host ">>> 禁止: 条件分岐とループの配置が不正"
                 return $true
             }
         }
 
-        Write-Host "=== 問題なし ==="
         return $false
     }
 
     if ($isYellow) {
-        Write-Host "ループグループ全体の整合性チェック開始"
         # このループグループが移動後どういう縦範囲になるか
         $movedLoopRange = Get-GroupRangeAfterMove -panel $フレーム `
                                                  -movingBtn $移動ボタン `
                                                  -newY $設置希望Y `
                                                  -targetColor ([System.Drawing.Color]::LemonChiffon)
 
-        if ($movedLoopRange) {
-            Write-Host "移動後のループ範囲: GroupID=$($movedLoopRange.GroupID) Y=$($movedLoopRange.TopY)-$($movedLoopRange.BottomY)"
-        } else {
-            Write-Host "移動後のループ範囲: null"
-        }
-
         foreach ($cr in $allCondRanges) {
-            Write-Host "Is-IllegalPairチェック: 条件分岐(GroupID=$($cr.GroupID)) vs ループ"
             $isPairIllegal = Is-IllegalPair -condRange $cr -loopRange $movedLoopRange
-            Write-Host "結果: $isPairIllegal"
             if ($isPairIllegal) {
-                Write-Host ">>> 禁止: ループと条件分岐の配置が不正"
                 return $true
             }
         }
 
-        Write-Host "=== 問題なし ==="
         return $false
     }
 
     # 緑でも黄でもないノードは規制しない
-    Write-Host "=== 緑でも黄でもないノード ==="
     return $false
 }
 
@@ -1094,6 +1059,13 @@ function 条件分岐ボタン削除処理 {
     #-----------------------------
     # ⑤ 削除実行
     #-----------------------------
+    # レイヤー番号を取得
+    $レイヤー番号 = グローバル変数から数値取得 -パネル $parent
+    $レイヤー表示 = if ($レイヤー番号) { "レイヤー$レイヤー番号" } else { "不明" }
+
+    # 削除ログ
+    Write-Host "[削除] $レイヤー表示`: 条件分岐 GroupID=$targetGID ($($削除対象.Count) 個)" -ForegroundColor Red
+
     foreach ($b in $削除対象) {
         try {
             $parent.Controls.Remove($b)
@@ -1166,6 +1138,13 @@ function ループボタン削除処理 {
     #-----------------------------
     # ④ 実際に削除
     #-----------------------------
+    # レイヤー番号を取得
+    $レイヤー番号 = グローバル変数から数値取得 -パネル $parent
+    $レイヤー表示 = if ($レイヤー番号) { "レイヤー$レイヤー番号" } else { "不明" }
+
+    # 削除ログ
+    Write-Host "[削除] $レイヤー表示`: ループ GroupID=$targetGID ($($候補ボタン一覧.Count) 個)" -ForegroundColor Red
+
     foreach ($b in $候補ボタン一覧) {
         try {
             $parent.Controls.Remove($b)
@@ -1193,11 +1172,8 @@ function ループボタン削除処理 {
 
 
 function script:削除処理 {
-    ###Write-Host "削除処理を開始します。"
     # 右クリック時に格納したボタンを取得
     $btn = $script:右クリックメニュー.Tag
-    ###Write-Host "取得したボタン: $($btn.Name)"
-
 
     # ★★ 条件分岐（緑）専用削除 ★★
     if ($btn.BackColor -eq [System.Drawing.Color]::SpringGreen) {
@@ -1211,46 +1187,33 @@ function script:削除処理 {
     }
 
     # ここから下は従来の「普通の1個だけ消す」ルート
-
-
     if ($btn -ne $null) {
         if ($btn.Parent -ne $null) {
-            ###Write-Host "ボタンの親コンテナを取得しました。"
             try {
-                ###Write-Host "ボタンを親コンテナから削除します。"
+                # レイヤー番号を取得
+                $レイヤー番号 = グローバル変数から数値取得 -パネル $btn.Parent
+                $レイヤー表示 = if ($レイヤー番号) { "レイヤー$レイヤー番号" } else { "不明" }
+
+                # 削除ログ
+                Write-Host "[削除] $レイヤー表示`: $($btn.Name) - $($btn.Text)" -ForegroundColor Red
+
                 $btn.Parent.Controls.Remove($btn)
                 $btn.Dispose()
-                ###Write-Host "ボタンを削除しました。"
 
                 # 外部関数が定義されている場合のみ実行
                 if (Get-Command 00_ボタンの上詰め再配置関数 -ErrorAction SilentlyContinue) {
-                    ###Write-Host "ボタンの上詰め再配置関数を呼び出します。"
                     00_ボタンの上詰め再配置関数 -フレーム $btn.Parent
-                }
-                else {
-                    Write-Warning "関数 '00_ボタンの上詰め再配置関数' が定義されていません。"
                 }
 
                 if (Get-Command 00_矢印追記処理 -ErrorAction SilentlyContinue) {
-                    ###Write-Host "矢印追記処理を呼び出します。"
                     00_矢印追記処理 -フレームパネル $Global:可視左パネル
-                }
-                else {
-                    Write-Warning "関数 '00_矢印追記処理' が定義されていません。"
                 }
             }
             catch {
                 Write-Error "ボタンの削除中にエラーが発生しました: $_"
             }
         }
-        else {
-            Write-Warning "ボタンの親が存在しません。"
-        }
     }
-    else {
-        Write-Warning "削除対象のボタンが取得できませんでした。"
-    }
-    ###Write-Host "削除処理が完了しました。"
 }
 
 function script:ボタンクリック情報表示 {
@@ -1303,16 +1266,11 @@ function script:ボタンクリック情報表示 {
 
       #  if ($sender.BackColor -eq [System.Drawing.Color]::Pink -and $sender.Parent.Name -eq $Global:可視左パネル.Name) {
         if ($sender.Tag.script -eq "スクリプト") {  # 親パネルチェックを削除
-            Write-Host "=== Pinkノード展開処理開始 ===" -ForegroundColor Magenta
-            Write-Host "クリックされたPinkノード: $($sender.Name)" -ForegroundColor Magenta
-
             # Pinkノードの親パネルを取得
             $親パネル = $sender.Parent
-            Write-Host "親パネル: $($親パネル.Name)" -ForegroundColor Cyan
 
             # 親パネルのレイヤー番号を取得
             $親レイヤー番号 = グローバル変数から数値取得 -パネル $親パネル
-            Write-Host "親レイヤー番号: $親レイヤー番号" -ForegroundColor Cyan
 
             if ($親レイヤー番号 -eq $null) {
                 Write-Host "エラー: 親パネルのレイヤー番号を取得できませんでした" -ForegroundColor Red
@@ -1321,13 +1279,11 @@ function script:ボタンクリック情報表示 {
 
             # 次のレイヤー番号を計算
             $次のレイヤー番号 = [int]$親レイヤー番号 + 1
-            Write-Host "展開先レイヤー番号: $次のレイヤー番号" -ForegroundColor Cyan
 
             # 次のレイヤーパネルを取得
             $次のレイヤー変数名 = "レイヤー$次のレイヤー番号"
             if (Get-Variable -Name $次のレイヤー変数名 -Scope Global -ErrorAction SilentlyContinue) {
                 $次のパネル = (Get-Variable -Name $次のレイヤー変数名 -Scope Global).Value
-                Write-Host "展開先パネル: $($次のパネル.Name)" -ForegroundColor Cyan
             } else {
                 Write-Host "エラー: レイヤー$次のレイヤー番号 は存在しません（最大レイヤー数を超えています）" -ForegroundColor Red
                 return
@@ -1344,19 +1300,21 @@ function script:ボタンクリック情報表示 {
             # 次のパネルをクリアして展開
             フレームパネルからすべてのボタンを削除する -フレームパネル $次のパネル
             $取得したエントリ = IDでエントリを取得 -ID $sender.Name
-            Write-Host "取得したエントリ:`n$取得したエントリ" -ForegroundColor Yellow
+
+            # ノード数をカウント
+            $ノード行 = ($取得したエントリ -split "`r?`n" | Where-Object { $_.Trim() -ne "" -and $_ -notmatch "^AAAA" }).Count
+
+            # Pink展開ログ
+            Write-Host "[Pink展開] レイヤー$親レイヤー番号 → レイヤー$次のレイヤー番号`: $($sender.Name) - $($sender.Text) ($ノード行 個)" -ForegroundColor Magenta
 
             # 展開先パネルを指定してボタンを作成
             PINKからボタン作成 -文字列 $取得したエントリ -展開先パネル $次のパネル
 
             # レイヤー階層の深さを更新
             $Global:レイヤー階層の深さ = $次のレイヤー番号
-            Write-Host "レイヤー階層の深さを更新: $($Global:レイヤー階層の深さ)" -ForegroundColor Cyan
 
             # 矢印追記処理
             00_矢印追記処理 -フレームパネル $親パネル
-
-            Write-Host "=== Pinkノード展開処理完了 ===" -ForegroundColor Magenta
         }
 
 $情報 = @"
@@ -1382,9 +1340,6 @@ function PINKからボタン作成 {
         [string]$文字列,
         [System.Windows.Forms.Panel]$展開先パネル = $Global:可視右パネル  # デフォルトは可視右パネル
     )
-
-    Write-Host " !!!!!!" -ForegroundColor Yellow
-    Write-Host "展開先パネル: $($展開先パネル.Name)" -ForegroundColor Cyan
 
     $初期Y = 20 # Y座標の初期値
 
@@ -1736,14 +1691,18 @@ if ($最後の文字 -ge 2) {
             )
 
             if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
-                Write-Host "全ノード削除を実行します..." -ForegroundColor Yellow
+                # 削除前のノード数をカウント
+                $削除数 = ($Global:可視左パネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }).Count
+                $レイヤー番号 = グローバル変数から数値取得 -パネル $Global:可視左パネル
+                $レイヤー表示 = if ($レイヤー番号) { "レイヤー$レイヤー番号" } else { "不明" }
+
                 # 現在のレイヤーの全ボタンを削除
                 フレームパネルからすべてのボタンを削除する -フレームパネル $Global:可視左パネル
                 # 矢印も更新
                 00_矢印追記処理 -フレームパネル $Global:可視左パネル
-                Write-Host "全ノード削除が完了しました。" -ForegroundColor Green
-            } else {
-                Write-Host "全ノード削除をキャンセルしました。" -ForegroundColor Cyan
+
+                # 全削除ログ
+                Write-Host "[全削除] $レイヤー表示`: $削除数 個のノードを削除" -ForegroundColor Yellow
             }
 
         }else {
@@ -2183,7 +2142,12 @@ function 表示-赤枠ボタン名一覧 {
 
         00_文字列処理内容 -ボタン名 "$buttonName" -処理番号 "99-1" -直接エントリ $entryString -ボタン $新ボタン
 
+        # レイヤー番号を取得
+        $レイヤー番号 = グローバル変数から数値取得 -パネル $フレームパネル
+        $レイヤー表示 = if ($レイヤー番号) { "レイヤー$レイヤー番号" } else { "不明" }
 
+        # レイヤー化ログ
+        Write-Host "[レイヤー化] $レイヤー表示`: $($赤枠ボタンリスト.Count) 個 → $buttonName-1" -ForegroundColor Green
 
         # ボタンカウンタのインクリメント
         $global:ボタンカウンタ++
