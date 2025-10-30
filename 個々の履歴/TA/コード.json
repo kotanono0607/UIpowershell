@@ -9,15 +9,18 @@
                  "31-1":  "Write-Host \"OK\"",
                  "12-1":  "Write-Host \"OK\"",
                  "11-1":  "for ($i = 0; $i -lt 1; $i += 1) {",
+                 "37-1":  "AAAA\r\n33-1;White;順次;",
                  "25-1":  "if (\"2\" -eq \"1\") {",
                  "22-2":  "} else {",
                  "2-1":  "Write-Host \"OK\"",
+                 "33-1":  "Write-Host \"OK\"",
                  "21-1":  "if () {",
                  "3-1":  "",
                  "28-1":  "",
                  "27-1":  "AAAA\r\n32-1;Pink;スクリプト",
                  "24-1":  "Write-Host \"OK\"",
                  "11-2":  "}",
+                 "34-1":  "AAAA\r\n37-1;Pink;スクリプト",
                  "22-3":  "}",
                  "26-1":  "Write-Host \"OK\"",
                  "25-3":  "}",
@@ -30,8 +33,10 @@
                  "30-1":  "AAAA\r\n11-1;LemonChiffon;ループ 開始;\r\n14-1;SpringGreen;条件分岐 開始;\r\n13-1;Salmon;順次;\r\n14-2;Gray;条件分岐 中間;\r\n12-1;ffc8dcff;順次;\r\n14-3;SpringGreen;条件分岐 終了;\r\n11-2;LemonChiffon;ループ 終了;",
                  "10-1":  "",
                  "32-1":  "AAAA\r\n25-1;SpringGreen;条件分岐 開始;\r\n26-1;Salmon;順次;\r\n25-2;Gray;条件分岐 中間;\r\n24-1;ffc8dcff;順次;\r\n25-3;SpringGreen;条件分岐 終了;",
+                 "36-1":  "AAAA\r\n35-1;White;順次;",
+                 "35-1":  "Write-Host \"OK\"",
                  "29-1":  "for ($i = 1; $i -lt 2; $i += 1) {",
                  "15-1":  "AAAA\r\n30-1;Pink;スクリプト\r\n31-1;White;順次"
              },
-    "最後のID":  32
+    "最後のID":  37
 }
