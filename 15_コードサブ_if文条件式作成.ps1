@@ -456,9 +456,9 @@ function ShowConditionBuilder {
     # 単一値の変数名リストを取得
     $variablesList = Get-SingleValueVariableNames -JSONPath $JSONPath
 
-    # 変数リストが空の場合は空の配列を使用（警告のみ）
+    # 変数リストが空の場合は空の配列を使用（情報表示のみ）
     if ($variablesList.Count -eq 0) {
-        Write-Host "警告: 単一値の変数が見つかりませんでした。変数を使用する条件式は作成できません。" -ForegroundColor Yellow
+        Write-Host "情報: 変数が未登録です。固定値の比較のみ可能です。変数を使いたい場合は、先に変数を登録してください。" -ForegroundColor Cyan
         $variablesList = @()  # 空の配列を設定
     }
 
