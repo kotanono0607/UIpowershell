@@ -417,11 +417,9 @@ foreach ($ボタン in $jsonData) {
 
     # 処理番号の左側を取得
     $処理番号左側 = $ボタン.処理番号 -split '-' | Select-Object -First 1
-    Write-Host "処理番号の左側: $処理番号左側"
 
     # 処理番号の左側が変わったタイミングで初期Yをリセット
     if ($処理番号左側 -ne $前回の処理番号左側) {
-        Write-Host "処理番号が変わったため、初期Yをリセット"
         $script:初期Y = 10
     }
 
@@ -472,12 +470,7 @@ function 出力-ボタン情報 {
         foreach ($button in $構成配列) {
 
             #----------------------------------------------------
-            # ③ デバッグ出力
-            #----------------------------------------------------
-            Write-Host "[階層 $階層番号] ボタン名: $($button.ボタン名) `tY座標: $($button.Y座標) `t順番: $($button.順番) `tボタン色: $($button.ボタン色) `tテキスト: $($button.テキスト) `t処理番号: $($button.処理番号) `t幅: $($button.幅) `t高さ: $($button.高さ)"
-
-            #----------------------------------------------------
-            # ④ 色指定を System.Drawing.Color に変換
+            # ③ 色指定を System.Drawing.Color に変換
             #----------------------------------------------------
             $buttonColor = if ($button.ボタン色 -match '^[A-Fa-f0-9]{6}$') {
                 [System.Drawing.ColorTranslator]::FromHtml("#$($button.ボタン色)")

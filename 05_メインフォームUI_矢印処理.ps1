@@ -31,7 +31,6 @@ function 00_矢印追記処理 {
 foreach ($button in $buttons) {
 
 $result = Check-Pink選択配列Objects
-Write-Host "関数の戻り値: $result"
 
     if (-not $hasProcessedPink -and ($button.BackColor.ToArgb() -eq [System.Drawing.Color]::Pink.ToArgb()) -and ($result -eq $true) -and  $Global:Pink選択中 -eq "true"-and $フレームパネル -eq $Global:可視左パネル ) {
      
@@ -469,7 +468,6 @@ function 取得-ボタン一覧 {
 
     #--- 0) 階層番号（1〜5）を取得 --------------------------------------------
     $最後の文字 = グローバル変数から数値取得 -パネル $フレームパネル
-    Write-Host "最後の文字 = $最後の文字"   # デバッグ用
 
     if (-not ($最後の文字 -as [int] -and 1..5 -contains [int]$最後の文字)) {
         throw "不正な階層番号です。（1〜5 の整数が必要）"
@@ -537,8 +535,6 @@ function 取得-ボタン一覧 {
     #--- 5) JSON 保存 ---------------------------------------------------------
     $baseObject | ConvertTo-Json -Depth 8 |
         Out-File -FilePath $jsonPath -Encoding UTF8
-
-    Write-Host "memory.json を更新しました（階層 $最後の文字）"
 }
 
 # カスタム矢印を描画するヘルパー関数

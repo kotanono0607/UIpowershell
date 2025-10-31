@@ -22,12 +22,6 @@ foreach ($entry in $jsonData) {
     $関数マッピング[$entry.処理番号] = $entry.関数名
 }
 
-# 関数マッピングの内容を出力
-Write-Host "関数マッピングの内容:"
-foreach ($key in $関数マッピング.Keys) {
-    Write-Host "処理番号: $key => 関数名: $($関数マッピング[$key])"
-}
-
 if ($関数マッピング.ContainsKey($処理番号)) {
     $関数名 = $関数マッピング[$処理番号]
     
@@ -38,8 +32,6 @@ if ($関数マッピング.ContainsKey($処理番号)) {
         # 通常の関数呼び出し
         $entryString = & $関数名
     }
-
-    Write-Host "処理番号: $処理番号 に対応する関数の戻り値: $entryString"
 
 } else {
     Write-Error "処理番号が未対応です: $処理番号"
