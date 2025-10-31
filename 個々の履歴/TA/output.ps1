@@ -1,20 +1,26 @@
-﻿
+﻿Write-Host "OK"
+Write-Host "OK"
+Write-Host "OK"
 
-for ($i = 0; $i -lt 1; $i += 1) {
+
+
 Write-Host "OK"
 Write-Host "OK"
+
+
+for ($i = 0; $i -lt a; $i += 1) {
+
 }
 
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです。", "タイトル", "OK", "Information")
 
-if ("2" -eq "1") {
 Write-Host "OK"
-} else {
-Write-Host "OK"
-}
 
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです。", "タイトル", "OK", "Information")
 
-for ($i = 1; $i -lt 2; $i += 1) {
-
-}
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです。", "タイトル", "OK", "Information")
 
 
