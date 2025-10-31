@@ -34,12 +34,6 @@ $result = Check-Pink選択配列Objects
 
     if (-not $hasProcessedPink -and ($button.BackColor.ToArgb() -eq [System.Drawing.Color]::Pink.ToArgb()) -and ($result -eq $true) -and  $Global:Pink選択中 -eq "true"-and $フレームパネル -eq $Global:可視左パネル ) {
      
-        Write-Host "ここまできてる？"
-
-        Write-Host $Global:表示スクリプト座標.X 
-        Write-Host $Global:表示スクリプト座標.Y 
-     
-     
         # 横ラインを描画（ピンク色）
         $pinkLineColor = [System.Drawing.Color]::Pink
 
@@ -668,7 +662,6 @@ function 00_メインフレームパネルのPaintイベントを設定する {
                     # 右向きの場合、矢印の向きを右に調整
                     # 必要に応じて座標を変更
                     # ここでは既存の StartPoint と EndPoint を使用
-                    write-host "AAs"
                     #$endPoint = $obj.EndPoint
                     #$startPoint = $obj.StartPoint
                 }
