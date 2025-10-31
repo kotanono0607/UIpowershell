@@ -8,6 +8,17 @@
     # 配列変数のリストを取得
     $arrayVariablesList = Get-ArrayVariableNames -JSONPath $JSONPath
 
+    # 変数リストが空の場合は空の配列を使用（情報表示のみ）
+    if ($variablesList.Count -eq 0) {
+        Write-Host "情報: 単一値変数が未登録です。固定値のみ使用可能です。変数を使いたい場合は、先に変数を登録してください。" -ForegroundColor Cyan
+        $variablesList = @()  # 空の配列を設定
+    }
+
+    # 配列変数リストが空の場合も空配列を設定
+    if ($null -eq $arrayVariablesList -or $arrayVariablesList.Count -eq 0) {
+        $arrayVariablesList = @()
+    }
+
     Add-Type -AssemblyName System.Windows.Forms
 
     # 保存時にループ構文プレビューの値を返すための変数
