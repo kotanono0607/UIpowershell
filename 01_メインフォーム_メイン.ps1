@@ -26,8 +26,6 @@ Get-ChildItem -Path "$スクリプトPath\" -Filter "*.ps1" | Where-Object { $_.
 
 $codeFolderPath = Join-Path -Path $スクリプトPath -ChildPath "01_code" # 01_codeフォルダ内の.ps1ファイルを取得し、メインスクリプトを除外
 
-write-host "aa" $codeFolderPath
-
 Get-ChildItem -Path $codeFolderPath -Filter "*.ps1" | Where-Object { $_.Name -ne $MainpsName } | ForEach-Object {. $_.FullName }
 
 $メインPath = Split-Path $スクリプトPath # ひとつ上の階層のパスを取得
@@ -37,8 +35,6 @@ JSON初回
 
 # 関数の呼び出し例
 $global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\個々の履歴\メイン.json" -keyName "フォルダパス"
-
-write-host "aaa" $global:folderPath
 
 $global:JSONPath = "$global:folderPath\variables.json"
 
@@ -236,30 +232,9 @@ function デバッグJSONファイル {
     # JSONデータの読み込み
     try {
         $json = Get-Content $jsonPath | ConvertFrom-Json
-        write-host "JSONファイルを正常に読み込みました。"  # 読み込み成功のメッセージ
     }
     catch {
-        write-host "JSONファイルの読み込みに失敗しました。"  # 読み込み失敗メッセージ
         return
-    }
-
-    # JSONの中身を表示
-    write-host "JSONの内容:"
-    $json | Format-List
-
-    # エントリが存在する場合は、それを確認する
-    if ($json.PSObject.Properties["エントリ"]) {
-        write-host "`n'エントリ' セクションの内容:"
-        $json.エントリ | Format-List
-    } else {
-        write-host "'エントリ' セクションが見つかりませんでした。"
-    }
-
-    # 最後のIDを表示
-    if ($json.PSObject.Properties["最後のID"]) {
-        write-host "`n'最後のID': $($json.最後のID)"
-    } else {
-        write-host "'最後のID' が見つかりませんでした。"
     }
 }
 
