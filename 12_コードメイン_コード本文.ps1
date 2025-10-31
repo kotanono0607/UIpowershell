@@ -49,14 +49,9 @@ if (-not [string]::IsNullOrEmpty($entryString)) {
 $メインフォーム.Show()
 
 
-    #        [System.Windows.Forms.MessageBox]::Show($ボタン名 , "debug情報表示", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-   エントリを追加_指定ID -ID $ボタン名 -文字列 $entryString -順番 "1"
-
-
    #-----------------------------------------レイヤー２処理追加
 
-$最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル 
-Write-Host "最後の文字” $最後の文字
+$最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル
 
     
        # [System.Windows.Forms.MessageBox]::Show($ボタン.BackColor.Name, "debug情報表示", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
