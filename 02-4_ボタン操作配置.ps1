@@ -373,17 +373,17 @@ function script:ボタンクリック情報表示 {
             # Write-Host "" -ForegroundColor Cyan
         }
 
-$情報 = @"
-ボタン情報:
-  名前: $($sender.Name)
-  テキスト: $($sender.Text)
-  サイズ: $($sender.Size.Width) x $($sender.Size.Height)
-  位置: X=$($sender.Location.X), Y=$($sender.Location.Y)
-  背景色: $($sender.BackColor)
-"@
+# $情報 = @"
+# ボタン情報:
+#   名前: $($sender.Name)
+#   テキスト: $($sender.Text)
+#   サイズ: $($sender.Size.Width) x $($sender.Size.Height)
+#   位置: X=$($sender.Location.X), Y=$($sender.Location.Y)
+#   背景色: $($sender.BackColor)
+# "@
 
         ##Write-Host "情報をメッセージボックスで表示します。"
-        [System.Windows.Forms.MessageBox]::Show($情報, "ボタン情報", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        # [System.Windows.Forms.MessageBox]::Show($情報, "ボタン情報", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
     }
 
     ###Write-Host "ボタンクリック情報表示処理が完了しました。"
