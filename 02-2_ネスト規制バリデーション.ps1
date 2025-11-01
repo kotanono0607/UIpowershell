@@ -5,11 +5,16 @@
 # 
 # 含まれる関数:
 #   - ドロップ禁止チェック_ネスト規制
+#     - Get-GroupRangeAfterMove (内部関数)
+#     - Get-AllGroupRanges (内部関数)
+#     - Is-IllegalPair (内部関数)
+#     - Check-GroupFragmentation (内部関数)
 #
 # リファクタリング: 2025-11-01
 # 元ファイル: 02_メインフォームUI_foam関数.ps1 (行210-510)
 # ================================================================
 
+function ドロップ禁止チェック_ネスト規制 {
     param (
         [System.Windows.Forms.Panel]$フレーム,      # ドロップ先パネル
         [System.Windows.Forms.Button]$移動ボタン,   # 今ドラッグしてるボタン
@@ -310,4 +315,3 @@
 }
 
 
-function 00_フレームのDragEnterイベントを設定する {

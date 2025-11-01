@@ -13,8 +13,7 @@
 # 元ファイル: 02_メインフォームUI_foam関数.ps1
 # ================================================================
 
-# 02-4_ボタン操作配置.ps1
-
+function 10_ボタンの一覧取得 {
     param (
         [System.Windows.Forms.Panel]$フレーム,
         [Int]$現在のY,
@@ -168,7 +167,7 @@ if ($ソート済みボタン[$インデックス].Tag.script -eq "スクリプ�
   }
 }
 
-function 00_フレームを作成する {
+function script:ボタンクリック情報表示 {
     param (
         [System.Windows.Forms.Button]$sender
     )
@@ -392,7 +391,7 @@ $情報 = @"
 
 
 
-function PINKからボタン作成 {
+function Get-ButtonIndex {
     param (
         [System.Windows.Forms.Button]$対象ボタン,
         [System.Windows.Forms.Panel]$フレームパネル
@@ -416,4 +415,3 @@ function PINKからボタン作成 {
     return -1
 }
 
-function 適用-赤枠に挟まれたボタンスタイル {

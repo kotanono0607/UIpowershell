@@ -27,6 +27,7 @@ $global:黄色ボタングループカウンタ = 1000  # ループ用（1000番
 $global:緑色ボタングループカウンタ = 2000  # 条件分岐用（2000番台）
 $global:ドラッグ中のボタン = $null
 
+
 function 00_フォームを作成する {
     param(
         [int]$幅 = 1400,
@@ -228,7 +229,7 @@ function 00_フレームのDragDropイベントを設定する {
 }
 
 
-function ドロップ禁止チェック_ネスト規制 {
+function 00_フレームのDragEnterイベントを設定する {
   param (
     [System.Windows.Forms.Panel]$フレーム
   )
@@ -243,7 +244,7 @@ function ドロップ禁止チェック_ネスト規制 {
   })
 }
 
-function 10_ボタンの一覧取得 {
+function 00_フレームを作成する {
     param (
         [System.Windows.Forms.Form]$フォーム,           # フレームを追加するフォーム
         [int]$幅 = 300,                                # フレームの幅
@@ -292,7 +293,7 @@ function 10_ボタンの一覧取得 {
     return $フレームパネル
 }
 
-function script:コンテキストメニューを初期化する {
+function フォームにラベル追加 {
     param (
         [Parameter(Mandatory)]
         [System.Windows.Forms.Form]$フォーム, # フォームオブジェクト
@@ -330,4 +331,3 @@ function script:コンテキストメニューを初期化する {
 }
 
 # ボタンのインデックスを取得する関数
-function Get-ButtonIndex {

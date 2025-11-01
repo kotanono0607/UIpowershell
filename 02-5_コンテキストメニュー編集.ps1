@@ -16,8 +16,7 @@
 # 元ファイル: 02_メインフォームUI_foam関数.ps1
 # ================================================================
 
-# 02-5_コンテキストメニュー編集.ps1
-
+function script:コンテキストメニューを初期化する {
     ###Write-Host "コンテキストメニューを初期化します。"
     if (-not $script:ContextMenuInitialized) {
         # コンテキストメニューをスクリプトスコープで定義
@@ -307,7 +306,7 @@ function script:スクリプト実行処理 {
 }
 
 
-function 条件分岐ボタン削除処理 {
+function 取得-JSON値 {
     param (
         [string]$jsonFilePath, # JSONファイルのパス
         [string]$keyName       # 取得したいキー名
@@ -328,7 +327,7 @@ function 条件分岐ボタン削除処理 {
     }
 }
 
-function フォームにラベル追加 {
+function 適用-赤枠に挟まれたボタンスタイル {
     param (
         [System.Windows.Forms.Panel]$フレームパネル
     )
@@ -500,4 +499,3 @@ function 表示-赤枠ボタン名一覧 {
     }
 }
 
-function フレームパネルからすべてのボタンを削除する {

@@ -13,8 +13,7 @@
 # 元ファイル: 02_メインフォームUI_foam関数.ps1
 # ================================================================
 
-# 02-6_削除処理.ps1
-
+function 条件分岐ボタン削除処理 {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
@@ -251,7 +250,7 @@ function script:削除処理 {
     }
 }
 
-function script:ボタンクリック情報表示 {
+function フレームパネルからすべてのボタンを削除する {
     param (
         [System.Windows.Forms.Panel]$フレームパネル
     )
@@ -279,4 +278,3 @@ function script:ボタンクリック情報表示 {
 }
 
 # 矢印を描く関数
-function 矢印を描く {
