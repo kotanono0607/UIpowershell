@@ -34,6 +34,15 @@ function メインフレームの左を押した場合の処理 {
                     $クリア対象パネル = (Get-Variable -Name $レイヤー変数名 -Scope Global).Value
                     Write-Host "  レイヤー$i をクリア" -ForegroundColor Cyan
                     フレームパネルからすべてのボタンを削除する -フレームパネル $クリア対象パネル
+
+                    # ★ 修正（問題#1,2対応）: Pink選択配列もリセット
+                    if ($i -ge 1 -and $i -le 6) {
+                        $インデックス = $i - 1
+                        $Global:Pink選択配列[$インデックス].値 = 0
+                        $Global:Pink選択配列[$インデックス].展開ボタン = 0
+                        $Global:Pink選択配列[$インデックス].Y座標 = 0
+                        Write-Host "    → Pink選択配列[$インデックス] をリセット" -ForegroundColor DarkCyan
+                    }
                 }
             }
             # レイヤー階層の深さを更新
@@ -78,6 +87,15 @@ function メインフレームの右を押した場合の処理 {
                     $クリア対象パネル = (Get-Variable -Name $レイヤー変数名 -Scope Global).Value
                     Write-Host "  レイヤー$i をクリア" -ForegroundColor Cyan
                     フレームパネルからすべてのボタンを削除する -フレームパネル $クリア対象パネル
+
+                    # ★ 修正（問題#1,2対応）: Pink選択配列もリセット
+                    if ($i -ge 1 -and $i -le 6) {
+                        $インデックス = $i - 1
+                        $Global:Pink選択配列[$インデックス].値 = 0
+                        $Global:Pink選択配列[$インデックス].展開ボタン = 0
+                        $Global:Pink選択配列[$インデックス].Y座標 = 0
+                        Write-Host "    → Pink選択配列[$インデックス] をリセット" -ForegroundColor DarkCyan
+                    }
                 }
             }
             # レイヤー階層の深さを更新
