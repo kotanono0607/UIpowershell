@@ -24,6 +24,7 @@ function script:コンテキストメニューを初期化する {
         $script:名前変更メニューアイテム = $script:右クリックメニュー.Items.Add("名前変更")
         $script:スクリプト編集メニューアイテム = $script:右クリックメニュー.Items.Add("スクリプト編集")
         $script:スクリプト実行メニューアイテム = $script:右クリックメニュー.Items.Add("スクリプト実行")
+        $script:レイヤー化メニューアイテム = $script:右クリックメニュー.Items.Add("レイヤー化")
         $script:削除メニューアイテム = $script:右クリックメニュー.Items.Add("削除")
 
         ###Write-Host "コンテキストメニュー項目を追加しました。"
@@ -37,13 +38,17 @@ function script:コンテキストメニューを初期化する {
             ###Write-Host "スクリプト編集メニューがクリックされました。"
             script:スクリプト編集処理 
         })
-        $script:スクリプト実行メニューアイテム.Add_Click({ 
+        $script:スクリプト実行メニューアイテム.Add_Click({
             ###Write-Host "スクリプト編集メニューがクリックされました。"
-            script:スクリプト実行処理 
+            script:スクリプト実行処理
         })
-        $script:削除メニューアイテム.Add_Click({ 
+        $script:レイヤー化メニューアイテム.Add_Click({
+            ###Write-Host "レイヤー化メニューがクリックされました。"
+            script:レイヤー化処理
+        })
+        $script:削除メニューアイテム.Add_Click({
             ###Write-Host "削除メニューがクリックされました。"
-            script:削除処理 
+            script:削除処理
         })
 
         # イベントハンドラーが一度だけ設定されたことを記録
@@ -303,6 +308,50 @@ function script:スクリプト実行処理 {
         $メインフォーム.Show()
     }
     ###Write-Host "スクリプト実行処理が完了しました。"
+}
+
+function script:レイヤー化処理 {
+    ###Write-Host "レイヤー化処理を開始します。"
+
+    # 右クリック時に格納したボタンを取得
+    $btn = $script:右クリックメニュー.Tag
+    ###Write-Host "取得したボタン: $($btn.Name)"
+
+    if ($btn -ne $null) {
+        # ボタンの親パネルを取得
+        $フレームパネル = $btn.Parent
+
+        if ($フレームパネル -ne $null) {
+            # 赤枠ボタンの数を確認
+            $赤枠カウント = 0
+            foreach ($コントロール in $フレームパネル.Controls) {
+                if ($コントロール -is [System.Windows.Forms.Button] -and
+                    $コントロール.FlatStyle -eq 'Flat' -and
+                    $コントロール.FlatAppearance.BorderColor.ToArgb() -eq [System.Drawing.Color]::Red.ToArgb()) {
+                    $赤枠カウント++
+                }
+            }
+
+            if ($赤枠カウント -gt 0) {
+                ###Write-Host "赤枠ボタンが $赤枠カウント 個見つかりました。レイヤー化を実行します。"
+                # レイヤー化を実行
+                表示-赤枠ボタン名一覧 -フレームパネル $フレームパネル
+            } else {
+                [System.Windows.Forms.MessageBox]::Show(
+                    "レイヤー化するには、まず赤枠でボタンを選択してください。",
+                    "レイヤー化エラー",
+                    [System.Windows.Forms.MessageBoxButtons]::OK,
+                    [System.Windows.Forms.MessageBoxIcon]::Warning
+                )
+            }
+        } else {
+            Write-Warning "親パネルが取得できませんでした。"
+        }
+    } else {
+        Write-Warning "ボタンが取得できませんでした。"
+    }
+
+    ###Write-Host "レイヤー化処理が完了しました。"
 }
 
 
