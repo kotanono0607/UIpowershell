@@ -105,7 +105,8 @@ function IDを生成する {
         $新しいID = $json内容."最後のID" + 1
     }
 
-    $json内容."最後のID" = $新しいID
+    # '最後のID' を更新（Add-Memberを使用して安全に更新）
+    $json内容 | Add-Member -MemberType NoteProperty -Name "最後のID" -Value $新しいID -Force
 
     # JSONファイルに保存（共通関数使用）
     try {
@@ -157,8 +158,8 @@ function エントリを追加 {
         #Write-Host "エントリが追加されました。ID: $subId"
     }
 
-    # 'エントリ'に代入
-    $json内容."エントリ" = $エントリハッシュ
+    # 'エントリ'を更新（Add-Memberを使用して安全に更新）
+    $json内容 | Add-Member -MemberType NoteProperty -Name "エントリ" -Value $エントリハッシュ -Force
 
     # JSONファイルに保存（共通関数使用）
     try {
@@ -276,8 +277,8 @@ function エントリを追加_指定ID {
         #Write-Host "エントリが追加されました。ID: $subId"
     }
 
-    # 'エントリ'に代入
-    $json内容."エントリ" = $エントリハッシュ
+    # 'エントリ'を更新（Add-Memberを使用して安全に更新）
+    $json内容 | Add-Member -MemberType NoteProperty -Name "エントリ" -Value $エントリハッシュ -Force
 
     # JSONファイルに保存（共通関数使用）
     try {
@@ -397,8 +398,8 @@ function IDでエントリを置換 {
     $エントリハッシュ[$ID] = $新しい文字列.Trim()
     #Write-Host "エントリが追加または置換されました。ID: $ID"
 
-    # 更新された 'エントリ'をJSONに戻す
-    $json内容."エントリ" = $エントリハッシュ
+    # 更新された 'エントリ'をJSONに戻す（Add-Memberを使用して安全に更新）
+    $json内容 | Add-Member -MemberType NoteProperty -Name "エントリ" -Value $エントリハッシュ -Force
 
     # JSONファイルに保存（共通関数使用）
     try {
@@ -435,8 +436,8 @@ function IDを自動生成する {
 
     $newID = ($lastID + 1).ToString()
 
-    # '最後のID' を更新
-    $json内容."最後のID" = [int]$newID
+    # '最後のID' を更新（Add-Memberを使用して安全に更新）
+    $json内容 | Add-Member -MemberType NoteProperty -Name "最後のID" -Value ([int]$newID) -Force
 
     # JSONファイルに保存（共通関数使用）
     try {
