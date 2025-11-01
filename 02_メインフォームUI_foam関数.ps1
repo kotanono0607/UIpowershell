@@ -1452,9 +1452,6 @@ function script:ボタンクリック情報表示 {
             00_矢印追記処理 -フレームパネル $親パネル
             Write-Host "     ✅ 矢印追記完了" -ForegroundColor Green
 
-            # 階層パス表示を更新
-            階層パス表示を更新する
-
             Write-Host "" -ForegroundColor Cyan
             Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
             Write-Host "[✅ DEBUG] スクリプト化ノード展開処理完了" -ForegroundColor Cyan

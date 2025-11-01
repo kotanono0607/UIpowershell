@@ -85,7 +85,7 @@ $Global:現在展開中のスクリプト名 = ""
 
 
 # フォームを生成
-$メインフォーム = 00_フォームを作成する -幅 1400 -高さ 900
+$メインフォーム = 00_フォームを作成する -幅 1400 -高さ 1000
 
 
 # フォーム生成直後に通常表示を強制
@@ -189,7 +189,7 @@ $メニュー構造 = @(
 # ========================================
 $Global:階層パス表示ラベル = New-Object System.Windows.Forms.Label
 $Global:階層パス表示ラベル.Text = "📍 階層パス: レイヤー0"
-$Global:階層パス表示ラベル.Location = New-Object System.Drawing.Point(10, 865)  # ウィンドウ下部に配置
+$Global:階層パス表示ラベル.Location = New-Object System.Drawing.Point(10, 965)  # ウィンドウ下部に配置
 $Global:階層パス表示ラベル.Size = New-Object System.Drawing.Size(1380, 30)
 $Global:階層パス表示ラベル.Font = New-Object System.Drawing.Font("Yu Gothic UI", 12, [System.Drawing.FontStyle]::Bold)
 $Global:階層パス表示ラベル.ForeColor = [System.Drawing.Color]::DarkBlue
