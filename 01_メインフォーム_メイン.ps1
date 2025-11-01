@@ -184,6 +184,19 @@ $メニュー構造 = @(
 
 ツールバーを追加 -フォーム $メインフォーム -メニュー構造 $メニュー構造
 
+# ========================================
+# 階層パス表示ラベル
+# ========================================
+$Global:階層パス表示ラベル = New-Object System.Windows.Forms.Label
+$Global:階層パス表示ラベル.Text = "📍 階層パス: レイヤー0"
+$Global:階層パス表示ラベル.Location = New-Object System.Drawing.Point(10, 10)
+$Global:階層パス表示ラベル.Size = New-Object System.Drawing.Size(1380, 25)
+$Global:階層パス表示ラベル.Font = New-Object System.Drawing.Font("Yu Gothic UI", 12, [System.Drawing.FontStyle]::Bold)
+$Global:階層パス表示ラベル.ForeColor = [System.Drawing.Color]::DarkBlue
+$Global:階層パス表示ラベル.BackColor = [System.Drawing.Color]::LightCyan
+$Global:階層パス表示ラベル.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$Global:階層パス表示ラベル.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+$メインフォーム.Controls.Add($Global:階層パス表示ラベル)
 
 フォームにラベル追加 -フォーム $メインフォーム -テキスト "ノード操作" -X座標 190 -Y座標 125
 
