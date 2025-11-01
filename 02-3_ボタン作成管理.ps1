@@ -27,9 +27,9 @@ function Set-ButtonTextAndTooltip {
         [string]$FullText
     )
 
-    # 12文字を超える場合は省略表示
-    if ($FullText.Length -gt 12) {
-        $Button.Text = $FullText.Substring(0, 12) + "..."
+    # 8文字を超える場合は省略表示
+    if ($FullText.Length -gt 8) {
+        $Button.Text = $FullText.Substring(0, 8) + "..."
     } else {
         $Button.Text = $FullText
     }
