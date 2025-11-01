@@ -271,7 +271,7 @@ function 新規フォルダ作成 {
     #Write-Host "保存先ディレクトリ: $保存先ディレクトリ"
 
 
-    $保存先ディレクトリ = $保存先ディレクトリ + "\個々の履歴"
+    $保存先ディレクトリ = $保存先ディレクトリ + "\03_history"
 
     # インプットボックスでフォルダ名を取得
     $入力フォーム = New-Object Windows.Forms.Form
@@ -340,7 +340,7 @@ function 新規フォルダ作成 {
     $スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレクトリを変数に格納
 
     # 関数の呼び出し例
-$global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\個々の履歴\メイン.json" -keyName "フォルダパス"
+$global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\03_history\メイン.json" -keyName "フォルダパス"
 $global:JSONPath = "$global:folderPath\variables.json"
 
             $outputFile = $global:JSONPath
@@ -372,7 +372,7 @@ Add-Type -AssemblyName System.Windows.Forms
 
 function フォルダ選択と保存 {
     # 保存先ディレクトリを取得
-    $保存先ディレクトリ = Join-Path -Path $PSScriptRoot -ChildPath "個々の履歴"
+    $保存先ディレクトリ = Join-Path -Path $PSScriptRoot -ChildPath "03_history"
     
     if (-not (Test-Path -Path $保存先ディレクトリ)) {
         New-Item -Path $保存先ディレクトリ -ItemType Directory | Out-Null
@@ -443,7 +443,7 @@ function フォルダ選択と保存 {
 
     # 関数の呼び出し例
     $スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレクトリを変数に格納
-    $global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\個々の履歴\メイン.json" -keyName "フォルダパス"
+    $global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\03_history\メイン.json" -keyName "フォルダパス"
     $global:JSONPath = "$global:folderPath\variables.json"
 }
 

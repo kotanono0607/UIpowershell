@@ -3,7 +3,7 @@ function 10_1 {
 
 $スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレクトリを変数に格納
 $メインPath = Split-Path $スクリプトPath # ひとつ上の階層のパスを取得
-Import-Module "$メインPath\コード\20250531_screenShot.psm1" -Force
+Import-Module "$メインPath\02_modules\20250531_screenShot.psm1" -Force
 $スクリーンショット 　= 　全画面ドラッグ矩形オーバーレイ
 
 

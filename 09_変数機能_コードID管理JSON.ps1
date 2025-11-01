@@ -19,7 +19,7 @@ if (-not $スクリプトディレクトリ) {
 
 
 
-$メインJSONパス = "$スクリプトディレクトリ\個々の履歴\メイン.json" 
+$メインJSONパス = "$スクリプトディレクトリ\03_history\メイン.json" 
 
 # メイン.json の存在確認
 if (-not (Test-Path -Path $メインJSONパス)) {

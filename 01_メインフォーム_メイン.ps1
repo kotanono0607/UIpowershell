@@ -24,7 +24,7 @@ $スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレク�
 $MainpsName = $MyInvocation.MyCommand.Name#メインスクリプト名取得
 Get-ChildItem -Path "$スクリプトPath\" -Filter "*.ps1" | Where-Object { $_.Name -ne $MainpsName } | ForEach-Object {. $_.FullName} # フォルダ内のすべてのps1ファイルを取得し、メインスクリプトを除いて読み込む
 
-$codeFolderPath = Join-Path -Path $スクリプトPath -ChildPath "01_code" # 01_codeフォルダ内の.ps1ファイルを取得し、メインスクリプトを除外
+$codeFolderPath = Join-Path -Path $スクリプトPath -ChildPath "00_code" # 00_codeフォルダ内の.ps1ファイルを取得し、メインスクリプトを除外
 
 Get-ChildItem -Path $codeFolderPath -Filter "*.ps1" | Where-Object { $_.Name -ne $MainpsName } | ForEach-Object {. $_.FullName }
 
@@ -34,7 +34,7 @@ $メインPath = Split-Path $スクリプトPath # ひとつ上の階層のパ�
 JSON初回
 
 # 関数の呼び出し例
-$global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\個々の履歴\メイン.json" -keyName "フォルダパス"
+$global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\03_history\メイン.json" -keyName "フォルダパス"
 
 $global:JSONPath = "$global:folderPath\variables.json"
 

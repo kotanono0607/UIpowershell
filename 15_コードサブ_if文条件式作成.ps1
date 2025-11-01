@@ -860,7 +860,7 @@ function ShowConditionBuilder {
 
 
 $スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレクトリを変数に格納
-$global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\個々の履歴\メイン.json" -keyName "フォルダパス"
+$global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\03_history\メイン.json" -keyName "フォルダパス"
 $global:JSONPath = "$global:folderPath\variables.json"
 function Get-SingleValueVariableNames {
     param(
