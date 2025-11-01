@@ -242,20 +242,75 @@ function Initialize-JsonStore {
         },
 
         [Parameter(Mandatory=$false)]
-        [bool]$Silent = $false
+        [bool]$Silent = $false,
+
+        [Parameter(Mandatory=$false)]
+        [bool]$ValidateStructure = $true
     )
 
+    $shouldInitialize = $false
+
+    # ファイルが存在しない場合は初期化
     if (-not (Test-JsonPath -Path $Path -Silent $true)) {
-        Write-JsonSafe -Path $Path -Data $InitialData -Silent $Silent
+        $shouldInitialize = $true
+        if (-not $Silent) {
+            Write-Host "[INFO] JSONファイルが存在しないため初期化します: $Path" -ForegroundColor Cyan
+        }
+    }
+    # ファイルが存在する場合、構造を検証（ValidateStructure=trueの場合）
+    elseif ($ValidateStructure) {
+        try {
+            # 直接Get-Contentで読み込む（循環参照を避けるため）
+            $jsonContent = Get-Content -Path $Path -Raw -Encoding UTF8 -ErrorAction Stop
+            $existing = $jsonContent | ConvertFrom-Json
+
+            # 必須プロパティのチェック
+            $hasRequiredProps = $true
+            foreach ($key in $InitialData.Keys) {
+                if (-not ($existing.PSObject.Properties.Name -contains $key)) {
+                    $hasRequiredProps = $false
+                    if (-not $Silent) {
+                        Write-Host "[WARNING] JSONに必須プロパティ '$key' がありません" -ForegroundColor Yellow
+                    }
+                    break
+                }
+            }
+
+            if (-not $hasRequiredProps) {
+                $shouldInitialize = $true
+                if (-not $Silent) {
+                    Write-Host "[INFO] JSON構造が不正なため再初期化します: $Path" -ForegroundColor Cyan
+                }
+            }
+        }
+        catch {
+            $shouldInitialize = $true
+            if (-not $Silent) {
+                Write-Host "[WARNING] JSON読み込みエラーのため再初期化します: $_" -ForegroundColor Yellow
+            }
+        }
+    }
+
+    # 初期化が必要な場合
+    if ($shouldInitialize) {
+        # 親ディレクトリが存在しない場合は作成
+        $parentDir = Split-Path -Parent $Path
+        if ($parentDir -and -not (Test-Path -Path $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+
+        # 初期データをJSONとして保存
+        $InitialData | ConvertTo-Json -Depth 10 | Set-Content -Path $Path -Encoding UTF8 -Force
 
         if (-not $Silent) {
             Write-Host "[INFO] JSONストアを初期化しました: $Path" -ForegroundColor Green
         }
 
         return $true
-    } else {
+    }
+    else {
         if (-not $Silent) {
-            Write-Host "[INFO] JSONストアは既に存在します: $Path" -ForegroundColor Cyan
+            Write-Host "[INFO] JSONストアは既に正しい構造で存在します: $Path" -ForegroundColor Cyan
         }
 
         return $false
