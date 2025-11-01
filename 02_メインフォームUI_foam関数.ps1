@@ -1264,6 +1264,20 @@ function script:ボタンクリック情報表示 {
     else {
         ##Write-Host "通常モードで処理を実行します。"
 
+        # ========================================
+        # 🔍 Tag.script チェック（常に出力）
+        # ========================================
+        Write-Host "" -ForegroundColor Magenta
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
+        Write-Host "[🔍 TAG CHECK] ノードクリック時のTag.script確認" -ForegroundColor Magenta
+        Write-Host "    ノード名: $($sender.Name)" -ForegroundColor White
+        Write-Host "    背景色: $($sender.BackColor)" -ForegroundColor White
+        Write-Host "    Tag: $($sender.Tag)" -ForegroundColor White
+        Write-Host "    Tag.script: $($sender.Tag.script)" -ForegroundColor White
+        Write-Host "    条件判定: `$sender.Tag.script -eq 'スクリプト' → $($sender.Tag.script -eq 'スクリプト')" -ForegroundColor Yellow
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
+        Write-Host "" -ForegroundColor Magenta
+
       #  if ($sender.BackColor -eq [System.Drawing.Color]::Pink -and $sender.Parent.Name -eq $Global:可視左パネル.Name) {
         if ($sender.Tag.script -eq "スクリプト") {  # 親パネルチェックを削除
 
@@ -1451,7 +1465,13 @@ function PINKからボタン作成 {
         $ボタン名 = $parts[0].Trim()
         $背景色名 = $parts[1].Trim()
         $テキスト = $parts[2].Trim()
-        $タイプ = $parts[3].Trim()
+
+        # タイプが存在しない場合（スクリプト化ノード）は、テキストをタイプとして使用
+        if ($parts.Count -ge 4 -and $parts[3]) {
+            $タイプ = $parts[3].Trim()
+        } else {
+            $タイプ = $テキスト  # スクリプト化ノードの場合、テキスト（"スクリプト"）をタイプとして使用
+        }
 
         #-----------------------------------------------------------------------------------------------------
 
@@ -1509,7 +1529,8 @@ function PINKからボタン作成 {
         $初期Y += 10
         }else{
         $新ボタン = 00_ボタンを作成する -コンテナ $展開先パネル -テキスト $テキスト -ボタン名 $ボタン名 -幅 $幅 -高さ 30 -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $背景色 -ドラッグ可能 $true　-ボタンタイプ "ノード"　-ボタンタイプ2 $タイプ
-        Write-Host "    作成: [$ボタン名] $テキスト (通常ボタン) Y=$初期Y 色=$背景色名" -ForegroundColor DarkCyan
+        Write-Host "    作成: [$ボタン名] $テキスト (通常ボタン) Y=$初期Y 色=$背景色名 タイプ=$タイプ" -ForegroundColor DarkCyan
+        Write-Host "           → Tag.script設定: $($新ボタン.Tag.script)" -ForegroundColor $(if ($新ボタン.Tag.script -eq 'スクリプト') {'Green'} else {'Yellow'})
         $初期Y += 50
         }
 
