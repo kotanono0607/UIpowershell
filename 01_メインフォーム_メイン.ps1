@@ -61,6 +61,13 @@ $global:黄色ボタングループカウンタ = 1000   # 黄色ボタンのグ
 $global:緑色ボタングループカウンタ = 2000   # 緑色ボタンのグループIDカウンタ（条件分岐用・2000番台）
 $global:drawObjects = @()                  # 描画オブジェクトを保持するリスト
 
+# ツールチップの初期化と設定
+$global:ToolTip = New-Object System.Windows.Forms.ToolTip
+$global:ToolTip.AutoPopDelay = 10000   # 表示時間: 10秒
+$global:ToolTip.InitialDelay = 500     # 表示までの遅延: 0.5秒
+$global:ToolTip.ReshowDelay = 100      # 再表示の遅延: 0.1秒
+$global:ToolTip.ShowAlways = $true     # 常に表示
+
 #========== メインコード ==========
 
 $Global:表示スクリプト座標 = @{ X = 0; Y = 0 }

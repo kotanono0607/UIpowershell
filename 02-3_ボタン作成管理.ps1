@@ -15,6 +15,32 @@
 # 元ファイル: 02_メインフォームUI_foam関数.ps1 (行1480-2094)
 # ================================================================
 
+# ================================================================
+# ヘルパー関数: ボタンにツールチップと省略表示を設定
+# ================================================================
+function Set-ButtonTextAndTooltip {
+    param(
+        [Parameter(Mandatory=$true)]
+        [System.Windows.Forms.Button]$Button,
+
+        [Parameter(Mandatory=$true)]
+        [string]$FullText
+    )
+
+    # 改行文字を除去して文字数をカウント（表示用）
+    $表示用テキスト = $FullText -replace "`r`n", "" -replace "`n", "" -replace "`r", ""
+
+    # 8文字を超える場合は省略表示
+    if ($表示用テキスト.Length -gt 8) {
+        $Button.Text = $表示用テキスト.Substring(0, 8) + "..."
+    } else {
+        $Button.Text = $表示用テキスト
+    }
+
+    # すべてのボタンにツールチップで全文を表示
+    $global:ToolTip.SetToolTip($Button, $FullText)
+}
+
 function PINKからボタン作成 {
     param (
         [string]$文字列,
@@ -147,7 +173,7 @@ function 00_ボタンを作成する {
     # ボタンの作成
     ###Write-Host "ボタンを作成します。"
     $ボタン = New-Object System.Windows.Forms.Button
-    $ボタン.Text = $テキスト #$ボタン名 # 
+    Set-ButtonTextAndTooltip -Button $ボタン -FullText $テキスト
     $ボタン.Size = New-Object System.Drawing.Size($幅, $高さ)
     $ボタン.Location = New-Object System.Drawing.Point($X位置, $Y位置)
     $ボタン.AllowDrop = $false                            # ボタン自体のドロップを無効化
@@ -316,7 +342,8 @@ function 00_メインにボタンを作成する {
     )
 
     $ボタン = New-Object System.Windows.Forms.Button
-    $ボタン.Text = $テキスト -replace "`n", [Environment]::NewLine # 改行を反映
+    # 元のテキストをそのまま渡す（Set-ButtonTextAndTooltip内で改行処理）
+    Set-ButtonTextAndTooltip -Button $ボタン -FullText $テキスト
     $ボタン.Size = New-Object System.Drawing.Size($幅, $高さ)
     $ボタン.Location = New-Object System.Drawing.Point($X位置, $Y位置)
     $ボタン.AllowDrop = $false                            # ボタン自体のドロップを無効化
@@ -468,7 +495,7 @@ function 00_汎用色ボタンを作成する {
   $色ボタン = New-Object System.Windows.Forms.Button
 
   # --- 基本レイアウト関連 ---
-  $色ボタン.Text = $テキスト                                     # ボタン上に表示するテキスト
+  Set-ButtonTextAndTooltip -Button $色ボタン -FullText $テキスト
   $色ボタン.Size = New-Object System.Drawing.Size($幅, $高さ)     # ボタンの表示サイズ
   $色ボタン.Location = New-Object System.Drawing.Point($X位置, $Y位置) # ボタンの配置座標
   $色ボタン.Name = $ボタン名                                     # コントロール名
