@@ -185,12 +185,12 @@ $メニュー構造 = @(
 ツールバーを追加 -フォーム $メインフォーム -メニュー構造 $メニュー構造
 
 # ========================================
-# 階層パス表示ラベル
+# 階層パス表示ラベル（ウィンドウ下部に配置）
 # ========================================
 $Global:階層パス表示ラベル = New-Object System.Windows.Forms.Label
 $Global:階層パス表示ラベル.Text = "📍 階層パス: レイヤー0"
-$Global:階層パス表示ラベル.Location = New-Object System.Drawing.Point(10, 10)
-$Global:階層パス表示ラベル.Size = New-Object System.Drawing.Size(1380, 25)
+$Global:階層パス表示ラベル.Location = New-Object System.Drawing.Point(10, 865)  # ウィンドウ下部に配置
+$Global:階層パス表示ラベル.Size = New-Object System.Drawing.Size(1380, 30)
 $Global:階層パス表示ラベル.Font = New-Object System.Drawing.Font("Yu Gothic UI", 12, [System.Drawing.FontStyle]::Bold)
 $Global:階層パス表示ラベル.ForeColor = [System.Drawing.Color]::DarkBlue
 $Global:階層パス表示ラベル.BackColor = [System.Drawing.Color]::LightCyan
