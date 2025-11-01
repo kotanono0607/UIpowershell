@@ -1436,7 +1436,8 @@ function PINKからボタン作成 {
     Write-Host "  展開先パネル名: $($展開先パネル.Name)" -ForegroundColor Cyan
     Write-Host "  展開先パネル位置: X=$($展開先パネル.Location.X), Y=$($展開先パネル.Location.Y)" -ForegroundColor Cyan
     Write-Host "  展開先パネル可視: $($展開先パネル.Visible)" -ForegroundColor Cyan
-    Write-Host "  文字列プレビュー: $($文字列.Substring(0, [Math]::Min(100, $文字列.Length)).Replace("`r", "").Replace("`n", " | "))" -ForegroundColor Cyan
+    $プレビュー文字列 = $文字列.Substring(0, [Math]::Min(100, $文字列.Length)) -replace "`r", "" -replace "`n", " | "
+    Write-Host "  文字列プレビュー: $プレビュー文字列" -ForegroundColor Cyan
 
     $初期Y = 20 # Y座標の初期値
     $作成されたボタン数 = 0
