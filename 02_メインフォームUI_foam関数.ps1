@@ -1266,55 +1266,146 @@ function script:ボタンクリック情報表示 {
 
       #  if ($sender.BackColor -eq [System.Drawing.Color]::Pink -and $sender.Parent.Name -eq $Global:可視左パネル.Name) {
         if ($sender.Tag.script -eq "スクリプト") {  # 親パネルチェックを削除
+
+            # ========================================
+            # 🔍 デバッグログ: スクリプト化ノードクリック開始
+            # ========================================
+            Write-Host "" -ForegroundColor Cyan
+            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+            Write-Host "[🔍 DEBUG] スクリプト化ノードがクリックされました" -ForegroundColor Cyan
+            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+
             # Pinkノードの親パネルを取得
             $親パネル = $sender.Parent
+            Write-Host "[1] ノード情報:" -ForegroundColor Yellow
+            Write-Host "    ノード名: $($sender.Name)" -ForegroundColor White
+            Write-Host "    テキスト: $($sender.Text)" -ForegroundColor White
+            Write-Host "    親パネル: $($親パネル.Name)" -ForegroundColor White
+            Write-Host "    Tag.script: $($sender.Tag.script)" -ForegroundColor White
 
             # 親パネルのレイヤー番号を取得
             $親レイヤー番号 = グローバル変数から数値取得 -パネル $親パネル
+            Write-Host "" -ForegroundColor Yellow
+            Write-Host "[2] 親レイヤー番号: $親レイヤー番号" -ForegroundColor Yellow
 
             if ($親レイヤー番号 -eq $null) {
-                Write-Host "エラー: 親パネルのレイヤー番号を取得できませんでした" -ForegroundColor Red
+                Write-Host "❌ エラー: 親パネルのレイヤー番号を取得できませんでした" -ForegroundColor Red
+                Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
                 return
             }
 
             # 次のレイヤー番号を計算
             $次のレイヤー番号 = [int]$親レイヤー番号 + 1
+            Write-Host "    次のレイヤー番号: $次のレイヤー番号" -ForegroundColor White
 
             # 次のレイヤーパネルを取得
             $次のレイヤー変数名 = "レイヤー$次のレイヤー番号"
+            Write-Host "" -ForegroundColor Yellow
+            Write-Host "[3] 次のパネル確認:" -ForegroundColor Yellow
+            Write-Host "    変数名: `$Global:$次のレイヤー変数名" -ForegroundColor White
+
             if (Get-Variable -Name $次のレイヤー変数名 -Scope Global -ErrorAction SilentlyContinue) {
                 $次のパネル = (Get-Variable -Name $次のレイヤー変数名 -Scope Global).Value
+                Write-Host "    ✅ パネル取得成功" -ForegroundColor Green
+                Write-Host "       パネル名: $($次のパネル.Name)" -ForegroundColor White
+                Write-Host "       表示状態: $($次のパネル.Visible)" -ForegroundColor White
+                Write-Host "       位置: X=$($次のパネル.Location.X), Y=$($次のパネル.Location.Y)" -ForegroundColor White
+                Write-Host "       サイズ: W=$($次のパネル.Width), H=$($次のパネル.Height)" -ForegroundColor White
             } else {
-                Write-Host "エラー: レイヤー$次のレイヤー番号 は存在しません（最大レイヤー数を超えています）" -ForegroundColor Red
+                Write-Host "    ❌ エラー: レイヤー$次のレイヤー番号 は存在しません（最大レイヤー数を超えています）" -ForegroundColor Red
+                Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
                 return
             }
 
+            # 現在の可視パネルの状態を確認
+            Write-Host "" -ForegroundColor Yellow
+            Write-Host "[4] 現在の可視パネル状態:" -ForegroundColor Yellow
+            Write-Host "    可視左パネル: $($Global:可視左パネル.Name)" -ForegroundColor White
+            Write-Host "    可視右パネル: $($Global:可視右パネル.Name)" -ForegroundColor White
+            Write-Host "    不可視右の右パネル: $($Global:不可視右の右パネル.Name)" -ForegroundColor White
+
             # グローバル変数に座標を格納
             $A = [int]$親レイヤー番号
+            Write-Host "" -ForegroundColor Yellow
+            Write-Host "[5] Pink選択配列の更新:" -ForegroundColor Yellow
+            Write-Host "    更新前の値: $($Global:Pink選択配列[$A].値)" -ForegroundColor White
+            Write-Host "    更新前の展開ボタン: $($Global:Pink選択配列[$A].展開ボタン)" -ForegroundColor White
+
             $Global:Pink選択配列[$A].Y座標 = $sender.Location.Y +15
             $Global:Pink選択配列[$A].値 = 1
             $Global:Pink選択配列[$A].展開ボタン = $sender.Name
             $Global:現在展開中のスクリプト名 = $sender.Name
             $Global:Pink選択中 = $true
 
+            Write-Host "    更新後の値: $($Global:Pink選択配列[$A].値)" -ForegroundColor Green
+            Write-Host "    更新後の展開ボタン: $($Global:Pink選択配列[$A].展開ボタン)" -ForegroundColor Green
+            Write-Host "    Y座標: $($Global:Pink選択配列[$A].Y座標)" -ForegroundColor White
+
             # 次のパネルをクリアして展開
+            Write-Host "" -ForegroundColor Yellow
+            Write-Host "[6] 次のパネルをクリア:" -ForegroundColor Yellow
+            Write-Host "    クリア対象: $($次のパネル.Name)" -ForegroundColor White
+            $クリア前のボタン数 = ($次のパネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }).Count
+            Write-Host "    クリア前のボタン数: $クリア前のボタン数" -ForegroundColor White
+
             フレームパネルからすべてのボタンを削除する -フレームパネル $次のパネル
+
+            $クリア後のボタン数 = ($次のパネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }).Count
+            Write-Host "    クリア後のボタン数: $クリア後のボタン数" -ForegroundColor Green
+
+            Write-Host "" -ForegroundColor Yellow
+            Write-Host "[7] コードエントリ取得:" -ForegroundColor Yellow
             $取得したエントリ = IDでエントリを取得 -ID $sender.Name
+            Write-Host "    ノードID: $($sender.Name)" -ForegroundColor White
+            if ($取得したエントリ) {
+                Write-Host "    ✅ エントリ取得成功" -ForegroundColor Green
+                $エントリ行数 = ($取得したエントリ -split "`r?`n").Count
+                Write-Host "       エントリ行数: $エントリ行数" -ForegroundColor White
+                Write-Host "       エントリ内容（最初の3行）:" -ForegroundColor White
+                ($取得したエントリ -split "`r?`n" | Select-Object -First 3) | ForEach-Object {
+                    Write-Host "         $_" -ForegroundColor Gray
+                }
+            } else {
+                Write-Host "    ❌ エラー: エントリが取得できませんでした" -ForegroundColor Red
+            }
 
             # ノード数をカウント
             $ノード行 = ($取得したエントリ -split "`r?`n" | Where-Object { $_.Trim() -ne "" -and $_ -notmatch "^AAAA" }).Count
+            Write-Host "    展開するノード数: $ノード行 個" -ForegroundColor White
 
             # Pink展開ログ
+            Write-Host "" -ForegroundColor Magenta
             Write-Host "[Pink展開] レイヤー$親レイヤー番号 → レイヤー$次のレイヤー番号`: $($sender.Name) - $($sender.Text) ($ノード行 個)" -ForegroundColor Magenta
 
             # 展開先パネルを指定してボタンを作成
+            Write-Host "" -ForegroundColor Yellow
+            Write-Host "[8] PINKからボタン作成を呼び出します:" -ForegroundColor Yellow
+            Write-Host "    展開先パネル: $($次のパネル.Name)" -ForegroundColor White
+
             PINKからボタン作成 -文字列 $取得したエントリ -展開先パネル $次のパネル
 
+            $作成後のボタン数 = ($次のパネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }).Count
+            Write-Host "    作成後のボタン数: $作成後のボタン数" -ForegroundColor Green
+
             # レイヤー階層の深さを更新
+            Write-Host "" -ForegroundColor Yellow
+            Write-Host "[9] レイヤー階層の深さ更新:" -ForegroundColor Yellow
+            Write-Host "    更新前: $($Global:レイヤー階層の深さ)" -ForegroundColor White
             $Global:レイヤー階層の深さ = $次のレイヤー番号
+            Write-Host "    更新後: $($Global:レイヤー階層の深さ)" -ForegroundColor Green
 
             # 矢印追記処理
+            Write-Host "" -ForegroundColor Yellow
+            Write-Host "[10] 矢印追記処理:" -ForegroundColor Yellow
+            Write-Host "     対象パネル: $($親パネル.Name)" -ForegroundColor White
             00_矢印追記処理 -フレームパネル $親パネル
+            Write-Host "     ✅ 矢印追記完了" -ForegroundColor Green
+
+            Write-Host "" -ForegroundColor Cyan
+            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+            Write-Host "[✅ DEBUG] スクリプト化ノード展開処理完了" -ForegroundColor Cyan
+            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+            Write-Host "" -ForegroundColor Cyan
         }
 
 $情報 = @"
@@ -1341,7 +1432,14 @@ function PINKからボタン作成 {
         [System.Windows.Forms.Panel]$展開先パネル = $Global:可視右パネル  # デフォルトは可視右パネル
     )
 
+    Write-Host "========== [PINKからボタン作成] 開始 ==========" -ForegroundColor Cyan
+    Write-Host "  展開先パネル名: $($展開先パネル.Name)" -ForegroundColor Cyan
+    Write-Host "  展開先パネル位置: X=$($展開先パネル.Location.X), Y=$($展開先パネル.Location.Y)" -ForegroundColor Cyan
+    Write-Host "  展開先パネル可視: $($展開先パネル.Visible)" -ForegroundColor Cyan
+    Write-Host "  文字列プレビュー: $($文字列.Substring(0, [Math]::Min(100, $文字列.Length)).Replace("`r", "").Replace("`n", " | "))" -ForegroundColor Cyan
+
     $初期Y = 20 # Y座標の初期値
+    $作成されたボタン数 = 0
 
     # 文字列を改行で分割し、最初の1行をスキップ
     $文字列 -split "`r?`n" | Select-Object -Skip 1 | ForEach-Object {
@@ -1390,8 +1488,8 @@ function PINKからボタン作成 {
                 }
             }
             catch {
-                ##Write-Host "警告: 色名または色コードが無効です。ボタンの作成をスキップします。 - 色名: $背景色名" -ForegroundColor Yellow
-                ##Write-Host " - 内容: $_" -ForegroundColor Yellow
+                Write-Host "    警告: 色名または色コードが無効です。ボタンの作成をスキップします。 - 色名: $背景色名" -ForegroundColor Yellow
+                Write-Host "    - 内容: $_" -ForegroundColor Yellow
                 return
             }
         }
@@ -1406,19 +1504,24 @@ function PINKからボタン作成 {
         if ($テキスト -eq "条件分岐 中間") {
         $調整Y = $初期Y - 5
         $新ボタン = 00_ボタンを作成する -コンテナ $展開先パネル -テキスト $テキスト -ボタン名 $ボタン名 -幅 $幅 -高さ 1 -X位置 $初期X -Y位置 $調整Y -枠線 1 -背景色 $背景色 -ドラッグ可能 $false
-
+        Write-Host "    作成: [$ボタン名] $テキスト (中間ボタン) Y=$調整Y" -ForegroundColor DarkCyan
         $初期Y += 10
         }else{
         $新ボタン = 00_ボタンを作成する -コンテナ $展開先パネル -テキスト $テキスト -ボタン名 $ボタン名 -幅 $幅 -高さ 30 -X位置 $初期X -Y位置 $初期Y -枠線 1 -背景色 $背景色 -ドラッグ可能 $true　-ボタンタイプ "ノード"　-ボタンタイプ2 $タイプ
-
+        Write-Host "    作成: [$ボタン名] $テキスト (通常ボタン) Y=$初期Y 色=$背景色名" -ForegroundColor DarkCyan
         $初期Y += 50
         }
 
-
+        $作成されたボタン数++
 
     }
+
+    Write-Host "  合計作成ボタン数: $作成されたボタン数" -ForegroundColor Cyan
+    Write-Host "  最終パネル内ボタン総数: $($展開先パネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] } | Measure-Object).Count" -ForegroundColor Cyan
+    Write-Host "  矢印処理を実行..." -ForegroundColor Cyan
     # Paintイベントはパネル作成時に既に設定されているため、ここでは矢印の更新のみ実行
     00_矢印追記処理 -フレームパネル $展開先パネル
+    Write-Host "========== [PINKからボタン作成] 完了 ==========" -ForegroundColor Cyan
 }
 
 function 00_ボタンを作成する {
