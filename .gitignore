@@ -1,1 +1,9 @@
 *.backup
+
+# 生成ファイル（実行時に自動生成されるファイル）
+03_history/**/output.ps1
+03_history/**/screen_shot/
+
+# スナップショットファイル（ユーザー環境固有）
+03_history/**/*_snapshot.json
+03_history/**/snapshot_info.json
