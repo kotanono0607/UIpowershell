@@ -417,8 +417,8 @@ function Get-ArrayVariableNames {
     }
 
     try {
-        $jsonContent = Get-Content -Path $JSONPath -Raw -Encoding UTF8
-        $importedVariables = $jsonContent | ConvertFrom-Json
+        # JSON読み込み（共通関数使用）
+        $importedVariables = Read-JsonSafe -Path $JSONPath -Required $true -Silent $false
 
         $arrayVariableNames = @()
 
@@ -874,11 +874,8 @@ function Get-SingleValueVariableNames {
     }
 
     try {
-        $jsonContent = Get-Content -Path $JSONPath -Raw -Encoding UTF8
-        #Write-Host "jsonContent:"
-        #Write-Host $jsonContent
-
-        $importedVariables = $jsonContent | ConvertFrom-Json
+        # JSON読み込み（共通関数使用）
+        $importedVariables = Read-JsonSafe -Path $JSONPath -Required $true -Silent $false
         #Write-Host "importedVariables の型: $($importedVariables.GetType().FullName)"
         #Write-Host "importedVariables の内容:"
         #Write-Host ($importedVariables | ConvertTo-Json -Depth 10)

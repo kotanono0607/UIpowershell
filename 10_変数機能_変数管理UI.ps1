@@ -319,13 +319,8 @@
         # 保存先パスを指定　＃＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝ここ決め打ち
         $outputFile = $global:JSONPath
         try {
-            # 出力フォルダが存在しない場合は作成
-            $outputFolder = Split-Path -Parent $outputFile
-            if (-not (Test-Path -Path $outputFolder)) {
-                New-Item -ItemType Directory -Path $outputFolder -Force | Out-Null
-            }
-
-            $global:variables | ConvertTo-Json -Depth 10 | Out-File -FilePath $outputFile -Encoding UTF8
+            # JSON保存（共通関数使用 - ディレクトリ作成も自動）
+            Write-JsonSafe -Path $outputFile -Data $global:variables -Depth 10 -CreateDirectory $true -Silent $true
             [System.Windows.Forms.MessageBox]::Show("変数がJSON形式で保存されました: `n$outputFile") | Out-Null
         } catch {
             [System.Windows.Forms.MessageBox]::Show("JSONの保存に失敗しました: $_") | Out-Null
@@ -343,8 +338,8 @@
             return
         }
         try {
-            $jsonContent = Get-Content -Path $inputFile -Raw -Encoding UTF8
-            $importedVariables = $jsonContent | ConvertFrom-Json
+            # JSON読み込み（共通関数使用）
+            $importedVariables = Read-JsonSafe -Path $inputFile -Required $true -Silent $false
 
             # デバッグ用出力を抑制
             # Write-Host "importedVariablesの型: $($importedVariables.GetType().FullName)"
@@ -416,8 +411,8 @@
             return
         }
         try {
-            $jsonContent = Get-Content -Path $inputFile -Raw -Encoding UTF8
-            $importedVariables = $jsonContent | ConvertFrom-Json
+            # JSON読み込み（共通関数使用）
+            $importedVariables = Read-JsonSafe -Path $inputFile -Required $true -Silent $false
 
             if ($importedVariables -is [System.Collections.IEnumerable] -and -not ($importedVariables -is [string])) {
                 foreach ($item in $importedVariables) {

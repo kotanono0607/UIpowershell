@@ -41,8 +41,8 @@ function スナップショット作成 {
         }
 
         $snapshotInfoPath = Join-Path $global:folderPath 'snapshot_info.json'
-        $snapshotInfo | ConvertTo-Json -Depth 5 |
-            Out-File -FilePath $snapshotInfoPath -Encoding UTF8
+        # JSON保存（共通関数使用）
+        Write-JsonSafe -Path $snapshotInfoPath -Data $snapshotInfo -Depth 5 -Silent $false
 
         # 成功通知
         [System.Windows.Forms.MessageBox]::Show(
@@ -95,10 +95,10 @@ function スナップショット復元 {
             return
         }
 
-        # スナップショット情報を取得
+        # スナップショット情報を取得（共通関数使用）
         $snapshotInfo = $null
         if (Test-Path $snapshotInfoPath) {
-            $snapshotInfo = Get-Content $snapshotInfoPath | ConvertFrom-Json
+            $snapshotInfo = Read-JsonSafe -Path $snapshotInfoPath -Required $false -Silent $true
         }
 
         $snapshotDate = if ($snapshotInfo) { $snapshotInfo.作成日時 } else { "不明" }
@@ -183,7 +183,8 @@ function UIをリロード {
             return
         }
 
-        $memoryData = Get-Content $memoryPath | ConvertFrom-Json
+        # JSON読み込み（共通関数使用）
+        $memoryData = Read-JsonSafe -Path $memoryPath -Required $true -Silent $false
 
         # 現在のレイヤーのノードデータを取得
         $レイヤーデータ = $memoryData."$現在のレイヤー番号"

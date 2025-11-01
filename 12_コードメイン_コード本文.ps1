@@ -13,8 +13,8 @@ $メインフォーム.Hide()
 
 
 
-# JSONファイルを読み込み
-$jsonData = Get-Content -Path ".\ボタン設定.json" | ConvertFrom-Json
+# JSONファイルを読み込み（共通関数使用）
+$jsonData = Read-JsonSafe -Path ".\ボタン設定.json" -Required $true -Silent $false
 
 # 処理番号に対応する関数名を取得する辞書を作成
 $関数マッピング = @{}

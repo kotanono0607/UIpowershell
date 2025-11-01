@@ -27,18 +27,17 @@ if (-not (Test-Path -Path $メインJSONパス)) {
     return
 }
 
-# メイン.json の内容を読み込む
-try {
-    $メインデータ = Get-Content -Path $メインJSONパス | ConvertFrom-Json
-    if (-not $メインデータ.フォルダパス) {
-        #Write-Host "メイン.json に新規フォルダパスが設定されていません。"
-        return
-    }
-    $新規フォルダパス = $メインデータ.フォルダパス
-} catch {
-    #Write-Host "メイン.json の読み込みに失敗しました。エラー: $_"
+# メイン.json の内容を読み込む（共通関数使用）
+$メインデータ = Read-JsonSafe -Path $メインJSONパス -Required $false -Silent $true
+if (-not $メインデータ) {
+    #Write-Host "メイン.json の読み込みに失敗しました。"
     return
 }
+if (-not $メインデータ.フォルダパス) {
+    #Write-Host "メイン.json に新規フォルダパスが設定されていません。"
+    return
+}
+$新規フォルダパス = $メインデータ.フォルダパス
 
 # コード.json のパスを設定
 $global:jsonパス = Join-Path -Path $新規フォルダパス -ChildPath "コード.json"
@@ -49,13 +48,13 @@ if (-not (Test-Path -Path $global:jsonパス)) {
     return
 }
 
-# コード.json の内容を読み込む
-try {
-    $コードデータ = Get-Content -Path $global:jsonパス | ConvertFrom-Json
+# コード.json の内容を読み込む（共通関数使用）
+$コードデータ = Read-JsonSafe -Path $global:jsonパス -Required $false -Silent $true
+if ($コードデータ) {
     #Write-Host "コード.json の内容を正常に読み込みました。"
     $コードデータ
-} catch {
-    #Write-Host "コード.json の読み込みに失敗しました。エラー: $_"
+} else {
+    #Write-Host "コード.json の読み込みに失敗しました。"
     return
 }
 
@@ -70,19 +69,9 @@ try {
 JSON初回
 
 
-# JSONストアの初期化関数
+# JSONストアの初期化関数（共通関数使用）
 function JSONストアを初期化 {
-    if (-Not (Test-Path $global:jsonパス)) {
-        $初期データ = @{
-            "最後のID" = 0
-            "エントリ" = @{}
-        }
-        $初期データ | ConvertTo-Json -Depth 5 | Set-Content -Path $global:jsonパス -Force
-        #Write-Output "JSONストアを初期化しました。"
-    }
-    else {
-        #Write-Output "JSONストアは既に存在します。"
-    }
+    Initialize-JsonStore -Path $global:jsonパス -Silent $true
 }
 
 # IDを生成する関数
@@ -97,11 +86,9 @@ function IDを生成する {
         JSONストアを初期化
     }
 
-    # JSONファイルを読み込む
-    try {
-        $json内容 = Get-Content -Path $global:jsonパス -Raw | ConvertFrom-Json
-    }
-    catch {
+    # JSONファイルを読み込む（共通関数使用）
+    $json内容 = Read-JsonSafe -Path $global:jsonパス -Required $true -Silent $true
+    if (-not $json内容) {
         Write-Error "JSONファイルの読み込みに失敗しました。"
         return $null
     }
@@ -120,9 +107,9 @@ function IDを生成する {
 
     $json内容."最後のID" = $新しいID
 
-    # JSONファイルに保存
+    # JSONファイルに保存（共通関数使用）
     try {
-        $json内容 | ConvertTo-Json -Depth 5 | Set-Content -Path $global:jsonパス -Force
+        Write-JsonSafe -Path $global:jsonパス -Data $json内容 -Depth 5 -Silent $true
     }
     catch {
         Write-Error "JSONファイルの更新に失敗しました。"
@@ -150,11 +137,9 @@ function エントリを追加 {
     $separator = '---'
     $parts = $文字列 -split [Regex]::Escape($separator)
 
-    # JSONファイルを読み込む
-    try {
-        $json内容 = Get-Content -Path $global:jsonパス -Raw | ConvertFrom-Json
-    }
-    catch {
+    # JSONファイルを読み込む（共通関数使用）
+    $json内容 = Read-JsonSafe -Path $global:jsonパス -Required $true -Silent $true
+    if (-not $json内容) {
         Write-Error "JSONファイルの読み込みに失敗しました。"
         return
     }
@@ -175,9 +160,9 @@ function エントリを追加 {
     # 'エントリ'に代入
     $json内容."エントリ" = $エントリハッシュ
 
-    # JSONファイルに保存
+    # JSONファイルに保存（共通関数使用）
     try {
-        $json内容 | ConvertTo-Json -Depth 5 | Set-Content -Path $global:jsonパス -Force
+        Write-JsonSafe -Path $global:jsonパス -Data $json内容 -Depth 5 -Silent $true
     }
     catch {
         Write-Error "JSONファイルの更新に失敗しました。"
@@ -205,11 +190,9 @@ function IDでエントリを削除 {
         return
     }
 
-    # JSONファイルを読み込む
-    try {
-        $json内容 = Get-Content -Path $global:jsonパス -Raw | ConvertFrom-Json
-    }
-    catch {
+    # JSONファイルを読み込む（共通関数使用）
+    $json内容 = Read-JsonSafe -Path $global:jsonパス -Required $true -Silent $true
+    if (-not $json内容) {
         Write-Error "JSONファイルの読み込みに失敗しました。"
         return
     }
@@ -231,9 +214,9 @@ function IDでエントリを削除 {
         #Write-Host "エントリが削除されました。ID: $キー"
     }
 
-    # JSONファイルに保存
+    # JSONファイルに保存（共通関数使用）
     try {
-        $json内容 | ConvertTo-Json -Depth 5 | Set-Content -Path $global:jsonパス -Force
+        Write-JsonSafe -Path $global:jsonパス -Data $json内容 -Depth 5 -Silent $true
     }
     catch {
         Write-Error "JSONファイルの更新に失敗しました。"
@@ -273,11 +256,9 @@ function エントリを追加_指定ID {
     $separator = '---'
     $parts = $文字列 -split [Regex]::Escape($separator)
 
-    # JSONファイルを読み込む
-    try {
-        $json内容 = Get-Content -Path $global:jsonパス -Raw | ConvertFrom-Json
-    }
-    catch {
+    # JSONファイルを読み込む（共通関数使用）
+    $json内容 = Read-JsonSafe -Path $global:jsonパス -Required $true -Silent $true
+    if (-not $json内容) {
         Write-Error "JSONファイルの読み込みに失敗しました。"
         return
     }
@@ -298,9 +279,9 @@ function エントリを追加_指定ID {
     # 'エントリ'に代入
     $json内容."エントリ" = $エントリハッシュ
 
-    # JSONファイルに保存
+    # JSONファイルに保存（共通関数使用）
     try {
-        $json内容 | ConvertTo-Json -Depth 5 | Set-Content -Path $global:jsonパス -Force
+        Write-JsonSafe -Path $global:jsonパス -Data $json内容 -Depth 5 -Silent $true
     }
     catch {
         Write-Error "JSONファイルの更新に失敗しました。"
@@ -325,11 +306,9 @@ function IDでエントリを取得 {
         return $null
     }
 
-    # JSONファイルを読み込む
-    try {
-        $json内容 = Get-Content -Path $global:jsonパス -Raw | ConvertFrom-Json
-    }
-    catch {
+    # JSONファイルを読み込む（共通関数使用）
+    $json内容 = Read-JsonSafe -Path $global:jsonパス -Required $true -Silent $true
+    if (-not $json内容) {
         Write-Error "JSONファイルの読み込みに失敗しました。"
         return $null
     }
@@ -352,11 +331,9 @@ function 全エントリを表示 {
         return
     }
 
-    # JSONファイルを読み込む
-    try {
-        $json内容 = Get-Content -Path $global:jsonパス -Raw | ConvertFrom-Json
-    }
-    catch {
+    # JSONファイルを読み込む（共通関数使用）
+    $json内容 = Read-JsonSafe -Path $global:jsonパス -Required $true -Silent $true
+    if (-not $json内容) {
         Write-Error "JSONファイルの読み込みに失敗しました。"
         return
     }
@@ -374,56 +351,8 @@ function 全エントリを表示 {
     }
 }
 
-# エントリを削除する関数
-function IDでエントリを削除 {
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$ID
-    )
-
-    # JSONファイルが存在しない場合
-    if (-Not (Test-Path $global:jsonパス)) {
-        Write-Error "JSONストアが存在しません。"
-        return
-    }
-
-    # JSONファイルを読み込む
-    try {
-        $json内容 = Get-Content -Path $global:jsonパス -Raw | ConvertFrom-Json
-    }
-    catch {
-        Write-Error "JSONファイルの読み込みに失敗しました。"
-        return
-    }
-
-    # エントリキーのパターンを定義（例: "1-1", "1-2", ...）
-    $キー正規表現 = "^$ID-\d+$"
-
-    # 既存のエントリを収集
-    $既存キー = $json内容."エントリ".PSObject.Properties.Name | Where-Object { $_ -match $キー正規表現 }
-
-    if ($既存キー.Count -eq 0) {
-        Write-Warning "指定されたID ($ID) のエントリは存在しません。"
-        return
-    }
-
-    # 既存のエントリを削除
-    foreach ($キー in $既存キー) {
-        $json内容."エントリ".PSObject.Properties.Remove($キー) | Out-Null
-        #Write-Host "エントリが削除されました。ID: $キー"
-    }
-
-    # JSONファイルに保存
-    try {
-        $json内容 | ConvertTo-Json -Depth 5 | Set-Content -Path $global:jsonパス -Force
-    }
-    catch {
-        Write-Error "JSONファイルの更新に失敗しました。"
-        return
-    }
-
-    #Write-Output "ID $ID のエントリを削除しました。"
-}
+# エントリを削除する関数（重複定義 - この関数は既に上で定義されているため不要）
+# 注: この関数定義は185-233行目と重複しています
 
 
 
@@ -445,11 +374,9 @@ function IDでエントリを置換 {
         return
     }
 
-    # JSONファイルを読み込む
-    try {
-        $json内容 = Get-Content -Path $global:jsonパス -Raw | ConvertFrom-Json
-    }
-    catch {
+    # JSONファイルを読み込む（共通関数使用）
+    $json内容 = Read-JsonSafe -Path $global:jsonパス -Required $true -Silent $true
+    if (-not $json内容) {
         Write-Error "JSONファイルの読み込みに失敗しました。エラー: $_"
         return
     }
@@ -473,9 +400,9 @@ function IDでエントリを置換 {
     # 更新された 'エントリ'をJSONに戻す
     $json内容."エントリ" = $エントリハッシュ
 
-    # JSONファイルに保存
+    # JSONファイルに保存（共通関数使用）
     try {
-        $json内容 | ConvertTo-Json -Depth 5 | Set-Content -Path $global:jsonパス -Force
+        Write-JsonSafe -Path $global:jsonパス -Data $json内容 -Depth 5 -Silent $true
     }
     catch {
         Write-Error "JSONファイルの更新に失敗しました。エラー: $_"
@@ -496,11 +423,9 @@ function IDを自動生成する {
         JSONストアを初期化
     }
 
-    # JSONファイルを読み込む
-    try {
-        $json内容 = Get-Content -Path $global:jsonパス -Raw | ConvertFrom-Json
-    }
-    catch {
+    # JSONファイルを読み込む（共通関数使用）
+    $json内容 = Read-JsonSafe -Path $global:jsonパス -Required $true -Silent $true
+    if (-not $json内容) {
         Write-Error "JSONファイルの読み込みに失敗しました。"
         return $null
     }
@@ -513,9 +438,9 @@ function IDを自動生成する {
     # '最後のID' を更新
     $json内容."最後のID" = [int]$newID
 
-    # JSONファイルに保存
+    # JSONファイルに保存（共通関数使用）
     try {
-        $json内容 | ConvertTo-Json -Depth 5 | Set-Content -Path $global:jsonパス -Force
+        Write-JsonSafe -Path $global:jsonパス -Data $json内容 -Depth 5 -Silent $true
     }
     catch {
         Write-Error "JSONファイルの更新に失敗しました。"

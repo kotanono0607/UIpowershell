@@ -312,12 +312,11 @@ function 取得-JSON値 {
         [string]$keyName       # 取得したいキー名
     )
     # ファイルを確認
-    if (-Not (Test-Path $jsonFilePath)) {
+    # JSONファイルを読み込み（共通関数使用）
+    $jsonContent = Read-JsonSafe -Path $jsonFilePath -Required $true -Silent $false
+    if (-not $jsonContent) {
         throw "指定されたファイルが見つかりません: $jsonFilePath"
     }
-
-    # JSONファイルを読み込み
-    $jsonContent = Get-Content -Path $jsonFilePath | ConvertFrom-Json
 
     # 指定されたキーの値を取得
     if ($jsonContent.PSObject.Properties[$keyName]) {

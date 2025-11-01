@@ -498,13 +498,18 @@ function 取得-ボタン一覧 {
         $index++
     }
 
-    #--- 2) JSON 読込／テンプレート初期化 ------------------------------------
+    #--- 2) JSON 読込／テンプレート初期化（共通関数使用） ----------------
     $jsonPath   = Join-Path $global:folderPath 'memory.json'
     $baseObject = @{}
 
     if (Test-Path $jsonPath) {
-        try       { $baseObject = Get-Content $jsonPath | ConvertFrom-Json }
-        catch     { Write-Host "既存 JSON を読込めなかったため再生成します。" }
+        try {
+            $baseObject = Read-JsonSafe -Path $jsonPath -Required $false -Silent $true
+            if (-not $baseObject) {
+                Write-Host "既存 JSON を読込めなかったため再生成します。"
+            }
+        }
+        catch { Write-Host "既存 JSON を読込めなかったため再生成します。" }
     }
 
     # 既存が空なら新規の PSCustomObject を用意
@@ -526,9 +531,8 @@ function 取得-ボタン一覧 {
     #--- 4) 指定階層へ今回のデータをセット -----------------------------------
     $baseObject."$最後の文字".構成 = $outputList
 
-    #--- 5) JSON 保存 ---------------------------------------------------------
-    $baseObject | ConvertTo-Json -Depth 8 |
-        Out-File -FilePath $jsonPath -Encoding UTF8
+    #--- 5) JSON 保存（共通関数使用） -----------------------------------------
+    Write-JsonSafe -Path $jsonPath -Data $baseObject -Depth 8 -Silent $false
 }
 
 # カスタム矢印を描画するヘルパー関数

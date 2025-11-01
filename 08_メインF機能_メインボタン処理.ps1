@@ -324,16 +324,16 @@ function 新規フォルダ作成 {
     # JSONデータを作成
     $jsonData = @{}
     if (Test-Path -Path $jsonFilePath) {
-        # 既存のJSONファイルがある場合は読み込む
-        $existingData = Get-Content -Path $jsonFilePath | ConvertFrom-Json -ErrorAction SilentlyContinue
+        # 既存のJSONファイルがある場合は読み込む（共通関数使用）
+        $existingData = Read-JsonSafe -Path $jsonFilePath -Required $false -Silent $true
         if ($existingData) {
             $jsonData = $existingData
         }
     }
     $jsonData.フォルダパス = $フォルダパス
 
-    # JSONファイルに書き込み
-    $jsonData | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonFilePath -Encoding UTF8
+    # JSONファイルに書き込み（共通関数使用）
+    Write-JsonSafe -Path $jsonFilePath -Data $jsonData -Depth 10 -Silent $true
     #Write-Host "フォルダパスがメイン.jsonに保存されました: $jsonFilePath"
 
 
@@ -348,13 +348,10 @@ $global:JSONPath = "$global:folderPath\variables.json"
             # 出力フォルダが存在しない場合は作成
             $outputFolder = Split-Path -Parent $outputFile
 
-            [System.Windows.Forms.MessageBox]::Show($outputFolder) 
+            [System.Windows.Forms.MessageBox]::Show($outputFolder)
 
-            if (-not (Test-Path -Path $outputFolder)) {
-                New-Item -ItemType Directory -Path $outputFolder -Force | Out-Null
-            }
-
-            $global:variables | ConvertTo-Json -Depth 10 | Out-File -FilePath $outputFile -Encoding UTF8
+            # JSON保存（共通関数使用 - ディレクトリ作成も自動）
+            Write-JsonSafe -Path $outputFile -Data $global:variables -Depth 10 -CreateDirectory $true -Silent $true
             [System.Windows.Forms.MessageBox]::Show("変数がJSON形式で保存されました: `n$outputFile") | Out-Null
         } catch {
             [System.Windows.Forms.MessageBox]::Show("JSONの保存に失敗しました: $_") | Out-Null
@@ -432,15 +429,16 @@ function フォルダ選択と保存 {
     # JSONデータを作成
     $jsonData = @{ フォルダパス = $選択フォルダパス }
     if (Test-Path -Path $jsonFilePath) {
-        $existingData = Get-Content -Path $jsonFilePath | ConvertFrom-Json -ErrorAction SilentlyContinue
+        # JSON読み込み（共通関数使用）
+        $existingData = Read-JsonSafe -Path $jsonFilePath -Required $false -Silent $true
         if ($existingData) {
             $existingData.フォルダパス = $選択フォルダパス
             $jsonData = $existingData
         }
     }
 
-    # JSONファイルに書き込み
-    $jsonData | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonFilePath -Encoding UTF8
+    # JSONファイルに書き込み（共通関数使用）
+    Write-JsonSafe -Path $jsonFilePath -Data $jsonData -Depth 10 -Silent $true
     #Write-Host "選択されたフォルダパスがメイン.jsonに保存されました: $選択フォルダパス"
 
     # 関数の呼び出し例

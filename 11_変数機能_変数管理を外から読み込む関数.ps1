@@ -8,15 +8,13 @@ function 変数をJSONから読み込む {
         [string]$JSONファイルパス = $変数ファイルパス
     )
 
-
-
-    if (-not (Test-Path -Path $JSONファイルパス)) {
-        throw "JSONファイルが見つかりません: $JSONファイルパス"
+    # JSON読み込み（共通関数使用）
+    $読み込んだ変数 = Read-JsonSafe -Path $JSONファイルパス -Required $true -Silent $false
+    if (-not $読み込んだ変数) {
+        throw "JSONファイルの読み込みに失敗しました: $JSONファイルパス"
     }
 
     try {
-        $JSON内容 = Get-Content -Path $JSONファイルパス -Raw
-        $読み込んだ変数 = $JSON内容 | ConvertFrom-Json
 
         $変数 = @{}
 
@@ -58,13 +56,8 @@ function 変数をJSONに保存する {
     )
 
     try {
-        # 出力フォルダが存在しない場合は作成
-        $出力フォルダ = Split-Path -Parent $JSONファイルパス
-        if (-not (Test-Path -Path $出力フォルダ)) {
-            New-Item -ItemType Directory -Path $出力フォルダ -Force | Out-Null
-        }
-
-        $変数 | ConvertTo-Json -Depth 10 | Out-File -FilePath $JSONファイルパス -Encoding UTF8
+        # JSON保存（共通関数使用 - 親ディレクトリ作成も自動）
+        Write-JsonSafe -Path $JSONファイルパス -Data $変数 -Depth 10 -CreateDirectory $true -Silent $false
     } catch {
         throw "JSONの保存に失敗しました: $_"
     }

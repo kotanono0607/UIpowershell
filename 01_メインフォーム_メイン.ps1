@@ -250,11 +250,9 @@ function デバッグJSONファイル {
         [string]$jsonPath  # JSONファイルのパス
     )
 
-    # JSONデータの読み込み
-    try {
-        $json = Get-Content $jsonPath | ConvertFrom-Json
-    }
-    catch {
+    # JSONデータの読み込み（共通関数使用）
+    $json = Read-JsonSafe -Path $jsonPath -Required $false -Silent $true
+    if (-not $json) {
         return
     }
 }
@@ -402,7 +400,8 @@ $ボタンA2 = 00_メインにボタンを作成する -コンテナ $操作フ�
 
 
 
-$jsonData = Get-Content -Path ".\ボタン設定.json" | ConvertFrom-Json
+# JSON読み込み（共通関数使用）
+$jsonData = Read-JsonSafe -Path ".\ボタン設定.json" -Required $true -Silent $false
 
 $前回の処理番号左側 = $null
 $script:初期Y = 10
@@ -444,12 +443,8 @@ function 出力-ボタン情報 {
     #------------------------------------------------------------
     # ① JSONファイルの存在確認と読込
     #------------------------------------------------------------
-    if (-not (Test-Path $jsonFilePath)) {
-        throw "JSONファイルが見つかりません: $jsonFilePath"
-    }
-
-    # -Raw を付けて一括読込 → ConvertFrom-Json
-    $jsonData = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
+    # JSON読み込み（共通関数使用）
+    $jsonData = Read-JsonSafe -Path $jsonFilePath -Required $true -Silent $false
 
     #------------------------------------------------------------
     # ② 階層(1～5)ごとの構成配列をループ
