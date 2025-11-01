@@ -27,11 +27,14 @@ function Set-ButtonTextAndTooltip {
         [string]$FullText
     )
 
+    # 改行文字を除去して文字数をカウント（表示用）
+    $表示用テキスト = $FullText -replace "`r`n", "" -replace "`n", "" -replace "`r", ""
+
     # 8文字を超える場合は省略表示
-    if ($FullText.Length -gt 8) {
-        $Button.Text = $FullText.Substring(0, 8) + "..."
+    if ($表示用テキスト.Length -gt 8) {
+        $Button.Text = $表示用テキスト.Substring(0, 8) + "..."
     } else {
-        $Button.Text = $FullText
+        $Button.Text = $表示用テキスト
     }
 
     # すべてのボタンにツールチップで全文を表示
@@ -339,8 +342,8 @@ function 00_メインにボタンを作成する {
     )
 
     $ボタン = New-Object System.Windows.Forms.Button
-    $改行処理済みテキスト = $テキスト -replace "`n", [Environment]::NewLine # 改行を反映
-    Set-ButtonTextAndTooltip -Button $ボタン -FullText $改行処理済みテキスト
+    # 元のテキストをそのまま渡す（Set-ButtonTextAndTooltip内で改行処理）
+    Set-ButtonTextAndTooltip -Button $ボタン -FullText $テキスト
     $ボタン.Size = New-Object System.Drawing.Size($幅, $高さ)
     $ボタン.Location = New-Object System.Drawing.Point($X位置, $Y位置)
     $ボタン.AllowDrop = $false                            # ボタン自体のドロップを無効化
