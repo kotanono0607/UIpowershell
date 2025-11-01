@@ -408,14 +408,9 @@ function 00_メインにボタンを作成する {
 
         } elseif ($sender.Name -eq "CLEAR_ALL") {
             # 全ノード削除ボタンの処理
-            $result = [System.Windows.Forms.MessageBox]::Show(
-                "現在のレイヤーの全てのノードを削除しますか？`nこの操作は元に戻せません。",
-                "全ノード削除の確認",
-                [System.Windows.Forms.MessageBoxButtons]::YesNo,
-                [System.Windows.Forms.MessageBoxIcon]::Warning
-            )
+            $result = Show-ConfirmDialog "現在のレイヤーの全てのノードを削除しますか？`nこの操作は元に戻せません。" -Title "全ノード削除の確認"
 
-            if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+            if ($result) {
                 # 削除前のノード数をカウント
                 $削除数 = ($Global:可視左パネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }).Count
                 $レイヤー番号 = グローバル変数から数値取得 -パネル $Global:可視左パネル

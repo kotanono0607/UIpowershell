@@ -241,7 +241,7 @@
         if ($gridView.Columns.Count -gt 0) {
             $gridView.Columns.RemoveAt($gridView.Columns.Count - 1)
         } else {
-            [System.Windows.Forms.MessageBox]::Show("これ以上、列を削除できません。") | Out-Null
+            Show-WarningDialog "これ以上、列を削除できません。"
         }
     })
 
@@ -249,21 +249,21 @@
     $btnAddUpdate.add_Click({
         $name = $txtName.Text.Trim()
         if ([string]::IsNullOrWhiteSpace($name)) {
-            [System.Windows.Forms.MessageBox]::Show("変数名を入力してください") | Out-Null
+            Show-WarningDialog "変数名を入力してください"
             return
         }
 
         if ($cmbType.SelectedItem -eq "単一値") {
             $value = $txtValue.Text.Trim()
             if ([string]::IsNullOrWhiteSpace($value)) {
-                [System.Windows.Forms.MessageBox]::Show("値を入力してください。") | Out-Null
+                Show-WarningDialog "値を入力してください。"
                 return
             }
             $global:variables[$name] = $value
         } elseif ($cmbType.SelectedItem -eq "一次元") {
             $inputArray = $txtValue.Text -split ','
             if ($inputArray -contains { $_ -match '^\s*$' }) {
-                [System.Windows.Forms.MessageBox]::Show("一次元配列の値が不正です。カンマで区切られた有効な値を入力してください。") | Out-Null
+                Show-WarningDialog "一次元配列の値が不正です。カンマで区切られた有効な値を入力してください。"
                 return
             }
             $global:variables[$name] = $inputArray
@@ -284,7 +284,7 @@
             }
             $global:variables[$name] = $array
         } else {
-            [System.Windows.Forms.MessageBox]::Show("データ型を選択してください") | Out-Null
+            Show-WarningDialog "データ型を選択してください"
             return
         }
 
@@ -299,7 +299,7 @@
     $btnDelete.add_Click({
         $selectedItem = $lstVariables.SelectedItem
         if ($null -eq $selectedItem) {
-            [System.Windows.Forms.MessageBox]::Show("削除する変数を選択してください") | Out-Null
+            Show-WarningDialog "削除する変数を選択してください"
             return
         }
 
@@ -307,9 +307,9 @@
         if ($global:variables.ContainsKey($keyToDelete)) {
             $global:variables.Remove($keyToDelete)
             Refresh-VariableList | Out-Null
-            [System.Windows.Forms.MessageBox]::Show("変数 '$keyToDelete' を削除しました。") | Out-Null
+            Show-InfoDialog "変数 '$keyToDelete' を削除しました。"
         } else {
-            [System.Windows.Forms.MessageBox]::Show("指定された変数が見つかりません: $keyToDelete") | Out-Null
+            Show-WarningDialog "指定された変数が見つかりません: $keyToDelete"
         }
     })
 
@@ -321,9 +321,9 @@
         try {
             # JSON保存（共通関数使用 - ディレクトリ作成も自動）
             Write-JsonSafe -Path $outputFile -Data $global:variables -Depth 10 -CreateDirectory $true -Silent $true
-            [System.Windows.Forms.MessageBox]::Show("変数がJSON形式で保存されました: `n$outputFile") | Out-Null
+            Show-InfoDialog "変数がJSON形式で保存されました: `n$outputFile"
         } catch {
-            [System.Windows.Forms.MessageBox]::Show("JSONの保存に失敗しました: $_") | Out-Null
+            Show-ErrorDialog "JSONの保存に失敗しました: $_"
         }
     })
 
@@ -334,7 +334,7 @@
 
         $inputFile = $global:JSONPath
         if (-not (Test-Path -Path $inputFile)) {
-            [System.Windows.Forms.MessageBox]::Show("JSONファイルが見つかりません: `n$inputFile") | Out-Null
+            Show-ErrorDialog "JSONファイルが見つかりません: `n$inputFile"
             return
         }
         try {

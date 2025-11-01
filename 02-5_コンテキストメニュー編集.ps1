@@ -91,7 +91,7 @@ function script:名前変更処理 {
         }
     }
     else {
-        Write-Warning "ボタンが取得できませんでした。"
+        Write-WarningLog "ボタンが取得できませんでした。"
     }
 
     if ($null -ne $メインフォーム) {
@@ -198,7 +198,7 @@ function script:スクリプト編集処理 {
         $編集フォーム.Dispose()
     }
     else {
-        Write-Warning "ボタンが取得できませんでした。"
+        Write-WarningLog "ボタンが取得できませんでした。"
     }
 
     if ($null -ne $メインフォーム) {
@@ -300,7 +300,7 @@ function script:スクリプト実行処理 {
         ###Write-Host "スクリプト実行フォームが閉じられました。"
     }
     else {
-        Write-Warning "ボタンが取得できませんでした。"
+        Write-WarningLog "ボタンが取得できませんでした。"
     }
 
     if ($null -ne $メインフォーム) {
@@ -337,18 +337,13 @@ function script:レイヤー化処理 {
                 # レイヤー化を実行
                 表示-赤枠ボタン名一覧 -フレームパネル $フレームパネル
             } else {
-                [System.Windows.Forms.MessageBox]::Show(
-                    "レイヤー化するには、まず赤枠でボタンを選択してください。",
-                    "レイヤー化エラー",
-                    [System.Windows.Forms.MessageBoxButtons]::OK,
-                    [System.Windows.Forms.MessageBoxIcon]::Warning
-                )
+                Show-WarningDialog "レイヤー化するには、まず赤枠でボタンを選択してください。" -Title "レイヤー化エラー"
             }
         } else {
-            Write-Warning "親パネルが取得できませんでした。"
+            Write-WarningLog "親パネルが取得できませんでした。"
         }
     } else {
-        Write-Warning "ボタンが取得できませんでした。"
+        Write-WarningLog "ボタンが取得できませんでした。"
     }
 
     ###Write-Host "レイヤー化処理が完了しました。"

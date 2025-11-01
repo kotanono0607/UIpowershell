@@ -404,7 +404,7 @@ function フォルダ選択と保存 {
             $global:選択フォルダ = $リストボックス.SelectedItem
             $入力フォーム.Close()
         } else {
-            [System.Windows.Forms.MessageBox]::Show("フォルダを選択してください。", "エラー", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
+            Show-WarningDialog "フォルダを選択してください。" -Title "エラー"
         }
     })
     
