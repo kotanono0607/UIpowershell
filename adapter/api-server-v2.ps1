@@ -584,12 +584,43 @@ New-PolarisRoute -Path "/api/entries/all" -Method GET -ScriptBlock {
 }
 
 # ============================================
-# 4. サーバー起動
+# 4. 静的ファイル（HTML/JS）の提供設定
+# ============================================
+
+Write-Host "静的ファイル提供を設定します..." -ForegroundColor Cyan
+
+# uiディレクトリを静的ファイルルートとして公開
+$uiPath = Join-Path $script:RootDir "ui"
+if (Test-Path $uiPath) {
+    New-PolarisStaticRoute -RoutePath "/" -FolderPath $uiPath -EnableDirectoryBrowser
+    Write-Host "[OK] UIディレクトリを公開: $uiPath" -ForegroundColor Green
+} else {
+    Write-Host "[警告] UIディレクトリが見つかりません: $uiPath" -ForegroundColor Yellow
+}
+
+# index-v2.htmlをルートパスでも提供
+New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
+    $indexPath = Join-Path $using:uiPath "index-v2.html"
+    if (Test-Path $indexPath) {
+        $content = Get-Content $indexPath -Raw
+        $Response.SetContentType('text/html; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("index-v2.html not found")
+    }
+}
+
+Write-Host ""
+
+# ============================================
+# 5. サーバー起動
 # ============================================
 
 Write-Host "Polarisサーバーを起動します..." -ForegroundColor Cyan
 Write-Host "  ポート: $Port" -ForegroundColor White
 Write-Host "  URL: http://localhost:$Port" -ForegroundColor White
+Write-Host "  フロントエンド: http://localhost:$Port/index-v2.html" -ForegroundColor White
 Write-Host ""
 
 try {
@@ -647,7 +678,7 @@ try {
     # ブラウザ自動起動
     if ($AutoOpenBrowser) {
         Start-Sleep -Seconds 1
-        Start-Process "http://localhost:$Port"
+        Start-Process "http://localhost:$Port/index-v2.html"
     }
 
     # サーバーを実行し続ける
