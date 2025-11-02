@@ -33,9 +33,11 @@ function 00_矢印追記処理 {
         $result = Check-Pink選択配列Objects
 
         if ($result -eq $true) {
-            # 選択中のピンクボタンを取得
+            # 選択中のピンクボタンを取得（通常のピンク、ピンク青色、ピンク赤色すべて対象）
             $selectedPinkButton = $buttons | Where-Object {
-                $_.BackColor.ToArgb() -eq [System.Drawing.Color]::Pink.ToArgb()
+                ($_.BackColor.ToArgb() -eq [System.Drawing.Color]::Pink.ToArgb()) -or
+                ($_.BackColor.ToArgb() -eq $global:ピンク青色.ToArgb()) -or
+                ($_.BackColor.ToArgb() -eq $global:ピンク赤色.ToArgb())
             } | Select-Object -First 1
 
             if ($selectedPinkButton) {
