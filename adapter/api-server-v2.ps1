@@ -166,13 +166,17 @@ New-PolarisRoute -Path "/api/health" -Method GET -ScriptBlock {
 # セッション情報取得
 New-PolarisRoute -Path "/api/session" -Method GET -ScriptBlock {
     $result = Get-SessionInfo
-    $Response.Json($result)
+    $json = $result | ConvertTo-Json -Compress
+    $Response.SetContentType('application/json; charset=utf-8')
+    $Response.Send($json)
 }
 
 # デバッグ情報取得
 New-PolarisRoute -Path "/api/debug" -Method GET -ScriptBlock {
     $result = Get-StateDebugInfo
-    $Response.Json($result)
+    $json = $result | ConvertTo-Json -Compress
+    $Response.SetContentType('application/json; charset=utf-8')
+    $Response.Send($json)
 }
 
 # --------------------------------------------
@@ -182,7 +186,9 @@ New-PolarisRoute -Path "/api/debug" -Method GET -ScriptBlock {
 # 全ノード取得
 New-PolarisRoute -Path "/api/nodes" -Method GET -ScriptBlock {
     $result = Get-AllNodes
-    $Response.Json($result)
+    $json = $result | ConvertTo-Json -Compress
+    $Response.SetContentType('application/json; charset=utf-8')
+    $Response.Send($json)
 }
 
 # ノード配列を一括設定（React Flowから同期）
@@ -190,13 +196,18 @@ New-PolarisRoute -Path "/api/nodes" -Method PUT -ScriptBlock {
     try {
         $body = $Request.Body | ConvertFrom-Json
         $result = Set-AllNodes -Nodes $body.nodes
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -205,13 +216,18 @@ New-PolarisRoute -Path "/api/nodes" -Method POST -ScriptBlock {
     try {
         $body = $Request.Body | ConvertFrom-Json
         $result = Add-Node -Node $body
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -227,13 +243,18 @@ New-PolarisRoute -Path "/api/nodes/:id" -Method DELETE -ScriptBlock {
         # v2関数で削除対象を特定
         $result = ノード削除_v2 -ノード配列 $nodes -TargetNodeId $nodeId
 
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -242,13 +263,18 @@ New-PolarisRoute -Path "/api/nodes/all" -Method DELETE -ScriptBlock {
     try {
         $body = $Request.Body | ConvertFrom-Json
         $result = すべてのノードを削除_v2 -ノード配列 $body.nodes
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -259,7 +285,9 @@ New-PolarisRoute -Path "/api/nodes/all" -Method DELETE -ScriptBlock {
 # 変数一覧取得
 New-PolarisRoute -Path "/api/variables" -Method GET -ScriptBlock {
     $result = Get-VariableList_v2
-    $Response.Json($result)
+    $json = $result | ConvertTo-Json -Compress
+    $Response.SetContentType('application/json; charset=utf-8')
+    $Response.Send($json)
 }
 
 # 変数取得（名前指定）
@@ -267,13 +295,18 @@ New-PolarisRoute -Path "/api/variables/:name" -Method GET -ScriptBlock {
     try {
         $varName = $Request.Parameters.name
         $result = Get-Variable_v2 -Name $varName
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -282,13 +315,18 @@ New-PolarisRoute -Path "/api/variables" -Method POST -ScriptBlock {
     try {
         $body = $Request.Body | ConvertFrom-Json
         $result = Add-Variable_v2 -Name $body.name -Value $body.value -Type $body.type
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -298,13 +336,18 @@ New-PolarisRoute -Path "/api/variables/:name" -Method PUT -ScriptBlock {
         $varName = $Request.Parameters.name
         $body = $Request.Body | ConvertFrom-Json
         $result = Update-Variable_v2 -Name $varName -Value $body.value
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -313,13 +356,18 @@ New-PolarisRoute -Path "/api/variables/:name" -Method DELETE -ScriptBlock {
     try {
         $varName = $Request.Parameters.name
         $result = Remove-Variable_v2 -Name $varName
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -330,7 +378,9 @@ New-PolarisRoute -Path "/api/variables/:name" -Method DELETE -ScriptBlock {
 # メニュー構造取得
 New-PolarisRoute -Path "/api/menu/structure" -Method GET -ScriptBlock {
     $result = Get-MenuStructure_v2
-    $Response.Json($result)
+    $json = $result | ConvertTo-Json -Compress
+    $Response.SetContentType('application/json; charset=utf-8')
+    $Response.Send($json)
 }
 
 # メニューアクション実行
@@ -342,13 +392,18 @@ New-PolarisRoute -Path "/api/menu/action/:actionId" -Method POST -ScriptBlock {
         $params = if ($body.parameters) { $body.parameters } else { @{} }
         $result = Execute-MenuAction_v2 -ActionId $actionId -Parameters $params
 
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -366,13 +421,18 @@ New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
             -OutputPath $body.outputPath `
             -OpenFile $body.openFile
 
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -383,7 +443,9 @@ New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
 # フォルダ一覧取得
 New-PolarisRoute -Path "/api/folders" -Method GET -ScriptBlock {
     $result = フォルダ切替イベント_v2 -FolderName "list"
-    $Response.Json($result)
+    $json = $result | ConvertTo-Json -Compress
+    $Response.SetContentType('application/json; charset=utf-8')
+    $Response.Send($json)
 }
 
 # フォルダ作成
@@ -391,13 +453,18 @@ New-PolarisRoute -Path "/api/folders" -Method POST -ScriptBlock {
     try {
         $body = $Request.Body | ConvertFrom-Json
         $result = フォルダ作成イベント_v2 -FolderName $body.folderName
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -406,13 +473,18 @@ New-PolarisRoute -Path "/api/folders/:name" -Method PUT -ScriptBlock {
     try {
         $folderName = $Request.Parameters.name
         $result = フォルダ切替イベント_v2 -FolderName $folderName
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -430,13 +502,18 @@ New-PolarisRoute -Path "/api/validate/drop" -Method POST -ScriptBlock {
             -MovingNodeId $body.movingNodeId `
             -設置希望Y $body.targetY
 
-        $Response.Json($result)
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -448,16 +525,22 @@ New-PolarisRoute -Path "/api/validate/drop" -Method POST -ScriptBlock {
 New-PolarisRoute -Path "/api/id/generate" -Method POST -ScriptBlock {
     try {
         $newId = IDを自動生成する
-        $Response.Json(@{
+        $result = @{
             success = $true
             id = $newId
-        })
+        }
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -474,16 +557,22 @@ New-PolarisRoute -Path "/api/entry/add" -Method POST -ScriptBlock {
             -toID $body.toID `
             -order $body.order
 
-        $Response.Json(@{
+        $responseObj = @{
             success = $true
             data = $result
-        })
+        }
+        $json = $responseObj | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -494,23 +583,32 @@ New-PolarisRoute -Path "/api/entry/:id" -Method GET -ScriptBlock {
         $entry = IDでエントリを取得 -targetID $id
 
         if ($entry) {
-            $Response.Json(@{
+            $result = @{
                 success = $true
                 data = $entry
-            })
+            }
+            $json = $result | ConvertTo-Json -Compress
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
         } else {
             $Response.SetStatusCode(404)
-            $Response.Json(@{
+            $errorResult = @{
                 success = $false
                 error = "エントリが見つかりません: ID=$id"
-            })
+            }
+            $json = $errorResult | ConvertTo-Json -Compress
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
         }
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -522,23 +620,32 @@ New-PolarisRoute -Path "/api/entries/all" -Method GET -ScriptBlock {
         if (Test-Path $jsonPath) {
             $jsonContent = Get-Content $jsonPath -Encoding UTF8 -Raw | ConvertFrom-Json
 
-            $Response.Json(@{
+            $result = @{
                 success = $true
                 data = $jsonContent
-            })
+            }
+            $json = $result | ConvertTo-Json -Compress
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
         } else {
-            $Response.Json(@{
+            $result = @{
                 success = $true
                 data = @()
                 message = "コード.jsonが存在しません"
-            })
+            }
+            $json = $result | ConvertTo-Json -Compress
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
         }
     } catch {
         $Response.SetStatusCode(500)
-        $Response.Json(@{
+        $errorResult = @{
             success = $false
             error = $_.Exception.Message
-        })
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
@@ -618,7 +725,10 @@ New-PolarisRoute -Path "/ボタン設定.json" -Method GET -ScriptBlock {
         $Response.Send($content)
     } else {
         $Response.SetStatusCode(404)
-        $Response.Json(@{ error = "ボタン設定.json not found" })
+        $errorResult = @{ error = "ボタン設定.json not found" }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
     }
 }
 
