@@ -1,0 +1,219 @@
+﻿# ============================================
+# UIpowershell クイックスタートスクリプト
+# ============================================
+# 役割：ワンクリックで動作確認を開始
+# 使い方：.\quick-start.ps1
+# ============================================
+
+param(
+    [int]$Port = 8080,
+    [switch]$SkipBrowser
+)
+
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  UIpowershell クイックスタート" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+
+# ============================================
+# 1. 必須ファイルの存在チェック
+# ============================================
+
+Write-Host "【Step 1】必須ファイルの確認..." -ForegroundColor Yellow
+Write-Host ""
+
+$requiredFiles = @(
+    "adapter\api-server-v2.ps1",
+    "adapter\state-manager.ps1",
+    "adapter\node-operations.ps1",
+    "ui\index-v2.html",
+    "ui\app.js",
+    "12_コードメイン_コード本文_v2.ps1",
+    "10_変数機能_変数管理UI_v2.ps1",
+    "07_メインF機能_ツールバー作成_v2.ps1",
+    "08_メインF機能_メインボタン処理_v2.ps1",
+    "02-6_削除処理_v2.ps1",
+    "02-2_ネスト規制バリデーション_v2.ps1"
+)
+
+$allFilesExist = $true
+
+foreach ($file in $requiredFiles) {
+    if (Test-Path $file) {
+        Write-Host "  ✓ $file" -ForegroundColor Green
+    } else {
+        Write-Host "  ✗ $file （見つかりません）" -ForegroundColor Red
+        $allFilesExist = $false
+    }
+}
+
+Write-Host ""
+
+if (-not $allFilesExist) {
+    Write-Host "【エラー】必須ファイルが不足しています" -ForegroundColor Red
+    Write-Host "プロジェクトディレクトリで実行しているか確認してください" -ForegroundColor Yellow
+    pause
+    exit 1
+}
+
+Write-Host "【OK】すべての必須ファイルが揃っています" -ForegroundColor Green
+Write-Host ""
+
+# ============================================
+# 2. PowerShellバージョンチェック
+# ============================================
+
+Write-Host "【Step 2】PowerShellバージョンの確認..." -ForegroundColor Yellow
+Write-Host ""
+
+$psVersion = $PSVersionTable.PSVersion
+Write-Host "  PowerShellバージョン: $psVersion" -ForegroundColor White
+
+if ($psVersion.Major -lt 7) {
+    Write-Host "  ⚠ 警告: PowerShell 7.x 以上を推奨します" -ForegroundColor Yellow
+    Write-Host "  現在のバージョンでも動作する可能性がありますが、問題が発生する場合は" -ForegroundColor Yellow
+    Write-Host "  PowerShell 7.x をインストールしてください" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  続行しますか？ (Y/N)" -ForegroundColor Yellow
+    $continue = Read-Host
+    if ($continue -ne "Y" -and $continue -ne "y") {
+        exit 0
+    }
+} else {
+    Write-Host "  ✓ PowerShell 7.x 以上です" -ForegroundColor Green
+}
+
+Write-Host ""
+
+# ============================================
+# 3. Polarisモジュールのチェック
+# ============================================
+
+Write-Host "【Step 3】Polarisモジュールの確認..." -ForegroundColor Yellow
+Write-Host ""
+
+# ローカルのPolarisモジュールをチェック
+$localPolarisPath = ".\Modules\Polaris"
+if (Test-Path $localPolarisPath) {
+    Write-Host "  ✓ ローカルPolarisモジュールが存在します: $localPolarisPath" -ForegroundColor Green
+    $polarisReady = $true
+} else {
+    # システムにインストールされているかチェック
+    $polarisModule = Get-Module -ListAvailable -Name Polaris -ErrorAction SilentlyContinue
+
+    if ($polarisModule) {
+        Write-Host "  ✓ Polarisモジュールがインストールされています" -ForegroundColor Green
+        $polarisReady = $true
+    } else {
+        Write-Host "  ✗ Polarisモジュールが見つかりません" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "  自動インストールを開始しますか？ (Y/N)" -ForegroundColor Yellow
+        $install = Read-Host
+
+        if ($install -eq "Y" -or $install -eq "y") {
+            Write-Host ""
+            Write-Host "  Polarisをインストール中..." -ForegroundColor Cyan
+            try {
+                Install-Module -Name Polaris -Scope CurrentUser -Force -AllowClobber
+                Write-Host "  ✓ Polarisのインストールに成功しました" -ForegroundColor Green
+                $polarisReady = $true
+            } catch {
+                Write-Host "  ✗ インストールに失敗しました: $($_.Exception.Message)" -ForegroundColor Red
+                $polarisReady = $false
+            }
+        } else {
+            $polarisReady = $false
+        }
+    }
+}
+
+Write-Host ""
+
+if (-not $polarisReady) {
+    Write-Host "【エラー】Polarisモジュールが利用できません" -ForegroundColor Red
+    Write-Host "手動でインストールしてください:" -ForegroundColor Yellow
+    Write-Host "  Install-Module -Name Polaris -Scope CurrentUser -Force" -ForegroundColor Yellow
+    pause
+    exit 1
+}
+
+# ============================================
+# 4. ポート使用状況のチェック
+# ============================================
+
+Write-Host "【Step 4】ポート $Port の使用状況を確認..." -ForegroundColor Yellow
+Write-Host ""
+
+$portInUse = $false
+try {
+    $listener = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Loopback, $Port)
+    $listener.Start()
+    $listener.Stop()
+    Write-Host "  ✓ ポート $Port は利用可能です" -ForegroundColor Green
+} catch {
+    Write-Host "  ⚠ ポート $Port は既に使用中の可能性があります" -ForegroundColor Yellow
+    Write-Host "  別のポートを使用しますか？ (Y/N)" -ForegroundColor Yellow
+    $useAnotherPort = Read-Host
+
+    if ($useAnotherPort -eq "Y" -or $useAnotherPort -eq "y") {
+        $Port = Read-Host "  使用するポート番号を入力してください (例: 8081)"
+        $Port = [int]$Port
+    } else {
+        Write-Host "  既存のサーバーを停止してから再実行してください" -ForegroundColor Yellow
+        pause
+        exit 1
+    }
+}
+
+Write-Host ""
+
+# ============================================
+# 5. APIサーバーを起動
+# ============================================
+
+Write-Host "【Step 5】APIサーバーを起動します..." -ForegroundColor Yellow
+Write-Host ""
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  起動設定" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  ポート: $Port" -ForegroundColor White
+Write-Host "  URL: http://localhost:$Port" -ForegroundColor White
+Write-Host "  フロントエンド: http://localhost:$Port/index-v2.html" -ForegroundColor White
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+
+# ブラウザ自動起動の確認
+$openBrowser = $true
+if ($SkipBrowser) {
+    $openBrowser = $false
+} else {
+    Write-Host "ブラウザを自動的に開きますか？ (Y/N) [デフォルト: Y]" -ForegroundColor Yellow
+    $browserChoice = Read-Host
+    if ($browserChoice -eq "N" -or $browserChoice -eq "n") {
+        $openBrowser = $false
+    }
+}
+
+Write-Host ""
+Write-Host "サーバーを起動中..." -ForegroundColor Cyan
+Write-Host ""
+
+# サーバー起動
+try {
+    if ($openBrowser) {
+        & ".\adapter\api-server-v2.ps1" -Port $Port -AutoOpenBrowser
+    } else {
+        & ".\adapter\api-server-v2.ps1" -Port $Port
+    }
+} catch {
+    Write-Host ""
+    Write-Host "【エラー】サーバー起動に失敗しました" -ForegroundColor Red
+    Write-Host "詳細: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "トラブルシューティング:" -ForegroundColor Yellow
+    Write-Host "  1. TEST_INSTRUCTIONS.md のトラブルシューティングセクションを参照" -ForegroundColor Yellow
+    Write-Host "  2. 管理者権限で実行してみてください" -ForegroundColor Yellow
+    Write-Host "  3. ファイアウォール設定を確認してください" -ForegroundColor Yellow
+    pause
+    exit 1
+}
