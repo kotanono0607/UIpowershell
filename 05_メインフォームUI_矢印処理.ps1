@@ -319,6 +319,86 @@ $終点 = [System.Drawing.Point]::new(70, 20)
                 Color = [System.Drawing.Color]::Black  # 黒色の矢印
             }
         }
+        # 白→緑（条件分岐の開始前）
+        elseif ($currentColor -eq [System.Drawing.Color]::White.ToArgb() -and
+                $nextColor -eq [System.Drawing.Color]::SpringGreen.ToArgb()) {
+            # 下向きの矢印を描画（黒）
+            $startPoint = [System.Drawing.Point]::new(
+                $currentButton.Location.X + ($currentButton.Width / 2),
+                $currentButton.Location.Y + $currentButton.Height
+            )
+            $endPoint = [System.Drawing.Point]::new(
+                $nextButton.Location.X + ($nextButton.Width / 2),
+                $nextButton.Location.Y
+            )
+
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "DownArrow"
+                StartPoint = $startPoint
+                EndPoint = $endPoint
+                Color = [System.Drawing.Color]::Black  # 黒色の矢印
+            }
+        }
+        # 緑→白（条件分岐の終了後）
+        elseif ($currentColor -eq [System.Drawing.Color]::SpringGreen.ToArgb() -and
+                $nextColor -eq [System.Drawing.Color]::White.ToArgb()) {
+            # 下向きの矢印を描画（黒）
+            $startPoint = [System.Drawing.Point]::new(
+                $currentButton.Location.X + ($currentButton.Width / 2),
+                $currentButton.Location.Y + $currentButton.Height
+            )
+            $endPoint = [System.Drawing.Point]::new(
+                $nextButton.Location.X + ($nextButton.Width / 2),
+                $nextButton.Location.Y
+            )
+
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "DownArrow"
+                StartPoint = $startPoint
+                EndPoint = $endPoint
+                Color = [System.Drawing.Color]::Black  # 黒色の矢印
+            }
+        }
+        # 白→黄（ループの開始前）
+        elseif ($currentColor -eq [System.Drawing.Color]::White.ToArgb() -and
+                $nextColor -eq [System.Drawing.Color]::LemonChiffon.ToArgb()) {
+            # 下向きの矢印を描画（黒）
+            $startPoint = [System.Drawing.Point]::new(
+                $currentButton.Location.X + ($currentButton.Width / 2),
+                $currentButton.Location.Y + $currentButton.Height
+            )
+            $endPoint = [System.Drawing.Point]::new(
+                $nextButton.Location.X + ($nextButton.Width / 2),
+                $nextButton.Location.Y
+            )
+
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "DownArrow"
+                StartPoint = $startPoint
+                EndPoint = $endPoint
+                Color = [System.Drawing.Color]::Black  # 黒色の矢印
+            }
+        }
+        # 黄→白（ループの終了後）
+        elseif ($currentColor -eq [System.Drawing.Color]::LemonChiffon.ToArgb() -and
+                $nextColor -eq [System.Drawing.Color]::White.ToArgb()) {
+            # 下向きの矢印を描画（黒）
+            $startPoint = [System.Drawing.Point]::new(
+                $currentButton.Location.X + ($currentButton.Width / 2),
+                $currentButton.Location.Y + $currentButton.Height
+            )
+            $endPoint = [System.Drawing.Point]::new(
+                $nextButton.Location.X + ($nextButton.Width / 2),
+                $nextButton.Location.Y
+            )
+
+            $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                Type = "DownArrow"
+                StartPoint = $startPoint
+                EndPoint = $endPoint
+                Color = [System.Drawing.Color]::Black  # 黒色の矢印
+            }
+        }
         #elseif ($currentColor -eq [System.Drawing.Color]::Salmon.ToArgb() -and $nextColor -eq [System.Drawing.Color]::Salmon.ToArgb()) {
         elseif ((($currentColor -eq [System.Drawing.Color]::Salmon.ToArgb()) -or ($currentColor -eq $global:ピンク赤色.ToArgb())) -and
         (($nextColor -eq [System.Drawing.Color]::Salmon.ToArgb()) -or ($nextColor -eq $global:ピンク赤色.ToArgb()))) {
