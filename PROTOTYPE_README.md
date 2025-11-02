@@ -128,14 +128,17 @@ Get-Module -ListAvailable -Name Polaris
 - ✅ API接続テスト
 - ✅ 7層レイヤーUI
 - ✅ 既存PowerShell関数の呼び出し（adapter層）
+- ✅ **完全オフライン対応**（すべてのライブラリをローカルに同梱）
 
 ## 技術スタック
 
 ### フロントエンド（ui/index.html）
 
-- **React 18** (CDN) - UIフレームワーク
-- **React Flow 11** (CDN) - フローチャート描画
+- **React 18** (ローカル同梱 - 11KB) - UIフレームワーク
+- **ReactDOM 18** (ローカル同梱 - 129KB) - DOM操作
+- **React Flow 11** (ローカル同梱 - 151KB) - フローチャート描画
 - **純粋HTML/CSS/JavaScript** - ゼロビルド
+- **完全オフライン対応** - すべてのライブラリを ui/libs/ に同梱
 
 ### バックエンド（adapter/api-server.ps1）
 
@@ -236,11 +239,15 @@ Get-NetTCPConnection -LocalPort 8080
 
 ### Q5: ノードが表示されない
 
-**原因**: React Flowの初期化エラー、またはCDNが読み込めない
+**原因**: React Flowの初期化エラー、またはライブラリ読み込みエラー
 
 **解決方法**:
 1. ブラウザのコンソール（F12）を開いてエラーを確認
-2. インターネット接続を確認（CDNから読み込むため）
+2. `ui/libs/` ディレクトリにすべてのライブラリが存在するか確認:
+   - react.production.min.js (11KB)
+   - react-dom.production.min.js (129KB)
+   - reactflow.min.js (151KB)
+   - reactflow.min.css (7.5KB)
 3. ページをリロード（Ctrl+R）
 
 ## 次のステップ
