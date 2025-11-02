@@ -589,11 +589,14 @@ New-PolarisRoute -Path "/api/entries/all" -Method GET -ScriptBlock {
 
 Write-Host "静的ファイル提供を設定します..." -ForegroundColor Cyan
 
-$uiPath = Join-Path $script:RootDir "ui"
+# グローバル変数として設定（PowerShell 5.1対応）
+$global:UiPathForPolaris = Join-Path $script:RootDir "ui"
+$global:RootDirForPolaris = $script:RootDir
 
 # ルートパス "/" - index-legacy.htmlを提供
 New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
-    $indexPath = Join-Path $using:uiPath "index-legacy.html"
+    $uiPath = $global:UiPathForPolaris
+    $indexPath = Join-Path $uiPath "index-legacy.html"
     if (Test-Path $indexPath) {
         $content = Get-Content $indexPath -Raw -Encoding UTF8
         $Response.SetContentType('text/html; charset=utf-8')
@@ -606,7 +609,8 @@ New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
 
 # index-legacy.html
 New-PolarisRoute -Path "/index-legacy.html" -Method GET -ScriptBlock {
-    $indexPath = Join-Path $using:uiPath "index-legacy.html"
+    $uiPath = $global:UiPathForPolaris
+    $indexPath = Join-Path $uiPath "index-legacy.html"
     if (Test-Path $indexPath) {
         $content = Get-Content $indexPath -Raw -Encoding UTF8
         $Response.SetContentType('text/html; charset=utf-8')
@@ -619,7 +623,8 @@ New-PolarisRoute -Path "/index-legacy.html" -Method GET -ScriptBlock {
 
 # style-legacy.css
 New-PolarisRoute -Path "/style-legacy.css" -Method GET -ScriptBlock {
-    $cssPath = Join-Path $using:uiPath "style-legacy.css"
+    $uiPath = $global:UiPathForPolaris
+    $cssPath = Join-Path $uiPath "style-legacy.css"
     if (Test-Path $cssPath) {
         $content = Get-Content $cssPath -Raw -Encoding UTF8
         $Response.SetContentType('text/css; charset=utf-8')
@@ -632,7 +637,8 @@ New-PolarisRoute -Path "/style-legacy.css" -Method GET -ScriptBlock {
 
 # app-legacy.js
 New-PolarisRoute -Path "/app-legacy.js" -Method GET -ScriptBlock {
-    $jsPath = Join-Path $using:uiPath "app-legacy.js"
+    $uiPath = $global:UiPathForPolaris
+    $jsPath = Join-Path $uiPath "app-legacy.js"
     if (Test-Path $jsPath) {
         $content = Get-Content $jsPath -Raw -Encoding UTF8
         $Response.SetContentType('application/javascript; charset=utf-8')
@@ -645,7 +651,8 @@ New-PolarisRoute -Path "/app-legacy.js" -Method GET -ScriptBlock {
 
 # ボタン設定.json
 New-PolarisRoute -Path "/ボタン設定.json" -Method GET -ScriptBlock {
-    $jsonPath = Join-Path $using:script:RootDir "ボタン設定.json"
+    $rootDir = $global:RootDirForPolaris
+    $jsonPath = Join-Path $rootDir "ボタン設定.json"
     if (Test-Path $jsonPath) {
         $content = Get-Content $jsonPath -Raw -Encoding UTF8
         $Response.SetContentType('application/json; charset=utf-8')
