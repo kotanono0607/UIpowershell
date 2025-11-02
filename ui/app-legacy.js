@@ -209,6 +209,9 @@ function addNodeToLayer(setting) {
 
     // 上詰め再配置
     reorderNodesInLayer(currentLayer);
+
+    // memory.json自動保存
+    saveMemoryJson();
 }
 
 // 次の利用可能なY座標を取得
@@ -319,6 +322,9 @@ function handleDrop(e) {
 
         // 再描画
         renderNodesInLayer(currentLayer);
+
+        // memory.json自動保存
+        saveMemoryJson();
     }
 
     return false;
@@ -518,6 +524,9 @@ function layerizeNode() {
     console.log(`ノード「${contextMenuTarget.text}」をレイヤー${currentLayerNum} → レイヤー${targetLayer}に移動しました`);
     alert(`ノード「${contextMenuTarget.text}」をレイヤー${targetLayer}に移動しました。`);
 
+    // memory.json自動保存
+    saveMemoryJson();
+
     hideContextMenu();
 }
 
@@ -562,6 +571,9 @@ async function deleteNode() {
 
             renderNodesInLayer(currentLayer);
             reorderNodesInLayer(currentLayer);
+
+            // memory.json自動保存
+            saveMemoryJson();
         }
     } catch (error) {
         console.error('削除エラー:', error);
@@ -578,6 +590,9 @@ async function deleteNode() {
 
         renderNodesInLayer(currentLayer);
         reorderNodesInLayer(currentLayer);
+
+        // memory.json自動保存
+        saveMemoryJson();
     }
 
     hideContextMenu();
@@ -592,6 +607,9 @@ function deleteAllNodes() {
     nodes = nodes.filter(n => n.layer !== currentLayer);
 
     renderNodesInLayer(currentLayer);
+
+    // memory.json自動保存
+    saveMemoryJson();
 }
 
 // ============================================
@@ -612,13 +630,19 @@ function navigateLayer(direction) {
     // レイヤー表示を更新
     document.querySelectorAll('.layer-panel').forEach(panel => {
         panel.classList.remove('active');
+        panel.style.display = 'none';
     });
 
-    document.getElementById(`layer-${currentLayer}`).classList.add('active');
+    const targetPanel = document.getElementById(`layer-${currentLayer}`);
+    targetPanel.classList.add('active');
+    targetPanel.style.display = 'flex';
 
     // ラベル更新
     document.getElementById('current-layer-label').textContent = `レイヤー${currentLayer}`;
     document.getElementById('path-text').textContent = `レイヤー${currentLayer}`;
+
+    // 現在のレイヤーを再描画
+    renderNodesInLayer(currentLayer);
 }
 
 // ============================================
@@ -970,6 +994,32 @@ async function loadExistingNodes() {
     }
 }
 
+// memory.jsonを保存
+async function saveMemoryJson() {
+    if (!currentFolder) {
+        console.warn('フォルダが選択されていないため、memory.json保存をスキップします');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/folders/${currentFolder}/memory`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ layerStructure: layerStructure })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('memory.json保存成功:', result.message);
+        } else {
+            console.error('memory.json保存失敗:', result.error);
+        }
+    } catch (error) {
+        console.error('memory.json保存エラー:', error);
+    }
+}
+
 // ============================================
 // イベントリスナー設定
 // ============================================
@@ -985,6 +1035,7 @@ function setupEventListeners() {
         if (e.key === 'Escape') {
             closeVariableModal();
             closeFolderModal();
+            closeScriptModal();
         }
     });
 }

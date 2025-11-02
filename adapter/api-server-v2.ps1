@@ -581,6 +581,71 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method GET -ScriptBlock {
     }
 }
 
+# memory.json保存（フォルダごと）
+New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
+    try {
+        $folderName = $Request.Parameters.name
+        $body = $Request.Body | ConvertFrom-Json
+        $layerStructure = $body.layerStructure
+
+        $rootDir = $global:RootDirForPolaris
+        $folderPath = Join-Path $rootDir "03_history\$folderName"
+        $memoryPath = Join-Path $folderPath "memory.json"
+
+        # フォルダが存在しない場合は作成
+        if (-not (Test-Path $folderPath)) {
+            New-Item -ItemType Directory -Path $folderPath -Force | Out-Null
+        }
+
+        # memory.json形式に変換
+        $memoryData = @{}
+        for ($i = 1; $i -le 6; $i++) {
+            $layerNodes = $layerStructure."$i".nodes
+            $構成 = @()
+
+            foreach ($node in $layerNodes) {
+                $構成 += @{
+                    ボタン名 = $node.name
+                    テキスト = $node.text
+                    ボタン色 = $node.color
+                    X座標 = if ($node.x) { $node.x } else { 10 }
+                    Y座標 = $node.y
+                    幅 = if ($node.width) { $node.width } else { 280 }
+                    高さ = if ($node.height) { $node.height } else { 40 }
+                    処理番号 = $node.処理番号
+                    script = if ($node.script) { $node.script } else { "" }
+                    GroupID = $node.groupId
+                    関数名 = if ($node.関数名) { $node.関数名 } else { "" }
+                }
+            }
+
+            $memoryData["$i"] = @{ "構成" = $構成 }
+        }
+
+        # JSON形式で保存
+        $json = $memoryData | ConvertTo-Json -Depth 10
+        $json | Out-File -FilePath $memoryPath -Encoding UTF8 -Force
+
+        $result = @{
+            success = $true
+            folderName = $folderName
+            message = "memory.jsonを保存しました"
+        }
+        $resultJson = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($resultJson)
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # --------------------------------------------
 # バリデーションAPI（02-2_ネスト規制バリデーション_v2.ps1）
 # --------------------------------------------
