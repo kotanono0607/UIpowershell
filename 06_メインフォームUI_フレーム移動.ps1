@@ -20,6 +20,15 @@ function メインフレームの左を押した場合の処理 {
         $Global:不可視左の左パネル = $Global:可視左パネル
         $Global:可視左パネル = $Global:可視右パネル
         $Global:可視右パネル = $Global:不可視右の右パネル
+
+        # 新しい可視右パネルの表示/非表示を適切に設定
+        $右パネルのボタン数 = ($Global:可視右パネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }).Count
+        if ($右パネルのボタン数 -gt 0) {
+            00_フレームを表示する -フレームパネル $Global:可視右パネル
+        } else {
+            00_フレームを非表示にする -フレームパネル $Global:可視右パネル
+        }
+
         $新しいレイヤー名 = 新しいレイヤー名を取得する -パネル $Global:不可視右の右パネル　-向き "左"# 関数を呼び出して新しいレイヤー名を取得
         $Global:不可視右の右パネル = (Get-Variable -Name $新しいレイヤー名 -Scope Global).Value　# レイヤー名から変数を取得して不可視右の右パネルに割り当て
 
@@ -72,6 +81,13 @@ function メインフレームの右を押した場合の処理 {
         $Global:可視右パネル = $Global:可視左パネル
         $Global:可視左パネル = $Global:不可視左の左パネル
 
+        # 新しい可視右パネルの表示/非表示を適切に設定
+        $右パネルのボタン数 = ($Global:可視右パネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }).Count
+        if ($右パネルのボタン数 -gt 0) {
+            00_フレームを表示する -フレームパネル $Global:可視右パネル
+        } else {
+            00_フレームを非表示にする -フレームパネル $Global:可視右パネル
+        }
 
         $新しいレイヤー名 = 新しいレイヤー名を取得する -パネル $Global:不可視左の左パネル -向き "右"　# 関数を呼び出して新しいレイヤー名を取得
         $Global:不可視左の左パネル = (Get-Variable -Name $新しいレイヤー名 -Scope Global).Value　# レイヤー名から変数を取得して不可視右の右パネルに割り当て

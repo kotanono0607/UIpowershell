@@ -144,6 +144,13 @@ function PINKからボタン作成 {
     Write-Host "  矢印処理を実行..." -ForegroundColor Cyan
     # Paintイベントはパネル作成時に既に設定されているため、ここでは矢印の更新のみ実行
     00_矢印追記処理 -フレームパネル $展開先パネル
+
+    # 展開先パネルが可視右パネルで、ボタンが作成された場合は表示する
+    if ($展開先パネル -eq $Global:可視右パネル -and $作成されたボタン数 -gt 0) {
+        00_フレームを表示する -フレームパネル $Global:可視右パネル
+        Write-Host "  可視右パネルを表示しました" -ForegroundColor Green
+    }
+
     Write-Host "========== [PINKからボタン作成] 完了 ==========" -ForegroundColor Cyan
 }
 

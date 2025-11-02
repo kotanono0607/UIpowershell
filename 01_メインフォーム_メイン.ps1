@@ -234,16 +234,16 @@ $global:レイヤー0 = 00_フレームを作成する -フォーム $メイン�
 
 $global:レイヤー1 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 550 -Y位置 70 -Visible $true -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "1" -枠線あり $true
 00_フレームパネルにラベルを追加する -フレームパネル $global:レイヤー1 -ラベルテキスト "レイヤー1" -X位置 120 -Y位置 0 -フォント (New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)) -フォント色 ([System.Drawing.Color]::Blue)
-$global:レイヤー2 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 940 -Y位置 70 -Visible $true -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "2" -枠線あり $true
+$global:レイヤー2 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 940 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(245, 245, 245))  -フレーム名 "2" -枠線あり $true
 00_フレームパネルにラベルを追加する -フレームパネル $global:レイヤー2 -ラベルテキスト "レイヤー2" -X位置 120 -Y位置 0 -フォント (New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)) -フォント色 ([System.Drawing.Color]::Blue)
-$global:レイヤー3 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "3" -枠線あり $true
+$global:レイヤー3 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(245, 245, 245))  -フレーム名 "3" -枠線あり $true
 00_フレームパネルにラベルを追加する -フレームパネル $global:レイヤー3 -ラベルテキスト "レイヤー3" -X位置 120 -Y位置 0 -フォント (New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)) -フォント色 ([System.Drawing.Color]::Blue)
-$global:レイヤー4 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "4" -枠線あり $true
+$global:レイヤー4 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(245, 245, 245))  -フレーム名 "4" -枠線あり $true
 00_フレームパネルにラベルを追加する -フレームパネル $global:レイヤー4 -ラベルテキスト "レイヤー4" -X位置 120 -Y位置 0 -フォント (New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)) -フォント色 ([System.Drawing.Color]::Blue)
-$global:レイヤー5 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "5" -枠線あり $true
+$global:レイヤー5 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(245, 245, 245))  -フレーム名 "5" -枠線あり $true
 00_フレームパネルにラベルを追加する -フレームパネル $global:レイヤー5 -ラベルテキスト "レイヤー5" -X位置 120 -Y位置 0 -フォント (New-Object System.Drawing.Font("Arial", 10, [System.Drawing.FontStyle]::Bold)) -フォント色 ([System.Drawing.Color]::Blue)
 
-$global:レイヤー6 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(255, 255, 255))  -フレーム名 "6" -枠線あり $true
+$global:レイヤー6 = 00_フレームを作成する -フォーム $メインフォーム -幅 300 -高さ 750 -X位置 1330 -Y位置 70 -Visible $false -背景色 ([System.Drawing.Color]::FromArgb(245, 245, 245))  -フレーム名 "6" -枠線あり $true
 
 $Global:不可視左の左パネル = $global:レイヤー0
 $Global:可視左パネル = $global:レイヤー1

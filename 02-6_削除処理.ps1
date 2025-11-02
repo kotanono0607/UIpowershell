@@ -275,6 +275,15 @@ function フレームパネルからすべてのボタンを削除する {
 
     # 必要に応じて、再描画をトリガー
     $フレームパネル.Invalidate()
+
+    # 可視右パネルが空になった場合は非表示にする
+    if ($フレームパネル -eq $Global:可視右パネル) {
+        $残りのボタン数 = ($フレームパネル.Controls | Where-Object { $_ -is [System.Windows.Forms.Button] }).Count
+        if ($残りのボタン数 -eq 0) {
+            00_フレームを非表示にする -フレームパネル $Global:可視右パネル
+            Write-Host "  可視右パネルを非表示にしました（空のため）" -ForegroundColor Yellow
+        }
+    }
 }
 
 # 矢印を描く関数
