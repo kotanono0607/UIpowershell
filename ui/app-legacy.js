@@ -31,6 +31,10 @@ let layerStructure = {          // レイヤー構造
 // ノードカウンター（ID生成用）
 let nodeCounter = 1;
 
+// GroupIDカウンター（オリジナルPowerShellと同じ仕様）
+let loopGroupCounter = 1000;      // ループ用（1000番台）
+let conditionGroupCounter = 2000; // 条件分岐用（2000番台）
+
 // ============================================
 // 初期化
 // ============================================
@@ -188,19 +192,38 @@ function switchCategory(categoryNum) {
 // ============================================
 
 function addNodeToLayer(setting) {
-    const nodeId = `node-${nodeCounter++}`;
+    // 処理番号で判定してセット作成
+    if (setting.処理番号 === '1-2') {
+        // 条件分岐：3個セット（開始・中間・終了）
+        addConditionSet(setting);
+    } else if (setting.処理番号 === '1-3') {
+        // ループ：2個セット（開始・終了）
+        addLoopSet(setting);
+    } else {
+        // 通常ノード：1個
+        addSingleNode(setting);
+    }
+
+    // memory.json自動保存
+    saveMemoryJson();
+}
+
+// 単一ノードを追加
+function addSingleNode(setting, customText = null, customY = null, customGroupId = null, customHeight = 40) {
+    const nodeId = `${nodeCounter}-1`;
+    nodeCounter++;
 
     const node = {
         id: nodeId,
         name: setting.ボタン名,
-        text: setting.テキスト,
+        text: customText || setting.テキスト,
         color: setting.背景色,
         layer: currentLayer,
         x: 90,                              // X座標（中央寄せ）
-        y: getNextAvailableY(currentLayer),
+        y: customY || getNextAvailableY(currentLayer),
         width: 280,                         // ボタン幅
-        height: 40,                         // ボタン高さ
-        groupId: null,
+        height: customHeight,               // ボタン高さ（中間ラインは1px）
+        groupId: customGroupId,
         処理番号: setting.処理番号,
         関数名: setting.関数名,
         script: ''                          // スクリプト初期値
@@ -209,13 +232,78 @@ function addNodeToLayer(setting) {
     nodes.push(node);
     layerStructure[currentLayer].nodes.push(node);
 
+    return node;
+}
+
+// ループセット（2個）を追加
+function addLoopSet(setting) {
+    const groupId = loopGroupCounter++;
+    const baseY = getNextAvailableY(currentLayer);
+
+    console.log(`[ループ作成] GroupID=${groupId} を割り当て`);
+
+    // 1. 開始ボタン
+    const startNode = addSingleNode(
+        { ...setting, テキスト: 'ループ 開始', ボタン名: `${nodeCounter}-1` },
+        'ループ 開始',
+        baseY,
+        groupId,
+        40
+    );
+
+    // 2. 終了ボタン
+    const endNode = addSingleNode(
+        { ...setting, テキスト: 'ループ 終了', ボタン名: `${nodeCounter}-2` },
+        'ループ 終了',
+        baseY + 45,
+        groupId,
+        40
+    );
+
+    console.log(`[ループ作成完了] ${startNode.name}, ${endNode.name} (GroupID=${groupId})`);
+
     renderNodesInLayer(currentLayer);
-
-    // 上詰め再配置
     reorderNodesInLayer(currentLayer);
+}
 
-    // memory.json自動保存
-    saveMemoryJson();
+// 条件分岐セット（3個）を追加
+function addConditionSet(setting) {
+    const groupId = conditionGroupCounter++;
+    const baseY = getNextAvailableY(currentLayer);
+
+    console.log(`[条件分岐作成] GroupID=${groupId} を割り当て`);
+
+    // 1. 開始ボタン
+    const startNode = addSingleNode(
+        { ...setting, テキスト: '条件分岐 開始', ボタン名: `${nodeCounter}-1` },
+        '条件分岐 開始',
+        baseY,
+        groupId,
+        40
+    );
+
+    // 2. 中間ライン（グレー、高さ1px、ドラッグ不可）
+    const middleNode = addSingleNode(
+        { ...setting, テキスト: '条件分岐 中間', 背景色: 'Gray', ボタン名: `${nodeCounter}-2` },
+        '条件分岐 中間',
+        baseY + 40,
+        groupId,
+        1  // 高さ1pxのライン
+    );
+
+    // 3. 終了ボタン
+    const endNode = addSingleNode(
+        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${nodeCounter}-3` },
+        '条件分岐 終了',
+        baseY + 45,
+        groupId,
+        40
+    );
+
+    console.log(`[条件分岐作成完了] ${startNode.name}, ${middleNode.name}, ${endNode.name} (GroupID=${groupId})`);
+
+    renderNodesInLayer(currentLayer);
+    reorderNodesInLayer(currentLayer);
 }
 
 // 次の利用可能なY座標を取得
@@ -247,32 +335,41 @@ function renderNodesInLayer(layer) {
         btn.style.backgroundColor = getColorCode(node.color);
         btn.style.top = `${node.y}px`;
         btn.dataset.nodeId = node.id;
-        btn.draggable = true;
 
-        // ドラッグイベント
-        btn.addEventListener('dragstart', handleDragStart);
-        btn.addEventListener('dragend', handleDragEnd);
-        btn.addEventListener('dragover', handleDragOver);
-        btn.addEventListener('drop', handleDrop);
+        // 高さを設定（中間ラインは1px、通常は40px）
+        if (node.height && node.height === 1) {
+            btn.style.height = '1px';
+            btn.style.minHeight = '1px';
+            btn.style.fontSize = '0';  // テキスト非表示
+            btn.draggable = false;     // ドラッグ不可
+        } else {
+            btn.draggable = true;
+
+            // ドラッグイベント
+            btn.addEventListener('dragstart', handleDragStart);
+            btn.addEventListener('dragend', handleDragEnd);
+            btn.addEventListener('dragover', handleDragOver);
+            btn.addEventListener('drop', handleDrop);
+
+            // ダブルクリックで詳細設定を開く
+            btn.addEventListener('dblclick', () => {
+                openNodeSettings(node);
+            });
+
+            // マウスオーバーで説明表示（該当する設定を検索）
+            const setting = buttonSettings.find(s => s.処理番号 === node.処理番号);
+            if (setting) {
+                btn.onmouseenter = () => {
+                    document.getElementById('description-text').textContent = setting.説明 || '';
+                };
+            }
+        }
 
         // 右クリックメニュー
         btn.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             showContextMenu(e, node);
         });
-
-        // ダブルクリックで詳細設定を開く
-        btn.addEventListener('dblclick', () => {
-            openNodeSettings(node);
-        });
-
-        // マウスオーバーで説明表示（該当する設定を検索）
-        const setting = buttonSettings.find(s => s.処理番号 === node.処理番号);
-        if (setting) {
-            btn.onmouseenter = () => {
-                document.getElementById('description-text').textContent = setting.説明 || '';
-            };
-        }
 
         container.appendChild(btn);
     });
@@ -543,68 +640,161 @@ function layerizeNode() {
 async function deleteNode() {
     if (!contextMenuTarget) return;
 
-    const confirmed = confirm(`「${contextMenuTarget.text}」を削除しますか？`);
+    // セット削除チェック（条件分岐・ループ）
+    const deleteTargets = getDeleteTargets(contextMenuTarget);
+
+    const confirmMessage = deleteTargets.length > 1
+        ? `「${contextMenuTarget.text}」を含む${deleteTargets.length}個のセットを削除しますか？`
+        : `「${contextMenuTarget.text}」を削除しますか？`;
+
+    const confirmed = confirm(confirmMessage);
     if (!confirmed) {
         hideContextMenu();
         return;
     }
 
-    // セット削除チェック（条件分岐・ループ）
-    try {
-        const result = await callApi(`/nodes/${contextMenuTarget.id}`, 'DELETE', {
-            nodes: nodes.map(n => ({
-                id: n.id,
-                text: n.text,
-                color: n.color,
-                y: n.y,
-                groupId: n.groupId
-            }))
-        });
-
-        if (result.success) {
-            // 削除対象のIDリスト
-            const deleteTargets = result.deleteTargets || [contextMenuTarget.id];
-
-            // ノード配列から削除
-            deleteTargets.forEach(id => {
-                const index = nodes.findIndex(n => n.id === id);
-                if (index !== -1) {
-                    nodes.splice(index, 1);
-                }
-
-                const layerIndex = layerStructure[currentLayer].nodes.findIndex(n => n.id === id);
-                if (layerIndex !== -1) {
-                    layerStructure[currentLayer].nodes.splice(layerIndex, 1);
-                }
-            });
-
-            renderNodesInLayer(currentLayer);
-            reorderNodesInLayer(currentLayer);
-
-            // memory.json自動保存
-            saveMemoryJson();
-        }
-    } catch (error) {
-        console.error('削除エラー:', error);
-        // フォールバック：単純削除
-        const index = nodes.findIndex(n => n.id === contextMenuTarget.id);
+    // ノード配列から削除
+    deleteTargets.forEach(id => {
+        const index = nodes.findIndex(n => n.id === id);
         if (index !== -1) {
             nodes.splice(index, 1);
         }
 
-        const layerIndex = layerStructure[currentLayer].nodes.findIndex(n => n.id === contextMenuTarget.id);
+        const layerIndex = layerStructure[currentLayer].nodes.findIndex(n => n.id === id);
         if (layerIndex !== -1) {
             layerStructure[currentLayer].nodes.splice(layerIndex, 1);
         }
+    });
 
-        renderNodesInLayer(currentLayer);
-        reorderNodesInLayer(currentLayer);
+    renderNodesInLayer(currentLayer);
+    reorderNodesInLayer(currentLayer);
 
-        // memory.json自動保存
-        saveMemoryJson();
-    }
+    // memory.json自動保存
+    saveMemoryJson();
+
+    console.log(`[削除完了] ${deleteTargets.length}個のノードを削除しました`);
 
     hideContextMenu();
+}
+
+// 削除対象ノードIDリストを取得
+function getDeleteTargets(targetNode) {
+    const layerNodes = layerStructure[currentLayer].nodes;
+
+    // 条件分岐（SpringGreen）のチェック
+    if (targetNode.color === 'SpringGreen') {
+        const result = findConditionSet(layerNodes, targetNode);
+        if (result.success) {
+            console.log(`[条件分岐削除] ${result.deleteTargets.length}個のノードを削除対象としました`);
+            return result.deleteTargets;
+        }
+    }
+
+    // ループ（LemonChiffon）のチェック
+    if (targetNode.color === 'LemonChiffon') {
+        const result = findLoopSet(layerNodes, targetNode);
+        if (result.success) {
+            console.log(`[ループ削除] ${result.deleteTargets.length}個のノードを削除対象としました (GroupID=${targetNode.groupId})`);
+            return result.deleteTargets;
+        }
+    }
+
+    // 通常削除（単一ノード）
+    return [targetNode.id];
+}
+
+// 条件分岐セット（3個）を特定
+function findConditionSet(layerNodes, targetNode) {
+    const myY = targetNode.y;
+    const myText = targetNode.text.trim();
+
+    // 探索方向と探索対象を決定
+    let direction, searchTexts;
+    if (myText === '条件分岐 開始') {
+        direction = 'down';
+        searchTexts = ['条件分岐 中間', '条件分岐 終了'];
+    } else if (myText === '条件分岐 終了') {
+        direction = 'up';
+        searchTexts = ['条件分岐 中間', '条件分岐 開始'];
+    } else {
+        return { success: false, error: 'SpringGreenだが対象外テキスト' };
+    }
+
+    // 候補ノードを抽出
+    const candidates = {};
+
+    layerNodes.forEach(node => {
+        const txt = node.text.trim();
+        if (!searchTexts.includes(txt)) return;
+        if (node.color !== 'SpringGreen') return;
+
+        const delta = node.y - myY;
+        if ((direction === 'down' && delta <= 0) || (direction === 'up' && delta >= 0)) return;
+
+        const distance = Math.abs(delta);
+
+        // まだ登録されていない or もっと近いノードなら採用
+        if (!candidates[txt] || distance < candidates[txt].distance) {
+            candidates[txt] = { node, distance };
+        }
+    });
+
+    // 3つ揃っているか判定
+    const deleteTargets = [targetNode.id];
+    searchTexts.forEach(txt => {
+        if (candidates[txt]) {
+            deleteTargets.push(candidates[txt].node.id);
+        }
+    });
+
+    if (deleteTargets.length < 3) {
+        return {
+            success: false,
+            error: `セットが揃わないため削除できません（見つかったノード: ${deleteTargets.length}/3）`
+        };
+    }
+
+    return {
+        success: true,
+        message: '条件分岐セット（3個）の削除対象を特定しました',
+        deleteTargets,
+        nodeType: '条件分岐'
+    };
+}
+
+// ループセット（2個）を特定
+function findLoopSet(layerNodes, targetNode) {
+    const targetGroupID = targetNode.groupId;
+
+    if (!targetGroupID) {
+        return { success: false, error: 'ターゲットノードにGroupIDが設定されていません' };
+    }
+
+    // 同じGroupIDを持つLemonChiffonノードを収集
+    const deleteTargets = [];
+
+    layerNodes.forEach(node => {
+        if (node.color !== 'LemonChiffon') return;
+        if (node.groupId === targetGroupID) {
+            deleteTargets.push(node.id);
+        }
+    });
+
+    // 2つ揃っているかチェック
+    if (deleteTargets.length < 2) {
+        return {
+            success: false,
+            error: `ループ開始/終了のセットが揃わないため削除できません（見つかったノード: ${deleteTargets.length}/2）`
+        };
+    }
+
+    return {
+        success: true,
+        message: 'ループセット（2個）の削除対象を特定しました',
+        deleteTargets,
+        nodeType: 'ループ',
+        groupId: targetGroupID
+    };
 }
 
 // 全削除
