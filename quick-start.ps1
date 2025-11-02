@@ -2,12 +2,24 @@
 # UIpowershell クイックスタートスクリプト
 # ============================================
 # 役割：ワンクリックで動作確認を開始
-# 使い方：.\quick-start.ps1
+#
+# 使い方：
+#   .\quick-start.ps1                    # デフォルト（ポート8080、ブラウザ自動起動）
+#   .\quick-start.ps1 -Port 8081         # ポート指定
+#   .\quick-start.ps1 -NoBrowser         # ブラウザを開かない
+#   .\quick-start.ps1 -NoAutoInstall     # Polaris自動インストールを無効
+#
+# 特徴：
+#   - 対話プロンプトなし（完全自動）
+#   - PowerShell 5.x/7.x 両対応
+#   - ポート使用中の場合は自動的に次のポートを使用
+#   - Polarisがない場合は自動インストール
 # ============================================
 
 param(
     [int]$Port = 8080,
-    [switch]$SkipBrowser
+    [switch]$NoBrowser,
+    [switch]$NoAutoInstall
 )
 
 Write-Host "============================================" -ForegroundColor Cyan
@@ -71,14 +83,9 @@ Write-Host "  PowerShellバージョン: $psVersion" -ForegroundColor White
 
 if ($psVersion.Major -lt 7) {
     Write-Host "  ⚠ 警告: PowerShell 7.x 以上を推奨します" -ForegroundColor Yellow
-    Write-Host "  現在のバージョンでも動作する可能性がありますが、問題が発生する場合は" -ForegroundColor Yellow
+    Write-Host "  現在のバージョン（$psVersion）でも動作しますが、問題が発生する場合は" -ForegroundColor Yellow
     Write-Host "  PowerShell 7.x をインストールしてください" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "  続行しますか？ (Y/N)" -ForegroundColor Yellow
-    $continue = Read-Host
-    if ($continue -ne "Y" -and $continue -ne "y") {
-        exit 0
-    }
+    Write-Host "  → 自動的に続行します..." -ForegroundColor Gray
 } else {
     Write-Host "  ✓ PowerShell 7.x 以上です" -ForegroundColor Green
 }
@@ -106,13 +113,13 @@ if (Test-Path $localPolarisPath) {
         $polarisReady = $true
     } else {
         Write-Host "  ✗ Polarisモジュールが見つかりません" -ForegroundColor Red
-        Write-Host ""
-        Write-Host "  自動インストールを開始しますか？ (Y/N)" -ForegroundColor Yellow
-        $install = Read-Host
 
-        if ($install -eq "Y" -or $install -eq "y") {
+        if ($NoAutoInstall) {
+            Write-Host "  → 自動インストールがスキップされました（-NoAutoInstall）" -ForegroundColor Yellow
+            $polarisReady = $false
+        } else {
+            Write-Host "  → 自動的にインストールします..." -ForegroundColor Cyan
             Write-Host ""
-            Write-Host "  Polarisをインストール中..." -ForegroundColor Cyan
             try {
                 Install-Module -Name Polaris -Scope CurrentUser -Force -AllowClobber
                 Write-Host "  ✓ Polarisのインストールに成功しました" -ForegroundColor Green
@@ -121,8 +128,6 @@ if (Test-Path $localPolarisPath) {
                 Write-Host "  ✗ インストールに失敗しました: $($_.Exception.Message)" -ForegroundColor Red
                 $polarisReady = $false
             }
-        } else {
-            $polarisReady = $false
         }
     }
 }
@@ -151,14 +156,28 @@ try {
     $listener.Stop()
     Write-Host "  ✓ ポート $Port は利用可能です" -ForegroundColor Green
 } catch {
-    Write-Host "  ⚠ ポート $Port は既に使用中の可能性があります" -ForegroundColor Yellow
-    Write-Host "  別のポートを使用しますか？ (Y/N)" -ForegroundColor Yellow
-    $useAnotherPort = Read-Host
+    Write-Host "  ⚠ ポート $Port は既に使用中です" -ForegroundColor Yellow
+    # 自動的に次のポートを試す
+    $originalPort = $Port
+    $maxAttempts = 10
+    $foundPort = $false
 
-    if ($useAnotherPort -eq "Y" -or $useAnotherPort -eq "y") {
-        $Port = Read-Host "  使用するポート番号を入力してください (例: 8081)"
-        $Port = [int]$Port
-    } else {
+    for ($i = 1; $i -le $maxAttempts; $i++) {
+        $Port = $originalPort + $i
+        try {
+            $listener = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Loopback, $Port)
+            $listener.Start()
+            $listener.Stop()
+            Write-Host "  → 自動的にポート $Port を使用します" -ForegroundColor Cyan
+            $foundPort = $true
+            break
+        } catch {
+            # 次のポートを試す
+        }
+    }
+
+    if (-not $foundPort) {
+        Write-Host "  ✗ 利用可能なポートが見つかりませんでした（$originalPort-$Port）" -ForegroundColor Red
         Write-Host "  既存のサーバーを停止してから再実行してください" -ForegroundColor Yellow
         pause
         exit 1
@@ -182,16 +201,14 @@ Write-Host "  フロントエンド: http://localhost:$Port/index-v2.html" -Fore
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# ブラウザ自動起動の確認
-$openBrowser = $true
-if ($SkipBrowser) {
+# ブラウザ自動起動の設定
+if ($NoBrowser) {
     $openBrowser = $false
+    Write-Host "ブラウザは自動起動しません（-NoBrowserオプション）" -ForegroundColor Gray
 } else {
-    Write-Host "ブラウザを自動的に開きますか？ (Y/N) [デフォルト: Y]" -ForegroundColor Yellow
-    $browserChoice = Read-Host
-    if ($browserChoice -eq "N" -or $browserChoice -eq "n") {
-        $openBrowser = $false
-    }
+    $openBrowser = $true
+    Write-Host "サーバー起動後にブラウザを自動的に開きます" -ForegroundColor Gray
+    Write-Host "（ブラウザを開きたくない場合: .\quick-start.ps1 -NoBrowser）" -ForegroundColor DarkGray
 }
 
 Write-Host ""
