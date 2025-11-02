@@ -182,6 +182,31 @@
         </div>
     </div>
 
+    <!-- ノード詳細設定モーダル -->
+    <div id="node-settings-modal" class="modal">
+        <div class="modal-content" style="width: 70%; max-width: 700px;">
+            <h2>ノード設定: <span id="settings-node-name"></span></h2>
+            <button class="modal-close" onclick="closeNodeSettingsModal()">×</button>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <label>ノード名:</label>
+                    <input type="text" id="settings-node-text" style="width: 100%; padding: 5px;" />
+                </div>
+                <div id="settings-custom-fields">
+                    <!-- 処理番号に応じたカスタムフィールドがここに表示される -->
+                </div>
+                <div style="margin-top: 15px;">
+                    <label>スクリプト:</label>
+                    <textarea id="settings-node-script" rows="10" style="width: 100%; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px;"></textarea>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button onclick="saveNodeSettings()">💾 保存</button>
+                    <button onclick="closeNodeSettingsModal()">キャンセル</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app-legacy.js"></script>
 </body>
 </html>

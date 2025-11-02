@@ -257,6 +257,11 @@ function renderNodesInLayer(layer) {
             showContextMenu(e, node);
         });
 
+        // ダブルクリックで詳細設定を開く
+        btn.addEventListener('dblclick', () => {
+            openNodeSettings(node);
+        });
+
         // マウスオーバーで説明表示（該当する設定を検索）
         const setting = buttonSettings.find(s => s.処理番号 === node.処理番号);
         if (setting) {
@@ -1021,6 +1026,95 @@ async function saveMemoryJson() {
 }
 
 // ============================================
+// ノード詳細設定
+// ============================================
+
+let currentSettingsNode = null;
+
+function openNodeSettings(node) {
+    currentSettingsNode = node;
+
+    // モーダルを表示
+    document.getElementById('node-settings-modal').classList.add('show');
+    document.getElementById('settings-node-name').textContent = node.text;
+    document.getElementById('settings-node-text').value = node.text;
+    document.getElementById('settings-node-script').value = node.script || '';
+
+    // カスタムフィールドをクリア
+    const customFields = document.getElementById('settings-custom-fields');
+    customFields.innerHTML = '';
+
+    // 処理番号に応じたカスタムフィールドを追加
+    if (node.処理番号 === '1-2') {
+        // 条件分岐
+        customFields.innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <label>条件式:</label>
+                <input type="text" id="condition-expression" value="${node.conditionExpression || ''}" style="width: 100%; padding: 5px;" placeholder="例: $変数 -eq '値'" />
+            </div>
+        `;
+    } else if (node.処理番号 === '1-3') {
+        // ループ
+        customFields.innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <label>ループ回数:</label>
+                <input type="number" id="loop-count" value="${node.loopCount || 1}" style="width: 200px; padding: 5px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label>ループ変数名:</label>
+                <input type="text" id="loop-variable" value="${node.loopVariable || 'i'}" style="width: 200px; padding: 5px;" />
+            </div>
+        `;
+    }
+}
+
+function closeNodeSettingsModal() {
+    document.getElementById('node-settings-modal').classList.remove('show');
+    currentSettingsNode = null;
+}
+
+function saveNodeSettings() {
+    if (!currentSettingsNode) return;
+
+    // 基本設定を更新
+    const newText = document.getElementById('settings-node-text').value;
+    const newScript = document.getElementById('settings-node-script').value;
+
+    currentSettingsNode.text = newText;
+    currentSettingsNode.script = newScript;
+
+    // カスタムフィールドを保存
+    if (currentSettingsNode.処理番号 === '1-2') {
+        const conditionExpression = document.getElementById('condition-expression');
+        if (conditionExpression) {
+            currentSettingsNode.conditionExpression = conditionExpression.value;
+        }
+    } else if (currentSettingsNode.処理番号 === '1-3') {
+        const loopCount = document.getElementById('loop-count');
+        const loopVariable = document.getElementById('loop-variable');
+        if (loopCount) currentSettingsNode.loopCount = parseInt(loopCount.value);
+        if (loopVariable) currentSettingsNode.loopVariable = loopVariable.value;
+    }
+
+    // グローバルノード配列も更新
+    const globalNodeIndex = nodes.findIndex(n => n.id === currentSettingsNode.id);
+    if (globalNodeIndex !== -1) {
+        nodes[globalNodeIndex] = Object.assign({}, currentSettingsNode);
+    }
+
+    // 再描画
+    renderNodesInLayer(currentLayer);
+
+    // memory.json自動保存
+    saveMemoryJson();
+
+    console.log(`ノード「${currentSettingsNode.text}」の設定を更新しました`);
+    alert('設定を保存しました。');
+
+    closeNodeSettingsModal();
+}
+
+// ============================================
 // イベントリスナー設定
 // ============================================
 
@@ -1036,6 +1130,7 @@ function setupEventListeners() {
             closeVariableModal();
             closeFolderModal();
             closeScriptModal();
+            closeNodeSettingsModal();
         }
     });
 }
