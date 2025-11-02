@@ -474,23 +474,8 @@ function Get-StateDebugInfo {
 
 
 # ============================================
-# エクスポート
+# スクリプトの終了
 # ============================================
-
-Export-ModuleMember -Function @(
-    'Get-SessionInfo',
-    'Reset-Session',
-    'Get-CurrentProject',
-    'Set-CurrentProject',
-    'Get-AllNodes',
-    'Set-AllNodes',
-    'Get-NodeById',
-    'Add-Node',
-    'Update-Node',
-    'Remove-Node',
-    'Get-AllEdges',
-    'Set-AllEdges',
-    'Get-AllVariables',
-    'Set-Variable',
-    'Get-StateDebugInfo'
-)
+# 注: このファイルは . (dot-source) で読み込まれるため、
+# Export-ModuleMember は使用しません。
+# すべての関数は自動的にグローバルスコープで利用可能になります。

@@ -570,19 +570,8 @@ function Sort-NodesByY {
 
 
 # ============================================
-# エクスポート
+# スクリプトの終了
 # ============================================
-
-Export-ModuleMember -Function @(
-    'ConvertFrom-WindowsFormsControls',
-    'ConvertTo-JsonNodes',
-    'New-GroupId',
-    'Get-NodesByGroupId',
-    'Get-AllGroups',
-    'Get-NodesByColor',
-    'Get-NodesByType',
-    'Get-NodeBounds',
-    'Get-NextAvailableY',
-    'Test-NodeCollision',
-    'Sort-NodesByY'
-)
+# 注: このファイルは . (dot-source) で読み込まれるため、
+# Export-ModuleMember は使用しません。
+# すべての関数は自動的にグローバルスコープで利用可能になります。
