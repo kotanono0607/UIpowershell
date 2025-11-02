@@ -598,16 +598,41 @@ if (Test-Path $uiPath) {
     Write-Host "[警告] UIディレクトリが見つかりません: $uiPath" -ForegroundColor Yellow
 }
 
-# index-v2.htmlをルートパスでも提供
+# ルートディレクトリも公開（ボタン設定.json用）
+New-PolarisStaticRoute -RoutePath "/root" -FolderPath $script:RootDir
+Write-Host "[OK] ルートディレクトリを公開（/root）: $script:RootDir" -ForegroundColor Green
+
+# ボタン設定.jsonを直接提供
+New-PolarisRoute -Path "/ボタン設定.json" -Method GET -ScriptBlock {
+    $jsonPath = Join-Path $using:script:RootDir "ボタン設定.json"
+    if (Test-Path $jsonPath) {
+        $content = Get-Content $jsonPath -Raw -Encoding UTF8
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Json(@{ error = "ボタン設定.json not found" })
+    }
+}
+
+# index-legacy.htmlをルートパスでも提供
 New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
-    $indexPath = Join-Path $using:uiPath "index-v2.html"
+    $indexPath = Join-Path $using:uiPath "index-legacy.html"
     if (Test-Path $indexPath) {
         $content = Get-Content $indexPath -Raw
         $Response.SetContentType('text/html; charset=utf-8')
         $Response.Send($content)
     } else {
-        $Response.SetStatusCode(404)
-        $Response.Send("index-v2.html not found")
+        # フォールバック: index-v2.html
+        $indexPath2 = Join-Path $using:uiPath "index-v2.html"
+        if (Test-Path $indexPath2) {
+            $content = Get-Content $indexPath2 -Raw
+            $Response.SetContentType('text/html; charset=utf-8')
+            $Response.Send($content)
+        } else {
+            $Response.SetStatusCode(404)
+            $Response.Send("index.html not found")
+        }
     }
 }
 

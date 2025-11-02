@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UIpowershell - Visual RPA Platform (既存UI再現版)</title>
+    <link rel="stylesheet" href="style-legacy.css">
+</head>
+<body>
+    <!-- メニューバー -->
+    <div id="menubar">
+        <div class="menu-item" onclick="executeCode()">実行</div>
+        <div class="menu-item" onclick="openVariableModal()">変数</div>
+        <div class="menu-item" onclick="createFolder()">フォルダ作成</div>
+        <div class="menu-item" onclick="switchFolder()">フォルダ切替</div>
+        <div class="menu-item" onclick="createSnapshot()">📸 スナップショット作成</div>
+        <div class="menu-item" onclick="restoreSnapshot()">↩️ スナップショット復元</div>
+    </div>
+
+    <!-- ツールバー（上部） -->
+    <div id="toolbar">
+        <button onclick="layerizeNode()" class="btn-white">レイヤー化</button>
+        <button onclick="deleteAllNodes()" class="btn-danger">全削除</button>
+        <button onclick="openVariableModal()" class="btn-white">変数</button>
+        <span style="flex: 1"></span>
+        <button onclick="navigateLayer('left')" class="btn-nav">◀</button>
+        <span id="current-layer-label">レイヤー1</span>
+        <button onclick="navigateLayer('right')" class="btn-nav">▶</button>
+    </div>
+
+    <!-- メインコンテンツエリア -->
+    <div id="main-container">
+        <!-- 左側：操作パネル（10カテゴリー切り替え） -->
+        <div id="left-panel">
+            <!-- カテゴリー切り替えボタン -->
+            <div id="category-buttons">
+                <button onclick="switchCategory(1)" class="category-btn" style="background-color: rgb(180, 180, 180);">制御構文</button>
+                <button onclick="switchCategory(2)" class="category-btn" style="background-color: rgb(250, 215, 220);">マウス操作</button>
+                <button onclick="switchCategory(3)" class="category-btn" style="background-color: rgb(210, 255, 240);">キーボード操作</button>
+                <button onclick="switchCategory(4)" class="category-btn" style="background-color: rgb(225, 245, 230);">UIAutomation</button>
+                <button onclick="switchCategory(5)" class="category-btn" style="background-color: rgb(250, 250, 230);">ファイル操作</button>
+                <button onclick="switchCategory(6)" class="category-btn" style="background-color: rgb(240, 230, 250);">データ処理</button>
+                <button onclick="switchCategory(7)" class="category-btn" style="background-color: rgb(245, 245, 245);">スクリプト実行</button>
+                <button onclick="switchCategory(8)" class="category-btn" style="background-color: rgb(220, 235, 255);">Excel処理</button>
+                <button onclick="switchCategory(9)" class="category-btn" style="background-color: rgb(255, 250, 220);">ウインドウ操作</button>
+                <button onclick="switchCategory(10)" class="category-btn" style="background-color: rgb(255, 235, 240);">画像処理</button>
+            </div>
+
+            <!-- ノード追加ボタンパネル（カテゴリーごとに切り替わる） -->
+            <div id="node-buttons-container">
+                <!-- カテゴリー1：制御構文 -->
+                <div id="category-panel-1" class="category-panel active">
+                    <!-- ボタン設定.jsonから動的に生成 -->
+                </div>
+                <!-- カテゴリー2：マウス操作 -->
+                <div id="category-panel-2" class="category-panel">
+                    <!-- ボタン設定.jsonから動的に生成 -->
+                </div>
+                <!-- カテゴリー3-10も同様 -->
+                <div id="category-panel-3" class="category-panel"></div>
+                <div id="category-panel-4" class="category-panel"></div>
+                <div id="category-panel-5" class="category-panel"></div>
+                <div id="category-panel-6" class="category-panel"></div>
+                <div id="category-panel-7" class="category-panel"></div>
+                <div id="category-panel-8" class="category-panel"></div>
+                <div id="category-panel-9" class="category-panel"></div>
+                <div id="category-panel-10" class="category-panel"></div>
+            </div>
+        </div>
+
+        <!-- 中央：レイヤーパネル（レイヤー0-6） -->
+        <div id="center-container">
+            <!-- レイヤー0（不可視左） -->
+            <div id="layer-0" class="layer-panel" style="display: none;">
+                <div class="layer-label">レイヤー0</div>
+                <div class="node-list-container">
+                    <!-- ノードが縦に並ぶ -->
+                </div>
+            </div>
+
+            <!-- レイヤー1（可視左） -->
+            <div id="layer-1" class="layer-panel active">
+                <div class="layer-label">レイヤー1</div>
+                <div class="node-list-container">
+                    <!-- ノードが縦に並ぶ -->
+                </div>
+            </div>
+
+            <!-- レイヤー2（可視右） -->
+            <div id="layer-2" class="layer-panel">
+                <div class="layer-label">レイヤー2</div>
+                <div class="node-list-container">
+                    <!-- ノードが縦に並ぶ -->
+                </div>
+            </div>
+
+            <!-- レイヤー3-6（不可視右） -->
+            <div id="layer-3" class="layer-panel" style="display: none;"></div>
+            <div id="layer-4" class="layer-panel" style="display: none;"></div>
+            <div id="layer-5" class="layer-panel" style="display: none;"></div>
+            <div id="layer-6" class="layer-panel" style="display: none;"></div>
+        </div>
+
+        <!-- 右側：プレビューパネル -->
+        <div id="right-panel">
+            <div class="panel-label">プレビューパネル</div>
+            <div id="preview-content">
+                <!-- 右側のレイヤーのプレビュー -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 説明フレーム -->
+    <div id="description-panel">
+        <div id="description-text">ここに説明文が表示されます。</div>
+    </div>
+
+    <!-- 階層パス表示 -->
+    <div id="hierarchy-path">
+        📍 階層パス: <span id="path-text">レイヤー1</span>
+    </div>
+
+    <!-- 右クリックメニュー -->
+    <div id="context-menu" class="context-menu">
+        <div class="context-menu-item" onclick="renameNode()">名前変更</div>
+        <div class="context-menu-item" onclick="editScript()">スクリプト編集</div>
+        <div class="context-menu-item" onclick="executeScript()">スクリプト実行</div>
+        <div class="context-menu-item" onclick="layerizeNode()">レイヤー化</div>
+        <div class="context-menu-item" onclick="deleteNode()">削除</div>
+    </div>
+
+    <!-- 変数管理モーダル -->
+    <div id="variable-modal" class="modal">
+        <div class="modal-content">
+            <h2>変数管理</h2>
+            <button class="modal-close" onclick="closeVariableModal()">×</button>
+            <div class="modal-body">
+                <button onclick="addVariablePrompt()">➕ 新しい変数を追加</button>
+                <table id="variable-table">
+                    <thead>
+                        <tr>
+                            <th>変数名</th>
+                            <th>値</th>
+                            <th>タイプ</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="variable-list">
+                        <!-- 変数がここに表示される -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- フォルダ切替モーダル -->
+    <div id="folder-modal" class="modal">
+        <div class="modal-content">
+            <h2>フォルダ切替</h2>
+            <button class="modal-close" onclick="closeFolderModal()">×</button>
+            <div class="modal-body">
+                <select id="folder-select" size="10">
+                    <!-- フォルダ一覧が表示される -->
+                </select>
+                <button onclick="selectFolder()">選択</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app-legacy.js"></script>
+</body>
+</html>
