@@ -152,12 +152,15 @@ $global:uiPath = Join-Path $script:RootDir "ui"
 
 # ヘルスチェック
 New-PolarisRoute -Path "/api/health" -Method GET -ScriptBlock {
-    $Response.Json(@{
+    $result = @{
         status = "ok"
         timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
         version = "2.0.0-phase3"
         phase = "Phase 3 - Adapter Layer Complete"
-    })
+    }
+    $json = $result | ConvertTo-Json -Compress
+    $Response.SetContentType('application/json; charset=utf-8')
+    $Response.Send($json)
 }
 
 # セッション情報取得
