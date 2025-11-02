@@ -28,49 +28,72 @@ function 00_矢印追記処理 {
     )
 
     #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^pink矢印真ん中
-foreach ($button in $buttons) {
+    # ピンクノード展開時の矢印表示（右パネルへの接続を示す）
+    if ($Global:Pink選択中 -eq "true" -and $フレームパネル -eq $Global:可視左パネル) {
+        $result = Check-Pink選択配列Objects
 
-$result = Check-Pink選択配列Objects
+        if ($result -eq $true) {
+            # 選択中のピンクボタンを取得
+            $selectedPinkButton = $buttons | Where-Object {
+                $_.BackColor.ToArgb() -eq [System.Drawing.Color]::Pink.ToArgb()
+            } | Select-Object -First 1
 
-    if (-not $hasProcessedPink -and ($button.BackColor.ToArgb() -eq [System.Drawing.Color]::Pink.ToArgb()) -and ($result -eq $true) -and  $Global:Pink選択中 -eq "true"-and $フレームパネル -eq $Global:可視左パネル ) {
-     
-        # 横ラインを描画（ピンク色）
-        $pinkLineColor = [System.Drawing.Color]::Pink
+            if ($selectedPinkButton) {
+                # 鮮やかなピンク色で視認性を向上
+                $pinkLineColor = [System.Drawing.Color]::HotPink
 
-            $最後の文字 = グローバル変数から数値取得　-パネル $Global:可視左パネル 
-            $A = [int]$最後の文字
-             
+                # ピンクボタンの右端中央から開始
+                $pinkButtonRight = [System.Drawing.Point]::new(
+                    $selectedPinkButton.Location.X + $selectedPinkButton.Width,
+                    $selectedPinkButton.Location.Y + ($selectedPinkButton.Height / 2)
+                )
 
-        # ボタンの右側から横ラインを引く開始点と終了点を計算
-        $horizontalStartPoint = [System.Drawing.Point]::new(
-             210,
-            $Global:Pink選択配列[$A].Y座標
-        )
-        $horizontalEndPoint = [System.Drawing.Point]::new(
-            300,  # 必要に応じて調整
-            20
-        )
+                # 横ライン終点（パネル右端の少し手前）
+                $horizontalEndPoint = [System.Drawing.Point]::new(
+                    $フレームパネル.Width - 20,
+                    $pinkButtonRight.Y
+                )
 
+                # 縦ライン終点（右パネルTop接続位置）
+                $verticalEndPoint = [System.Drawing.Point]::new(
+                    $horizontalEndPoint.X,
+                    20
+                )
 
+                # 横ライン描画（ピンクボタン → パネル右端）
+                $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                    Type = "Line"
+                    StartPoint = $pinkButtonRight
+                    EndPoint = $horizontalEndPoint
+                    Color = $pinkLineColor
+                    Width = 3  # 太線で視認性向上
+                }
 
-        # DrawObjects にラインを追加
-        $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
-            Type       = "Line"
-            StartPoint = $horizontalStartPoint
-            EndPoint   = $horizontalEndPoint
-            Color      = $pinkLineColor
+                # 縦ライン描画（パネル右端 → 右パネル接続位置）
+                $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                    Type = "Line"
+                    StartPoint = $horizontalEndPoint
+                    EndPoint = $verticalEndPoint
+                    Color = $pinkLineColor
+                    Width = 3
+                }
+
+                # 矢印ヘッド（右パネルへの接続を示す）
+                $arrowEndPoint = [System.Drawing.Point]::new(
+                    $verticalEndPoint.X,
+                    $verticalEndPoint.Y + 15
+                )
+                $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                    Type = "DownArrow"
+                    StartPoint = $verticalEndPoint
+                    EndPoint = $arrowEndPoint
+                    Color = $pinkLineColor
+                    Width = 3
+                    ArrowSize = 10  # 大きめの矢印ヘッド
+                }
+            }
         }
-
-
-$始点 = [System.Drawing.Point]::new(0, 20)  
-$終点 = [System.Drawing.Point]::new(70, 20)  
-矢印を表示する -フォーム $メインフォーム -幅 1400 -高さ 900 -始点 $始点 -終点 $終点  -矢印サイズ 20 -矢印角度 45 -PictureBoxX 850 -PictureBoxY 70 -PictureBox幅 72 -PictureBox高さ 40
-
-
-        # フラグを設定して、これ以上の処理を防止
-        $hasProcessedPink = $true
     }
-}
 
 
 
@@ -926,8 +949,9 @@ function 00_メインフレームパネルのPaintイベントを設定する {
                     [System.Drawing.Color]::Black
                 }
 
-                # ラインを描画（ペンの幅を細く）
-                $pen = New-Object System.Drawing.Pen($lineColor, 1)  # 太さを1に変更
+                # ラインを描画（Widthプロパティがあれば使用、なければ1）
+                $lineWidth = if ($obj.PSObject.Properties.Match("Width").Count -gt 0) { $obj.Width } else { 1 }
+                $pen = New-Object System.Drawing.Pen($lineColor, $lineWidth)
                 $e.Graphics.DrawLine($pen, $obj.StartPoint, $obj.EndPoint)
                 $pen.Dispose()
             }
@@ -952,13 +976,17 @@ function 00_メインフレームパネルのPaintイベントを設定する {
                     [System.Drawing.Color]::Black
                 }
 
-                # ペンの設定
-                $pen = New-Object System.Drawing.Pen($arrowColor, 1)  # 太さを1に変更
+                # ペンの設定（Widthプロパティがあれば使用、なければ1）
+                $arrowWidth = if ($obj.PSObject.Properties.Match("Width").Count -gt 0) { $obj.Width } else { 1 }
+                $pen = New-Object System.Drawing.Pen($arrowColor, $arrowWidth)
+
+                # 矢印サイズの設定（ArrowSizeプロパティがあれば使用、なければデフォルト7.0）
+                $arrowSize = if ($obj.PSObject.Properties.Match("ArrowSize").Count -gt 0) { $obj.ArrowSize } else { 7.0 }
 
                 # 矢印の描画方向を調整
                 $endPoint = $obj.EndPoint
                 $startPoint = $obj.StartPoint
-                
+
                 if ($obj.Type -eq "DownArrow") {
                     # 下向きの場合、特別な調整が必要な場合はここに追加
                     # ここでは既存の StartPoint と EndPoint を使用
@@ -980,8 +1008,8 @@ function 00_メインフレームパネルのPaintイベントを設定する {
                     # ここでは既存の StartPoint と EndPoint を使用
                 }
 
-                # カスタム矢印を描画
-                Draw-CustomArrow -graphics $e.Graphics -pen $pen -startPoint $startPoint -endPoint $endPoint
+                # カスタム矢印を描画（カスタムサイズを適用）
+                Draw-CustomArrow -graphics $e.Graphics -pen $pen -startPoint $startPoint -endPoint $endPoint -arrowSize $arrowSize
 
                 $pen.Dispose()
             }
