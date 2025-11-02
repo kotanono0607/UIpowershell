@@ -589,20 +589,61 @@ New-PolarisRoute -Path "/api/entries/all" -Method GET -ScriptBlock {
 
 Write-Host "静的ファイル提供を設定します..." -ForegroundColor Cyan
 
-# uiディレクトリを静的ファイルルートとして公開
 $uiPath = Join-Path $script:RootDir "ui"
-if (Test-Path $uiPath) {
-    New-PolarisStaticRoute -RoutePath "/" -FolderPath $uiPath
-    Write-Host "[OK] UIディレクトリを公開: $uiPath" -ForegroundColor Green
-} else {
-    Write-Host "[警告] UIディレクトリが見つかりません: $uiPath" -ForegroundColor Yellow
+
+# ルートパス "/" - index-legacy.htmlを提供
+New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
+    $indexPath = Join-Path $using:uiPath "index-legacy.html"
+    if (Test-Path $indexPath) {
+        $content = Get-Content $indexPath -Raw -Encoding UTF8
+        $Response.SetContentType('text/html; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("index-legacy.html not found")
+    }
 }
 
-# ルートディレクトリも公開（ボタン設定.json用）
-New-PolarisStaticRoute -RoutePath "/root" -FolderPath $script:RootDir
-Write-Host "[OK] ルートディレクトリを公開（/root）: $script:RootDir" -ForegroundColor Green
+# index-legacy.html
+New-PolarisRoute -Path "/index-legacy.html" -Method GET -ScriptBlock {
+    $indexPath = Join-Path $using:uiPath "index-legacy.html"
+    if (Test-Path $indexPath) {
+        $content = Get-Content $indexPath -Raw -Encoding UTF8
+        $Response.SetContentType('text/html; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("index-legacy.html not found")
+    }
+}
 
-# ボタン設定.jsonを直接提供
+# style-legacy.css
+New-PolarisRoute -Path "/style-legacy.css" -Method GET -ScriptBlock {
+    $cssPath = Join-Path $using:uiPath "style-legacy.css"
+    if (Test-Path $cssPath) {
+        $content = Get-Content $cssPath -Raw -Encoding UTF8
+        $Response.SetContentType('text/css; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("style-legacy.css not found")
+    }
+}
+
+# app-legacy.js
+New-PolarisRoute -Path "/app-legacy.js" -Method GET -ScriptBlock {
+    $jsPath = Join-Path $using:uiPath "app-legacy.js"
+    if (Test-Path $jsPath) {
+        $content = Get-Content $jsPath -Raw -Encoding UTF8
+        $Response.SetContentType('application/javascript; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("app-legacy.js not found")
+    }
+}
+
+# ボタン設定.json
 New-PolarisRoute -Path "/ボタン設定.json" -Method GET -ScriptBlock {
     $jsonPath = Join-Path $using:script:RootDir "ボタン設定.json"
     if (Test-Path $jsonPath) {
@@ -615,27 +656,7 @@ New-PolarisRoute -Path "/ボタン設定.json" -Method GET -ScriptBlock {
     }
 }
 
-# index-legacy.htmlをルートパスでも提供
-New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
-    $indexPath = Join-Path $using:uiPath "index-legacy.html"
-    if (Test-Path $indexPath) {
-        $content = Get-Content $indexPath -Raw
-        $Response.SetContentType('text/html; charset=utf-8')
-        $Response.Send($content)
-    } else {
-        # フォールバック: index-v2.html
-        $indexPath2 = Join-Path $using:uiPath "index-v2.html"
-        if (Test-Path $indexPath2) {
-            $content = Get-Content $indexPath2 -Raw
-            $Response.SetContentType('text/html; charset=utf-8')
-            $Response.Send($content)
-        } else {
-            $Response.SetStatusCode(404)
-            $Response.Send("index.html not found")
-        }
-    }
-}
-
+Write-Host "[OK] 静的ファイル提供を設定しました" -ForegroundColor Green
 Write-Host ""
 
 # ============================================
