@@ -47,13 +47,15 @@ function 00_メインフォームのPaintイベントを設定する {
         }
 
         # 座標をフォーム座標系に変換
-        # 左パネルのピンクボタンの右端中央
-        $leftButtonRightX = $Global:可視左パネル.Location.X + $selectedPinkButton.Location.X + $selectedPinkButton.Width
+        # 左パネルのピンクボタンの中央Y座標
         $leftButtonCenterY = $Global:可視左パネル.Location.Y + $selectedPinkButton.Location.Y + ($selectedPinkButton.Height / 2)
 
-        # 右パネルの最初のボタンの左端中央
-        $rightButtonLeftX = $Global:可視右パネル.Location.X + $rightPanelFirstButton.Location.X
+        # 右パネルの最初のボタンの中央Y座標
         $rightButtonCenterY = $Global:可視右パネル.Location.Y + $rightPanelFirstButton.Location.Y + ($rightPanelFirstButton.Height / 2)
+
+        # 左パネルの右端と右パネルの左端
+        $leftPanelRightX = $Global:可視左パネル.Location.X + $Global:可視左パネル.Width
+        $rightPanelLeftX = $Global:可視右パネル.Location.X
 
         # 鮮やかなピンク色
         $pinkLineColor = [System.Drawing.Color]::HotPink
@@ -62,30 +64,24 @@ function 00_メインフォームのPaintイベントを設定する {
         # アンチエイリアシングを有効化
         $e.Graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
 
-        # 矢印パス：左ボタン右端 → 横に延長 → 縦に移動 → 右ボタン左端
+        # 矢印パス（パネル間のギャップ部分のみ）：左パネル右端 → 縦に移動 → 右パネル左端
 
-        # 1. 横ライン（左ボタン右端 → 左パネル右端近く）
-        $horizontalEndX = $Global:可視左パネル.Location.X + $Global:可視左パネル.Width - 5
-        $startPoint1 = [System.Drawing.Point]::new($leftButtonRightX, $leftButtonCenterY)
-        $endPoint1 = [System.Drawing.Point]::new($horizontalEndX, $leftButtonCenterY)
+        # 1. 横ライン（左パネル右端から右に少し延長）
+        $gapStartX = $leftPanelRightX
+        $gapExtendX = $leftPanelRightX + 10
+        $startPoint1 = [System.Drawing.Point]::new($gapStartX, $leftButtonCenterY)
+        $endPoint1 = [System.Drawing.Point]::new($gapExtendX, $leftButtonCenterY)
         $e.Graphics.DrawLine($pen, $startPoint1, $endPoint1)
 
-        # 2. 縦ライン（左パネル右端 → 右ボタンの高さ）
+        # 2. 縦ライン（左パネル右端付近 → 右ボタンの高さ）
         $startPoint2 = $endPoint1
-        $endPoint2 = [System.Drawing.Point]::new($horizontalEndX, $rightButtonCenterY)
+        $endPoint2 = [System.Drawing.Point]::new($gapExtendX, $rightButtonCenterY)
         $e.Graphics.DrawLine($pen, $startPoint2, $endPoint2)
 
-        # 3. 横ライン（左パネル右端 → 右ボタン左端）
+        # 3. 横ライン（左パネル右端付近 → 右パネル左端）
         $startPoint3 = $endPoint2
-        $endPoint3 = [System.Drawing.Point]::new($rightButtonLeftX, $rightButtonCenterY)
+        $endPoint3 = [System.Drawing.Point]::new($rightPanelLeftX, $rightButtonCenterY)
         $e.Graphics.DrawLine($pen, $startPoint3, $endPoint3)
-
-        # 4. 矢印ヘッド（右向き）
-        $arrowSize = 10
-        Draw-CustomArrow -graphics $e.Graphics -pen $pen `
-            -startPoint ([System.Drawing.Point]::new($rightButtonLeftX - 15, $rightButtonCenterY)) `
-            -endPoint $endPoint3 `
-            -arrowSize $arrowSize
 
         $pen.Dispose()
     })
@@ -117,8 +113,94 @@ function 00_矢印追記処理 {
     )
 
     #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^pink矢印真ん中
-    # ピンクノード展開時の矢印表示は、メインフォームのPaintイベントで描画されるため、ここでは何もしない
-    # （パネル間をまたぐ矢印はパネル内では描画できないため）
+    # ピンクノード展開時の矢印表示（パネル内部分）
+    if ($Global:Pink選択中 -eq "true") {
+        $result = Check-Pink選択配列Objects
+
+        if ($result -eq $true) {
+            # 左パネル内：ピンクボタンから右端までの横線
+            if ($フレームパネル -eq $Global:可視左パネル) {
+                # 選択中のピンクボタンを取得
+                $selectedPinkButton = $buttons | Where-Object {
+                    ($_.BackColor.ToArgb() -eq [System.Drawing.Color]::Pink.ToArgb()) -or
+                    ($_.BackColor.ToArgb() -eq $global:ピンク青色.ToArgb()) -or
+                    ($_.BackColor.ToArgb() -eq $global:ピンク赤色.ToArgb())
+                } | Select-Object -First 1
+
+                if ($selectedPinkButton) {
+                    # 鮮やかなピンク色
+                    $pinkLineColor = [System.Drawing.Color]::HotPink
+
+                    # ピンクボタンの右端中央から開始
+                    $pinkButtonRight = [System.Drawing.Point]::new(
+                        $selectedPinkButton.Location.X + $selectedPinkButton.Width,
+                        $selectedPinkButton.Location.Y + ($selectedPinkButton.Height / 2)
+                    )
+
+                    # 横ライン終点（パネル右端）
+                    $horizontalEndPoint = [System.Drawing.Point]::new(
+                        $フレームパネル.Width,
+                        $pinkButtonRight.Y
+                    )
+
+                    # 横ライン描画（ピンクボタン → パネル右端）
+                    $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                        Type = "Line"
+                        StartPoint = $pinkButtonRight
+                        EndPoint = $horizontalEndPoint
+                        Color = $pinkLineColor
+                        Width = 3
+                    }
+                }
+            }
+            # 右パネル内：左端から最初のボタンまでの横線 + 矢印ヘッド
+            elseif ($フレームパネル -eq $Global:可視右パネル) {
+                # 右パネルの最初のボタンを取得
+                $firstButton = $buttons | Select-Object -First 1
+
+                if ($firstButton) {
+                    # 鮮やかなピンク色
+                    $pinkLineColor = [System.Drawing.Color]::HotPink
+
+                    # 横ライン開始点（パネル左端）
+                    $horizontalStartPoint = [System.Drawing.Point]::new(
+                        0,
+                        $firstButton.Location.Y + ($firstButton.Height / 2)
+                    )
+
+                    # 横ライン終点（最初のボタンの左端）
+                    $horizontalEndPoint = [System.Drawing.Point]::new(
+                        $firstButton.Location.X,
+                        $firstButton.Location.Y + ($firstButton.Height / 2)
+                    )
+
+                    # 横ライン描画（パネル左端 → ボタン左端）
+                    $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                        Type = "Line"
+                        StartPoint = $horizontalStartPoint
+                        EndPoint = $horizontalEndPoint
+                        Color = $pinkLineColor
+                        Width = 3
+                    }
+
+                    # 矢印ヘッド（右向き）
+                    $arrowStartPoint = [System.Drawing.Point]::new(
+                        $horizontalEndPoint.X - 15,
+                        $horizontalEndPoint.Y
+                    )
+                    $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                        Type = "Arrow"
+                        StartPoint = $arrowStartPoint
+                        EndPoint = $horizontalEndPoint
+                        Direction = "Right"
+                        Color = $pinkLineColor
+                        Width = 3
+                        ArrowSize = 10
+                    }
+                }
+            }
+        }
+    }
 
 
 
