@@ -116,9 +116,50 @@ try {
 
 # 静的ファイル配信（HTML/CSS/JS）
 $uiPath = Join-Path $script:RootDir "ui"
-New-PolarisStaticRoute -RoutePath "/" -FolderPath $uiPath
 
-Write-Host "[OK] 静的ファイル配信: $uiPath" -ForegroundColor Green
+# Polarisの静的ファイル配信を設定
+try {
+    # ルートパスへのアクセス - index.htmlを返す
+    New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
+        $indexPath = Join-Path $using:uiPath "index.html"
+        if (Test-Path $indexPath) {
+            $content = Get-Content $indexPath -Raw -Encoding UTF8
+            $Response.SetContentType("text/html; charset=utf-8")
+            $Response.Send($content)
+        } else {
+            $Response.SetStatusCode(404)
+            $Response.Send("index.html not found at: $indexPath")
+        }
+    }
+
+    # libs/配下の静的ファイルを配信
+    New-PolarisRoute -Path "/libs/*" -Method GET -ScriptBlock {
+        $requestPath = $Request.Parameters["*"]
+        $filePath = Join-Path $using:uiPath "libs\$requestPath"
+
+        if (Test-Path $filePath) {
+            $content = Get-Content $filePath -Raw -Encoding UTF8
+
+            # Content-Typeを設定
+            $extension = [System.IO.Path]::GetExtension($filePath)
+            switch ($extension) {
+                ".js"  { $Response.SetContentType("application/javascript; charset=utf-8") }
+                ".css" { $Response.SetContentType("text/css; charset=utf-8") }
+                default { $Response.SetContentType("text/plain; charset=utf-8") }
+            }
+
+            $Response.Send($content)
+        } else {
+            $Response.SetStatusCode(404)
+            $Response.Send("File not found: $requestPath")
+        }
+    }
+
+    Write-Host "[OK] 静的ファイル配信: $uiPath" -ForegroundColor Green
+} catch {
+    Write-Host "[エラー] 静的ファイル配信の設定に失敗しました: $($_.Exception.Message)" -ForegroundColor Red
+    throw
+}
 
 # ============================================
 # 3. REST APIエンドポイント定義
