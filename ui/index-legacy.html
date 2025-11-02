@@ -167,6 +167,21 @@
         </div>
     </div>
 
+    <!-- スクリプト編集モーダル -->
+    <div id="script-modal" class="modal">
+        <div class="modal-content" style="width: 80%; max-width: 800px;">
+            <h2>スクリプト編集: <span id="script-node-name"></span></h2>
+            <button class="modal-close" onclick="closeScriptModal()">×</button>
+            <div class="modal-body">
+                <textarea id="script-editor" rows="20" style="width: 100%; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px;"></textarea>
+                <div style="margin-top: 10px;">
+                    <button onclick="saveScript()">💾 保存</button>
+                    <button onclick="closeScriptModal()">キャンセル</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app-legacy.js"></script>
 </body>
 </html>

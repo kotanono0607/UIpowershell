@@ -394,23 +394,130 @@ function renameNode() {
 function editScript() {
     if (!contextMenuTarget) return;
 
-    alert(`スクリプト編集機能（ノード: ${contextMenuTarget.text}）\n\n※この機能は実装予定です。`);
+    // モーダルを表示
+    document.getElementById('script-modal').classList.add('show');
+    document.getElementById('script-node-name').textContent = contextMenuTarget.text;
+    document.getElementById('script-editor').value = contextMenuTarget.script || '';
+
     hideContextMenu();
 }
 
-// スクリプト実行
-function executeScript() {
+// スクリプトモーダルを閉じる
+function closeScriptModal() {
+    document.getElementById('script-modal').classList.remove('show');
+}
+
+// スクリプトを保存
+function saveScript() {
     if (!contextMenuTarget) return;
 
-    alert(`スクリプト実行機能（ノード: ${contextMenuTarget.text}）\n\n※この機能は実装予定です。`);
+    const newScript = document.getElementById('script-editor').value;
+    contextMenuTarget.script = newScript;
+
+    // グローバルノード配列も更新
+    const globalNodeIndex = nodes.findIndex(n => n.id === contextMenuTarget.id);
+    if (globalNodeIndex !== -1) {
+        nodes[globalNodeIndex].script = newScript;
+    }
+
+    console.log(`ノード「${contextMenuTarget.text}」のスクリプトを更新しました`);
+    alert(`スクリプトを保存しました。`);
+
+    closeScriptModal();
+}
+
+// スクリプト実行（選択したノード単体を実行）
+async function executeScript() {
+    if (!contextMenuTarget) return;
+
+    const script = contextMenuTarget.script || '';
+
+    if (!script || script.trim() === '') {
+        alert('実行するスクリプトが設定されていません。\n「スクリプト編集」でスクリプトを設定してください。');
+        hideContextMenu();
+        return;
+    }
+
+    const confirmed = confirm(`ノード「${contextMenuTarget.text}」のスクリプトを実行しますか？\n\nスクリプト内容:\n${script.substring(0, 200)}${script.length > 200 ? '...' : ''}`);
+    if (!confirmed) {
+        hideContextMenu();
+        return;
+    }
+
+    try {
+        // スクリプト実行APIエンドポイントを呼び出し
+        const result = await callApi('/execute/script', 'POST', {
+            script: script,
+            nodeName: contextMenuTarget.text
+        });
+
+        if (result.success) {
+            alert(`スクリプト実行完了！\n\n出力:\n${result.output || '(出力なし)'}`);
+        } else {
+            alert(`スクリプト実行失敗:\n${result.error}`);
+        }
+    } catch (error) {
+        console.error('スクリプト実行エラー:', error);
+        alert(`スクリプト実行中にエラーが発生しました:\n${error.message}`);
+    }
+
     hideContextMenu();
 }
 
-// レイヤー化
+// レイヤー化（ノードを別のレイヤーに移動）
 function layerizeNode() {
-    if (!contextMenuTarget) return;
+    if (!contextMenuTarget) {
+        alert('ノードが選択されていません。');
+        return;
+    }
 
-    alert(`レイヤー化機能（ノード: ${contextMenuTarget.text}）\n\n※この機能は実装予定です。`);
+    // 移動先レイヤーを入力
+    const targetLayerStr = prompt(`「${contextMenuTarget.text}」を移動するレイヤーを選択してください:\n\n0 - レイヤー0（非表示左）\n1 - レイヤー1\n2 - レイヤー2\n3 - レイヤー3（非表示右）\n4 - レイヤー4（非表示右）\n5 - レイヤー5（非表示右）\n6 - レイヤー6（非表示右）\n\n移動先レイヤー番号を入力:`);
+
+    if (targetLayerStr === null) {
+        hideContextMenu();
+        return; // キャンセル
+    }
+
+    const targetLayer = parseInt(targetLayerStr);
+
+    // バリデーション
+    if (isNaN(targetLayer) || targetLayer < 0 || targetLayer > 6) {
+        alert('無効なレイヤー番号です。0-6の範囲で入力してください。');
+        hideContextMenu();
+        return;
+    }
+
+    const currentLayerNum = contextMenuTarget.layer;
+
+    if (targetLayer === currentLayerNum) {
+        alert('同じレイヤーには移動できません。');
+        hideContextMenu();
+        return;
+    }
+
+    // 現在のレイヤーから削除
+    const nodeIndex = layerStructure[currentLayerNum].nodes.findIndex(n => n.id === contextMenuTarget.id);
+    if (nodeIndex !== -1) {
+        layerStructure[currentLayerNum].nodes.splice(nodeIndex, 1);
+    }
+
+    // グローバルノード配列からも更新
+    const globalNodeIndex = nodes.findIndex(n => n.id === contextMenuTarget.id);
+    if (globalNodeIndex !== -1) {
+        nodes[globalNodeIndex].layer = targetLayer;
+        contextMenuTarget.layer = targetLayer;
+
+        // 移動先レイヤーに追加
+        layerStructure[targetLayer].nodes.push(nodes[globalNodeIndex]);
+    }
+
+    // 現在のレイヤーを再描画
+    renderNodesInLayer(currentLayerNum);
+
+    console.log(`ノード「${contextMenuTarget.text}」をレイヤー${currentLayerNum} → レイヤー${targetLayer}に移動しました`);
+    alert(`ノード「${contextMenuTarget.text}」をレイヤー${targetLayer}に移動しました。`);
+
     hideContextMenu();
 }
 

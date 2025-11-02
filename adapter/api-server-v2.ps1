@@ -436,6 +436,48 @@ New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
     }
 }
 
+# PowerShellスクリプト実行（単一ノード）
+New-PolarisRoute -Path "/api/execute/script" -Method POST -ScriptBlock {
+    try {
+        $body = $Request.Body | ConvertFrom-Json
+        $scriptContent = $body.script
+        $nodeName = $body.nodeName
+
+        if ([string]::IsNullOrWhiteSpace($scriptContent)) {
+            $Response.SetStatusCode(400)
+            $errorResult = @{
+                success = $false
+                error = "スクリプトが空です"
+            }
+            $json = $errorResult | ConvertTo-Json -Compress
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+            return
+        }
+
+        # スクリプトを実行して出力を取得
+        $output = Invoke-Expression $scriptContent 2>&1 | Out-String
+
+        $result = @{
+            success = $true
+            output = $output
+            nodeName = $nodeName
+        }
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # --------------------------------------------
 # フォルダ管理API（08_メインF機能_メインボタン処理_v2.ps1）
 # --------------------------------------------
