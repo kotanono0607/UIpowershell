@@ -289,8 +289,17 @@ $global:説明ラベル.BorderStyle = [System.Windows.Forms.BorderStyle]::None
 $global:説明フレーム.Controls.Add($global:説明ラベル)
 
 # メインフレームのPaintイベントを設定
+# 左パネル: パネル内のピンクライン描画
 00_メインフレームパネルのPaintイベントを設定する -フレームパネル $Global:可視左パネル
-00_メインフレームパネルのPaintイベントを設定する -フレームパネル $Global:可視右パネル
+
+# レイヤー3以降（スクリプト展開先）にもPaintイベントを設定
+for ($i = 3; $i -le 6; $i++) {
+    $レイヤー名 = "レイヤー$i"
+    if (Get-Variable -Name $レイヤー名 -Scope Global -ErrorAction SilentlyContinue) {
+        $パネル = (Get-Variable -Name $レイヤー名 -Scope Global).Value
+        00_メインフレームパネルのPaintイベントを設定する -フレームパネル $パネル
+    }
+}
 
 # メインフォームのPaintイベントを設定（パネル間矢印描画用）
 00_メインフォームのPaintイベントを設定する -フォーム $メインフォーム
@@ -516,7 +525,15 @@ function 出力-ボタン情報 {
 00_ボタンの上詰め再配置関数 -フレーム $Global:可視左パネル
 
 00_矢印追記処理 -フレームパネル $Global:可視左パネル
-00_矢印追記処理 -フレームパネル $Global:可視右パネル
+
+# レイヤー3以降にも矢印処理を適用
+for ($i = 3; $i -le 6; $i++) {
+    $レイヤー名 = "レイヤー$i"
+    if (Get-Variable -Name $レイヤー名 -Scope Global -ErrorAction SilentlyContinue) {
+        $パネル = (Get-Variable -Name $レイヤー名 -Scope Global).Value
+        00_矢印追記処理 -フレームパネル $パネル
+    }
+}
 
 
 # フォームを表示

@@ -223,7 +223,14 @@ function 00_フレームのDragDropイベントを設定する {
                 # 全体の整列とライン再描画
                 00_ボタンの上詰め再配置関数 -フレーム $sender
                 00_矢印追記処理 -フレームパネル $Global:可視左パネル
-                00_矢印追記処理 -フレームパネル $Global:可視右パネル
+                # レイヤー3以降にも矢印処理を適用
+                for ($i = 3; $i -le 6; $i++) {
+                    $レイヤー名 = "レイヤー$i"
+                    if (Get-Variable -Name $レイヤー名 -Scope Global -ErrorAction SilentlyContinue) {
+                        $パネル = (Get-Variable -Name $レイヤー名 -Scope Global).Value
+                        00_矢印追記処理 -フレームパネル $パネル
+                    }
+                }
 
                 # ============================
                 # レイヤー2以降: 親ノードのエントリを更新

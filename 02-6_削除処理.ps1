@@ -118,7 +118,14 @@ function 条件分岐ボタン削除処理 {
     }
     if (Get-Command 00_矢印追記処理 -ErrorAction SilentlyContinue) {
         00_矢印追記処理 -フレームパネル $Global:可視左パネル
-        00_矢印追記処理 -フレームパネル $Global:可視右パネル
+        # レイヤー3以降にも矢印処理を適用
+        for ($i = 3; $i -le 6; $i++) {
+            $レイヤー名 = "レイヤー$i"
+            if (Get-Variable -Name $レイヤー名 -Scope Global -ErrorAction SilentlyContinue) {
+                $パネル = (Get-Variable -Name $レイヤー名 -Scope Global).Value
+                00_矢印追記処理 -フレームパネル $パネル
+            }
+        }
     }
 }
 
@@ -199,7 +206,14 @@ function ループボタン削除処理 {
     }
     if (Get-Command 00_矢印追記処理 -ErrorAction SilentlyContinue) {
         00_矢印追記処理 -フレームパネル $Global:可視左パネル
-        00_矢印追記処理 -フレームパネル $Global:可視右パネル
+        # レイヤー3以降にも矢印処理を適用
+        for ($i = 3; $i -le 6; $i++) {
+            $レイヤー名 = "レイヤー$i"
+            if (Get-Variable -Name $レイヤー名 -Scope Global -ErrorAction SilentlyContinue) {
+                $パネル = (Get-Variable -Name $レイヤー名 -Scope Global).Value
+                00_矢印追記処理 -フレームパネル $パネル
+            }
+        }
     }
 }
 
@@ -243,7 +257,14 @@ function script:削除処理 {
 
                 if (Get-Command 00_矢印追記処理 -ErrorAction SilentlyContinue) {
                     00_矢印追記処理 -フレームパネル $Global:可視左パネル
-                    00_矢印追記処理 -フレームパネル $Global:可視右パネル
+                    # レイヤー3以降にも矢印処理を適用
+                    for ($i = 3; $i -le 6; $i++) {
+                        $レイヤー名 = "レイヤー$i"
+                        if (Get-Variable -Name $レイヤー名 -Scope Global -ErrorAction SilentlyContinue) {
+                            $パネル = (Get-Variable -Name $レイヤー名 -Scope Global).Value
+                            00_矢印追記処理 -フレームパネル $パネル
+                        }
+                    }
                 }
             }
             catch {

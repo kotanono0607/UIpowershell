@@ -193,7 +193,14 @@ function UIをリロード {
             Write-Host "レイヤー $現在のレイヤー番号 のデータが存在しません" -ForegroundColor Yellow
             # 矢印を再描画
             00_矢印追記処理 -フレームパネル $Global:可視左パネル
-            00_矢印追記処理 -フレームパネル $Global:可視右パネル
+            # レイヤー3以降にも矢印処理を適用
+            for ($i = 3; $i -le 6; $i++) {
+                $レイヤー名 = "レイヤー$i"
+                if (Get-Variable -Name $レイヤー名 -Scope Global -ErrorAction SilentlyContinue) {
+                    $パネル = (Get-Variable -Name $レイヤー名 -Scope Global).Value
+                    00_矢印追記処理 -フレームパネル $パネル
+                }
+            }
             return
         }
 
@@ -259,7 +266,14 @@ function UIをリロード {
 
         # 矢印を再描画
         00_矢印追記処理 -フレームパネル $Global:可視左パネル
-        00_矢印追記処理 -フレームパネル $Global:可視右パネル
+        # レイヤー3以降にも矢印処理を適用
+        for ($i = 3; $i -le 6; $i++) {
+            $レイヤー名 = "レイヤー$i"
+            if (Get-Variable -Name $レイヤー名 -Scope Global -ErrorAction SilentlyContinue) {
+                $パネル = (Get-Variable -Name $レイヤー名 -Scope Global).Value
+                00_矢印追記処理 -フレームパネル $パネル
+            }
+        }
 
         Write-Host "UIリロード完了" -ForegroundColor Green
 
