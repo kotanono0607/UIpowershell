@@ -115,7 +115,7 @@ function 00_メインフォームのPaintイベントを設定する {
 
             if ($leftPanelPinkButton) {
                 # ピンクノードの次のボタンを取得
-                $pinkIndex = $leftPanelButtons.IndexOf($leftPanelPinkButton)
+                $pinkIndex = [array]::IndexOf($leftPanelButtons, $leftPanelPinkButton)
                 $leftPanelNextButton = $null
                 if ($pinkIndex -ge 0 -and $pinkIndex -lt ($leftPanelButtons.Count - 1)) {
                     $leftPanelNextButton = $leftPanelButtons[$pinkIndex + 1]
@@ -429,8 +429,8 @@ function 00_矢印追記処理 {
             $greenButtonBottom = $conditionalButtons[-1]
 
             # 緑色ボタンの位置を基にボタンのインデックスを取得
-            $topIndex = $buttons.IndexOf($greenButtonTop)
-            $bottomIndex = $buttons.IndexOf($greenButtonBottom)
+            $topIndex = [array]::IndexOf($buttons, $greenButtonTop)
+            $bottomIndex = [array]::IndexOf($buttons, $greenButtonBottom)
 
             # 上側の緑色ボタンの下にあるボタンが赤色の場合、赤の↓矢印を追加
             if ($topIndex -lt ($buttons.Count - 1)) {
