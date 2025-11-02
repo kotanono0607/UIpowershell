@@ -606,13 +606,14 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
             foreach ($node in $layerNodes) {
                 $構成 += @{
                     ボタン名 = $node.name
-                    テキスト = $node.text
-                    ボタン色 = $node.color
                     X座標 = if ($node.x) { $node.x } else { 10 }
                     Y座標 = $node.y
-                    幅 = if ($node.width) { $node.width } else { 280 }
-                    高さ = if ($node.height) { $node.height } else { 40 }
+                    順番 = if ($node.順番) { $node.順番 } else { 1 }
+                    ボタン色 = $node.color
+                    テキスト = $node.text
                     処理番号 = $node.処理番号
+                    高さ = if ($node.height) { $node.height } else { 40 }
+                    幅 = if ($node.width) { $node.width } else { 280 }
                     script = if ($node.script) { $node.script } else { "" }
                     GroupID = $node.groupId
                     関数名 = if ($node.関数名) { $node.関数名 } else { "" }

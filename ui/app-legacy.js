@@ -196,10 +196,14 @@ function addNodeToLayer(setting) {
         text: setting.テキスト,
         color: setting.背景色,
         layer: currentLayer,
+        x: 90,                              // X座標（中央寄せ）
         y: getNextAvailableY(currentLayer),
+        width: 280,                         // ボタン幅
+        height: 40,                         // ボタン高さ
         groupId: null,
         処理番号: setting.処理番号,
-        関数名: setting.関数名
+        関数名: setting.関数名,
+        script: ''                          // スクリプト初期値
     };
 
     nodes.push(node);
@@ -1007,10 +1011,31 @@ async function saveMemoryJson() {
     }
 
     try {
+        // オリジナルPowerShell形式に合わせてデータを整形
+        // 各レイヤーのノードに順番を付ける
+        const formattedLayerStructure = {};
+
+        for (let i = 0; i <= 6; i++) {
+            const layerNodes = layerStructure[i].nodes || [];
+            // Y座標でソート
+            const sortedNodes = [...layerNodes].sort((a, b) => a.y - b.y);
+
+            // 順番フィールドを追加
+            const nodesWithIndex = sortedNodes.map((node, index) => ({
+                ...node,
+                順番: index + 1  // 1から始まる順番
+            }));
+
+            formattedLayerStructure[i] = {
+                visible: layerStructure[i].visible,
+                nodes: nodesWithIndex
+            };
+        }
+
         const response = await fetch(`${API_BASE}/folders/${currentFolder}/memory`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ layerStructure: layerStructure })
+            body: JSON.stringify({ layerStructure: formattedLayerStructure })
         });
 
         const result = await response.json();
