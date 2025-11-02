@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UIpowershell - Visual RPA Platform (HTML版プロトタイプ)</title>
+
+    <!-- React Flow CSS (CDN) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow@11.10.1/dist/style.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        #app {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー（ツールバー） */
+        header {
+            background: #2d2d2d;
+            padding: 10px 20px;
+            border-bottom: 2px solid #007acc;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 18px;
+            margin-right: 20px;
+            color: #007acc;
+        }
+
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #005a9e;
+        }
+
+        button:active {
+            background: #004578;
+        }
+
+        button.danger {
+            background: #d32f2f;
+        }
+
+        button.danger:hover {
+            background: #b71c1c;
+        }
+
+        /* メインコンテナ */
+        #main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* サイドパネル（レイヤー選択） */
+        #sidebar {
+            width: 250px;
+            background: #252526;
+            border-right: 1px solid #3e3e42;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        #sidebar h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #007acc;
+        }
+
+        .layer-item {
+            background: #3e3e42;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .layer-item:hover {
+            background: #4e4e52;
+        }
+
+        .layer-item.active {
+            background: #007acc;
+            font-weight: bold;
+        }
+
+        /* React Flowキャンバス */
+        #flow-container {
+            flex: 1;
+            background: #1e1e1e;
+        }
+
+        /* ステータスバー */
+        footer {
+            background: #007acc;
+            color: white;
+            padding: 5px 20px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* ローディング */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #007acc;
+        }
+
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #007acc;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #cccccc;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            background: #3e3e42;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 4px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* カスタムReact Flowノード */
+        .react-flow__node {
+            background: #007acc;
+            color: white;
+            border: 2px solid #005a9e;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 12px;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .react-flow__node:hover {
+            border-color: #ffffff;
+        }
+
+        .react-flow__node.selected {
+            border-color: #ffeb3b;
+            box-shadow: 0 0 10px #ffeb3b;
+        }
+
+        .react-flow__edge-path {
+            stroke: #007acc;
+            stroke-width: 2;
+        }
+
+        .react-flow__edge.selected .react-flow__edge-path {
+            stroke: #ffeb3b;
+            stroke-width: 3;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- ヘッダー（ツールバー） -->
+        <header>
+            <h1>UIpowershell - HTML版</h1>
+            <button id="btn-add-node">ノード追加</button>
+            <button id="btn-delete-node" class="danger">選択削除</button>
+            <button id="btn-save">保存</button>
+            <button id="btn-load">読み込み</button>
+            <button id="btn-test-api">API接続テスト</button>
+        </header>
+
+        <!-- メインコンテナ -->
+        <div id="main-container">
+            <!-- サイドバー（レイヤー選択） -->
+            <aside id="sidebar">
+                <h2>レイヤー選択</h2>
+                <div class="layer-item active" data-layer="1">レイヤー 1</div>
+                <div class="layer-item" data-layer="2">レイヤー 2</div>
+                <div class="layer-item" data-layer="3">レイヤー 3</div>
+                <div class="layer-item" data-layer="4">レイヤー 4</div>
+                <div class="layer-item" data-layer="5">レイヤー 5</div>
+                <div class="layer-item" data-layer="6">レイヤー 6</div>
+                <div class="layer-item" data-layer="7">レイヤー 7</div>
+            </aside>
+
+            <!-- React Flowキャンバス -->
+            <div id="flow-container"></div>
+        </div>
+
+        <!-- ステータスバー -->
+        <footer>
+            <span id="status-layer">現在のレイヤー: 1</span>
+            <span id="status-nodes">ノード数: 0</span>
+            <span id="status-api">API: 未接続</span>
+        </footer>
+    </div>
+
+    <!-- ノード追加モーダル -->
+    <div id="modal-add-node" class="modal">
+        <div class="modal-content">
+            <h2>新しいノードを追加</h2>
+            <form id="form-add-node">
+                <div class="form-group">
+                    <label>ノードタイプ</label>
+                    <select id="input-type" required>
+                        <option value="start">開始</option>
+                        <option value="process">処理</option>
+                        <option value="condition">条件分岐</option>
+                        <option value="loop">ループ</option>
+                        <option value="end">終了</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>表示テキスト</label>
+                    <input type="text" id="input-text" placeholder="例: Excelを開く" required>
+                </div>
+                <div class="form-group">
+                    <label>コード（オプション）</label>
+                    <textarea id="input-code" rows="4" placeholder="PowerShellコードを入力..."></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">追加</button>
+                    <button type="button" id="btn-cancel-add">キャンセル</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- React, ReactDOM, React Flow (CDN) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reactflow@11.10.1/dist/umd/index.min.js"></script>
+
+    <script>
+        // ============================================
+        // グローバル変数
+        // ============================================
+        const API_BASE = 'http://localhost:8080/api';
+        let currentLayer = 1;
+        let reactFlowInstance = null;
+        let nodes = [];
+        let edges = [];
+
+        // ============================================
+        // API通信関数
+        // ============================================
+
+        async function testApiConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    updateStatus('api', 'API: 接続成功 ✓', '#4caf50');
+                    alert('API接続テスト成功！\n' + JSON.stringify(data, null, 2));
+                    return true;
+                } else {
+                    updateStatus('api', 'API: エラー', '#f44336');
+                    return false;
+                }
+            } catch (error) {
+                updateStatus('api', 'API: 未接続', '#f44336');
+                alert('API接続失敗:\n' + error.message + '\n\nadapter/api-server.ps1 を起動してください');
+                return false;
+            }
+        }
+
+        async function generateNewId() {
+            const response = await fetch(`${API_BASE}/id/generate`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            return data.id;
+        }
+
+        async function addEntry(entryData) {
+            const response = await fetch(`${API_BASE}/entry/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(entryData)
+            });
+            return await response.json();
+        }
+
+        async function loadAllEntries() {
+            const response = await fetch(`${API_BASE}/entries/all`);
+            const data = await response.json();
+            return data.data;
+        }
+
+        async function deleteEntry(id) {
+            const response = await fetch(`${API_BASE}/entry/${id}`, {
+                method: 'DELETE'
+            });
+            return await response.json();
+        }
+
+        // ============================================
+        // UI更新関数
+        // ============================================
+
+        function updateStatus(type, text, color = null) {
+            const element = document.getElementById(`status-${type}`);
+            if (element) {
+                element.textContent = text;
+                if (color) element.style.color = color;
+            }
+        }
+
+        function updateNodeCount() {
+            updateStatus('nodes', `ノード数: ${nodes.length}`);
+        }
+
+        // ============================================
+        // React Flow初期化
+        // ============================================
+
+        function initReactFlow() {
+            const { ReactFlow, Background, Controls, MiniMap } = ReactFlowRenderer;
+
+            const flowContainer = document.getElementById('flow-container');
+
+            // 初期ノード（デモ用）
+            nodes = [
+                {
+                    id: '1',
+                    type: 'default',
+                    data: { label: '開始' },
+                    position: { x: 250, y: 50 }
+                },
+                {
+                    id: '2',
+                    type: 'default',
+                    data: { label: 'Excelを開く' },
+                    position: { x: 250, y: 150 }
+                }
+            ];
+
+            edges = [
+                { id: 'e1-2', source: '1', target: '2', animated: true }
+            ];
+
+            const App = () => {
+                const [nodesState, setNodes] = React.useState(nodes);
+                const [edgesState, setEdges] = React.useState(edges);
+
+                return React.createElement(
+                    'div',
+                    { style: { width: '100%', height: '100%' } },
+                    React.createElement(ReactFlow, {
+                        nodes: nodesState,
+                        edges: edgesState,
+                        onNodesChange: (changes) => {
+                            // ノード変更時の処理
+                        },
+                        onEdgesChange: (changes) => {
+                            // エッジ変更時の処理
+                        },
+                        onConnect: (connection) => {
+                            // 接続時の処理
+                            const newEdge = {
+                                ...connection,
+                                id: `e${connection.source}-${connection.target}`,
+                                animated: true
+                            };
+                            setEdges([...edgesState, newEdge]);
+                            edges = [...edgesState, newEdge];
+                        },
+                        fitView: true
+                    }, [
+                        React.createElement(Background),
+                        React.createElement(Controls),
+                        React.createElement(MiniMap)
+                    ])
+                );
+            };
+
+            ReactDOM.render(React.createElement(App), flowContainer);
+            updateNodeCount();
+        }
+
+        // ============================================
+        // イベントハンドラー
+        // ============================================
+
+        document.getElementById('btn-test-api').addEventListener('click', testApiConnection);
+
+        document.getElementById('btn-add-node').addEventListener('click', () => {
+            document.getElementById('modal-add-node').classList.add('active');
+        });
+
+        document.getElementById('btn-cancel-add').addEventListener('click', () => {
+            document.getElementById('modal-add-node').classList.remove('active');
+        });
+
+        document.getElementById('form-add-node').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const type = document.getElementById('input-type').value;
+            const text = document.getElementById('input-text').value;
+            const code = document.getElementById('input-code').value;
+
+            try {
+                // 新しいIDを生成
+                const newId = await generateNewId();
+
+                // ノードを追加
+                const newNode = {
+                    id: newId.toString(),
+                    type: 'default',
+                    data: { label: text },
+                    position: { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 }
+                };
+
+                nodes.push(newNode);
+
+                // APIにエントリを追加
+                await addEntry({
+                    targetID: newId,
+                    TypeName: type,
+                    displayText: text,
+                    code: code,
+                    toID: null,
+                    order: nodes.length
+                });
+
+                // モーダルを閉じる
+                document.getElementById('modal-add-node').classList.remove('active');
+                document.getElementById('form-add-node').reset();
+
+                // 再描画
+                initReactFlow();
+
+                alert(`ノードを追加しました！\nID: ${newId}`);
+            } catch (error) {
+                alert('ノード追加エラー:\n' + error.message);
+            }
+        });
+
+        document.getElementById('btn-load').addEventListener('click', async () => {
+            try {
+                const entries = await loadAllEntries();
+
+                if (entries && entries.length > 0) {
+                    // エントリをReact Flowノードに変換
+                    nodes = entries.map((entry, index) => ({
+                        id: entry.ID.toString(),
+                        type: 'default',
+                        data: { label: entry.displayText || `ノード ${entry.ID}` },
+                        position: { x: (index % 5) * 200 + 50, y: Math.floor(index / 5) * 150 + 50 }
+                    }));
+
+                    initReactFlow();
+                    alert(`${entries.length}個のノードを読み込みました`);
+                } else {
+                    alert('エントリが見つかりませんでした');
+                }
+            } catch (error) {
+                alert('読み込みエラー:\n' + error.message);
+            }
+        });
+
+        document.getElementById('btn-save').addEventListener('click', () => {
+            alert('保存機能は実装予定です');
+        });
+
+        document.getElementById('btn-delete-node').addEventListener('click', () => {
+            alert('削除機能は実装予定です');
+        });
+
+        // レイヤー選択
+        document.querySelectorAll('.layer-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                currentLayer = parseInt(item.dataset.layer);
+                updateStatus('layer', `現在のレイヤー: ${currentLayer}`);
+            });
+        });
+
+        // ============================================
+        // 初期化
+        // ============================================
+
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('UIpowershell HTML版プロトタイプ - 初期化開始');
+            initReactFlow();
+            testApiConnection();
+        });
+    </script>
+</body>
+</html>
