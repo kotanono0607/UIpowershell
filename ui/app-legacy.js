@@ -558,33 +558,80 @@ function renderVariableTable() {
     });
 }
 
-function addVariablePrompt() {
+async function addVariablePrompt() {
     const name = prompt('変数名を入力してください:');
     if (!name || name.trim() === '') return;
 
     const value = prompt('値を入力してください:');
 
-    variables[name] = {
-        value: value || '',
-        type: '単一値'
-    };
+    try {
+        // API経由で変数を追加
+        const result = await callApi('/variables', 'POST', {
+            name: name.trim(),
+            value: value || '',
+            type: '単一値'
+        });
 
-    renderVariableTable();
-}
-
-function editVariable(name) {
-    const value = prompt(`「${name}」の新しい値を入力してください:`, variables[name].value);
-    if (value !== null) {
-        variables[name].value = value;
-        renderVariableTable();
+        if (result.success) {
+            // ローカル変数にも追加
+            variables[name.trim()] = {
+                value: value || '',
+                type: '単一値'
+            };
+            renderVariableTable();
+            console.log(`変数「${name}」を追加しました（API永続化済み）`);
+        } else {
+            alert(`変数追加に失敗しました: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('変数追加エラー:', error);
+        alert(`変数追加中にエラーが発生しました: ${error.message}`);
     }
 }
 
-function deleteVariable(name) {
+async function editVariable(name) {
+    const value = prompt(`「${name}」の新しい値を入力してください:`, variables[name].value);
+    if (value === null) return; // キャンセル時
+
+    try {
+        // API経由で変数を更新
+        const result = await callApi(`/variables/${name}`, 'PUT', {
+            value: value
+        });
+
+        if (result.success) {
+            // ローカル変数も更新
+            variables[name].value = value;
+            renderVariableTable();
+            console.log(`変数「${name}」を更新しました（API永続化済み）`);
+        } else {
+            alert(`変数更新に失敗しました: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('変数更新エラー:', error);
+        alert(`変数更新中にエラーが発生しました: ${error.message}`);
+    }
+}
+
+async function deleteVariable(name) {
     const confirmed = confirm(`変数「${name}」を削除しますか？`);
-    if (confirmed) {
-        delete variables[name];
-        renderVariableTable();
+    if (!confirmed) return;
+
+    try {
+        // API経由で変数を削除
+        const result = await callApi(`/variables/${name}`, 'DELETE');
+
+        if (result.success) {
+            // ローカル変数からも削除
+            delete variables[name];
+            renderVariableTable();
+            console.log(`変数「${name}」を削除しました（API永続化済み）`);
+        } else {
+            alert(`変数削除に失敗しました: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('変数削除エラー:', error);
+        alert(`変数削除中にエラーが発生しました: ${error.message}`);
     }
 }
 
@@ -598,6 +645,14 @@ async function loadFolders() {
         if (result.success) {
             folders = result.folders || [];
             console.log('フォルダ一覧読み込み完了:', folders.length, '個');
+
+            // 初回起動時、フォルダがある場合は最初のフォルダを選択
+            if (folders.length > 0 && !currentFolder) {
+                currentFolder = folders[0];
+                console.log(`デフォルトフォルダ「${currentFolder}」を選択しました`);
+                // memory.jsonから既存ノードを読み込み
+                await loadExistingNodes();
+            }
         }
     } catch (error) {
         console.error('フォルダ一覧読み込み失敗:', error);
@@ -749,9 +804,60 @@ function restoreSnapshot() {
 
 async function loadExistingNodes() {
     try {
+        // 現在のフォルダが設定されていない場合は何もしない
+        if (!currentFolder) {
+            console.log('フォルダが選択されていないため、ノード読み込みをスキップします');
+            return;
+        }
+
         // memory.jsonからノード配置を読み込み
-        // ※この機能は将来実装
-        console.log('既存ノード読み込み（memory.json）- 実装予定');
+        const response = await fetch(`${API_BASE}/folders/${currentFolder}/memory`);
+        const result = await response.json();
+
+        if (!result.success) {
+            console.error('memory.json読み込み失敗:', result.error);
+            return;
+        }
+
+        const memoryData = result.data;
+        console.log('memory.json読み込み成功:', memoryData);
+
+        // 全レイヤーをクリア
+        nodes = [];
+        for (let i = 0; i <= 6; i++) {
+            layerStructure[i].nodes = [];
+        }
+
+        // memory.jsonからノードを復元
+        for (let layerNum = 1; layerNum <= 6; layerNum++) {
+            const layerData = memoryData[layerNum.toString()];
+            if (!layerData || !layerData.構成) continue;
+
+            layerData.構成.forEach(nodeData => {
+                const node = {
+                    id: `node-${nodeCounter++}`,
+                    name: nodeData.ボタン名 || '',
+                    text: nodeData.テキスト || '',
+                    color: nodeData.ボタン色 || 'White',
+                    layer: layerNum,
+                    y: nodeData.Y座標 || 10,
+                    x: nodeData.X座標 || 10,
+                    width: nodeData.幅 || 280,
+                    height: nodeData.高さ || 40,
+                    groupId: nodeData.GroupID || null,
+                    処理番号: nodeData.処理番号 || '',
+                    script: nodeData.script || '',
+                    関数名: nodeData.関数名 || ''
+                };
+
+                nodes.push(node);
+                layerStructure[layerNum].nodes.push(node);
+            });
+        }
+
+        // 現在のレイヤーを再描画
+        renderNodesInLayer(currentLayer);
+        console.log(`memory.jsonから${nodes.length}個のノードを復元しました`);
     } catch (error) {
         console.error('既存ノード読み込み失敗:', error);
     }

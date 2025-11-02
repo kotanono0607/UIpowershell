@@ -488,6 +488,57 @@ New-PolarisRoute -Path "/api/folders/:name" -Method PUT -ScriptBlock {
     }
 }
 
+# memory.json読み込み（フォルダごと）
+New-PolarisRoute -Path "/api/folders/:name/memory" -Method GET -ScriptBlock {
+    try {
+        $folderName = $Request.Parameters.name
+        $rootDir = $global:RootDirForPolaris
+        $memoryPath = Join-Path $rootDir "03_history\$folderName\memory.json"
+
+        if (Test-Path $memoryPath) {
+            $content = Get-Content $memoryPath -Raw -Encoding UTF8
+            $memoryData = $content | ConvertFrom-Json
+
+            $result = @{
+                success = $true
+                data = $memoryData
+                folderName = $folderName
+            }
+            $json = $result | ConvertTo-Json -Depth 10
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+        } else {
+            # memory.jsonが存在しない場合は空のレイヤー構造を返す
+            $emptyMemory = @{
+                "1" = @{ "構成" = @() }
+                "2" = @{ "構成" = @() }
+                "3" = @{ "構成" = @() }
+                "4" = @{ "構成" = @() }
+                "5" = @{ "構成" = @() }
+                "6" = @{ "構成" = @() }
+            }
+            $result = @{
+                success = $true
+                data = $emptyMemory
+                folderName = $folderName
+                message = "memory.jsonが存在しないため、空のデータを返しました"
+            }
+            $json = $result | ConvertTo-Json -Depth 10
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+        }
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # --------------------------------------------
 # バリデーションAPI（02-2_ネスト規制バリデーション_v2.ps1）
 # --------------------------------------------
