@@ -39,10 +39,48 @@ try {
     Write-Host "[エラー] Polarisモジュールの読み込みに失敗しました" -ForegroundColor Red
     Write-Host "       詳細: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host ""
-    Write-Host "解決方法:" -ForegroundColor Yellow
-    Write-Host "  1. Install-Module -Name Polaris -Scope CurrentUser" -ForegroundColor Yellow
-    Write-Host "  2. Modules/Polaris/README_INSTALL.md を参照" -ForegroundColor Yellow
-    exit 1
+    Write-Host "自動インストールを開始します..." -ForegroundColor Yellow
+    Write-Host ""
+
+    try {
+        # PowerShell Galleryからインストール
+        Write-Host "Install-Module -Name Polaris -Scope CurrentUser -Force を実行中..." -ForegroundColor Cyan
+        Install-Module -Name Polaris -Scope CurrentUser -Force -AllowClobber
+
+        # インストール確認
+        Import-Module Polaris -ErrorAction Stop
+        Write-Host "[OK] Polarisのインストールと読み込みに成功しました！" -ForegroundColor Green
+
+        # プロジェクトにコピー（次回起動時用）
+        Write-Host ""
+        Write-Host "次回起動を高速化するため、プロジェクトにコピーします..." -ForegroundColor Cyan
+        $installedPolarisPath = (Get-Module Polaris -ListAvailable | Select-Object -First 1).ModuleBase
+
+        if (Test-Path $installedPolarisPath) {
+            $targetPath = Join-Path $script:RootDir "Modules"
+            if (-not (Test-Path $targetPath)) {
+                New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
+            }
+
+            Copy-Item -Path $installedPolarisPath -Destination (Join-Path $targetPath "Polaris") -Recurse -Force
+            Write-Host "[OK] Polarisをプロジェクトにコピーしました: $targetPath\Polaris" -ForegroundColor Green
+            Write-Host "     次回起動時は自動的にこのコピーが使用されます" -ForegroundColor Gray
+        }
+
+    } catch {
+        Write-Host ""
+        Write-Host "[致命的エラー] Polarisの自動インストールに失敗しました" -ForegroundColor Red
+        Write-Host "詳細: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "手動でインストールしてください:" -ForegroundColor Yellow
+        Write-Host "  1. PowerShellを管理者権限で開く" -ForegroundColor Yellow
+        Write-Host "  2. Install-Module -Name Polaris -Scope CurrentUser -Force" -ForegroundColor Yellow
+        Write-Host "  3. このスクリプトを再実行" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "詳細は Modules/Polaris/README_INSTALL.md を参照" -ForegroundColor Yellow
+        pause
+        exit 1
+    }
 }
 
 # 既存のPowerShell関数を読み込み（アダプター層）

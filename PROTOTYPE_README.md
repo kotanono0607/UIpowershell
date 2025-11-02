@@ -16,26 +16,26 @@ Windows Forms → HTML/CSS/JavaScript への移行プロトタイプです。
                      REST API ↔ 既存PowerShell関数 (70%再利用)
 ```
 
-## 事前準備（初回のみ）
+## 事前準備
 
-### 1. Polarisモジュールのインストール
+### ⚡ クイックスタート（推奨）
+
+**事前準備は不要です！** `実行_prototype.bat` をダブルクリックするだけで、Polarisが自動インストールされます。
+
+初回起動時のみ、以下の処理が自動実行されます：
+1. Polarisモジュールの自動インストール（PowerShell Gallery経由）
+2. プロジェクトへの自動コピー（次回起動高速化）
+
+### 📋 手動インストール（オプション）
+
+自動インストールがうまくいかない場合は、手動でインストールしてください：
 
 ```powershell
-# PowerShellを管理者権限で開く
+# PowerShellを開く（管理者権限不要）
 Install-Module -Name Polaris -Scope CurrentUser -Force
 
 # インストール確認
 Get-Module -ListAvailable -Name Polaris
-```
-
-### 2. Polarisモジュールをプロジェクトにコピー
-
-```powershell
-# UIpowershellディレクトリで実行
-$polarisPath = (Get-Module Polaris -ListAvailable | Select-Object -First 1).ModuleBase
-Copy-Item -Path $polarisPath -Destination ".\Modules\Polaris" -Recurse -Force
-
-Write-Host "Polarisモジュールをコピーしました: .\Modules\Polaris" -ForegroundColor Green
 ```
 
 詳細は `Modules/Polaris/README_INSTALL.md` を参照してください。
@@ -183,14 +183,25 @@ Write-Host "Polarisモジュールをコピーしました: .\Modules\Polaris" -
 
 ### Q1: 「Polarisモジュールの読み込みに失敗しました」
 
-**原因**: Polarisがインストールされていない、または`Modules/Polaris/`にコピーされていない
+**原因**: Polarisがインストールされていない
 
-**解決方法**:
+**解決方法（自動）**:
+プロトタイプは自動インストール機能を搭載しています。通常は以下のメッセージが表示され、自動的にインストールされます：
+
+```
+[エラー] Polarisモジュールの読み込みに失敗しました
+自動インストールを開始します...
+Install-Module -Name Polaris -Scope CurrentUser -Force を実行中...
+[OK] Polarisのインストールと読み込みに成功しました！
+```
+
+**解決方法（手動）**:
+自動インストールが失敗する場合は、手動でインストールしてください：
 ```powershell
 Install-Module -Name Polaris -Scope CurrentUser -Force
-$polarisPath = (Get-Module Polaris -ListAvailable | Select-Object -First 1).ModuleBase
-Copy-Item -Path $polarisPath -Destination ".\Modules\Polaris" -Recurse -Force
 ```
+
+その後、`実行_prototype.bat` を再実行してください。
 
 ### Q2: 「ポート8080が既に使用中」
 
