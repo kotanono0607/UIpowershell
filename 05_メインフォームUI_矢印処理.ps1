@@ -56,10 +56,23 @@ function 00_矢印追記処理 {
                     $pinkButtonRight.Y
                 )
 
-                # 縦ライン終点（右パネルTop接続位置）
+                # 右パネルの最初のボタンを取得
+                $rightPanelFirstButton = $Global:可視右パネル.Controls |
+                    Where-Object { $_ -is [System.Windows.Forms.Button] } |
+                    Sort-Object { $_.Location.Y } |
+                    Select-Object -First 1
+
+                # 縦ライン終点（右パネルの最初のボタンの中心位置）
+                if ($rightPanelFirstButton) {
+                    $targetY = $rightPanelFirstButton.Location.Y + ($rightPanelFirstButton.Height / 2)
+                } else {
+                    # フォールバック: ボタンがない場合は固定値
+                    $targetY = 20
+                }
+
                 $verticalEndPoint = [System.Drawing.Point]::new(
                     $horizontalEndPoint.X,
-                    20
+                    $targetY
                 )
 
                 # 横ライン描画（ピンクボタン → パネル右端）
