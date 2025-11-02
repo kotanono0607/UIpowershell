@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UIpowershell - Visual RPA Platform (Phase 4)</title>
+
+    <!-- React Flow CSS -->
+    <link rel="stylesheet" href="libs/reactflow.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        #app {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* メニューバー */
+        nav {
+            background: #2d2d2d;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            padding: 0;
+        }
+
+        nav .menu-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        nav .menu-item:hover {
+            background: #3e3e42;
+        }
+
+        nav .menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #2d2d2d;
+            border: 1px solid #3e3e42;
+            min-width: 200px;
+            z-index: 1000;
+        }
+
+        nav .menu-item:hover .menu-dropdown {
+            display: block;
+        }
+
+        nav .menu-dropdown-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        nav .menu-dropdown-item:hover {
+            background: #3e3e42;
+        }
+
+        /* ツールバー */
+        header {
+            background: #252526;
+            padding: 10px 20px;
+            border-bottom: 2px solid #007acc;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        header h1 {
+            font-size: 18px;
+            margin-right: 20px;
+            color: #007acc;
+        }
+
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #005a9e;
+        }
+
+        button:active {
+            background: #004578;
+        }
+
+        button.danger {
+            background: #d32f2f;
+        }
+
+        button.danger:hover {
+            background: #b71c1c;
+        }
+
+        button.success {
+            background: #4caf50;
+        }
+
+        button.success:hover {
+            background: #388e3c;
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        /* メインコンテナ */
+        #main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* サイドパネル */
+        #sidebar {
+            width: 250px;
+            background: #252526;
+            border-right: 1px solid #3e3e42;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        #sidebar h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #007acc;
+        }
+
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+
+        .layer-item {
+            background: #3e3e42;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .layer-item:hover {
+            background: #4e4e52;
+        }
+
+        .layer-item.active {
+            background: #007acc;
+            font-weight: bold;
+        }
+
+        /* React Flowキャンバス */
+        #flow-container {
+            flex: 1;
+            background: #1e1e1e;
+        }
+
+        /* ステータスバー */
+        footer {
+            background: #007acc;
+            color: white;
+            padding: 5px 20px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #007acc;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #cccccc;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            background: #3e3e42;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 4px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* 変数一覧テーブル */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th,
+        table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        table th {
+            background: #3e3e42;
+            color: #007acc;
+        }
+
+        table tr:hover {
+            background: #3e3e42;
+        }
+
+        table button {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        /* カスタムReact Flowノード */
+        .react-flow__node-default {
+            background: #007acc;
+            color: white;
+            border: 2px solid #005a9e;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 12px;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .react-flow__node-default:hover {
+            border-color: #ffffff;
+        }
+
+        .react-flow__node-default.selected {
+            border-color: #ffeb3b;
+            box-shadow: 0 0 10px #ffeb3b;
+        }
+
+        /* ノードタイプ別の色 */
+        .node-conditional {
+            background: #4caf50 !important;
+            border-color: #388e3c !important;
+        }
+
+        .node-loop {
+            background: #ffeb3b !important;
+            border-color: #fbc02d !important;
+            color: #000 !important;
+        }
+
+        .node-start,
+        .node-end {
+            background: #9e9e9e !important;
+            border-color: #616161 !important;
+        }
+
+        .react-flow__edge-path {
+            stroke: #007acc;
+            stroke-width: 2;
+        }
+
+        .react-flow__edge.selected .react-flow__edge-path {
+            stroke: #ffeb3b;
+            stroke-width: 3;
+        }
+
+        /* プログレス表示 */
+        .progress-container {
+            background: #3e3e42;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #555;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: #4caf50;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- メニューバー -->
+        <nav>
+            <div class="menu-item">
+                ファイル
+                <div class="menu-dropdown">
+                    <div class="menu-dropdown-item" onclick="menuAction('file_new')">新規</div>
+                    <div class="menu-dropdown-item" onclick="menuAction('file_open')">開く</div>
+                    <div class="menu-dropdown-item" onclick="menuAction('file_save')">保存</div>
+                </div>
+            </div>
+            <div class="menu-item">
+                編集
+                <div class="menu-dropdown">
+                    <div class="menu-dropdown-item" onclick="menuAction('edit_undo')">元に戻す</div>
+                    <div class="menu-dropdown-item" onclick="menuAction('edit_redo')">やり直し</div>
+                </div>
+            </div>
+            <div class="menu-item">
+                表示
+                <div class="menu-dropdown">
+                    <div class="menu-dropdown-item" onclick="menuAction('view_zoom_in')">ズームイン</div>
+                    <div class="menu-dropdown-item" onclick="menuAction('view_zoom_out')">ズームアウト</div>
+                    <div class="menu-dropdown-item" onclick="menuAction('view_fit')">全体表示</div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- ツールバー -->
+        <header>
+            <h1>UIpowershell - Phase 4</h1>
+            <button onclick="showAddNodeModal()">➕ ノード追加</button>
+            <button onclick="deleteSelectedNodes()" class="danger">🗑️ 削除</button>
+            <button onclick="showVariableModal()">📊 変数管理</button>
+            <button onclick="showFolderModal()">📁 フォルダ</button>
+            <button onclick="generateCode()" class="success">▶️ コード生成</button>
+            <button onclick="testApiConnection()">🔌 API接続テスト</button>
+        </header>
+
+        <!-- メインコンテナ -->
+        <div id="main-container">
+            <!-- サイドバー -->
+            <aside id="sidebar">
+                <div class="sidebar-section">
+                    <h2>レイヤー選択</h2>
+                    <div class="layer-item active" data-layer="1" onclick="switchLayer(1)">レイヤー 1</div>
+                    <div class="layer-item" data-layer="2" onclick="switchLayer(2)">レイヤー 2</div>
+                    <div class="layer-item" data-layer="3" onclick="switchLayer(3)">レイヤー 3</div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h2>プロジェクト情報</h2>
+                    <div id="project-info" style="font-size: 12px; color: #cccccc;">
+                        <p>フォルダ: 未選択</p>
+                        <p>ノード数: 0</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- React Flowキャンバス -->
+            <div id="flow-container"></div>
+        </div>
+
+        <!-- ステータスバー -->
+        <footer>
+            <span id="status-layer">レイヤー: 1</span>
+            <span id="status-nodes">ノード数: 0</span>
+            <span id="status-api">API: 未接続</span>
+            <span id="status-session">セッション: -</span>
+        </footer>
+    </div>
+
+    <!-- ノード追加モーダル -->
+    <div id="modal-add-node" class="modal">
+        <div class="modal-content">
+            <h2>新しいノードを追加</h2>
+            <form id="form-add-node" onsubmit="addNode(event)">
+                <div class="form-group">
+                    <label>ノードタイプ</label>
+                    <select id="input-type" required>
+                        <option value="start">開始</option>
+                        <option value="process">処理</option>
+                        <option value="conditional">条件分岐</option>
+                        <option value="loop">ループ</option>
+                        <option value="end">終了</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>表示テキスト</label>
+                    <input type="text" id="input-text" placeholder="例: Excelを開く" required>
+                </div>
+                <div class="form-group">
+                    <label>コード（オプション）</label>
+                    <textarea id="input-code" rows="4" placeholder="PowerShellコードを入力..."></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">追加</button>
+                    <button type="button" onclick="closeModal('modal-add-node')">キャンセル</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 変数管理モーダル -->
+    <div id="modal-variables" class="modal">
+        <div class="modal-content">
+            <h2>変数管理</h2>
+            <button onclick="showAddVariableForm()">➕ 新しい変数を追加</button>
+            <div id="variable-list-container">
+                <p style="color: #888;">読み込み中...</p>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeModal('modal-variables')">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 変数追加フォーム -->
+    <div id="modal-add-variable" class="modal">
+        <div class="modal-content">
+            <h2>変数を追加</h2>
+            <form id="form-add-variable" onsubmit="addVariable(event)">
+                <div class="form-group">
+                    <label>変数名</label>
+                    <input type="text" id="var-name" placeholder="例: ファイルパス" required>
+                </div>
+                <div class="form-group">
+                    <label>値</label>
+                    <input type="text" id="var-value" placeholder="例: C:\data\file.xlsx" required>
+                </div>
+                <div class="form-group">
+                    <label>タイプ</label>
+                    <select id="var-type">
+                        <option value="単一値">単一値</option>
+                        <option value="一次元">一次元配列</option>
+                        <option value="二次元">二次元配列</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">追加</button>
+                    <button type="button" onclick="closeModal('modal-add-variable')">キャンセル</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- フォルダ管理モーダル -->
+    <div id="modal-folders" class="modal">
+        <div class="modal-content">
+            <h2>フォルダ管理</h2>
+            <button onclick="showCreateFolderForm()">➕ 新しいフォルダを作成</button>
+            <div id="folder-list-container">
+                <p style="color: #888;">読み込み中...</p>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeModal('modal-folders')">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- フォルダ作成フォーム -->
+    <div id="modal-create-folder" class="modal">
+        <div class="modal-content">
+            <h2>フォルダを作成</h2>
+            <form id="form-create-folder" onsubmit="createFolder(event)">
+                <div class="form-group">
+                    <label>フォルダ名</label>
+                    <input type="text" id="folder-name" placeholder="例: Project1" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">作成</button>
+                    <button type="button" onclick="closeModal('modal-create-folder')">キャンセル</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- コード生成モーダル -->
+    <div id="modal-generate" class="modal">
+        <div class="modal-content">
+            <h2>PowerShellコード生成</h2>
+            <div class="progress-container">
+                <p id="generate-status">準備中...</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" id="generate-progress" style="width: 0%"></div>
+                </div>
+            </div>
+            <div id="generate-result" style="margin-top: 20px; display: none;">
+                <h3 style="color: #4caf50;">✓ 生成成功</h3>
+                <p id="generate-output-path"></p>
+                <p id="generate-node-count"></p>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeModal('modal-generate')">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- React, ReactDOM, React Flow -->
+    <script crossorigin src="libs/react.production.min.js"></script>
+    <script crossorigin src="libs/react-dom.production.min.js"></script>
+    <script src="libs/reactflow.min.js"></script>
+
+    <script src="app.js"></script>
+</body>
+</html>
