@@ -115,13 +115,13 @@ try {
 }
 
 # 静的ファイル配信（HTML/CSS/JS）
-$uiPath = Join-Path $script:RootDir "ui"
+$global:uiPath = Join-Path $script:RootDir "ui"
 
 # Polarisの静的ファイル配信を設定
 try {
     # ルートパスへのアクセス - index.htmlを返す
     New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
-        $indexPath = Join-Path $using:uiPath "index.html"
+        $indexPath = Join-Path $global:uiPath "index.html"
         if (Test-Path $indexPath) {
             $content = Get-Content $indexPath -Raw -Encoding UTF8
             $Response.SetContentType("text/html; charset=utf-8")
@@ -135,7 +135,7 @@ try {
     # libs/配下の静的ファイルを配信
     New-PolarisRoute -Path "/libs/*" -Method GET -ScriptBlock {
         $requestPath = $Request.Parameters["*"]
-        $filePath = Join-Path $using:uiPath "libs\$requestPath"
+        $filePath = Join-Path $global:uiPath "libs\$requestPath"
 
         if (Test-Path $filePath) {
             $content = Get-Content $filePath -Raw -Encoding UTF8
@@ -155,7 +155,7 @@ try {
         }
     }
 
-    Write-Host "[OK] 静的ファイル配信: $uiPath" -ForegroundColor Green
+    Write-Host "[OK] 静的ファイル配信: $global:uiPath" -ForegroundColor Green
 } catch {
     Write-Host "[エラー] 静的ファイル配信の設定に失敗しました: $($_.Exception.Message)" -ForegroundColor Red
     throw
