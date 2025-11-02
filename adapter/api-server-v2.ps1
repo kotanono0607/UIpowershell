@@ -592,7 +592,7 @@ Write-Host "静的ファイル提供を設定します..." -ForegroundColor Cyan
 # uiディレクトリを静的ファイルルートとして公開
 $uiPath = Join-Path $script:RootDir "ui"
 if (Test-Path $uiPath) {
-    New-PolarisStaticRoute -RoutePath "/" -FolderPath $uiPath -EnableDirectoryBrowser
+    New-PolarisStaticRoute -RoutePath "/" -FolderPath $uiPath
     Write-Host "[OK] UIディレクトリを公開: $uiPath" -ForegroundColor Green
 } else {
     Write-Host "[警告] UIディレクトリが見つかりません: $uiPath" -ForegroundColor Yellow
