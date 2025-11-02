@@ -259,7 +259,8 @@ function 00_矢印追記処理 {
                 }
             }
             # 右パネル内（スクリプト展開時）：左端から最初のボタンの右まで + 戻り矢印
-            elseif ($フレームパネル -ne $Global:可視左パネル -and $フレームパネル -ne $Global:可視右パネル) {
+            # レイヤー2以降（可視右パネル含む）に適用
+            elseif ($フレームパネル -ne $Global:可視左パネル) {
                 Write-Host "[DEBUG] 右パネル処理分岐に入った: パネル=$($フレームパネル.Name)" -ForegroundColor Magenta
                 Write-Host "[DEBUG] ボタン数: $($buttons.Count)" -ForegroundColor Magenta
                 # 右パネルの最初のボタンを取得
