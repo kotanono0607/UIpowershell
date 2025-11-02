@@ -12,7 +12,7 @@ function 00_メインフォームのPaintイベントを設定する {
         param($sender, $e)
 
         # ピンク選択中かチェック
-        if ($Global:Pink選択中 -ne "true") {
+        if (-not $Global:Pink選択中) {
             return
         }
 
@@ -214,7 +214,7 @@ function 00_矢印追記処理 {
 
     #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^pink矢印真ん中
     # ピンクノード展開時の矢印表示（パネル内部分）
-    if ($Global:Pink選択中 -eq "true") {
+    if ($Global:Pink選択中) {
         $result = Check-Pink選択配列Objects
 
         if ($result -eq $true) {
