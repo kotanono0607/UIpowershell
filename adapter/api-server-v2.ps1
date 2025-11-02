@@ -715,7 +715,25 @@ New-PolarisRoute -Path "/app-legacy.js" -Method GET -ScriptBlock {
     }
 }
 
-# ボタン設定.json
+# ボタン設定.json (英語エイリアス: /button-settings.json)
+# 注: ブラウザが日本語URLを自動エンコードするため、英語パスを使用
+New-PolarisRoute -Path "/button-settings.json" -Method GET -ScriptBlock {
+    $rootDir = $global:RootDirForPolaris
+    $jsonPath = Join-Path $rootDir "ボタン設定.json"
+    if (Test-Path $jsonPath) {
+        $content = Get-Content $jsonPath -Raw -Encoding UTF8
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $errorResult = @{ error = "ボタン設定.json not found" }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# ボタン設定.json (日本語パス - 後方互換性用)
 New-PolarisRoute -Path "/ボタン設定.json" -Method GET -ScriptBlock {
     $rootDir = $global:RootDirForPolaris
     $jsonPath = Join-Path $rootDir "ボタン設定.json"

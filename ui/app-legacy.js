@@ -98,7 +98,8 @@ async function callApi(endpoint, method = 'GET', body = null) {
 async function loadButtonSettings() {
     try {
         // APIサーバー経由でボタン設定.jsonを読み込み
-        const response = await fetch('/ボタン設定.json');
+        // 注: 日本語URLのエンコード問題を避けるため、英語エイリアスを使用
+        const response = await fetch('/button-settings.json');
         buttonSettings = await response.json();
         console.log('ボタン設定読み込み完了:', buttonSettings.length, '個');
     } catch (error) {
