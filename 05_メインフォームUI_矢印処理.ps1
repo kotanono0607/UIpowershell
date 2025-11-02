@@ -78,15 +78,17 @@ function 00_矢印追記処理 {
                     Width = 3
                 }
 
-                # 矢印ヘッド（右パネルへの接続を示す）
+                # 矢印ヘッド（右パネルへの接続を示す - 右向き）
+                $arrowStartPoint = $verticalEndPoint
                 $arrowEndPoint = [System.Drawing.Point]::new(
-                    $verticalEndPoint.X,
-                    $verticalEndPoint.Y + 15
+                    $verticalEndPoint.X + 15,  # 右方向に15px
+                    $verticalEndPoint.Y
                 )
                 $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
-                    Type = "DownArrow"
-                    StartPoint = $verticalEndPoint
+                    Type = "Arrow"
+                    StartPoint = $arrowStartPoint
                     EndPoint = $arrowEndPoint
+                    Direction = "Right"  # 右向き矢印
                     Color = $pinkLineColor
                     Width = 3
                     ArrowSize = 10  # 大きめの矢印ヘッド
