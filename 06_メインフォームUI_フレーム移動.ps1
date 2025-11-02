@@ -60,6 +60,11 @@ function メインフレームの左を押した場合の処理 {
 
         # 階層パス表示を更新
         階層パス表示を更新する
+
+        # メインフォームを再描画（パネル間矢印を更新）
+        if ($Global:可視左パネル.Parent -and $Global:可視左パネル.Parent -is [System.Windows.Forms.Form]) {
+            $Global:可視左パネル.Parent.Invalidate()
+        }
 }
 function メインフレームの右を押した場合の処理 {
 
@@ -120,6 +125,11 @@ function メインフレームの右を押した場合の処理 {
 
         # 階層パス表示を更新
         階層パス表示を更新する
+
+        # メインフォームを再描画（パネル間矢印を更新）
+        if ($Global:可視左パネル.Parent -and $Global:可視左パネル.Parent -is [System.Windows.Forms.Form]) {
+            $Global:可視左パネル.Parent.Invalidate()
+        }
 }
 
 

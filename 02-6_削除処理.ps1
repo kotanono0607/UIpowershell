@@ -284,6 +284,11 @@ function フレームパネルからすべてのボタンを削除する {
             Write-Host "  可視右パネルを非表示にしました（空のため）" -ForegroundColor Yellow
         }
     }
+
+    # メインフォームを再描画（パネル間矢印を更新）
+    if ($フレームパネル.Parent -and $フレームパネル.Parent -is [System.Windows.Forms.Form]) {
+        $フレームパネル.Parent.Invalidate()
+    }
 }
 
 # 矢印を描く関数

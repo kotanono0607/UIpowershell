@@ -151,6 +151,11 @@ function PINKからボタン作成 {
         Write-Host "  可視右パネルを表示しました" -ForegroundColor Green
     }
 
+    # メインフォームを再描画（パネル間矢印を更新）
+    if ($展開先パネル.Parent -and $展開先パネル.Parent -is [System.Windows.Forms.Form]) {
+        $展開先パネル.Parent.Invalidate()
+    }
+
     Write-Host "========== [PINKからボタン作成] 完了 ==========" -ForegroundColor Cyan
 }
 
