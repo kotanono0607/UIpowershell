@@ -193,6 +193,7 @@ function UIをリロード {
             Write-Host "レイヤー $現在のレイヤー番号 のデータが存在しません" -ForegroundColor Yellow
             # 矢印を再描画
             00_矢印追記処理 -フレームパネル $Global:可視左パネル
+            00_矢印追記処理 -フレームパネル $Global:可視右パネル
             return
         }
 
@@ -258,6 +259,7 @@ function UIをリロード {
 
         # 矢印を再描画
         00_矢印追記処理 -フレームパネル $Global:可視左パネル
+        00_矢印追記処理 -フレームパネル $Global:可視右パネル
 
         Write-Host "UIリロード完了" -ForegroundColor Green
 

@@ -118,6 +118,7 @@ function 条件分岐ボタン削除処理 {
     }
     if (Get-Command 00_矢印追記処理 -ErrorAction SilentlyContinue) {
         00_矢印追記処理 -フレームパネル $Global:可視左パネル
+        00_矢印追記処理 -フレームパネル $Global:可視右パネル
     }
 }
 
@@ -198,6 +199,7 @@ function ループボタン削除処理 {
     }
     if (Get-Command 00_矢印追記処理 -ErrorAction SilentlyContinue) {
         00_矢印追記処理 -フレームパネル $Global:可視左パネル
+        00_矢印追記処理 -フレームパネル $Global:可視右パネル
     }
 }
 
@@ -241,6 +243,7 @@ function script:削除処理 {
 
                 if (Get-Command 00_矢印追記処理 -ErrorAction SilentlyContinue) {
                     00_矢印追記処理 -フレームパネル $Global:可視左パネル
+                    00_矢印追記処理 -フレームパネル $Global:可視右パネル
                 }
             }
             catch {

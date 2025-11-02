@@ -84,7 +84,7 @@ function 00_メインフォームのPaintイベントを設定する {
         $e.Graphics.DrawLine($pen, $startPoint3, $endPoint3)
 
         # ========================================
-        # 戻り矢印（右パネル → 左パネル）
+        # 戻り矢印（右パネル → 左パネル）ループ形状
         # ========================================
         # 右パネルの最後のボタンを取得
         $rightPanelLastButton = $Global:可視右パネル.Controls |
@@ -107,7 +107,10 @@ function 00_メインフォームのPaintイベントを設定する {
             # 右パネルの最後のボタンの中央Y座標
             $rightLastButtonCenterY = $Global:可視右パネル.Location.Y + $rightPanelLastButton.Location.Y + ($rightPanelLastButton.Height / 2)
 
-            # 左パネルの戻り先を決定
+            # 左パネルのピンクボタンの中央Y座標（ループの戻り先の高さ）
+            $loopTopY = $leftButtonCenterY
+
+            # 左パネルの戻り先を決定（ピンクノードの次のボタン）
             $leftReturnY = 0
 
             if ($leftPanelPinkButton) {
@@ -130,24 +133,30 @@ function 00_メインフォームのPaintイベントを設定する {
                 $leftReturnY = $Global:可視左パネル.Location.Y + 100
             }
 
-            # 矢印パス（パネル間のギャップ部分）：右パネル左端 → 縦に移動 → 左パネル右端
+            # ループ形状の矢印パス：
+            # 右パネル左端 → 左に延長 → 上に移動（ループのトップまで） → 左パネル右端 → 下に移動（戻り先まで）
 
-            # 1. 横ライン（右パネル左端から左に少し延長）
+            # 1. 横ライン（右パネル左端から左に延長）
             $returnGapStartX = $rightPanelLeftX
             $returnGapExtendX = $rightPanelLeftX - 10
             $returnStartPoint1 = [System.Drawing.Point]::new($returnGapStartX, $rightLastButtonCenterY)
             $returnEndPoint1 = [System.Drawing.Point]::new($returnGapExtendX, $rightLastButtonCenterY)
             $e.Graphics.DrawLine($pen, $returnStartPoint1, $returnEndPoint1)
 
-            # 2. 縦ライン（右パネル左端付近 → 左パネルの戻り先の高さ）
+            # 2. 縦ライン（右パネル左端付近 → 上に移動してループのトップまで）
             $returnStartPoint2 = $returnEndPoint1
-            $returnEndPoint2 = [System.Drawing.Point]::new($returnGapExtendX, $leftReturnY)
+            $returnEndPoint2 = [System.Drawing.Point]::new($returnGapExtendX, $loopTopY)
             $e.Graphics.DrawLine($pen, $returnStartPoint2, $returnEndPoint2)
 
             # 3. 横ライン（右パネル左端付近 → 左パネル右端）
             $returnStartPoint3 = $returnEndPoint2
-            $returnEndPoint3 = [System.Drawing.Point]::new($leftPanelRightX, $leftReturnY)
+            $returnEndPoint3 = [System.Drawing.Point]::new($leftPanelRightX, $loopTopY)
             $e.Graphics.DrawLine($pen, $returnStartPoint3, $returnEndPoint3)
+
+            # 4. 縦ライン（左パネル右端 → 下に移動して戻り先まで）
+            $returnStartPoint4 = $returnEndPoint3
+            $returnEndPoint4 = [System.Drawing.Point]::new($leftPanelRightX, $leftReturnY)
+            $e.Graphics.DrawLine($pen, $returnStartPoint4, $returnEndPoint4)
         }
 
         $pen.Dispose()
@@ -185,7 +194,7 @@ function 00_矢印追記処理 {
         $result = Check-Pink選択配列Objects
 
         if ($result -eq $true) {
-            # 左パネル内：ピンクボタンから右端までの横線
+            # 左パネル内：ピンクボタンから右端までの横線のみ（一本化のため戻り矢印は削除）
             if ($フレームパネル -eq $Global:可視左パネル) {
                 # 選択中のピンクボタンを取得
                 $selectedPinkButton = $buttons | Where-Object {
@@ -218,150 +227,39 @@ function 00_矢印追記処理 {
                         Color = $pinkLineColor
                         Width = 3
                     }
-
-                    # 左パネルの戻り矢印（パネル右端 → ピンクノードの次のボタン）
-                    # ピンクノードの次のボタンを取得
-                    $pinkIndex = $buttons.IndexOf($selectedPinkButton)
-                    $nextButton = $null
-                    if ($pinkIndex -ge 0 -and $pinkIndex -lt ($buttons.Count - 1)) {
-                        $nextButton = $buttons[$pinkIndex + 1]
-                    }
-
-                    # 戻り矢印の終点Y座標と終点X座標を決定
-                    $returnY = 0
-                    $returnEndX = 0
-
-                    if ($nextButton) {
-                        # 次のボタンがある場合：そのボタンの中央Y座標と右端X座標
-                        $returnY = $nextButton.Location.Y + ($nextButton.Height / 2)
-                        $returnEndX = $nextButton.Location.X + $nextButton.Width
-                    } else {
-                        # 次のボタンがない場合：ピンクノードの下50pxの位置、パネル中央X座標
-                        $returnY = $selectedPinkButton.Location.Y + $selectedPinkButton.Height + 50
-                        $returnEndX = $フレームパネル.Width / 2
-                    }
-
-                    # 横ライン開始点（パネル右端）
-                    $returnStartPoint = [System.Drawing.Point]::new(
-                        $フレームパネル.Width,
-                        $returnY
-                    )
-
-                    # 横ライン終点
-                    $returnEndPoint = [System.Drawing.Point]::new(
-                        $returnEndX,
-                        $returnY
-                    )
-
-                    # 横ライン描画（パネル右端 → 戻り先）
-                    $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
-                        Type = "Line"
-                        StartPoint = $returnStartPoint
-                        EndPoint = $returnEndPoint
-                        Color = $pinkLineColor
-                        Width = 3
-                    }
-
-                    # 矢印ヘッド（左向き）
-                    $returnArrowStartPoint = [System.Drawing.Point]::new(
-                        $returnEndPoint.X + 15,
-                        $returnEndPoint.Y
-                    )
-                    $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
-                        Type = "Arrow"
-                        StartPoint = $returnArrowStartPoint
-                        EndPoint = $returnEndPoint
-                        Direction = "Left"
-                        Color = $pinkLineColor
-                        Width = 3
-                        ArrowSize = 10
-                    }
                 }
             }
-            # 右パネル内：左端から最初のボタンまでの横線 + 矢印ヘッド
+            # メインパネル（可視右パネル）内：左端から右端まで一本の横線
             elseif ($フレームパネル -eq $Global:可視右パネル) {
-                # 右パネルの最初のボタンを取得
-                $firstButton = $buttons | Select-Object -First 1
+                # ピンク選択中で、左パネルにピンクボタンがある場合のみ描画
+                $leftPanelButtons = $Global:可視左パネル.Controls |
+                    Where-Object { $_ -is [System.Windows.Forms.Button] } |
+                    Sort-Object { $_.Location.Y }
 
-                if ($firstButton) {
+                $leftPanelPinkButton = $leftPanelButtons | Where-Object {
+                    ($_.BackColor.ToArgb() -eq [System.Drawing.Color]::Pink.ToArgb()) -or
+                    ($_.BackColor.ToArgb() -eq $global:ピンク青色.ToArgb()) -or
+                    ($_.BackColor.ToArgb() -eq $global:ピンク赤色.ToArgb())
+                } | Select-Object -First 1
+
+                if ($leftPanelPinkButton) {
                     # 鮮やかなピンク色
                     $pinkLineColor = [System.Drawing.Color]::HotPink
 
-                    # 横ライン開始点（パネル左端）
-                    $horizontalStartPoint = [System.Drawing.Point]::new(
-                        0,
-                        $firstButton.Location.Y + ($firstButton.Height / 2)
-                    )
+                    # 左パネルのピンクボタンのY座標を取得（メインパネル座標系に変換）
+                    $pinkButtonCenterY = $leftPanelPinkButton.Location.Y + ($leftPanelPinkButton.Height / 2)
 
-                    # 横ライン終点（最初のボタンの左端）
-                    $horizontalEndPoint = [System.Drawing.Point]::new(
-                        $firstButton.Location.X,
-                        $firstButton.Location.Y + ($firstButton.Height / 2)
-                    )
+                    # メインパネルの左端から右端まで一本の横線
+                    $horizontalStartPoint = [System.Drawing.Point]::new(0, $pinkButtonCenterY)
+                    $horizontalEndPoint = [System.Drawing.Point]::new($フレームパネル.Width, $pinkButtonCenterY)
 
-                    # 横ライン描画（パネル左端 → ボタン左端）
+                    # 横ライン描画（パネル左端 → パネル右端）
                     $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
                         Type = "Line"
                         StartPoint = $horizontalStartPoint
                         EndPoint = $horizontalEndPoint
                         Color = $pinkLineColor
                         Width = 3
-                    }
-
-                    # 矢印ヘッド（右向き）
-                    $arrowStartPoint = [System.Drawing.Point]::new(
-                        $horizontalEndPoint.X - 15,
-                        $horizontalEndPoint.Y
-                    )
-                    $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
-                        Type = "Arrow"
-                        StartPoint = $arrowStartPoint
-                        EndPoint = $horizontalEndPoint
-                        Direction = "Right"
-                        Color = $pinkLineColor
-                        Width = 3
-                        ArrowSize = 10
-                    }
-
-                    # 右パネルの最後のボタンからパネル左端への戻り矢印
-                    $lastButton = $buttons | Select-Object -Last 1
-
-                    if ($lastButton) {
-                        # 横ライン開始点（最後のボタンの左端）
-                        $returnStartPoint = [System.Drawing.Point]::new(
-                            $lastButton.Location.X,
-                            $lastButton.Location.Y + ($lastButton.Height / 2)
-                        )
-
-                        # 横ライン終点（パネル左端）
-                        $returnEndPoint = [System.Drawing.Point]::new(
-                            0,
-                            $lastButton.Location.Y + ($lastButton.Height / 2)
-                        )
-
-                        # 横ライン描画（ボタン左端 → パネル左端）
-                        $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
-                            Type = "Line"
-                            StartPoint = $returnStartPoint
-                            EndPoint = $returnEndPoint
-                            Color = $pinkLineColor
-                            Width = 3
-                        }
-
-                        # 矢印ヘッド（左向き）
-                        $returnArrowStartPoint = [System.Drawing.Point]::new(
-                            15,
-                            $returnEndPoint.Y
-                        )
-                        $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
-                            Type = "Arrow"
-                            StartPoint = $returnArrowStartPoint
-                            EndPoint = $returnEndPoint
-                            Direction = "Left"
-                            Color = $pinkLineColor
-                            Width = 3
-                            ArrowSize = 10
-                        }
                     }
                 }
             }
