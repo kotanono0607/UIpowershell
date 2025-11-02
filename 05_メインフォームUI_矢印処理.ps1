@@ -103,40 +103,51 @@ function 00_メインフォームのPaintイベントを設定する {
             ($_.BackColor.ToArgb() -eq $global:ピンク赤色.ToArgb())
         } | Select-Object -First 1
 
-        if ($rightPanelLastButton -and $leftPanelPinkButton) {
-            # ピンクノードの次のボタンを取得
-            $pinkIndex = $leftPanelButtons.IndexOf($leftPanelPinkButton)
-            $leftPanelNextButton = $null
-            if ($pinkIndex -ge 0 -and $pinkIndex -lt ($leftPanelButtons.Count - 1)) {
-                $leftPanelNextButton = $leftPanelButtons[$pinkIndex + 1]
+        if ($rightPanelLastButton) {
+            # 右パネルの最後のボタンの中央Y座標
+            $rightLastButtonCenterY = $Global:可視右パネル.Location.Y + $rightPanelLastButton.Location.Y + ($rightPanelLastButton.Height / 2)
+
+            # 左パネルの戻り先を決定
+            $leftReturnY = 0
+
+            if ($leftPanelPinkButton) {
+                # ピンクノードの次のボタンを取得
+                $pinkIndex = $leftPanelButtons.IndexOf($leftPanelPinkButton)
+                $leftPanelNextButton = $null
+                if ($pinkIndex -ge 0 -and $pinkIndex -lt ($leftPanelButtons.Count - 1)) {
+                    $leftPanelNextButton = $leftPanelButtons[$pinkIndex + 1]
+                }
+
+                if ($leftPanelNextButton) {
+                    # 次のボタンがある場合：そのボタンの中央Y座標
+                    $leftReturnY = $Global:可視左パネル.Location.Y + $leftPanelNextButton.Location.Y + ($leftPanelNextButton.Height / 2)
+                } else {
+                    # 次のボタンがない場合：ピンクノードの下50px
+                    $leftReturnY = $Global:可視左パネル.Location.Y + $leftPanelPinkButton.Location.Y + $leftPanelPinkButton.Height + 50
+                }
+            } else {
+                # ピンクノードがない場合：適当な位置（使われないはずだが念のため）
+                $leftReturnY = $Global:可視左パネル.Location.Y + 100
             }
 
-            if ($leftPanelNextButton) {
-                # 右パネルの最後のボタンの中央Y座標
-                $rightLastButtonCenterY = $Global:可視右パネル.Location.Y + $rightPanelLastButton.Location.Y + ($rightPanelLastButton.Height / 2)
+            # 矢印パス（パネル間のギャップ部分）：右パネル左端 → 縦に移動 → 左パネル右端
 
-                # 左パネルの次のボタンの中央Y座標
-                $leftNextButtonCenterY = $Global:可視左パネル.Location.Y + $leftPanelNextButton.Location.Y + ($leftPanelNextButton.Height / 2)
+            # 1. 横ライン（右パネル左端から左に少し延長）
+            $returnGapStartX = $rightPanelLeftX
+            $returnGapExtendX = $rightPanelLeftX - 10
+            $returnStartPoint1 = [System.Drawing.Point]::new($returnGapStartX, $rightLastButtonCenterY)
+            $returnEndPoint1 = [System.Drawing.Point]::new($returnGapExtendX, $rightLastButtonCenterY)
+            $e.Graphics.DrawLine($pen, $returnStartPoint1, $returnEndPoint1)
 
-                # 矢印パス（パネル間のギャップ部分のみ）：右パネル左端 → 縦に移動 → 左パネル右端
+            # 2. 縦ライン（右パネル左端付近 → 左パネルの戻り先の高さ）
+            $returnStartPoint2 = $returnEndPoint1
+            $returnEndPoint2 = [System.Drawing.Point]::new($returnGapExtendX, $leftReturnY)
+            $e.Graphics.DrawLine($pen, $returnStartPoint2, $returnEndPoint2)
 
-                # 1. 横ライン（右パネル左端から左に少し延長）
-                $returnGapStartX = $rightPanelLeftX
-                $returnGapExtendX = $rightPanelLeftX - 10
-                $returnStartPoint1 = [System.Drawing.Point]::new($returnGapStartX, $rightLastButtonCenterY)
-                $returnEndPoint1 = [System.Drawing.Point]::new($returnGapExtendX, $rightLastButtonCenterY)
-                $e.Graphics.DrawLine($pen, $returnStartPoint1, $returnEndPoint1)
-
-                # 2. 縦ライン（右パネル左端付近 → 左パネルの次のボタンの高さ）
-                $returnStartPoint2 = $returnEndPoint1
-                $returnEndPoint2 = [System.Drawing.Point]::new($returnGapExtendX, $leftNextButtonCenterY)
-                $e.Graphics.DrawLine($pen, $returnStartPoint2, $returnEndPoint2)
-
-                # 3. 横ライン（右パネル左端付近 → 左パネル右端）
-                $returnStartPoint3 = $returnEndPoint2
-                $returnEndPoint3 = [System.Drawing.Point]::new($leftPanelRightX, $leftNextButtonCenterY)
-                $e.Graphics.DrawLine($pen, $returnStartPoint3, $returnEndPoint3)
-            }
+            # 3. 横ライン（右パネル左端付近 → 左パネル右端）
+            $returnStartPoint3 = $returnEndPoint2
+            $returnEndPoint3 = [System.Drawing.Point]::new($leftPanelRightX, $leftReturnY)
+            $e.Graphics.DrawLine($pen, $returnStartPoint3, $returnEndPoint3)
         }
 
         $pen.Dispose()
@@ -216,42 +227,54 @@ function 00_矢印追記処理 {
                         $nextButton = $buttons[$pinkIndex + 1]
                     }
 
+                    # 戻り矢印の終点Y座標と終点X座標を決定
+                    $returnY = 0
+                    $returnEndX = 0
+
                     if ($nextButton) {
-                        # 横ライン開始点（パネル右端）
-                        $returnStartPoint = [System.Drawing.Point]::new(
-                            $フレームパネル.Width,
-                            $nextButton.Location.Y + ($nextButton.Height / 2)
-                        )
+                        # 次のボタンがある場合：そのボタンの中央Y座標と右端X座標
+                        $returnY = $nextButton.Location.Y + ($nextButton.Height / 2)
+                        $returnEndX = $nextButton.Location.X + $nextButton.Width
+                    } else {
+                        # 次のボタンがない場合：ピンクノードの下50pxの位置、パネル中央X座標
+                        $returnY = $selectedPinkButton.Location.Y + $selectedPinkButton.Height + 50
+                        $returnEndX = $フレームパネル.Width / 2
+                    }
 
-                        # 横ライン終点（次のボタンの右端）
-                        $returnEndPoint = [System.Drawing.Point]::new(
-                            $nextButton.Location.X + $nextButton.Width,
-                            $nextButton.Location.Y + ($nextButton.Height / 2)
-                        )
+                    # 横ライン開始点（パネル右端）
+                    $returnStartPoint = [System.Drawing.Point]::new(
+                        $フレームパネル.Width,
+                        $returnY
+                    )
 
-                        # 横ライン描画（パネル右端 → 次のボタン右端）
-                        $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
-                            Type = "Line"
-                            StartPoint = $returnStartPoint
-                            EndPoint = $returnEndPoint
-                            Color = $pinkLineColor
-                            Width = 3
-                        }
+                    # 横ライン終点
+                    $returnEndPoint = [System.Drawing.Point]::new(
+                        $returnEndX,
+                        $returnY
+                    )
 
-                        # 矢印ヘッド（左向き）
-                        $returnArrowStartPoint = [System.Drawing.Point]::new(
-                            $returnEndPoint.X + 15,
-                            $returnEndPoint.Y
-                        )
-                        $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
-                            Type = "Arrow"
-                            StartPoint = $returnArrowStartPoint
-                            EndPoint = $returnEndPoint
-                            Direction = "Left"
-                            Color = $pinkLineColor
-                            Width = 3
-                            ArrowSize = 10
-                        }
+                    # 横ライン描画（パネル右端 → 戻り先）
+                    $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                        Type = "Line"
+                        StartPoint = $returnStartPoint
+                        EndPoint = $returnEndPoint
+                        Color = $pinkLineColor
+                        Width = 3
+                    }
+
+                    # 矢印ヘッド（左向き）
+                    $returnArrowStartPoint = [System.Drawing.Point]::new(
+                        $returnEndPoint.X + 15,
+                        $returnEndPoint.Y
+                    )
+                    $フレームパネル.Tag.DrawObjects += [PSCustomObject]@{
+                        Type = "Arrow"
+                        StartPoint = $returnArrowStartPoint
+                        EndPoint = $returnEndPoint
+                        Direction = "Left"
+                        Color = $pinkLineColor
+                        Width = 3
+                        ArrowSize = 10
                     }
                 }
             }
