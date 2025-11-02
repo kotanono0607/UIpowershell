@@ -214,12 +214,17 @@ function 00_矢印追記処理 {
 
     #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^pink矢印真ん中
     # ピンクノード展開時の矢印表示（パネル内部分）
+    Write-Host "[DEBUG] 00_矢印追記処理 呼び出し: パネル=$($フレームパネル.Name), Pink選択中=$Global:Pink選択中" -ForegroundColor Cyan
+
     if ($Global:Pink選択中) {
+        Write-Host "[DEBUG] Pink選択中=true なので処理を続行" -ForegroundColor Cyan
         $result = Check-Pink選択配列Objects
 
         if ($result -eq $true) {
+            Write-Host "[DEBUG] Check-Pink選択配列Objects が true を返した" -ForegroundColor Cyan
             # 左パネル内：ピンクボタンから右端までの横線のみ
             if ($フレームパネル -eq $Global:可視左パネル) {
+                Write-Host "[DEBUG] 左パネル処理分岐に入った" -ForegroundColor Yellow
                 # 選択中のピンクボタンを取得
                 $selectedPinkButton = $buttons | Where-Object {
                     ($_.BackColor.ToArgb() -eq [System.Drawing.Color]::Pink.ToArgb()) -or
@@ -255,10 +260,13 @@ function 00_矢印追記処理 {
             }
             # 右パネル内（スクリプト展開時）：左端から最初のボタンの右まで + 戻り矢印
             elseif ($フレームパネル -ne $Global:可視左パネル -and $フレームパネル -ne $Global:可視右パネル) {
+                Write-Host "[DEBUG] 右パネル処理分岐に入った: パネル=$($フレームパネル.Name)" -ForegroundColor Magenta
+                Write-Host "[DEBUG] ボタン数: $($buttons.Count)" -ForegroundColor Magenta
                 # 右パネルの最初のボタンを取得
                 $firstButton = $buttons | Select-Object -First 1
 
                 if ($firstButton) {
+                    Write-Host "[DEBUG] 最初のボタンを取得: $($firstButton.Text)" -ForegroundColor Magenta
                     # 鮮やかなピンク色
                     $pinkLineColor = [System.Drawing.Color]::HotPink
 
@@ -335,9 +343,15 @@ function 00_矢印追記処理 {
                             Width = 3
                         }
                     }
+
+                    Write-Host "[DEBUG] 右パネルのDrawObjects追加完了: 合計 $($フレームパネル.Tag.DrawObjects.Count) 個" -ForegroundColor Magenta
                 }
             }
+        } else {
+            Write-Host "[DEBUG] Check-Pink選択配列Objects が false を返した" -ForegroundColor Red
         }
+    } else {
+        Write-Host "[DEBUG] Pink選択中=false なので処理をスキップ" -ForegroundColor Red
     }
 
 

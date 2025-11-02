@@ -364,7 +364,12 @@ function script:ボタンクリック情報表示 {
             # Write-Host "[10] 矢印追記処理:" -ForegroundColor Yellow
             # Write-Host "     対象パネル: $($親パネル.Name)" -ForegroundColor White
             00_矢印追記処理 -フレームパネル $親パネル
-            # Write-Host "     ✅ 矢印追記完了" -ForegroundColor Green
+            # Write-Host "     ✅ 矢印追記完了（親パネル）" -ForegroundColor Green
+
+            # 次のパネル（右パネル）にも矢印追記処理を呼び出す
+            # Write-Host "     対象パネル: $($次のパネル.Name)" -ForegroundColor White
+            00_矢印追記処理 -フレームパネル $次のパネル
+            # Write-Host "     ✅ 矢印追記完了（次のパネル）" -ForegroundColor Green
 
             # メインフォームを再描画（パネル間矢印を更新）
             if ($親パネル.Parent -and $親パネル.Parent -is [System.Windows.Forms.Form]) {
