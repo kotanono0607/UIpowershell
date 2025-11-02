@@ -703,7 +703,7 @@ try {
     # ブラウザ自動起動
     if ($AutoOpenBrowser) {
         Start-Sleep -Seconds 1
-        Start-Process "http://localhost:$Port/"
+        Start-Process "http://localhost:$Port/index-legacy.html"
     }
 
     # サーバーを実行し続ける
