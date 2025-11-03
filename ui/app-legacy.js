@@ -76,9 +76,29 @@ function initializeArrowCanvas() {
                 canvas.style.width = `${nodeList.scrollWidth}px`;  // ★追加：CSS表示サイズ
                 canvas.style.height = `${nodeList.scrollHeight}px`; // ★追加：CSS表示サイズ
 
+                console.log(`[初期化] layer-${i} Canvas作成前の親要素:`, {
+                    scrollWidth: nodeList.scrollWidth,
+                    scrollHeight: nodeList.scrollHeight,
+                    clientWidth: nodeList.clientWidth,
+                    clientHeight: nodeList.clientHeight,
+                    offsetWidth: nodeList.offsetWidth,
+                    offsetHeight: nodeList.offsetHeight
+                });
+
                 // node-list-containerを相対配置に
                 nodeList.style.position = 'relative';
                 nodeList.appendChild(canvas);
+
+                console.log(`[初期化] layer-${i} Canvas作成後:`, {
+                    canvasWidth: canvas.width,
+                    canvasHeight: canvas.height,
+                    canvasStyleWidth: canvas.style.width,
+                    canvasStyleHeight: canvas.style.height,
+                    canvasOffsetWidth: canvas.offsetWidth,
+                    canvasOffsetHeight: canvas.offsetHeight,
+                    canvasParent: canvas.parentElement,
+                    canvasInDOM: document.body.contains(canvas)
+                });
 
                 arrowState.canvasMap.set(`layer-${i}`, canvas);
                 createdCanvasCount++;
@@ -205,6 +225,15 @@ function drawDownArrow(ctx, fromNode, toNode, color = '#000000') {
 
     console.log(`[座標デバッグ] stroke() 実行完了`);
 
+    // Canvas画像データを確認（実際に描画されたか検証）
+    try {
+        const imageData = ctx.getImageData(Math.floor(startX), Math.floor(startY), 1, 1);
+        const pixel = imageData.data;
+        console.log(`[描画検証] startX位置のピクセル: rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]})`);
+    } catch (e) {
+        console.error(`[描画検証] getImageData失敗:`, e);
+    }
+
     // 矢印ヘッドを描画
     drawArrowHead(ctx, startX, startY, endX, endY);
 }
@@ -328,6 +357,29 @@ function drawPanelArrows(layerId) {
     });
 
     console.log(`[デバッグ] drawPanelArrows() 完了: ${layerId}`);
+
+    // 描画完了後のCanvas最終状態を確認
+    console.log(`[描画完了] Canvas最終状態:`, {
+        layerId: layerId,
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
+        canvasStyleWidth: canvas.style.width,
+        canvasStyleHeight: canvas.style.height,
+        canvasOffsetWidth: canvas.offsetWidth,
+        canvasOffsetHeight: canvas.offsetHeight,
+        canvasVisible: canvas.offsetWidth > 0 && canvas.offsetHeight > 0,
+        canvasDisplay: window.getComputedStyle(canvas).display,
+        canvasVisibility: window.getComputedStyle(canvas).visibility,
+        canvasOpacity: window.getComputedStyle(canvas).opacity,
+        canvasZIndex: window.getComputedStyle(canvas).zIndex,
+        canvasPosition: window.getComputedStyle(canvas).position,
+        parentElement: canvas.parentElement?.className,
+        inDOM: document.body.contains(canvas)
+    });
+
+    // デバッグ用：ブラウザ開発者ツールで確認できるようにグローバル変数に保存
+    window.DEBUG_CANVAS = canvas;
+    console.log(`[デバッグ] Canvas要素をwindow.DEBUG_CANVASに保存しました。ブラウザコンソールで確認できます。`);
 }
 
 // 条件分岐グループを見つける
@@ -825,6 +877,39 @@ function clearPinkSelected() {
     refreshAllArrows();
 }
 
+// デバッグヘルパー関数
+function debugCanvasInfo(layerId = 'layer-1') {
+    const canvas = arrowState.canvasMap.get(layerId);
+    if (!canvas) {
+        console.error(`Canvas not found for ${layerId}`);
+        return;
+    }
+
+    console.log(`=== Canvas Debug Info for ${layerId} ===`);
+    console.log('Canvas element:', canvas);
+    console.log('Canvas.width (内部):', canvas.width);
+    console.log('Canvas.height (内部):', canvas.height);
+    console.log('Canvas.style.width (CSS):', canvas.style.width);
+    console.log('Canvas.style.height (CSS):', canvas.style.height);
+    console.log('Canvas.offsetWidth:', canvas.offsetWidth);
+    console.log('Canvas.offsetHeight:', canvas.offsetHeight);
+    console.log('Canvas.parentElement:', canvas.parentElement);
+    console.log('Computed styles:', window.getComputedStyle(canvas));
+    console.log('In DOM:', document.body.contains(canvas));
+
+    // テスト描画
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(10, 10);
+    ctx.lineTo(100, 100);
+    ctx.stroke();
+    console.log('テスト描画完了: 赤い線を (10,10) から (100,100) に描画しました');
+
+    return canvas;
+}
+
 // グローバルに公開（即座に利用可能にする）
 window.arrowDrawing = {
     refreshAllArrows,
@@ -834,6 +919,7 @@ window.arrowDrawing = {
     setPinkSelected,
     clearPinkSelected,
     initializeArrowCanvas,  // 初期化関数も公開
+    debugCanvasInfo,        // デバッグヘルパー
     state: arrowState,
     initialized: false  // 初期化フラグ
 };
