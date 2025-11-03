@@ -38,6 +38,19 @@ let conditionGroupCounter = 2000; // 条件分岐用（2000番台）
 // 右ペイン状態
 let rightPanelCollapsed = false;
 
+// Pink選択配列（スクリプト展開状態管理）- PowerShell互換
+// レイヤー0-6までの展開状態を管理
+let pinkSelectionArray = [];
+for (let i = 0; i <= 6; i++) {
+    pinkSelectionArray.push({
+        layer: i,
+        yCoord: 0,          // ピンクノードのY座標
+        value: 0,           // 1=展開中, 0=折りたたみ中
+        initialY: 0,        // 初期Y座標
+        expandedNode: null  // 展開中のピンクノードID
+    });
+}
+
 // ================================================================
 // arrow-drawing.js
 // 矢印描画機能（PS1からの移植）
@@ -1788,7 +1801,7 @@ function layerizeNode() {
     });
 
     // 新しいピンクノードを作成
-    const newNodeId = nextNodeId++;
+    const newNodeId = nodeCounter++;
     const newNode = {
         id: newNodeId,
         text: 'スクリプト',
@@ -1796,9 +1809,9 @@ function layerizeNode() {
         処理番号: '99-1',
         layer: currentLayer,
         y: minY,
-        x: 0,
-        width: 134,
-        height: 28,
+        x: 90,
+        width: 280,
+        height: 40,
         script: entryString,  // 削除したノードの情報を保存
         redBorder: false
     };
@@ -1913,9 +1926,105 @@ function handleShiftClick(node) {
 
 // ピンクノードクリックで展開処理（PowerShell互換）
 function handlePinkNodeClick(node) {
-    console.log(`[ピンクノードクリック] ノード「${node.text}」がクリックされました`);
-    // TODO: 次レイヤーへの展開処理を実装
-    alert('ピンクノード展開機能は次のステップで実装します。');
+    console.log(`[ピンクノードクリック] ノード「${node.text}」(ID: ${node.id}) がクリックされました`);
+
+    // 親レイヤー番号を取得
+    const parentLayer = node.layer;
+    console.log(`[展開処理] 親レイヤー: ${parentLayer}`);
+
+    // 次レイヤー番号を計算
+    const nextLayer = parentLayer + 1;
+
+    // レイヤー上限チェック
+    if (nextLayer > 6) {
+        alert('これ以上レイヤーを展開できません（最大レイヤー6）。');
+        return;
+    }
+
+    console.log(`[展開処理] 次レイヤー: ${nextLayer}`);
+
+    // Pink選択配列に展開状態を記録
+    pinkSelectionArray[parentLayer].yCoord = node.y + 15;
+    pinkSelectionArray[parentLayer].value = 1;
+    pinkSelectionArray[parentLayer].expandedNode = node.id;
+
+    console.log(`[展開処理] Pink選択配列[${parentLayer}] を更新:`, pinkSelectionArray[parentLayer]);
+
+    // arrowStateも更新
+    arrowState.pinkSelected = true;
+    arrowState.selectedPinkButton = node;
+
+    // 次レイヤーをクリア
+    console.log(`[展開処理] レイヤー${nextLayer}をクリア中...`);
+    layerStructure[nextLayer].nodes = [];
+
+    // scriptプロパティを解析してノードを展開
+    if (!node.script || node.script.trim() === '') {
+        console.warn(`[展開処理] ピンクノード「${node.text}」にscriptデータがありません`);
+        alert('このスクリプト化ノードは空です。展開するノードがありません。');
+        return;
+    }
+
+    console.log(`[展開処理] scriptデータ: ${node.script}`);
+
+    // scriptデータを解析（形式: ID;色;テキスト;スクリプト）
+    const entries = node.script.split('_').filter(e => e.trim() !== '');
+    console.log(`[展開処理] ${entries.length}個のノードを展開します`);
+
+    let baseY = 10; // 初期Y座標
+
+    entries.forEach((entry, index) => {
+        const parts = entry.split(';');
+        if (parts.length < 3) {
+            console.warn(`[展開処理] エントリ${index}のフォーマットが不正: ${entry}`);
+            return;
+        }
+
+        const originalId = parts[0];
+        const color = parts[1];
+        const text = parts[2];
+        const script = parts[3] || '';
+
+        // 新しいノードを作成
+        const newNodeId = nodeCounter++;
+        const newNode = {
+            id: newNodeId,
+            text: text,
+            color: color,
+            処理番号: '99-1', // スクリプト化ノードの処理番号
+            layer: nextLayer,
+            y: baseY,
+            x: 90,
+            width: 280,
+            height: 40,
+            script: script,
+            redBorder: false
+        };
+
+        console.log(`[展開処理] ノード${index + 1}/${entries.length}: ${text} (色: ${color})`);
+
+        // グローバル配列とレイヤーに追加
+        nodes.push(newNode);
+        layerStructure[nextLayer].nodes.push(newNode);
+
+        baseY += 60; // 次のノードのY座標（間隔20px + 高さ40px）
+    });
+
+    // 次レイヤーに切り替え
+    currentLayer = nextLayer;
+
+    // 画面を再描画
+    renderNodesInLayer(nextLayer);
+    reorderNodesInLayer(nextLayer);
+
+    // レイヤーラベルを更新
+    document.getElementById('current-layer-label').textContent = `レイヤー${nextLayer}`;
+
+    // memory.json自動保存
+    saveMemoryJson();
+
+    console.log(`[展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${entries.length}個のノード)`);
+    alert(`レイヤー${nextLayer}に${entries.length}個のノードを展開しました。`);
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
