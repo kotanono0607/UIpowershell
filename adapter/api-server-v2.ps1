@@ -292,12 +292,38 @@ New-PolarisRoute -Path "/api/nodes/:id" -Method DELETE -ScriptBlock {
 New-PolarisRoute -Path "/api/nodes/all" -Method DELETE -ScriptBlock {
     Set-CorsHeaders -Response $Response
     try {
-        $body = $Request.Body | ConvertFrom-Json
+        Write-Host "[API] 全ノード削除リクエスト受信" -ForegroundColor Cyan
+
+        # Request.Body は null の可能性があるため、Request.BodyString を使用
+        $bodyRaw = $null
+        if ($null -eq $Request.Body) {
+            Write-Host "[API] Request.Body が null です。Request.BodyString を確認..." -ForegroundColor Yellow
+            if ($Request.PSObject.Properties['BodyString']) {
+                $bodyRaw = $Request.BodyString
+                Write-Host "[API] ✅ Request.BodyString を取得しました" -ForegroundColor Green
+            } else {
+                throw "Request.Body と Request.BodyString の両方が null です"
+            }
+        } else {
+            $bodyRaw = $Request.Body
+            Write-Host "[API] ✅ Request.Body を取得しました" -ForegroundColor Green
+        }
+
+        Write-Host "[API] リクエストボディ長: $($bodyRaw.Length) 文字" -ForegroundColor Gray
+
+        $body = $bodyRaw | ConvertFrom-Json
+        Write-Host "[API] JSON解析成功" -ForegroundColor Green
+        Write-Host "[API] 削除対象ノード数: $($body.nodes.Count)" -ForegroundColor Yellow
+
         $result = すべてのノードを削除_v2 -ノード配列 $body.nodes
+
+        Write-Host "[API] ✅ 全ノード削除完了: $($result.deleteCount)個" -ForegroundColor Green
+
         $json = $result | ConvertTo-Json -Compress
         $Response.SetContentType('application/json; charset=utf-8')
         $Response.Send($json)
     } catch {
+        Write-Host "[API] ❌ エラー発生: $($_.Exception.Message)" -ForegroundColor Red
         $Response.SetStatusCode(500)
         $errorResult = @{
             success = $false
