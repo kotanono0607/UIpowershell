@@ -3560,7 +3560,11 @@ function openNodeSettings(node) {
     document.getElementById('node-settings-modal').classList.add('show');
     document.getElementById('settings-node-name').textContent = actualNode.text;
     document.getElementById('settings-node-text').value = actualNode.text;
-    document.getElementById('settings-node-script').value = actualNode.script || '';
+
+    // スクリプトをcode.jsonから取得（node.scriptは使用しない）
+    const scriptContent = getCodeEntry(actualNode.id);
+    console.log('[ノード設定] code.jsonからスクリプトを取得しました。ID:', actualNode.id, '長さ:', scriptContent ? scriptContent.length : 0);
+    document.getElementById('settings-node-script').value = scriptContent || '';
 
     // 外観設定を設定
     document.getElementById('settings-node-color').value = actualNode.color || 'White';
