@@ -794,18 +794,25 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
         $folderName = $Request.Parameters.name
         Write-Host "[API] フォルダ名: $folderName" -ForegroundColor Yellow
 
-        # リクエストボディを確認
-        Write-Host "[API] Request.Body型: $($Request.Body.GetType().FullName)" -ForegroundColor Magenta
-        Write-Host "[API] Request.Body内容（生データ）: $($Request.Body)" -ForegroundColor Magenta
-        Write-Host "[API] Request.Body長さ: $($Request.Body.Length)" -ForegroundColor Magenta
-
+        # リクエストボディを解析
+        Write-Host "[API] Request.Body を ConvertFrom-Json します..." -ForegroundColor Yellow
         $body = $Request.Body | ConvertFrom-Json
-        Write-Host "[API] ConvertFrom-Json完了" -ForegroundColor Green
-        Write-Host "[API] body型: $($body.GetType().FullName)" -ForegroundColor Magenta
+        Write-Host "[API] ✅ ConvertFrom-Json完了" -ForegroundColor Green
+
+        if ($null -eq $body) {
+            Write-Host "[API] ❌ エラー: bodyがnullです" -ForegroundColor Red
+            throw "リクエストボディが空です"
+        }
+
         Write-Host "[API] bodyの内容: $($body | ConvertTo-Json -Compress -Depth 2)" -ForegroundColor Yellow
 
         $codeData = $body.codeData
-        Write-Host "[API] codeData型: $(if ($codeData) { $codeData.GetType().FullName } else { 'null' })" -ForegroundColor Magenta
+        if ($null -eq $codeData) {
+            Write-Host "[API] ❌ エラー: codeDataがnullです" -ForegroundColor Red
+            throw "codeDataが見つかりません"
+        }
+
+        Write-Host "[API] ✅ codeDataを取得しました" -ForegroundColor Green
         Write-Host "[API] codeDataの内容: $($codeData | ConvertTo-Json -Compress -Depth 2)" -ForegroundColor Yellow
 
         $rootDir = $global:RootDirForPolaris
