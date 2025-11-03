@@ -794,9 +794,19 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
         $folderName = $Request.Parameters.name
         Write-Host "[API] フォルダ名: $folderName" -ForegroundColor Yellow
 
+        # リクエストボディを確認
+        Write-Host "[API] Request.Body型: $($Request.Body.GetType().FullName)" -ForegroundColor Magenta
+        Write-Host "[API] Request.Body内容（生データ）: $($Request.Body)" -ForegroundColor Magenta
+        Write-Host "[API] Request.Body長さ: $($Request.Body.Length)" -ForegroundColor Magenta
+
         $body = $Request.Body | ConvertFrom-Json
+        Write-Host "[API] ConvertFrom-Json完了" -ForegroundColor Green
+        Write-Host "[API] body型: $($body.GetType().FullName)" -ForegroundColor Magenta
+        Write-Host "[API] bodyの内容: $($body | ConvertTo-Json -Compress -Depth 2)" -ForegroundColor Yellow
+
         $codeData = $body.codeData
-        Write-Host "[API] 受信データ: $($body | ConvertTo-Json -Compress -Depth 2)" -ForegroundColor Yellow
+        Write-Host "[API] codeData型: $(if ($codeData) { $codeData.GetType().FullName } else { 'null' })" -ForegroundColor Magenta
+        Write-Host "[API] codeDataの内容: $($codeData | ConvertTo-Json -Compress -Depth 2)" -ForegroundColor Yellow
 
         $rootDir = $global:RootDirForPolaris
         $folderPath = Join-Path $rootDir "03_history\$folderName"
