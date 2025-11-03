@@ -20,7 +20,7 @@ $script:RootDir = Split-Path -Parent $PSScriptRoot
 
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host "UIpowershell - Polaris API Server V2" -ForegroundColor Cyan
-Write-Host "Version: 1.0.178 (ルート衝突修正版)" -ForegroundColor Yellow
+Write-Host "Version: 1.0.179 (UTF-8エンコーディング修正版)" -ForegroundColor Yellow
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -806,7 +806,10 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
         $json = $memoryData | ConvertTo-Json -Depth 10
         Write-Host "[API] JSON生成完了 (長さ: $($json.Length) 文字)" -ForegroundColor Gray
 
-        $json | Out-File -FilePath $memoryPath -Encoding UTF8 -Force
+        # UTF-8 without BOMで保存（文字化け防止）
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($memoryPath, $json, $utf8NoBom)
+        Write-Host "[API] UTF-8 (BOMなし) でファイルを保存しました" -ForegroundColor Green
 
         # ファイル保存確認
         if (Test-Path $memoryPath) {
@@ -984,7 +987,10 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
         Write-Host "[API] JSON生成完了 (長さ: $($json.Length) 文字)" -ForegroundColor Yellow
         Write-Host "[API] JSON内容の最初の200文字: $($json.Substring(0, [Math]::Min(200, $json.Length)))" -ForegroundColor Gray
 
-        $json | Out-File -FilePath $codePath -Encoding UTF8 -Force
+        # UTF-8 without BOMで保存（文字化け防止）
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($codePath, $json, $utf8NoBom)
+        Write-Host "[API] UTF-8 (BOMなし) でファイルを保存しました" -ForegroundColor Green
 
         # 保存確認
         if (Test-Path $codePath) {
