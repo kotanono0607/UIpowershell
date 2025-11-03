@@ -143,6 +143,29 @@ try {
 $global:uiPath = Join-Path $script:RootDir "ui"
 
 # ============================================
+# CORS対応（クロスオリジンリクエスト許可）
+# ============================================
+
+# すべてのOPTIONSリクエストに対応（プリフライトリクエスト）
+New-PolarisRoute -Path "*" -Method OPTIONS -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $Response.SetHeader('Access-Control-Allow-Origin', '*')
+    $Response.SetHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    $Response.SetHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    $Response.SetHeader('Access-Control-Max-Age', '86400')
+    $Response.SetStatusCode(204)
+    $Response.Send('')
+}
+
+# ヘルパー関数：CORSヘッダーを設定
+function Set-CorsHeaders {
+    param($Response)
+    $Response.SetHeader('Access-Control-Allow-Origin', '*')
+    $Response.SetHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    $Response.SetHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+}
+
+# ============================================
 # 3. REST APIエンドポイント定義
 # ============================================
 
@@ -152,6 +175,7 @@ $global:uiPath = Join-Path $script:RootDir "ui"
 
 # ヘルスチェック
 New-PolarisRoute -Path "/api/health" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $result = @{
         status = "ok"
         timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -165,6 +189,7 @@ New-PolarisRoute -Path "/api/health" -Method GET -ScriptBlock {
 
 # セッション情報取得
 New-PolarisRoute -Path "/api/session" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $result = Get-SessionInfo
     $json = $result | ConvertTo-Json -Compress
     $Response.SetContentType('application/json; charset=utf-8')
@@ -173,6 +198,7 @@ New-PolarisRoute -Path "/api/session" -Method GET -ScriptBlock {
 
 # デバッグ情報取得
 New-PolarisRoute -Path "/api/debug" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $result = Get-StateDebugInfo
     $json = $result | ConvertTo-Json -Compress
     $Response.SetContentType('application/json; charset=utf-8')
@@ -185,6 +211,7 @@ New-PolarisRoute -Path "/api/debug" -Method GET -ScriptBlock {
 
 # 全ノード取得
 New-PolarisRoute -Path "/api/nodes" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $result = Get-AllNodes
     $json = $result | ConvertTo-Json -Compress
     $Response.SetContentType('application/json; charset=utf-8')
@@ -193,6 +220,7 @@ New-PolarisRoute -Path "/api/nodes" -Method GET -ScriptBlock {
 
 # ノード配列を一括設定（React Flowから同期）
 New-PolarisRoute -Path "/api/nodes" -Method PUT -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $body = $Request.Body | ConvertFrom-Json
         $result = Set-AllNodes -Nodes $body.nodes
@@ -213,6 +241,7 @@ New-PolarisRoute -Path "/api/nodes" -Method PUT -ScriptBlock {
 
 # ノード追加
 New-PolarisRoute -Path "/api/nodes" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $body = $Request.Body | ConvertFrom-Json
         $result = Add-Node -Node $body
@@ -233,6 +262,7 @@ New-PolarisRoute -Path "/api/nodes" -Method POST -ScriptBlock {
 
 # ノード削除（単一・セット両対応）
 New-PolarisRoute -Path "/api/nodes/:id" -Method DELETE -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $nodeId = $Request.Parameters.id
         $body = $Request.Body | ConvertFrom-Json
@@ -260,6 +290,7 @@ New-PolarisRoute -Path "/api/nodes/:id" -Method DELETE -ScriptBlock {
 
 # すべてのノードを削除
 New-PolarisRoute -Path "/api/nodes/all" -Method DELETE -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $body = $Request.Body | ConvertFrom-Json
         $result = すべてのノードを削除_v2 -ノード配列 $body.nodes
@@ -284,6 +315,7 @@ New-PolarisRoute -Path "/api/nodes/all" -Method DELETE -ScriptBlock {
 
 # 変数一覧取得
 New-PolarisRoute -Path "/api/variables" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $result = Get-VariableList_v2
     $json = $result | ConvertTo-Json -Compress
     $Response.SetContentType('application/json; charset=utf-8')
@@ -292,6 +324,7 @@ New-PolarisRoute -Path "/api/variables" -Method GET -ScriptBlock {
 
 # 変数取得（名前指定）
 New-PolarisRoute -Path "/api/variables/:name" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $varName = $Request.Parameters.name
         $result = Get-Variable_v2 -Name $varName
@@ -312,6 +345,7 @@ New-PolarisRoute -Path "/api/variables/:name" -Method GET -ScriptBlock {
 
 # 変数追加
 New-PolarisRoute -Path "/api/variables" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $body = $Request.Body | ConvertFrom-Json
         $result = Add-Variable_v2 -Name $body.name -Value $body.value -Type $body.type
@@ -332,6 +366,7 @@ New-PolarisRoute -Path "/api/variables" -Method POST -ScriptBlock {
 
 # 変数更新
 New-PolarisRoute -Path "/api/variables/:name" -Method PUT -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $varName = $Request.Parameters.name
         $body = $Request.Body | ConvertFrom-Json
@@ -353,6 +388,7 @@ New-PolarisRoute -Path "/api/variables/:name" -Method PUT -ScriptBlock {
 
 # 変数削除
 New-PolarisRoute -Path "/api/variables/:name" -Method DELETE -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $varName = $Request.Parameters.name
         $result = Remove-Variable_v2 -Name $varName
@@ -377,6 +413,7 @@ New-PolarisRoute -Path "/api/variables/:name" -Method DELETE -ScriptBlock {
 
 # メニュー構造取得
 New-PolarisRoute -Path "/api/menu/structure" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $result = Get-MenuStructure_v2
     $json = $result | ConvertTo-Json -Compress
     $Response.SetContentType('application/json; charset=utf-8')
@@ -385,6 +422,7 @@ New-PolarisRoute -Path "/api/menu/structure" -Method GET -ScriptBlock {
 
 # メニューアクション実行
 New-PolarisRoute -Path "/api/menu/action/:actionId" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $actionId = $Request.Parameters.actionId
         $body = $Request.Body | ConvertFrom-Json
@@ -413,6 +451,7 @@ New-PolarisRoute -Path "/api/menu/action/:actionId" -Method POST -ScriptBlock {
 
 # PowerShellコード生成
 New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $body = $Request.Body | ConvertFrom-Json
 
@@ -438,6 +477,7 @@ New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
 
 # PowerShellスクリプト実行（単一ノード）
 New-PolarisRoute -Path "/api/execute/script" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $body = $Request.Body | ConvertFrom-Json
         $scriptContent = $body.script
@@ -484,6 +524,7 @@ New-PolarisRoute -Path "/api/execute/script" -Method POST -ScriptBlock {
 
 # フォルダ一覧取得
 New-PolarisRoute -Path "/api/folders" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $result = フォルダ切替イベント_v2 -FolderName "list"
     $json = $result | ConvertTo-Json -Compress
     $Response.SetContentType('application/json; charset=utf-8')
@@ -492,6 +533,7 @@ New-PolarisRoute -Path "/api/folders" -Method GET -ScriptBlock {
 
 # フォルダ作成
 New-PolarisRoute -Path "/api/folders" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $body = $Request.Body | ConvertFrom-Json
         $result = フォルダ作成イベント_v2 -FolderName $body.name
@@ -512,6 +554,7 @@ New-PolarisRoute -Path "/api/folders" -Method POST -ScriptBlock {
 
 # フォルダ切り替え
 New-PolarisRoute -Path "/api/folders/:name" -Method PUT -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $folderName = $Request.Parameters.name
         $result = フォルダ切替イベント_v2 -FolderName $folderName
@@ -532,6 +575,7 @@ New-PolarisRoute -Path "/api/folders/:name" -Method PUT -ScriptBlock {
 
 # memory.json読み込み（フォルダごと）
 New-PolarisRoute -Path "/api/folders/:name/memory" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $folderName = $Request.Parameters.name
         $rootDir = $global:RootDirForPolaris
@@ -583,6 +627,7 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method GET -ScriptBlock {
 
 # memory.json保存（フォルダごと）
 New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $folderName = $Request.Parameters.name
         $body = $Request.Body | ConvertFrom-Json
@@ -653,6 +698,7 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
 
 # ドロップ可否チェック
 New-PolarisRoute -Path "/api/validate/drop" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $body = $Request.Body | ConvertFrom-Json
 
@@ -682,6 +728,7 @@ New-PolarisRoute -Path "/api/validate/drop" -Method POST -ScriptBlock {
 
 # 新しいIDを自動生成
 New-PolarisRoute -Path "/api/id/generate" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $newId = IDを自動生成する
         $result = @{
@@ -705,6 +752,7 @@ New-PolarisRoute -Path "/api/id/generate" -Method POST -ScriptBlock {
 
 # エントリを追加（指定ID）
 New-PolarisRoute -Path "/api/entry/add" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $body = $Request.Body | ConvertFrom-Json
 
@@ -737,6 +785,7 @@ New-PolarisRoute -Path "/api/entry/add" -Method POST -ScriptBlock {
 
 # IDでエントリを取得
 New-PolarisRoute -Path "/api/entry/:id" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $id = $Request.Parameters.id
         $entry = IDでエントリを取得 -targetID $id
@@ -773,6 +822,7 @@ New-PolarisRoute -Path "/api/entry/:id" -Method GET -ScriptBlock {
 
 # 全エントリを取得（フロー描画用）
 New-PolarisRoute -Path "/api/entries/all" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     try {
         $jsonPath = Join-Path $script:RootDir "00_code\コード.json"
 
@@ -820,6 +870,7 @@ $global:RootDirForPolaris = $script:RootDir
 
 # ルートパス "/" - index-legacy.htmlを提供
 New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $uiPath = $global:UiPathForPolaris
     $indexPath = Join-Path $uiPath "index-legacy.html"
     if (Test-Path $indexPath) {
@@ -834,6 +885,7 @@ New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
 
 # index-legacy.html
 New-PolarisRoute -Path "/index-legacy.html" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $uiPath = $global:UiPathForPolaris
     $indexPath = Join-Path $uiPath "index-legacy.html"
     if (Test-Path $indexPath) {
@@ -848,6 +900,7 @@ New-PolarisRoute -Path "/index-legacy.html" -Method GET -ScriptBlock {
 
 # style-legacy.css
 New-PolarisRoute -Path "/style-legacy.css" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $uiPath = $global:UiPathForPolaris
     $cssPath = Join-Path $uiPath "style-legacy.css"
     if (Test-Path $cssPath) {
@@ -862,6 +915,7 @@ New-PolarisRoute -Path "/style-legacy.css" -Method GET -ScriptBlock {
 
 # app-legacy.js
 New-PolarisRoute -Path "/app-legacy.js" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $uiPath = $global:UiPathForPolaris
     $jsPath = Join-Path $uiPath "app-legacy.js"
     if (Test-Path $jsPath) {
@@ -877,6 +931,7 @@ New-PolarisRoute -Path "/app-legacy.js" -Method GET -ScriptBlock {
 # ボタン設定.json (英語エイリアス: /button-settings.json)
 # 注: ブラウザが日本語URLを自動エンコードするため、英語パスを使用
 New-PolarisRoute -Path "/button-settings.json" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $rootDir = $global:RootDirForPolaris
     $jsonPath = Join-Path $rootDir "ボタン設定.json"
     if (Test-Path $jsonPath) {
@@ -894,6 +949,7 @@ New-PolarisRoute -Path "/button-settings.json" -Method GET -ScriptBlock {
 
 # ボタン設定.json (日本語パス - 後方互換性用)
 New-PolarisRoute -Path "/ボタン設定.json" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
     $rootDir = $global:RootDirForPolaris
     $jsonPath = Join-Path $rootDir "ボタン設定.json"
     if (Test-Path $jsonPath) {
@@ -919,7 +975,7 @@ Write-Host ""
 Write-Host "Polarisサーバーを起動します..." -ForegroundColor Cyan
 Write-Host "  ポート: $Port" -ForegroundColor White
 Write-Host "  URL: http://localhost:$Port" -ForegroundColor White
-Write-Host "  フロントエンド: http://localhost:$Port/index-v2.html" -ForegroundColor White
+Write-Host "  フロントエンド: http://localhost:$Port/index-legacy.html" -ForegroundColor Cyan
 Write-Host ""
 
 try {
