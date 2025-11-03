@@ -2146,8 +2146,14 @@ async function loadFolders() {
             if (folders.length > 0 && !currentFolder) {
                 currentFolder = folders[0];
                 console.log(`デフォルトフォルダ「${currentFolder}」を選択しました`);
-                // memory.jsonから既存ノードを読み込み
-                await loadExistingNodes();
+
+                // 既にノードがある場合は上書きしない（ユーザーが追加したノードを保護）
+                if (nodes.length === 0) {
+                    console.log('[デバッグ] ノードが空のため、memory.jsonから読み込みます');
+                    await loadExistingNodes();
+                } else {
+                    console.log('[デバッグ] 既にノードがあるため、memory.jsonの読み込みをスキップします');
+                }
             }
         }
     } catch (error) {
