@@ -392,6 +392,11 @@ function renderNodesInLayer(layer) {
         btn.style.top = `${node.y}px`;
         btn.dataset.nodeId = node.id;
 
+        // 赤枠スタイルを適用
+        if (node.redBorder) {
+            btn.classList.add('red-border');
+        }
+
         // 高さを設定（中間ラインは1px、通常は40px）
         if (node.height && node.height === 1) {
             btn.style.height = '1px';
@@ -683,62 +688,79 @@ async function executeScript() {
     hideContextMenu();
 }
 
-// レイヤー化（ノードを別のレイヤーに移動）
+// レイヤー化（赤枠ノードをまとめて1つのピンクノードにする）
 function layerizeNode() {
     if (!contextMenuTarget) {
         alert('ノードが選択されていません。');
         return;
     }
 
-    // 移動先レイヤーを入力
-    const targetLayerStr = prompt(`「${contextMenuTarget.text}」を移動するレイヤーを選択してください:\n\n0 - レイヤー0（非表示左）\n1 - レイヤー1\n2 - レイヤー2\n3 - レイヤー3（非表示右）\n4 - レイヤー4（非表示右）\n5 - レイヤー5（非表示右）\n6 - レイヤー6（非表示右）\n\n移動先レイヤー番号を入力:`);
+    const layerNodes = layerStructure[currentLayer].nodes;
 
-    if (targetLayerStr === null) {
-        hideContextMenu();
-        return; // キャンセル
-    }
+    // 赤枠ノードを収集
+    const redBorderNodes = layerNodes.filter(n => n.redBorder);
 
-    const targetLayer = parseInt(targetLayerStr);
-
-    // バリデーション
-    if (isNaN(targetLayer) || targetLayer < 0 || targetLayer > 6) {
-        alert('無効なレイヤー番号です。0-6の範囲で入力してください。');
+    if (redBorderNodes.length === 0) {
+        alert('レイヤー化するには、まず赤枠でノードを選択してください。');
         hideContextMenu();
         return;
     }
 
-    const currentLayerNum = contextMenuTarget.layer;
+    // Y座標でソート
+    const sortedRedNodes = [...redBorderNodes].sort((a, b) => a.y - b.y);
 
-    if (targetLayer === currentLayerNum) {
-        alert('同じレイヤーには移動できません。');
-        hideContextMenu();
-        return;
-    }
+    // 最小Y位置を取得
+    const minY = sortedRedNodes[0].y;
 
-    // 現在のレイヤーから削除
-    const nodeIndex = layerStructure[currentLayerNum].nodes.findIndex(n => n.id === contextMenuTarget.id);
-    if (nodeIndex !== -1) {
-        layerStructure[currentLayerNum].nodes.splice(nodeIndex, 1);
-    }
+    // 削除したノード情報を配列に追加（名前;色;テキスト;スクリプト）
+    const deletedNodeInfo = sortedRedNodes.map(node => {
+        return `${node.id};${node.color};${node.text};${node.script || ''}`;
+    });
 
-    // グローバルノード配列からも更新
-    const globalNodeIndex = nodes.findIndex(n => n.id === contextMenuTarget.id);
-    if (globalNodeIndex !== -1) {
-        nodes[globalNodeIndex].layer = targetLayer;
-        contextMenuTarget.layer = targetLayer;
+    const entryString = deletedNodeInfo.join('_');
 
-        // 移動先レイヤーに追加
-        layerStructure[targetLayer].nodes.push(nodes[globalNodeIndex]);
-    }
+    // 赤枠ノードをグローバル配列とレイヤーから削除
+    sortedRedNodes.forEach(node => {
+        const globalIndex = nodes.findIndex(n => n.id === node.id);
+        if (globalIndex !== -1) {
+            nodes.splice(globalIndex, 1);
+        }
 
-    // 現在のレイヤーを再描画
-    renderNodesInLayer(currentLayerNum);
+        const layerIndex = layerNodes.findIndex(n => n.id === node.id);
+        if (layerIndex !== -1) {
+            layerNodes.splice(layerIndex, 1);
+        }
+    });
 
-    console.log(`ノード「${contextMenuTarget.text}」をレイヤー${currentLayerNum} → レイヤー${targetLayer}に移動しました`);
-    alert(`ノード「${contextMenuTarget.text}」をレイヤー${targetLayer}に移動しました。`);
+    // 新しいピンクノードを作成
+    const newNodeId = nextNodeId++;
+    const newNode = {
+        id: newNodeId,
+        text: 'スクリプト',
+        color: 'Pink',
+        処理番号: '99-1',
+        layer: currentLayer,
+        y: minY,
+        x: 0,
+        width: 134,
+        height: 28,
+        script: entryString,  // 削除したノードの情報を保存
+        redBorder: false
+    };
+
+    // グローバル配列とレイヤーに追加
+    nodes.push(newNode);
+    layerNodes.push(newNode);
+
+    // 画面を再描画
+    renderNodesInLayer(currentLayer);
+    reorderNodesInLayer(currentLayer);
 
     // memory.json自動保存
     saveMemoryJson();
+
+    console.log(`[レイヤー化] レイヤー${currentLayer}: ${sortedRedNodes.length}個 → ノード${newNodeId} (スクリプト)`);
+    alert(`${sortedRedNodes.length}個のノードをレイヤー化しました。`);
 
     hideContextMenu();
 }
@@ -780,6 +802,80 @@ async function deleteNode() {
     saveMemoryJson();
 
     console.log(`[削除完了] ${deleteTargets.length}個のノードを削除しました`);
+
+    hideContextMenu();
+}
+
+// 赤枠トグル（ノードに赤枠を付けたり外したりする）
+function toggleRedBorder() {
+    if (!contextMenuTarget) return;
+
+    const layerNodes = layerStructure[currentLayer].nodes;
+    const targetNode = layerNodes.find(n => n.id === contextMenuTarget.id);
+
+    if (!targetNode) {
+        hideContextMenu();
+        return;
+    }
+
+    // redBorderフラグをトグル
+    targetNode.redBorder = !targetNode.redBorder;
+
+    // 画面を再描画
+    renderNodesInLayer(currentLayer);
+
+    // memory.json自動保存
+    saveMemoryJson();
+
+    console.log(`[赤枠トグル] ノード「${targetNode.text}」の赤枠を${targetNode.redBorder ? '追加' : '削除'}しました`);
+
+    hideContextMenu();
+}
+
+// 赤枠に挟まれたボタンスタイルを適用
+function applyRedBorderToGroup() {
+    if (!contextMenuTarget) return;
+
+    const layerNodes = layerStructure[currentLayer].nodes;
+
+    // Y座標でソート
+    const sortedNodes = [...layerNodes].sort((a, b) => a.y - b.y);
+
+    // 赤枠ノードのインデックスを収集
+    const redBorderIndices = [];
+    sortedNodes.forEach((node, index) => {
+        if (node.redBorder) {
+            redBorderIndices.push(index);
+        }
+    });
+
+    // 赤枠ノードが2つ以上ある場合のみ処理
+    if (redBorderIndices.length < 2) {
+        alert('赤枠ノードが2つ以上必要です。');
+        hideContextMenu();
+        return;
+    }
+
+    const startIndex = redBorderIndices[0];
+    const endIndex = redBorderIndices[redBorderIndices.length - 1];
+
+    // 赤枠に挟まれたノードに赤枠を適用
+    let appliedCount = 0;
+    for (let i = startIndex + 1; i < endIndex; i++) {
+        if (!sortedNodes[i].redBorder) {
+            sortedNodes[i].redBorder = true;
+            appliedCount++;
+        }
+    }
+
+    // 画面を再描画
+    renderNodesInLayer(currentLayer);
+
+    // memory.json自動保存
+    saveMemoryJson();
+
+    console.log(`[赤枠グループ適用] ${appliedCount}個のノードに赤枠を適用しました`);
+    alert(`${appliedCount}個のノードに赤枠を適用しました。`);
 
     hideContextMenu();
 }

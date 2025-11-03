@@ -281,6 +281,10 @@ body {
     background-color: rgba(255, 0, 0, 0.05) !important;
 }
 
+.node-button.red-border {
+    border: 3px solid #f00 !important;
+}
+
 /* 矢印Canvas */
 .arrow-canvas {
     position: absolute;
