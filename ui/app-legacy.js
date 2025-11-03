@@ -3261,40 +3261,54 @@ function getCodeEntry(処理番号) {
 // 処理番号でスクリプト内容を設定
 // PowerShell互換: "---" で分割してサブIDを自動生成
 async function setCodeEntry(id, content) {
+    console.log('┌─ [setCodeEntry] 開始 ────────────────');
+    console.log('│ ID:', id);
+    console.log('│ content長:', content ? content.length : 0);
+
     if (!id) {
-        console.warn('IDが指定されていません');
+        console.error('│ ❌ エラー: IDが指定されていません');
+        console.log('└──────────────────────────────────────');
         return;
     }
 
     if (!content || content.trim() === '') {
-        console.warn('コンテンツが空です');
+        console.error('│ ❌ エラー: コンテンツが空です');
+        console.log('└──────────────────────────────────────');
         return;
     }
 
     // 🔧 修正: codeDataの初期化確認
     if (!codeData["エントリ"]) {
         codeData["エントリ"] = {};
+        console.log('│ codeData["エントリ"]を初期化しました');
     }
 
     // "---" で文字列を分割
     const separator = '---';
     const parts = content.split(separator);
 
-    console.log(`[コード設定] ID: ${id}, 分割数: ${parts.length}`);
+    console.log(`│ 分割数: ${parts.length}`);
 
     // 各部分にサブIDを割り当てて追加
     for (let i = 0; i < parts.length; i++) {
         const subId = `${id}-${i + 1}`;
         const trimmedContent = parts[i].trim();
         codeData["エントリ"][subId] = trimmedContent;
-        console.log(`  [サブID] ${subId}: ${trimmedContent.substring(0, 50)}${trimmedContent.length > 50 ? '...' : ''}`);
+        console.log(`│   [${subId}] ${trimmedContent.substring(0, 50)}${trimmedContent.length > 50 ? '...' : ''}`);
     }
 
     // 最後のIDを更新
     const numericId = parseInt(id);
     if (!isNaN(numericId) && numericId > codeData["最後のID"]) {
         codeData["最後のID"] = numericId;
+        console.log(`│ 最後のIDを更新: ${numericId}`);
     }
+
+    console.log('│ メモリ上のcodeDataに保存完了');
+    console.log('│ 現在のエントリ数:', Object.keys(codeData["エントリ"]).length);
+    console.log('│');
+    console.log('│ saveCodeJson()を呼び出します...');
+    console.log('└──────────────────────────────────────');
 
     // コード.jsonを保存
     await saveCodeJson();
