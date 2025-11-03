@@ -20,7 +20,7 @@ $script:RootDir = Split-Path -Parent $PSScriptRoot
 
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host "UIpowershell - Polaris API Server V2" -ForegroundColor Cyan
-Write-Host "Version: 1.0.177 (DELETE全削除デバッグ版)" -ForegroundColor Yellow
+Write-Host "Version: 1.0.178 (ルート衝突修正版)" -ForegroundColor Yellow
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -261,35 +261,7 @@ New-PolarisRoute -Path "/api/nodes" -Method POST -ScriptBlock {
     }
 }
 
-# ノード削除（単一・セット両対応）
-New-PolarisRoute -Path "/api/nodes/:id" -Method DELETE -ScriptBlock {
-    Set-CorsHeaders -Response $Response
-    try {
-        $nodeId = $Request.Parameters.id
-        $body = $Request.Body | ConvertFrom-Json
-
-        # ノード配列を受け取る
-        $nodes = $body.nodes
-
-        # v2関数で削除対象を特定
-        $result = ノード削除_v2 -ノード配列 $nodes -TargetNodeId $nodeId
-
-        $json = $result | ConvertTo-Json -Compress
-        $Response.SetContentType('application/json; charset=utf-8')
-        $Response.Send($json)
-    } catch {
-        $Response.SetStatusCode(500)
-        $errorResult = @{
-            success = $false
-            error = $_.Exception.Message
-        }
-        $json = $errorResult | ConvertTo-Json -Compress
-        $Response.SetContentType('application/json; charset=utf-8')
-        $Response.Send($json)
-    }
-}
-
-# すべてのノードを削除
+# すべてのノードを削除（具体的なルートを先に定義）
 New-PolarisRoute -Path "/api/nodes/all" -Method DELETE -ScriptBlock {
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
     Write-Host "[API] 🔥 DELETE /api/nodes/all エンドポイントが呼ばれました！" -ForegroundColor Magenta
@@ -348,6 +320,34 @@ New-PolarisRoute -Path "/api/nodes/all" -Method DELETE -ScriptBlock {
         $Response.Send($json)
     } catch {
         Write-Host "[API] ❌ エラー発生: $($_.Exception.Message)" -ForegroundColor Red
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# ノード削除（単一・セット両対応）
+New-PolarisRoute -Path "/api/nodes/:id" -Method DELETE -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $nodeId = $Request.Parameters.id
+        $body = $Request.Body | ConvertFrom-Json
+
+        # ノード配列を受け取る
+        $nodes = $body.nodes
+
+        # v2関数で削除対象を特定
+        $result = ノード削除_v2 -ノード配列 $nodes -TargetNodeId $nodeId
+
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    } catch {
         $Response.SetStatusCode(500)
         $errorResult = @{
             success = $false
