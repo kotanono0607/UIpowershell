@@ -794,30 +794,30 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
         $folderName = $Request.Parameters.name
         Write-Host "[API] フォルダ名: $folderName" -ForegroundColor Yellow
 
-        # リクエストボディを確認（デバッグ）
+        # リクエストボディを取得（ストリームは一度しか読めない可能性があるため、一度だけ読み込む）
         Write-Host "[API] Request.Body のデバッグ開始..." -ForegroundColor Cyan
-        try {
-            $bodyRaw = $Request.Body
-            if ($null -eq $bodyRaw) {
-                Write-Host "[API] ❌ Request.Body が null です" -ForegroundColor Red
-            } else {
-                Write-Host "[API] Request.Body の型: $($bodyRaw.GetType().FullName)" -ForegroundColor Cyan
-                $bodyStr = "$bodyRaw"
-                Write-Host "[API] Request.Body の文字列表現長さ: $($bodyStr.Length)" -ForegroundColor Cyan
-                if ($bodyStr.Length -gt 0) {
-                    $preview = $bodyStr.Substring(0, [Math]::Min(200, $bodyStr.Length))
-                    Write-Host "[API] Request.Body の最初の200文字: [$preview]" -ForegroundColor Cyan
-                } else {
-                    Write-Host "[API] ❌ Request.Body の文字列表現が空です" -ForegroundColor Red
-                }
-            }
-        } catch {
-            Write-Host "[API] ⚠️ Request.Body の確認中にエラー: $($_.Exception.Message)" -ForegroundColor Yellow
+        $bodyRaw = $Request.Body
+
+        if ($null -eq $bodyRaw) {
+            Write-Host "[API] ❌ Request.Body が null です" -ForegroundColor Red
+            throw "Request.Body が null です"
         }
 
-        # リクエストボディを解析
-        Write-Host "[API] Request.Body を ConvertFrom-Json します..." -ForegroundColor Yellow
-        $body = $Request.Body | ConvertFrom-Json
+        Write-Host "[API] Request.Body の型: $($bodyRaw.GetType().FullName)" -ForegroundColor Cyan
+        $bodyStr = "$bodyRaw"
+        Write-Host "[API] Request.Body の文字列表現長さ: $($bodyStr.Length)" -ForegroundColor Cyan
+
+        if ($bodyStr.Length -gt 0) {
+            $preview = $bodyStr.Substring(0, [Math]::Min(200, $bodyStr.Length))
+            Write-Host "[API] Request.Body の最初の200文字: [$preview]" -ForegroundColor Cyan
+        } else {
+            Write-Host "[API] ❌ Request.Body の文字列表現が空です" -ForegroundColor Red
+            throw "Request.Body が空です"
+        }
+
+        # リクエストボディを解析（$bodyRaw を使用、$Request.Body を再度読まない）
+        Write-Host "[API] bodyRaw を ConvertFrom-Json します..." -ForegroundColor Yellow
+        $body = $bodyRaw | ConvertFrom-Json
         Write-Host "[API] ✅ ConvertFrom-Json完了" -ForegroundColor Green
 
         if ($null -eq $body) {
