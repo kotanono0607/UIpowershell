@@ -12,6 +12,9 @@ const arrowState = {
 
 // Canvas要素を各レイヤーパネルに追加
 function initializeArrowCanvas() {
+    console.log('[矢印] initializeArrowCanvas() 開始');
+    let createdCanvasCount = 0;
+
     // 各レイヤーパネルにcanvas要素を追加
     for (let i = 0; i <= 6; i++) {
         const layerPanel = document.getElementById(`layer-${i}`);
@@ -36,7 +39,13 @@ function initializeArrowCanvas() {
                 nodeList.appendChild(canvas);
 
                 arrowState.canvasMap.set(`layer-${i}`, canvas);
+                createdCanvasCount++;
+                console.log(`[矢印] Canvas作成: layer-${i} (${canvas.width}x${canvas.height})`);
+            } else {
+                console.warn(`[矢印] .node-list-containerが見つかりません: layer-${i}`);
             }
+        } else {
+            console.warn(`[矢印] レイヤーパネルが見つかりません: layer-${i}`);
         }
     }
 
@@ -61,7 +70,13 @@ function initializeArrowCanvas() {
         mainContainer.appendChild(canvas);
 
         arrowState.canvasMap.set('main', canvas);
+        createdCanvasCount++;
+        console.log(`[矢印] Canvas作成: main (${canvas.width}x${canvas.height})`);
+    } else {
+        console.warn(`[矢印] main-containerが見つかりません`);
     }
+
+    console.log(`[矢印] initializeArrowCanvas() 完了: ${createdCanvasCount}個のCanvasを作成`);
 }
 
 // 矢印ヘッドを描画するヘルパー関数
@@ -708,17 +723,7 @@ function clearPinkSelected() {
     refreshAllArrows();
 }
 
-// 初期化（DOMContentLoadedで呼び出す）
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Arrow drawing initialization...');
-    initializeArrowCanvas();
-    refreshAllArrows();
-
-    // ウィンドウリサイズ時に再描画
-    window.addEventListener('resize', resizeCanvases);
-});
-
-// グローバルに公開
+// グローバルに公開（即座に利用可能にする）
 window.arrowDrawing = {
     refreshAllArrows,
     drawPanelArrows,
@@ -726,5 +731,19 @@ window.arrowDrawing = {
     resizeCanvases,
     setPinkSelected,
     clearPinkSelected,
-    state: arrowState
+    initializeArrowCanvas,  // 初期化関数も公開
+    state: arrowState,
+    initialized: false  // 初期化フラグ
 };
+
+// 初期化（DOMContentLoadedで呼び出す）
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('[矢印] Arrow drawing initialization...');
+    initializeArrowCanvas();
+    refreshAllArrows();
+    window.arrowDrawing.initialized = true;
+    console.log('[矢印] Arrow drawing initialized successfully');
+
+    // ウィンドウリサイズ時に再描画
+    window.addEventListener('resize', resizeCanvases);
+});

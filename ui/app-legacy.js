@@ -84,16 +84,26 @@ function checkScreenWidth() {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('UIpowershell Legacy UI initialized');
 
-    // arrow-drawing.jsが読み込まれるまで待機
+    // arrow-drawing.jsが読み込まれ、初期化されるまで待機
     let retryCount = 0;
-    while (!window.arrowDrawing && retryCount < 50) {
-        console.log(`[デバッグ] arrow-drawing.js読み込み待機中... (${retryCount + 1}/50)`);
+    while ((!window.arrowDrawing || !window.arrowDrawing.initialized) && retryCount < 50) {
+        if (!window.arrowDrawing) {
+            console.log(`[デバッグ] arrow-drawing.js読み込み待機中... (${retryCount + 1}/50)`);
+        } else if (!window.arrowDrawing.initialized) {
+            console.log(`[デバッグ] arrow-drawing.js初期化待機中... (${retryCount + 1}/50)`);
+        }
         await new Promise(resolve => setTimeout(resolve, 100));
         retryCount++;
     }
 
-    if (window.arrowDrawing) {
-        console.log('[デバッグ] arrow-drawing.js読み込み成功！');
+    if (window.arrowDrawing && window.arrowDrawing.initialized) {
+        console.log('[デバッグ] arrow-drawing.js読み込み・初期化成功！');
+        console.log(`[デバッグ] Canvas数: ${window.arrowDrawing.state.canvasMap.size}`);
+    } else if (window.arrowDrawing && !window.arrowDrawing.initialized) {
+        console.warn('[デバッグ] arrow-drawing.jsは読み込まれましたが初期化されていません - 手動で初期化します');
+        window.arrowDrawing.initializeArrowCanvas();
+        window.arrowDrawing.initialized = true;
+        console.log(`[デバッグ] 手動初期化完了。Canvas数: ${window.arrowDrawing.state.canvasMap.size}`);
     } else {
         console.error('[デバッグ] arrow-drawing.js読み込みタイムアウト - 矢印機能は利用できません');
     }
