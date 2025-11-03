@@ -1189,7 +1189,7 @@ function checkScreenWidth() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('═══════════════════════════════════════════════');
-    console.log('UIpowershell Legacy UI v1.0.165 - 起動開始');
+    console.log('UIpowershell Legacy UI v1.0.166 - 起動開始');
     console.log('═══════════════════════════════════════════════');
 
     // 矢印描画機能を初期化（arrow-drawing.jsの内容が統合されているため即座に利用可能）
@@ -2030,10 +2030,16 @@ function renameNode() {
 function editScript() {
     if (!contextMenuTarget) return;
 
+    console.log('[editScript] ノード編集開始:', contextMenuTarget.text, 'ID:', contextMenuTarget.id);
+
+    // コード.json からコード内容を取得
+    const code = getCodeEntry(contextMenuTarget.id);
+    console.log('[editScript] 取得したコード長:', code ? code.length : 0);
+
     // モーダルを表示
     document.getElementById('script-modal').classList.add('show');
     document.getElementById('script-node-name').textContent = contextMenuTarget.text;
-    document.getElementById('script-editor').value = contextMenuTarget.script || '';
+    document.getElementById('script-editor').value = code || '';
 
     hideContextMenu();
 }
@@ -2044,19 +2050,17 @@ function closeScriptModal() {
 }
 
 // スクリプトを保存
-function saveScript() {
+async function saveScript() {
     if (!contextMenuTarget) return;
 
+    console.log('[saveScript] スクリプト保存開始:', contextMenuTarget.text, 'ID:', contextMenuTarget.id);
+
     const newScript = document.getElementById('script-editor').value;
-    contextMenuTarget.script = newScript;
 
-    // グローバルノード配列も更新
-    const globalNodeIndex = nodes.findIndex(n => n.id === contextMenuTarget.id);
-    if (globalNodeIndex !== -1) {
-        nodes[globalNodeIndex].script = newScript;
-    }
+    // コード.json に保存（setCodeEntry は内部で saveCodeJson を呼び出す）
+    await setCodeEntry(contextMenuTarget.id, newScript);
 
-    console.log(`ノード「${contextMenuTarget.text}」のスクリプトを更新しました`);
+    console.log(`[saveScript] ✅ ノード「${contextMenuTarget.text}」のスクリプトを更新しました`);
     alert(`スクリプトを保存しました。`);
 
     closeScriptModal();
