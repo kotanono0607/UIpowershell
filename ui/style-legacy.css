@@ -106,24 +106,27 @@ body {
 }
 
 /* ============================================
-   左ペイン: 240px固定
+   左ペイン: 450px固定（カテゴリー140px + gap10px + ノード300px）
    ============================================ */
 #left-panel {
-    width: 240px;
+    width: 450px;
     background: #f2f2f2;
     padding: 12px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    gap: 10px;
     overflow: hidden;
     flex-shrink: 0;
     margin-right: 16px;
 }
 
 #category-buttons {
+    width: 140px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-bottom: 16px;
+    flex-shrink: 0;
+    overflow-y: auto;
 }
 
 .category-section-title {
@@ -134,7 +137,7 @@ body {
 }
 
 .category-btn {
-    width: 100%;
+    width: 140px;
     height: 28px;
     border: 1px solid #999;
     cursor: pointer;
@@ -148,9 +151,9 @@ body {
 }
 
 #node-buttons-container {
-    flex: 1;
+    width: 300px;
+    flex-shrink: 0;
     overflow-y: auto;
-    margin-top: 16px;
 }
 
 .category-panel {
@@ -158,13 +161,14 @@ body {
 }
 
 .category-panel.active {
-    display: grid;
-    grid-template-columns: repeat(2, 104px);
+    display: flex;
+    flex-direction: column;
     gap: 8px;
+    align-items: center;
 }
 
 .add-node-btn {
-    width: 104px;
+    width: 120px;
     height: 28px;
     margin-bottom: 0;
     border: 1px solid #999;
