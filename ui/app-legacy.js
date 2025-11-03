@@ -1189,7 +1189,7 @@ function checkScreenWidth() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('═══════════════════════════════════════════════');
-    console.log('UIpowershell Legacy UI v1.0.170 - 起動開始');
+    console.log('UIpowershell Legacy UI v1.0.171 - 起動開始');
     console.log('═══════════════════════════════════════════════');
 
     // 矢印描画機能を初期化（arrow-drawing.jsの内容が統合されているため即座に利用可能）
@@ -2014,6 +2014,15 @@ function showContextMenu(e, node) {
 function hideContextMenu() {
     document.getElementById('context-menu').classList.remove('show');
     document.removeEventListener('click', hideContextMenu);
+}
+
+// ノード設定（右クリックメニューから）
+function openNodeSettingsFromContextMenu() {
+    if (!contextMenuTarget) return;
+
+    console.log('[右クリック] ノード設定を開く:', contextMenuTarget.text, 'ID:', contextMenuTarget.id);
+    openNodeSettings(contextMenuTarget);
+    hideContextMenu();
 }
 
 // 名前変更
@@ -3508,11 +3517,28 @@ let currentSettingsNode = null;
 function openNodeSettings(node) {
     currentSettingsNode = node;
 
+    console.log('[ノード設定] モーダルを開く:', node.text, 'ID:', node.id);
+
     // モーダルを表示
     document.getElementById('node-settings-modal').classList.add('show');
     document.getElementById('settings-node-name').textContent = node.text;
     document.getElementById('settings-node-text').value = node.text;
     document.getElementById('settings-node-script').value = node.script || '';
+
+    // 外観設定を設定
+    document.getElementById('settings-node-color').value = node.color || 'White';
+    document.getElementById('settings-node-width').value = node.width || 280;
+    document.getElementById('settings-node-height').value = node.height || 40;
+    document.getElementById('settings-node-x').value = node.x || 10;
+    document.getElementById('settings-node-y').value = node.y || 10;
+
+    console.log('[ノード設定] 現在の設定:', {
+        color: node.color,
+        width: node.width,
+        height: node.height,
+        x: node.x,
+        y: node.y
+    });
 
     // カスタムフィールドをクリア
     const customFields = document.getElementById('settings-custom-fields');
@@ -3522,21 +3548,27 @@ function openNodeSettings(node) {
     if (node.処理番号 === '1-2') {
         // 条件分岐
         customFields.innerHTML = `
-            <div style="margin-bottom: 15px;">
-                <label>条件式:</label>
-                <input type="text" id="condition-expression" value="${node.conditionExpression || ''}" style="width: 100%; padding: 5px;" placeholder="例: $変数 -eq '値'" />
+            <div style="margin-bottom: 15px; padding: 10px; background: #fff3cd; border-radius: 5px;">
+                <label><strong>条件分岐設定:</strong></label>
+                <div style="margin-top: 8px;">
+                    <label>条件式:</label>
+                    <input type="text" id="condition-expression" value="${node.conditionExpression || ''}" style="width: 100%; padding: 5px;" placeholder="例: $変数 -eq '値'" />
+                </div>
             </div>
         `;
     } else if (node.処理番号 === '1-3') {
         // ループ
         customFields.innerHTML = `
-            <div style="margin-bottom: 15px;">
-                <label>ループ回数:</label>
-                <input type="number" id="loop-count" value="${node.loopCount || 1}" style="width: 200px; padding: 5px;" />
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label>ループ変数名:</label>
-                <input type="text" id="loop-variable" value="${node.loopVariable || 'i'}" style="width: 200px; padding: 5px;" />
+            <div style="margin-bottom: 15px; padding: 10px; background: #d1ecf1; border-radius: 5px;">
+                <label><strong>ループ設定:</strong></label>
+                <div style="margin-top: 8px;">
+                    <label>ループ回数:</label>
+                    <input type="number" id="loop-count" value="${node.loopCount || 1}" style="width: 100%; padding: 5px;" />
+                </div>
+                <div style="margin-top: 8px;">
+                    <label>ループ変数名:</label>
+                    <input type="text" id="loop-variable" value="${node.loopVariable || 'i'}" style="width: 100%; padding: 5px;" />
+                </div>
             </div>
         `;
     }
@@ -3547,42 +3579,73 @@ function closeNodeSettingsModal() {
     currentSettingsNode = null;
 }
 
-function saveNodeSettings() {
+async function saveNodeSettings() {
     if (!currentSettingsNode) return;
+
+    console.log('[ノード設定] 保存開始:', currentSettingsNode.text, 'ID:', currentSettingsNode.id);
 
     // 基本設定を更新
     const newText = document.getElementById('settings-node-text').value;
     const newScript = document.getElementById('settings-node-script').value;
 
+    // 外観設定を更新
+    const newColor = document.getElementById('settings-node-color').value;
+    const newWidth = parseInt(document.getElementById('settings-node-width').value);
+    const newHeight = parseInt(document.getElementById('settings-node-height').value);
+    const newX = parseInt(document.getElementById('settings-node-x').value);
+    const newY = parseInt(document.getElementById('settings-node-y').value);
+
+    console.log('[ノード設定] 新しい設定:', {
+        text: newText,
+        color: newColor,
+        width: newWidth,
+        height: newHeight,
+        x: newX,
+        y: newY
+    });
+
     currentSettingsNode.text = newText;
     currentSettingsNode.script = newScript;
+    currentSettingsNode.color = newColor;
+    currentSettingsNode.width = newWidth;
+    currentSettingsNode.height = newHeight;
+    currentSettingsNode.x = newX;
+    currentSettingsNode.y = newY;
 
     // カスタムフィールドを保存
     if (currentSettingsNode.処理番号 === '1-2') {
         const conditionExpression = document.getElementById('condition-expression');
         if (conditionExpression) {
             currentSettingsNode.conditionExpression = conditionExpression.value;
+            console.log('[ノード設定] 条件式を保存:', conditionExpression.value);
         }
     } else if (currentSettingsNode.処理番号 === '1-3') {
         const loopCount = document.getElementById('loop-count');
         const loopVariable = document.getElementById('loop-variable');
-        if (loopCount) currentSettingsNode.loopCount = parseInt(loopCount.value);
-        if (loopVariable) currentSettingsNode.loopVariable = loopVariable.value;
+        if (loopCount) {
+            currentSettingsNode.loopCount = parseInt(loopCount.value);
+            console.log('[ノード設定] ループ回数を保存:', loopCount.value);
+        }
+        if (loopVariable) {
+            currentSettingsNode.loopVariable = loopVariable.value;
+            console.log('[ノード設定] ループ変数名を保存:', loopVariable.value);
+        }
     }
 
     // グローバルノード配列も更新
     const globalNodeIndex = nodes.findIndex(n => n.id === currentSettingsNode.id);
     if (globalNodeIndex !== -1) {
         nodes[globalNodeIndex] = Object.assign({}, currentSettingsNode);
+        console.log('[ノード設定] グローバルノード配列を更新:', globalNodeIndex);
     }
 
     // 再描画
     renderNodesInLayer(currentLayer);
 
     // memory.json自動保存
-    saveMemoryJson();
+    await saveMemoryJson();
 
-    console.log(`ノード「${currentSettingsNode.text}」の設定を更新しました`);
+    console.log('[ノード設定] ✅ 保存完了: ノード「' + currentSettingsNode.text + '」');
     alert('設定を保存しました。');
 
     closeNodeSettingsModal();

@@ -11,7 +11,7 @@
     <div id="header">
         <!-- メニューバー -->
         <div id="menubar">
-            <div class="menu-item" style="font-weight: bold; color: #007acc; cursor: default;">UIpowershell <span id="app-version" style="font-size: 0.85em; color: #666;">v1.0.170</span></div>
+            <div class="menu-item" style="font-weight: bold; color: #007acc; cursor: default;">UIpowershell <span id="app-version" style="font-size: 0.85em; color: #666;">v1.0.171</span></div>
             <div class="menu-item" onclick="executeCode()">実行</div>
             <div class="menu-item" onclick="openVariableModal()">変数</div>
             <div class="menu-item" onclick="createFolder()">フォルダ作成</div>
@@ -171,6 +171,7 @@
 
     <!-- 右クリックメニュー -->
     <div id="context-menu" class="context-menu">
+        <div class="context-menu-item" onclick="openNodeSettingsFromContextMenu()">⚙️ ノード設定</div>
         <div class="context-menu-item" onclick="renameNode()">名前変更</div>
         <div class="context-menu-item" onclick="editScript()">スクリプト編集</div>
         <div class="context-menu-item" onclick="executeScript()">スクリプト実行</div>
@@ -239,17 +240,57 @@
             <h2>ノード設定: <span id="settings-node-name"></span></h2>
             <button class="modal-close" onclick="closeNodeSettingsModal()">×</button>
             <div class="modal-body">
+                <!-- 基本設定 -->
                 <div style="margin-bottom: 15px;">
-                    <label>ノード名:</label>
+                    <label><strong>ノード名:</strong></label>
                     <input type="text" id="settings-node-text" style="width: 100%; padding: 5px;" />
                 </div>
+
+                <!-- 外観設定 -->
+                <div style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                    <label><strong>外観設定:</strong></label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+                        <div>
+                            <label>背景色:</label>
+                            <select id="settings-node-color" style="width: 100%; padding: 5px;">
+                                <option value="White">白 (White)</option>
+                                <option value="Pink">ピンク (Pink)</option>
+                                <option value="LightGray">灰色 (LightGray)</option>
+                                <option value="LightBlue">水色 (LightBlue)</option>
+                                <option value="LightGreen">緑 (LightGreen)</option>
+                                <option value="LightYellow">黄色 (LightYellow)</option>
+                                <option value="LightCoral">コーラル (LightCoral)</option>
+                                <option value="Lavender">ラベンダー (Lavender)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>幅:</label>
+                            <input type="number" id="settings-node-width" min="80" max="500" style="width: 100%; padding: 5px;" />
+                        </div>
+                        <div>
+                            <label>高さ:</label>
+                            <input type="number" id="settings-node-height" min="30" max="200" style="width: 100%; padding: 5px;" />
+                        </div>
+                        <div>
+                            <label>X座標:</label>
+                            <input type="number" id="settings-node-x" min="0" max="2000" style="width: 100%; padding: 5px;" />
+                        </div>
+                        <div>
+                            <label>Y座標:</label>
+                            <input type="number" id="settings-node-y" min="0" max="5000" style="width: 100%; padding: 5px;" />
+                        </div>
+                    </div>
+                </div>
+
                 <div id="settings-custom-fields">
                     <!-- 処理番号に応じたカスタムフィールドがここに表示される -->
                 </div>
+
                 <div style="margin-top: 15px;">
-                    <label>スクリプト:</label>
+                    <label><strong>スクリプト:</strong></label>
                     <textarea id="settings-node-script" rows="10" style="width: 100%; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px;"></textarea>
                 </div>
+
                 <div style="margin-top: 15px;">
                     <button onclick="saveNodeSettings()">💾 保存</button>
                     <button onclick="closeNodeSettingsModal()">キャンセル</button>
