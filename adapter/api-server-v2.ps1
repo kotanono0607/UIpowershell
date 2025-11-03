@@ -781,6 +781,51 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
     }
 }
 
+# variables.json読み込み（フォルダごと）
+New-PolarisRoute -Path "/api/folders/:name/variables" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $folderName = $Request.Parameters.name
+        $rootDir = $global:RootDirForPolaris
+        $variablesPath = Join-Path $rootDir "03_history\$folderName\variables.json"
+
+        if (Test-Path $variablesPath) {
+            $content = Get-Content $variablesPath -Raw -Encoding UTF8
+            $variablesData = $content | ConvertFrom-Json
+
+            $result = @{
+                success = $true
+                data = $variablesData
+                folderName = $folderName
+            }
+            $json = $result | ConvertTo-Json -Depth 10
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+        } else {
+            # variables.jsonが存在しない場合は空のオブジェクトを返す
+            $emptyVariables = @{}
+            $result = @{
+                success = $true
+                data = $emptyVariables
+                folderName = $folderName
+                message = "variables.jsonが存在しないため、空のデータを返しました"
+            }
+            $json = $result | ConvertTo-Json -Depth 10
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+        }
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # --------------------------------------------
 # バリデーションAPI（02-2_ネスト規制バリデーション_v2.ps1）
 # --------------------------------------------

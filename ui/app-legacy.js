@@ -1363,22 +1363,25 @@ function switchCategory(categoryNum) {
 // ノード追加
 // ============================================
 
-function addNodeToLayer(setting) {
+async function addNodeToLayer(setting) {
     console.log('[デバッグ] addNodeToLayer() 呼び出し:', setting.処理番号, setting.テキスト);
 
     // 処理番号で判定してセット作成
     if (setting.処理番号 === '1-2') {
         // 条件分岐：3個セット（開始・中間・終了）
         console.log('[デバッグ] 条件分岐セット追加');
-        addConditionSet(setting);
+        await addConditionSet(setting);
     } else if (setting.処理番号 === '1-3') {
         // ループ：2個セット（開始・終了）
         console.log('[デバッグ] ループセット追加');
-        addLoopSet(setting);
+        await addLoopSet(setting);
     } else {
         // 通常ノード：1個
         console.log('[デバッグ] 通常ノード追加');
-        addSingleNode(setting);
+        const node = addSingleNode(setting);
+
+        // コード生成
+        await generateCode(setting.処理番号, node.name);
 
         // ★修正：画面を再描画（矢印も更新される）
         console.log('[デバッグ] renderNodesInLayer() を呼び出します');
@@ -1418,7 +1421,7 @@ function addSingleNode(setting, customText = null, customY = null, customGroupId
 }
 
 // ループセット（2個）を追加
-function addLoopSet(setting) {
+async function addLoopSet(setting) {
     const groupId = loopGroupCounter++;
     const baseY = getNextAvailableY(currentLayer);
 
@@ -1432,6 +1435,9 @@ function addLoopSet(setting) {
         groupId,
         40
     );
+
+    // コード生成（ループ構文）
+    await generateCode(setting.処理番号, startNode.name);
 
     // 2. 終了ボタン
     const endNode = addSingleNode(
@@ -1449,7 +1455,7 @@ function addLoopSet(setting) {
 }
 
 // 条件分岐セット（3個）を追加
-function addConditionSet(setting) {
+async function addConditionSet(setting) {
     const groupId = conditionGroupCounter++;
     const baseY = getNextAvailableY(currentLayer);
 
@@ -1463,6 +1469,9 @@ function addConditionSet(setting) {
         groupId,
         40
     );
+
+    // コード生成（条件式）
+    await generateCode(setting.処理番号, startNode.name);
 
     // 2. 中間ライン（グレー、高さ1px）
     const middleNode = addSingleNode(
@@ -2721,8 +2730,9 @@ async function loadFolders() {
                 currentFolder = folders[0];
                 console.log(`デフォルトフォルダ「${currentFolder}」を選択しました`);
 
-                // コード.jsonを読み込む
+                // コード.jsonとvariables.jsonを読み込む
                 await loadCodeJson();
+                await loadVariablesJson();
 
                 // 既にノードがある場合は上書きしない（ユーザーが追加したノードを保護）
                 if (nodes.length === 0) {
@@ -2785,8 +2795,9 @@ async function selectFolder() {
             alert(`フォルダ「${folderName}」に切り替えました。`);
             closeFolderModal();
 
-            // コード.jsonとmemory.jsonを読み込む
+            // コード.json、variables.json、memory.jsonを読み込む
             await loadCodeJson();
+            await loadVariablesJson();
             await loadExistingNodes();
         } else {
             alert(`フォルダ切り替えに失敗しました: ${result.error}`);
@@ -3109,14 +3120,37 @@ function getCodeEntry(処理番号) {
 }
 
 // 処理番号でスクリプト内容を設定
-async function setCodeEntry(処理番号, content) {
-    if (!処理番号) {
-        console.warn('処理番号が指定されていません');
+// PowerShell互換: "---" で分割してサブIDを自動生成
+async function setCodeEntry(id, content) {
+    if (!id) {
+        console.warn('IDが指定されていません');
         return;
     }
 
-    codeData["エントリ"][処理番号] = content;
-    console.log(`[コード設定] ${処理番号}: ${content.substring(0, 50)}...`);
+    if (!content || content.trim() === '') {
+        console.warn('コンテンツが空です');
+        return;
+    }
+
+    // "---" で文字列を分割
+    const separator = '---';
+    const parts = content.split(separator);
+
+    console.log(`[コード設定] ID: ${id}, 分割数: ${parts.length}`);
+
+    // 各部分にサブIDを割り当てて追加
+    for (let i = 0; i < parts.length; i++) {
+        const subId = `${id}-${i + 1}`;
+        const trimmedContent = parts[i].trim();
+        codeData["エントリ"][subId] = trimmedContent;
+        console.log(`  [サブID] ${subId}: ${trimmedContent.substring(0, 50)}${trimmedContent.length > 50 ? '...' : ''}`);
+    }
+
+    // 最後のIDを更新
+    const numericId = parseInt(id);
+    if (!isNaN(numericId) && numericId > codeData["最後のID"]) {
+        codeData["最後のID"] = numericId;
+    }
 
     // コード.jsonを保存
     await saveCodeJson();
@@ -3648,3 +3682,673 @@ function setupEventListeners() {
     console.log('  Delete: ノード削除');
     console.log('  Esc: モーダルを閉じる');
 }
+
+// ============================================
+// 変数管理機能（variables.json）
+// ============================================
+
+let variablesData = {};
+
+// variables.jsonを読み込む
+async function loadVariablesJson() {
+    if (!currentFolder) {
+        console.warn('フォルダが選択されていないため、variables.json読み込みをスキップします');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/folders/${currentFolder}/variables`);
+        const result = await response.json();
+
+        if (result.success) {
+            variablesData = result.data || {};
+            console.log('variables.json読み込み成功:', variablesData);
+        } else {
+            variablesData = {};
+        }
+    } catch (error) {
+        console.error('variables.json読み込みエラー:', error);
+        variablesData = {};
+    }
+}
+
+// 単一値変数のリストを取得
+function getSingleValueVariables() {
+    const singleValueVars = [];
+
+    for (const key in variablesData) {
+        const value = variablesData[key];
+        // 配列でない場合は単一値変数
+        if (!Array.isArray(value)) {
+            singleValueVars.push('$' + key);
+        }
+    }
+
+    return singleValueVars;
+}
+
+// 配列変数のリストを取得
+function getArrayVariables() {
+    const arrayVars = [];
+
+    for (const key in variablesData) {
+        const value = variablesData[key];
+        // 配列の場合
+        if (Array.isArray(value)) {
+            arrayVars.push('$' + key);
+        }
+    }
+
+    return arrayVars;
+}
+
+// ============================================
+// コード生成関数（PowerShell互換）
+// ============================================
+
+// 1_1: 順次処理
+function generate_1_1() {
+    return 'Write-Host "OK"';
+}
+
+// 1_6: メッセージボックス表示
+function generate_1_6() {
+    return `Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです。", "タイトル", "OK", "Information")`;
+}
+
+// 99_1: カスタム処理（AAAA_プレフィックス）
+function generate_99_1(直接エントリ) {
+    if (!直接エントリ) {
+        return 'Write-Host "カスタム処理"';
+    }
+
+    const entryWithPrefix = "AAAA_" + 直接エントリ;
+    // アンダースコアを改行に置換
+    const processedEntry = entryWithPrefix.replace(/_/g, '\r\n');
+
+    return processedEntry;
+}
+
+// ============================================
+// コード生成エンジン本体
+// ============================================
+
+// 処理番号から関数名を取得
+function getFunctionNameFromProcessingNumber(処理番号) {
+    const setting = buttonSettings.find(s => s.処理番号 === 処理番号);
+    return setting ? setting.関数名 : null;
+}
+
+// コード生成関数のマッピング
+const codeGeneratorFunctions = {
+    'ShowConditionBuilder': showConditionBuilderDialog,
+    'ShowLoopBuilder': showLoopBuilderDialog,
+    '1_1': generate_1_1,
+    '1_6': generate_1_6,
+    '99_1': generate_99_1
+};
+
+// コード生成のメイン関数
+async function generateCode(処理番号, ボタン名, 直接エントリ = null) {
+    console.log(`[コード生成] 処理番号: ${処理番号}, ボタン名: ${ボタン名}`);
+
+    // 処理番号から関数名を取得
+    const 関数名 = getFunctionNameFromProcessingNumber(処理番号);
+
+    if (!関数名) {
+        console.error(`処理番号 ${処理番号} に対応する関数名が見つかりません`);
+        return null;
+    }
+
+    console.log(`[コード生成] 関数名: ${関数名}`);
+
+    // 関数を実行
+    const generatorFunc = codeGeneratorFunctions[関数名];
+
+    if (!generatorFunc) {
+        console.warn(`関数 ${関数名} は未実装です`);
+        return null;
+    }
+
+    let entryString = null;
+
+    // 特殊処理: 99-1の場合は直接エントリを渡す
+    if (処理番号 === '99-1') {
+        entryString = generatorFunc(直接エントリ);
+    } else {
+        // ダイアログを表示する場合は await
+        if (関数名 === 'ShowConditionBuilder' || 関数名 === 'ShowLoopBuilder') {
+            entryString = await generatorFunc();
+        } else {
+            entryString = generatorFunc();
+        }
+    }
+
+    // ユーザーがキャンセルした場合
+    if (entryString === null || entryString === undefined) {
+        console.log('[コード生成] ユーザーがキャンセルしました');
+        return null;
+    }
+
+    // 空文字列チェック
+    if (entryString.trim() === '') {
+        console.error('[コード生成] エラー: 生成されたコードが空です');
+        return null;
+    }
+
+    // コード.jsonに保存
+    await setCodeEntry(ボタン名, entryString);
+
+    console.log(`[コード生成] 成功: ID ${ボタン名} に保存しました`);
+    return entryString;
+}
+
+// ============================================
+// ShowConditionBuilder ダイアログ
+// ============================================
+
+let conditionBuilderResolver = null;
+let conditionBuilderIsFromLoop = false;
+let conditionControls = [];
+
+// 条件分岐ダイアログを表示
+function showConditionBuilderDialog(isFromLoopBuilder = false) {
+    return new Promise((resolve) => {
+        conditionBuilderResolver = resolve;
+        conditionBuilderIsFromLoop = isFromLoopBuilder;
+        conditionControls = [];
+
+        // モーダルを表示
+        const modal = document.getElementById('condition-builder-modal');
+        modal.classList.add('show');
+
+        // コンテナをクリア
+        const container = document.getElementById('condition-items-container');
+        container.innerHTML = '';
+
+        // プレビューをクリア
+        document.getElementById('condition-preview').value = '';
+
+        // 最初の条件を追加
+        addConditionRow();
+
+        console.log('[条件分岐ダイアログ] 表示しました');
+    });
+}
+
+// 条件行を追加
+function addConditionRow() {
+    const container = document.getElementById('condition-items-container');
+    const index = conditionControls.length;
+
+    const row = document.createElement('div');
+    row.className = 'condition-row';
+    row.style.cssText = 'margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px; background-color: #fafafa;';
+
+    // 論理演算子（2行目以降）
+    let logicalOperatorHtml = '';
+    if (index > 0) {
+        logicalOperatorHtml = `
+            <div style="margin-bottom: 10px;">
+                <select class="logical-operator" style="padding: 5px;">
+                    <option value="-and">-and</option>
+                    <option value="-or">-or</option>
+                </select>
+            </div>
+        `;
+    }
+
+    row.innerHTML = `
+        ${logicalOperatorHtml}
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">左辺</label>
+                <div>
+                    <label style="display: block; margin-bottom: 5px;">
+                        <input type="checkbox" class="left-use-variable"> 変数を使用
+                    </label>
+                    <input type="text" class="left-value" placeholder="値を入力" style="width: 100%; padding: 5px; display: block;">
+                    <select class="left-variable" style="width: 100%; padding: 5px; display: none;"></select>
+                </div>
+            </div>
+
+            <div style="width: 100px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">演算子</label>
+                <select class="operator" style="width: 100%; padding: 5px;">
+                    <option value="-eq">-eq</option>
+                    <option value="-ne">-ne</option>
+                    <option value="-lt">-lt</option>
+                    <option value="-gt">-gt</option>
+                    <option value="-like">-like</option>
+                    <option value="-notlike">-notlike</option>
+                </select>
+            </div>
+
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">右辺</label>
+                <div>
+                    <label style="display: block; margin-bottom: 5px;">
+                        <input type="checkbox" class="right-use-variable"> 変数を使用
+                    </label>
+                    <input type="text" class="right-value" placeholder="値を入力" style="width: 100%; padding: 5px; display: block;">
+                    <select class="right-variable" style="width: 100%; padding: 5px; display: none;"></select>
+                </div>
+            </div>
+
+            ${index > 0 ? '<button class="btn-delete-condition button" style="align-self: flex-end; background-color: #dc3545;">削除</button>' : ''}
+        </div>
+    `;
+
+    container.appendChild(row);
+
+    // 変数リストを設定
+    const leftVarSelect = row.querySelector('.left-variable');
+    const rightVarSelect = row.querySelector('.right-variable');
+    const variables = getSingleValueVariables();
+
+    variables.forEach(v => {
+        const option1 = document.createElement('option');
+        option1.value = v;
+        option1.textContent = v;
+        leftVarSelect.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.value = v;
+        option2.textContent = v;
+        rightVarSelect.appendChild(option2);
+    });
+
+    // イベントリスナーを設定
+    const leftUseVar = row.querySelector('.left-use-variable');
+    const leftValue = row.querySelector('.left-value');
+    const leftVariable = row.querySelector('.left-variable');
+
+    leftUseVar.addEventListener('change', () => {
+        if (leftUseVar.checked) {
+            leftValue.style.display = 'none';
+            leftVariable.style.display = 'block';
+        } else {
+            leftValue.style.display = 'block';
+            leftVariable.style.display = 'none';
+        }
+        updateConditionPreview();
+    });
+
+    const rightUseVar = row.querySelector('.right-use-variable');
+    const rightValue = row.querySelector('.right-value');
+    const rightVariable = row.querySelector('.right-variable');
+
+    rightUseVar.addEventListener('change', () => {
+        if (rightUseVar.checked) {
+            rightValue.style.display = 'none';
+            rightVariable.style.display = 'block';
+        } else {
+            rightValue.style.display = 'block';
+            rightVariable.style.display = 'none';
+        }
+        updateConditionPreview();
+    });
+
+    // プレビュー更新
+    row.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', updateConditionPreview);
+        el.addEventListener('change', updateConditionPreview);
+    });
+
+    // 削除ボタン
+    const deleteBtn = row.querySelector('.btn-delete-condition');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+            if (conditionControls.length <= 1) {
+                alert('最低一つの条件が必要です。');
+                return;
+            }
+            row.remove();
+            conditionControls = Array.from(container.querySelectorAll('.condition-row'));
+            updateConditionPreview();
+        });
+    }
+
+    conditionControls.push(row);
+}
+
+// 条件式プレビューを更新
+function updateConditionPreview() {
+    const container = document.getElementById('condition-items-container');
+    const rows = container.querySelectorAll('.condition-row');
+
+    let fullCondition = '';
+
+    rows.forEach((row, index) => {
+        const leftUseVar = row.querySelector('.left-use-variable').checked;
+        const leftValue = row.querySelector('.left-value').value.trim();
+        const leftVariable = row.querySelector('.left-variable').value;
+
+        const operator = row.querySelector('.operator').value;
+
+        const rightUseVar = row.querySelector('.right-use-variable').checked;
+        const rightValue = row.querySelector('.right-value').value.trim();
+        const rightVariable = row.querySelector('.right-variable').value;
+
+        // 左辺
+        const leftOperand = leftUseVar ? leftVariable : (leftValue ? `"${leftValue}"` : '');
+
+        // 右辺
+        const rightOperand = rightUseVar ? rightVariable : (rightValue ? `"${rightValue}"` : '');
+
+        if (!leftOperand || !operator || !rightOperand) {
+            return;
+        }
+
+        const condition = `${leftOperand} ${operator} ${rightOperand}`;
+
+        if (index === 0) {
+            fullCondition = condition;
+        } else {
+            const logicalOperator = row.querySelector('.logical-operator').value;
+            fullCondition = `(${fullCondition}) ${logicalOperator} (${condition})`;
+        }
+    });
+
+    // プレビュー表示
+    const preview = document.getElementById('condition-preview');
+
+    if (conditionBuilderIsFromLoop) {
+        // ループビルダーからの呼び出し: 条件式のみ
+        preview.value = fullCondition;
+    } else {
+        // 通常: if-else 構文
+        preview.value = `if (${fullCondition}) {\n    # Trueの処理内容\n} else {\n    # Falseの処理内容\n}`;
+    }
+}
+
+// ボタンイベント設定
+document.getElementById('btn-add-condition').addEventListener('click', addConditionRow);
+
+document.getElementById('btn-condition-save').addEventListener('click', () => {
+    let code = document.getElementById('condition-preview').value;
+
+    if (!code || code.trim() === '') {
+        alert('条件式が設定されていません。');
+        return;
+    }
+
+    // コメント行を "---" に置換（PowerShell互換）
+    const lines = code.split('\n');
+    const processedLines = lines.map(line => {
+        if (line.trim().startsWith('#')) {
+            return '---';
+        }
+        return line;
+    });
+    code = processedLines.join('\n');
+
+    console.log('[条件分岐ダイアログ] 保存:', code);
+
+    document.getElementById('condition-builder-modal').classList.remove('show');
+
+    if (conditionBuilderResolver) {
+        conditionBuilderResolver(code);
+        conditionBuilderResolver = null;
+    }
+});
+
+document.getElementById('btn-condition-cancel').addEventListener('click', () => {
+    console.log('[条件分岐ダイアログ] キャンセル');
+
+    document.getElementById('condition-builder-modal').classList.remove('show');
+
+    if (conditionBuilderResolver) {
+        conditionBuilderResolver(null);
+        conditionBuilderResolver = null;
+    }
+});
+
+// ============================================
+// ShowLoopBuilder ダイアログ
+// ============================================
+
+let loopBuilderResolver = null;
+let loopConditionExpression = '';
+
+// ループダイアログを表示
+function showLoopBuilderDialog() {
+    return new Promise((resolve) => {
+        loopBuilderResolver = resolve;
+        loopConditionExpression = '';
+
+        // モーダルを表示
+        const modal = document.getElementById('loop-builder-modal');
+        modal.classList.add('show');
+
+        // 初期表示
+        const loopTypeSelect = document.getElementById('loop-type-select');
+        loopTypeSelect.value = 'for';
+        updateLoopSettings();
+
+        console.log('[ループダイアログ] 表示しました');
+    });
+}
+
+// ループタイプに応じた設定フィールドを更新
+function updateLoopSettings() {
+    const loopType = document.getElementById('loop-type-select').value;
+    const container = document.getElementById('loop-settings-container');
+
+    container.innerHTML = '';
+
+    if (loopType === 'for') {
+        // 固定回数ループ
+        container.innerHTML = `
+            <div style="margin-bottom: 10px;">
+                <label>カウンタ変数名:</label>
+                <input type="text" id="loop-counter-var" value="$i" style="width: 100%; padding: 5px; margin-top: 5px;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>開始値:</label>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                    <input type="text" id="loop-start-value" value="0" style="flex: 1; padding: 5px;">
+                    <label><input type="checkbox" id="loop-start-use-var"> 変数を使用</label>
+                </div>
+                <select id="loop-start-var" style="width: 100%; padding: 5px; margin-top: 5px; display: none;"></select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>終了値:</label>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                    <input type="text" id="loop-end-value" value="10" style="flex: 1; padding: 5px;">
+                    <label><input type="checkbox" id="loop-end-use-var"> 変数を使用</label>
+                </div>
+                <select id="loop-end-var" style="width: 100%; padding: 5px; margin-top: 5px; display: none;"></select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>増分値:</label>
+                <input type="text" id="loop-increment" value="1" style="width: 100%; padding: 5px; margin-top: 5px;">
+            </div>
+        `;
+
+        // 変数リストを設定
+        const variables = getSingleValueVariables();
+        const startVarSelect = document.getElementById('loop-start-var');
+        const endVarSelect = document.getElementById('loop-end-var');
+
+        variables.forEach(v => {
+            const option1 = document.createElement('option');
+            option1.value = v;
+            option1.textContent = v;
+            startVarSelect.appendChild(option1);
+
+            const option2 = document.createElement('option');
+            option2.value = v;
+            option2.textContent = v;
+            endVarSelect.appendChild(option2);
+        });
+
+        // イベントリスナー
+        document.getElementById('loop-start-use-var').addEventListener('change', (e) => {
+            document.getElementById('loop-start-value').style.display = e.target.checked ? 'none' : 'block';
+            document.getElementById('loop-start-var').style.display = e.target.checked ? 'block' : 'none';
+            updateLoopPreview();
+        });
+
+        document.getElementById('loop-end-use-var').addEventListener('change', (e) => {
+            document.getElementById('loop-end-value').style.display = e.target.checked ? 'none' : 'block';
+            document.getElementById('loop-end-var').style.display = e.target.checked ? 'block' : 'none';
+            updateLoopPreview();
+        });
+
+        container.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', updateLoopPreview);
+            el.addEventListener('change', updateLoopPreview);
+        });
+
+    } else if (loopType === 'foreach') {
+        // コレクションのループ
+        container.innerHTML = `
+            <div style="margin-bottom: 10px;">
+                <label>要素変数名:</label>
+                <input type="text" id="loop-element-var" value="$item" style="width: 100%; padding: 5px; margin-top: 5px;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>コレクション変数:</label>
+                <select id="loop-collection-var" style="width: 100%; padding: 5px; margin-top: 5px;"></select>
+            </div>
+        `;
+
+        // 配列変数リストを設定
+        const arrayVars = getArrayVariables();
+        const collectionSelect = document.getElementById('loop-collection-var');
+
+        arrayVars.forEach(v => {
+            const option = document.createElement('option');
+            option.value = v;
+            option.textContent = v;
+            collectionSelect.appendChild(option);
+        });
+
+        container.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', updateLoopPreview);
+            el.addEventListener('change', updateLoopPreview);
+        });
+
+    } else if (loopType === 'while') {
+        // 条件付きループ
+        container.innerHTML = `
+            <div style="margin-bottom: 10px;">
+                <label>ループの種類:</label>
+                <select id="loop-condition-type" style="width: 100%; padding: 5px; margin-top: 5px;">
+                    <option value="while">while</option>
+                    <option value="do-while">do-while</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <button id="btn-set-loop-condition" class="button">条件式を設定</button>
+                <div id="loop-condition-display" style="margin-top: 5px; padding: 10px; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; min-height: 30px;">
+                    条件式: （未設定）
+                </div>
+            </div>
+        `;
+
+        document.getElementById('btn-set-loop-condition').addEventListener('click', async () => {
+            const condition = await showConditionBuilderDialog(true);
+            if (condition) {
+                loopConditionExpression = condition;
+                document.getElementById('loop-condition-display').textContent = `条件式: ${condition}`;
+                updateLoopPreview();
+            }
+        });
+
+        document.getElementById('loop-condition-type').addEventListener('change', updateLoopPreview);
+    }
+
+    updateLoopPreview();
+}
+
+// ループ構文プレビューを更新
+function updateLoopPreview() {
+    const loopType = document.getElementById('loop-type-select').value;
+    const preview = document.getElementById('loop-preview');
+
+    let code = '';
+
+    if (loopType === 'for') {
+        const counterVar = document.getElementById('loop-counter-var')?.value || '$i';
+        const startUseVar = document.getElementById('loop-start-use-var')?.checked;
+        const startValue = startUseVar
+            ? document.getElementById('loop-start-var')?.value
+            : document.getElementById('loop-start-value')?.value || '0';
+        const endUseVar = document.getElementById('loop-end-use-var')?.checked;
+        const endValue = endUseVar
+            ? document.getElementById('loop-end-var')?.value
+            : document.getElementById('loop-end-value')?.value || '10';
+        const increment = document.getElementById('loop-increment')?.value || '1';
+
+        if (counterVar && startValue && endValue && increment) {
+            code = `for (${counterVar} = ${startValue}; ${counterVar} -lt ${endValue}; ${counterVar} += ${increment}) {\n    # 処理内容\n}`;
+        }
+
+    } else if (loopType === 'foreach') {
+        const elementVar = document.getElementById('loop-element-var')?.value || '$item';
+        const collectionVar = document.getElementById('loop-collection-var')?.value;
+
+        if (elementVar && collectionVar) {
+            code = `foreach (${elementVar} in ${collectionVar}) {\n    # 処理内容\n}`;
+        }
+
+    } else if (loopType === 'while') {
+        const conditionType = document.getElementById('loop-condition-type')?.value || 'while';
+        const condition = loopConditionExpression;
+
+        if (condition) {
+            if (conditionType === 'while') {
+                code = `while (${condition}) {\n    # 処理内容\n}`;
+            } else if (conditionType === 'do-while') {
+                code = `do {\n    # 処理内容\n} while (${condition})`;
+            }
+        }
+    }
+
+    preview.value = code;
+}
+
+// イベントリスナー
+document.getElementById('loop-type-select').addEventListener('change', updateLoopSettings);
+
+document.getElementById('btn-loop-save').addEventListener('click', () => {
+    let code = document.getElementById('loop-preview').value;
+
+    if (!code || code.trim() === '') {
+        alert('ループ構文が設定されていません。');
+        return;
+    }
+
+    // コメント行を "---" に置換（PowerShell互換）
+    const lines = code.split('\n');
+    const processedLines = lines.map(line => {
+        if (line.trim().startsWith('#')) {
+            return '---';
+        }
+        return line;
+    });
+    code = processedLines.join('\n');
+
+    console.log('[ループダイアログ] 保存:', code);
+
+    document.getElementById('loop-builder-modal').classList.remove('show');
+
+    if (loopBuilderResolver) {
+        loopBuilderResolver(code);
+        loopBuilderResolver = null;
+    }
+});
+
+document.getElementById('btn-loop-cancel').addEventListener('click', () => {
+    console.log('[ループダイアログ] キャンセル');
+
+    document.getElementById('loop-builder-modal').classList.remove('show');
+
+    if (loopBuilderResolver) {
+        loopBuilderResolver(null);
+        loopBuilderResolver = null;
+    }
+});
