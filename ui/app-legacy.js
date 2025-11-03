@@ -1120,7 +1120,10 @@ function getColorCode(colorName) {
         'White': '#FFFFFF',
         'SpringGreen': 'rgb(0, 255, 127)',
         'LemonChiffon': 'rgb(255, 250, 205)',
-        'Pink': 'rgb(252, 160, 158)'
+        'Pink': 'rgb(252, 160, 158)',
+        'Salmon': 'rgb(250, 128, 114)',          // 条件分岐 False分岐（赤）
+        'LightBlue': 'rgb(200, 220, 255)',       // 条件分岐 True分岐（青）PowerShellの$global:青色に対応
+        'Gray': 'rgb(128, 128, 128)'             // 条件分岐 中間ライン
     };
     return colorMap[colorName] || colorName;
 }
@@ -1568,14 +1571,14 @@ function reorderNodesInLayer(layer) {
                 node.color = 'Salmon';
             }
         } else if (middleIndex !== -1 && endIndex !== -1 && index > middleIndex && index < endIndex) {
-            // 中間〜終了の間: CornflowerBlue（True分岐）
+            // 中間〜終了の間: LightBlue（True分岐）
             // スクリプト化ノードは除外（Pinkのまま）
             if (node.color !== 'Pink') {
-                node.color = 'CornflowerBlue';
+                node.color = 'LightBlue';
             }
         } else {
-            // 条件分岐の外側：SalmonまたはCornflowerBlueの場合はWhiteに戻す
-            if (node.color === 'Salmon' || node.color === 'CornflowerBlue') {
+            // 条件分岐の外側：SalmonまたはLightBlueの場合はWhiteに戻す
+            if (node.color === 'Salmon' || node.color === 'LightBlue') {
                 node.color = 'White';
             }
             // スクリプト化ノードはPinkのまま
