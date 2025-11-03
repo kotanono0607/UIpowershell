@@ -700,20 +700,51 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
     Set-CorsHeaders -Response $Response
     try {
         $folderName = $Request.Parameters.name
-        $body = $Request.Body | ConvertFrom-Json
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        Write-Host "[API] memory.json保存リクエスト受信" -ForegroundColor Cyan
+        Write-Host "[API] フォルダ名: $folderName" -ForegroundColor Yellow
+
+        # Request.Body は null の可能性があるため、Request.BodyString を使用
+        $bodyRaw = $null
+        if ($null -eq $Request.Body) {
+            Write-Host "[API] Request.Body が null です。Request.BodyString を確認..." -ForegroundColor Yellow
+            if ($Request.PSObject.Properties['BodyString']) {
+                $bodyRaw = $Request.BodyString
+                Write-Host "[API] ✅ Request.BodyString を取得しました" -ForegroundColor Green
+            } else {
+                throw "Request.Body と Request.BodyString の両方が null です"
+            }
+        } else {
+            $bodyRaw = $Request.Body
+            Write-Host "[API] ✅ Request.Body を取得しました" -ForegroundColor Green
+        }
+
+        Write-Host "[API] リクエストボディ長: $($bodyRaw.Length) 文字" -ForegroundColor Gray
+
+        $body = $bodyRaw | ConvertFrom-Json
+        Write-Host "[API] JSON解析成功" -ForegroundColor Green
+
         $layerStructure = $body.layerStructure
+        Write-Host "[API] layerStructure取得: $($layerStructure.PSObject.Properties.Name.Count) レイヤー" -ForegroundColor Gray
 
         $rootDir = $global:RootDirForPolaris
         $folderPath = Join-Path $rootDir "03_history\$folderName"
         $memoryPath = Join-Path $folderPath "memory.json"
 
+        Write-Host "[API] 保存先パス: $memoryPath" -ForegroundColor Gray
+
         # フォルダが存在しない場合は作成
         if (-not (Test-Path $folderPath)) {
+            Write-Host "[API] フォルダを作成します: $folderPath" -ForegroundColor Yellow
             New-Item -ItemType Directory -Path $folderPath -Force | Out-Null
+        } else {
+            Write-Host "[API] フォルダは既に存在します" -ForegroundColor Gray
         }
 
         # memory.json形式に変換
         $memoryData = @{}
+        $totalNodes = 0
+
         for ($i = 1; $i -le 6; $i++) {
             $layerNodes = $layerStructure."$i".nodes
             $構成 = @()
@@ -734,24 +765,49 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
                     GroupID = $node.groupId
                     関数名 = if ($node.関数名) { $node.関数名 } else { "" }
                 }
+                $totalNodes++
             }
 
             $memoryData["$i"] = @{ "構成" = $構成 }
+
+            if ($構成.Count -gt 0) {
+                Write-Host "[API] レイヤー$i : $($構成.Count)個のノード" -ForegroundColor Gray
+            }
         }
+
+        Write-Host "[API] 合計ノード数: $totalNodes" -ForegroundColor Yellow
 
         # JSON形式で保存
         $json = $memoryData | ConvertTo-Json -Depth 10
+        Write-Host "[API] JSON生成完了 (長さ: $($json.Length) 文字)" -ForegroundColor Gray
+
         $json | Out-File -FilePath $memoryPath -Encoding UTF8 -Force
+
+        # ファイル保存確認
+        if (Test-Path $memoryPath) {
+            $fileInfo = Get-Item $memoryPath
+            Write-Host "[API] ✅ ファイル保存成功" -ForegroundColor Green
+            Write-Host "[API]    ファイルサイズ: $($fileInfo.Length) バイト" -ForegroundColor Gray
+            Write-Host "[API]    最終更新時刻: $($fileInfo.LastWriteTime)" -ForegroundColor Gray
+        } else {
+            Write-Host "[API] ❌ ファイル保存失敗" -ForegroundColor Red
+        }
 
         $result = @{
             success = $true
             folderName = $folderName
             message = "memory.jsonを保存しました"
+            nodeCount = $totalNodes
         }
         $resultJson = $result | ConvertTo-Json -Compress
         $Response.SetContentType('application/json; charset=utf-8')
         $Response.Send($resultJson)
+
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     } catch {
+        Write-Host "[API] ❌ エラー発生: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "[API] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
+
         $Response.SetStatusCode(500)
         $errorResult = @{
             success = $false
