@@ -1293,7 +1293,13 @@ function renderNodesInLayer(layer) {
     const container = document.querySelector(`#layer-${layer} .node-list-container`);
     if (!container) return;
 
-    container.innerHTML = '';
+    // Canvas要素を保持しながら、ノードボタンのみを削除
+    Array.from(container.children).forEach(child => {
+        if (!child.classList.contains('arrow-canvas')) {
+            child.remove();
+        }
+    });
+    console.log(`[デバッグ] renderNodesInLayer(${layer}): Canvas要素を保持してノードをクリア`);
 
     // Y座標でソート
     const layerNodes = layerStructure[layer].nodes.sort((a, b) => a.y - b.y);
