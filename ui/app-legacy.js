@@ -1189,7 +1189,7 @@ function checkScreenWidth() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('═══════════════════════════════════════════════');
-    console.log('UIpowershell Legacy UI v1.0.169 - 起動開始');
+    console.log('UIpowershell Legacy UI v1.0.170 - 起動開始');
     console.log('═══════════════════════════════════════════════');
 
     // 矢印描画機能を初期化（arrow-drawing.jsの内容が統合されているため即座に利用可能）
@@ -3079,53 +3079,135 @@ function openGeneratedFile() {
 // スナップショット機能
 // ============================================
 
-function createSnapshot() {
-    const snapshotName = prompt('スナップショット名を入力してください:');
-    if (!snapshotName || snapshotName.trim() === '') return;
+async function createSnapshot() {
+    console.log('[スナップショット] 作成開始');
 
-    const snapshot = {
-        name: snapshotName.trim(),
-        timestamp: new Date().toISOString(),
-        nodes: JSON.parse(JSON.stringify(nodes)),
-        layerStructure: JSON.parse(JSON.stringify(layerStructure)),
-        variables: JSON.parse(JSON.stringify(variables))
-    };
+    if (!currentFolder) {
+        alert('フォルダが選択されていません。\n先にフォルダを選択または作成してください。');
+        return;
+    }
 
-    // localStorageに保存
-    const snapshots = JSON.parse(localStorage.getItem('snapshots') || '[]');
-    snapshots.push(snapshot);
-    localStorage.setItem('snapshots', JSON.stringify(snapshots));
+    try {
+        const timestamp = new Date().toISOString();
+        const timestampJP = new Date().toLocaleString('ja-JP', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
 
-    alert(`スナップショット「${snapshotName}」を作成しました。`);
+        console.log(`[スナップショット] 作成日時: ${timestampJP}`);
+        console.log(`[スナップショット] フォルダ: ${currentFolder}`);
+
+        // スナップショット情報
+        const snapshotInfo = {
+            作成日時: timestampJP,
+            timestamp: timestamp,
+            説明: 'スナップショット',
+            タイプ: '手動',
+            フォルダ: currentFolder
+        };
+
+        // スナップショットデータ（PowerShell版に合わせて全データを保存）
+        const snapshot = {
+            フォルダ: currentFolder,
+            timestamp: timestamp,
+            作成日時: timestampJP,
+            nodes: JSON.parse(JSON.stringify(nodes)),
+            layerStructure: JSON.parse(JSON.stringify(layerStructure)),
+            codeData: JSON.parse(JSON.stringify(codeData)),
+            variables: JSON.parse(JSON.stringify(variables))
+        };
+
+        // フォルダごとにスナップショットを管理（PowerShell版のmemory_snapshot.json相当）
+        const storageKey = `snapshot_${currentFolder}`;
+        const infoKey = `snapshot_info_${currentFolder}`;
+
+        console.log(`[スナップショット] localStorage保存: ${storageKey}`);
+        localStorage.setItem(storageKey, JSON.stringify(snapshot));
+        localStorage.setItem(infoKey, JSON.stringify(snapshotInfo));
+
+        console.log('[スナップショット] ✅ 保存完了');
+
+        alert(`📸 スナップショット作成完了\n\n作成日時: ${timestampJP}\nフォルダ: ${currentFolder}\n\n「↩️ 復元」ボタンでこの状態に戻すことができます。`);
+
+    } catch (error) {
+        console.error('[スナップショット] ❌ エラー:', error);
+        alert(`スナップショット作成中にエラーが発生しました:\n${error.message}`);
+    }
 }
 
-function restoreSnapshot() {
-    const snapshots = JSON.parse(localStorage.getItem('snapshots') || '[]');
+async function restoreSnapshot() {
+    console.log('[スナップショット復元] 開始');
 
-    if (snapshots.length === 0) {
-        alert('スナップショットがありません。');
+    if (!currentFolder) {
+        alert('フォルダが選択されていません。\n先にフォルダを選択してください。');
         return;
     }
 
-    const snapshotList = snapshots.map((s, i) => `${i + 1}. ${s.name} (${new Date(s.timestamp).toLocaleString()})`).join('\n');
-    const choice = prompt(`復元するスナップショットを選択してください:\n\n${snapshotList}\n\n番号を入力:`);
+    try {
+        const storageKey = `snapshot_${currentFolder}`;
+        const infoKey = `snapshot_info_${currentFolder}`;
 
-    if (!choice) return;
+        // スナップショット存在確認
+        const snapshotData = localStorage.getItem(storageKey);
+        if (!snapshotData) {
+            alert('スナップショットが存在しません。\n\n先に「📸 スナップショット」ボタンで現在の状態を保存してください。');
+            console.log('[スナップショット復元] スナップショット未保存');
+            return;
+        }
 
-    const index = parseInt(choice) - 1;
-    if (index < 0 || index >= snapshots.length) {
-        alert('無効な番号です。');
-        return;
+        // スナップショット情報を取得
+        const snapshotInfoData = localStorage.getItem(infoKey);
+        const snapshotInfo = snapshotInfoData ? JSON.parse(snapshotInfoData) : null;
+        const snapshotDate = snapshotInfo ? snapshotInfo.作成日時 : '不明';
+
+        console.log(`[スナップショット復元] スナップショット作成日時: ${snapshotDate}`);
+
+        // 確認ダイアログ（PowerShell版と同じ）
+        const confirmed = confirm(
+            `スナップショットの状態に復元します。\n\n` +
+            `スナップショット作成日時: ${snapshotDate}\n` +
+            `フォルダ: ${currentFolder}\n\n` +
+            `現在の変更は失われますがよろしいですか？`
+        );
+
+        if (!confirmed) {
+            console.log('[スナップショット復元] ユーザーがキャンセル');
+            return;
+        }
+
+        // スナップショットを復元
+        const snapshot = JSON.parse(snapshotData);
+
+        console.log('[スナップショット復元] データ復元中...');
+
+        // すべてのデータを復元
+        nodes = JSON.parse(JSON.stringify(snapshot.nodes));
+        layerStructure = JSON.parse(JSON.stringify(snapshot.layerStructure));
+        codeData = JSON.parse(JSON.stringify(snapshot.codeData || {}));
+        variables = JSON.parse(JSON.stringify(snapshot.variables));
+
+        console.log('[スナップショット復元] ノード数:', nodes.length);
+        console.log('[スナップショット復元] コードエントリ数:', Object.keys(codeData).length);
+
+        // UIをリロード（現在のレイヤーを再描画）
+        renderNodesInLayer(currentLayer);
+
+        // memory.json と コード.json を保存（PowerShell版と同期）
+        await saveMemoryJson();
+        await saveCodeJson();
+
+        console.log('[スナップショット復元] ✅ 復元完了');
+
+        alert(`✅ 復元完了\n\nスナップショットから復元しました。\n\n復元日時: ${snapshotDate}`);
+
+    } catch (error) {
+        console.error('[スナップショット復元] ❌ エラー:', error);
+        alert(`スナップショット復元中にエラーが発生しました:\n${error.message}`);
     }
-
-    const snapshot = snapshots[index];
-
-    nodes = JSON.parse(JSON.stringify(snapshot.nodes));
-    layerStructure = JSON.parse(JSON.stringify(snapshot.layerStructure));
-    variables = JSON.parse(JSON.stringify(snapshot.variables));
-
-    renderNodesInLayer(currentLayer);
-    alert(`スナップショット「${snapshot.name}」を復元しました。`);
 }
 
 // ============================================
