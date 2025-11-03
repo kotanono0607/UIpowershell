@@ -2309,11 +2309,14 @@ function handleShiftClick(node) {
     // 赤枠をトグル
     targetNode.redBorder = !targetNode.redBorder;
 
-    // グローバル配列も更新
-    const globalNode = nodes.find(n => n.id === targetNode.id);
-    if (globalNode) {
-        globalNode.redBorder = targetNode.redBorder;
+    // 🔧 修正: グローバル配列の参照を確認・修正（参照が切れている場合のみ）
+    const globalNodeIndex = nodes.findIndex(n => n.id === targetNode.id);
+    if (globalNodeIndex !== -1 && nodes[globalNodeIndex] !== targetNode) {
+        // 参照が切れている場合は修正
+        console.warn('[Shift+クリック] 参照が切れていたため修正します');
+        nodes[globalNodeIndex] = targetNode;
     }
+    // 同じ参照の場合は何もしない（既に targetNode の更新が反映されている）
 
     renderNodesInLayer(currentLayer);
 
@@ -3666,11 +3669,18 @@ async function saveNodeSettings() {
         }
     }
 
-    // グローバルノード配列も更新
+    // グローバルノード配列の参照を修正（参照が切れている場合のみ）
     const globalNodeIndex = nodes.findIndex(n => n.id === currentSettingsNode.id);
     if (globalNodeIndex !== -1) {
-        nodes[globalNodeIndex] = Object.assign({}, currentSettingsNode);
-        console.log('[ノード設定] グローバルノード配列を更新:', globalNodeIndex);
+        if (nodes[globalNodeIndex] !== currentSettingsNode) {
+            // 🔧 修正: Object.assignで新しいオブジェクトを作成するのではなく、
+            // 参照が切れている場合のみ正しい参照に置き換える
+            console.warn('[ノード設定] ⚠️ 参照が切れていたため修正します');
+            nodes[globalNodeIndex] = currentSettingsNode;
+            console.log('[ノード設定] グローバルノード配列の参照を修正しました:', globalNodeIndex);
+        } else {
+            console.log('[ノード設定] ✅ グローバルノード配列は既に正しい参照を持っています:', globalNodeIndex);
+        }
     } else {
         console.warn('[ノード設定] ⚠️ グローバルノード配列でノードが見つかりません:', currentSettingsNode.id);
     }
