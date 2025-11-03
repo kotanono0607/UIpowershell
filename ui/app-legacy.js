@@ -70,7 +70,7 @@ function initializeArrowCanvas() {
     console.log('[矢印] initializeArrowCanvas() 開始');
     let createdCanvasCount = 0;
 
-    // 各レイヤーパネルにcanvas要素を追加
+    // 左パネルの各レイヤーにcanvas要素を追加
     for (let i = 0; i <= 6; i++) {
         const layerPanel = document.getElementById(`layer-${i}`);
         if (layerPanel) {
@@ -129,6 +129,43 @@ function initializeArrowCanvas() {
             }
         } else {
             console.warn(`[矢印] レイヤーパネルが見つかりません: layer-${i}`);
+        }
+    }
+
+    // 右パネルの各レイヤーにcanvas要素を追加
+    for (let i = 0; i <= 6; i++) {
+        const layerPanel = document.getElementById(`layer-${i}-right`);
+        if (layerPanel) {
+            const nodeList = layerPanel.querySelector('.node-list-container');
+            if (nodeList) {
+                // Canvas要素を作成
+                const canvas = document.createElement('canvas');
+                canvas.className = 'arrow-canvas';
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.style.pointerEvents = 'none';
+                canvas.style.zIndex = '1';
+
+                nodeList.style.position = 'relative';
+
+                const parentWidth = nodeList.clientWidth || nodeList.offsetWidth || 299;
+                const parentHeight = nodeList.clientHeight || nodeList.offsetHeight || 700;
+                canvas.width = parentWidth;
+                canvas.height = parentHeight;
+                canvas.style.width = parentWidth + 'px';
+                canvas.style.height = parentHeight + 'px';
+
+                nodeList.appendChild(canvas);
+
+                arrowState.canvasMap.set(`layer-${i}-right`, canvas);
+                createdCanvasCount++;
+                console.log(`[矢印] Canvas作成: layer-${i}-right (${canvas.width}x${canvas.height})`);
+            } else {
+                console.warn(`[矢印] .node-list-containerが見つかりません: layer-${i}-right`);
+            }
+        } else {
+            console.warn(`[矢印] レイヤーパネルが見つかりません: layer-${i}-right`);
         }
     }
 
@@ -265,6 +302,141 @@ function drawDownArrow(ctx, fromNode, toNode, color = '#000000') {
 }
 
 // パネル内のノード間矢印を描画
+// パネル間矢印を描画（ピンクノード展開時）
+function drawCrossPanelPinkArrows() {
+    if (!arrowState.pinkSelected) {
+        return; // ピンク選択中でない場合は何もしない
+    }
+
+    console.log('[パネル間矢印] ピンク選択中のため、パネル間矢印を描画します');
+
+    // 左パネルのcanvasを取得
+    const leftCanvas = arrowState.canvasMap.get(`layer-${leftVisibleLayer}`);
+    if (!leftCanvas) {
+        console.warn(`[パネル間矢印] 左パネルのcanvasが見つかりません: layer-${leftVisibleLayer}`);
+        return;
+    }
+
+    // 左パネルのコンテナを取得
+    const leftContainer = document.querySelector(`#layer-${leftVisibleLayer} .node-list-container`);
+    if (!leftContainer) {
+        console.warn(`[パネル間矢印] 左パネルのコンテナが見つかりません`);
+        return;
+    }
+
+    // 左パネルのピンクノードを検索
+    const leftNodes = leftContainer.querySelectorAll('.node-button');
+    const pinkNode = Array.from(leftNodes).find(node => {
+        const bgColor = window.getComputedStyle(node).backgroundColor;
+        return isPinkColor(bgColor);
+    });
+
+    if (!pinkNode) {
+        console.warn('[パネル間矢印] 左パネルにピンクノードが見つかりません');
+        return;
+    }
+
+    const ctx = leftCanvas.getContext('2d');
+    const containerRect = leftContainer.getBoundingClientRect();
+    const pinkRect = pinkNode.getBoundingClientRect();
+
+    // ピンクノードの右端中央 → パネル右端
+    const startX = pinkRect.right - containerRect.left;
+    const startY = pinkRect.top + pinkRect.height / 2 - containerRect.top;
+    const endX = leftContainer.offsetWidth;
+    const endY = startY;
+
+    ctx.strokeStyle = 'rgb(255, 105, 180)'; // HotPink
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    console.log(`[パネル間矢印] 左パネル矢印描画完了: (${startX}, ${startY}) → (${endX}, ${endY})`);
+
+    // 右パネルの矢印を描画
+    drawRightPanelPinkArrows();
+}
+
+// 右パネル内のピンク矢印を描画
+function drawRightPanelPinkArrows() {
+    const rightCanvas = arrowState.canvasMap.get(`layer-${rightVisibleLayer}-right`);
+    if (!rightCanvas) {
+        console.warn(`[パネル間矢印] 右パネルのcanvasが見つかりません: layer-${rightVisibleLayer}-right`);
+        return;
+    }
+
+    const rightContainer = document.querySelector(`#layer-${rightVisibleLayer}-right .node-list-container`);
+    if (!rightContainer) {
+        console.warn(`[パネル間矢印] 右パネルのコンテナが見つかりません`);
+        return;
+    }
+
+    const rightNodes = Array.from(rightContainer.querySelectorAll('.node-button'));
+    if (rightNodes.length === 0) {
+        console.log('[パネル間矢印] 右パネルにノードがないため、矢印をスキップ');
+        return;
+    }
+
+    const ctx = rightCanvas.getContext('2d');
+    const containerRect = rightContainer.getBoundingClientRect();
+
+    // 最初のノード
+    const firstNode = rightNodes[0];
+    const firstRect = firstNode.getBoundingClientRect();
+
+    // パネル左端 → 最初のノードの右端
+    const startX = 0;
+    const startY = firstRect.top + firstRect.height / 2 - containerRect.top;
+    const endX = firstRect.right - containerRect.left;
+    const endY = startY;
+
+    ctx.strokeStyle = 'rgb(255, 105, 180)'; // HotPink
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    // 矢印ヘッド（右向き）
+    const arrowSize = 10;
+    ctx.fillStyle = 'rgb(255, 105, 180)';
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - arrowSize, endY - arrowSize / 2);
+    ctx.lineTo(endX - arrowSize, endY + arrowSize / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    console.log(`[パネル間矢印] 右パネル入口矢印描画完了`);
+
+    // 最後のノードからの戻り矢印
+    if (rightNodes.length > 1) {
+        const lastNode = rightNodes[rightNodes.length - 1];
+        const lastRect = lastNode.getBoundingClientRect();
+
+        // 最後のノードの左端 → パネル左端（横線）
+        const returnStartX = lastRect.left - containerRect.left;
+        const returnStartY = lastRect.top + lastRect.height / 2 - containerRect.top;
+        const returnEndX = 0;
+        const returnEndY = returnStartY;
+
+        ctx.beginPath();
+        ctx.moveTo(returnStartX, returnStartY);
+        ctx.lineTo(returnEndX, returnEndY);
+        ctx.stroke();
+
+        // パネル左端で縦線（最後のノード → 最初のノード）
+        ctx.beginPath();
+        ctx.moveTo(0, returnEndY);
+        ctx.lineTo(0, startY);
+        ctx.stroke();
+
+        console.log(`[パネル間矢印] 右パネル戻り矢印描画完了`);
+    }
+}
+
 function drawPanelArrows(layerId) {
     console.log(`[デバッグ] drawPanelArrows() 呼び出し: layerId=${layerId}`);
 
@@ -861,13 +1033,18 @@ function drawCrossPanelArrows() {
 
 // すべての矢印を再描画
 function refreshAllArrows() {
-    // 各レイヤーの矢印を再描画
+    // 各レイヤーの矢印を再描画（左パネル）
     for (let i = 0; i <= 6; i++) {
         drawPanelArrows(`layer-${i}`);
     }
 
-    // パネル間矢印も再描画
-    drawCrossPanelArrows();
+    // 右パネルの矢印も再描画
+    for (let i = 0; i <= 6; i++) {
+        drawPanelArrows(`layer-${i}-right`);
+    }
+
+    // パネル間矢印も再描画（ピンクノード展開時）
+    drawCrossPanelPinkArrows();
 }
 
 // リサイズ時にCanvasサイズを調整
@@ -2717,9 +2894,11 @@ async function loadExistingNodes() {
             });
         }
 
-        // 現在のレイヤーを再描画
-        renderNodesInLayer(currentLayer);
+        // 左右両方のパネルを再描画
+        renderNodesInLayer(leftVisibleLayer, 'left');
+        renderNodesInLayer(rightVisibleLayer, 'right');
         console.log(`memory.jsonから${nodes.length}個のノードを復元しました`);
+        console.log(`[表示] 左パネル: レイヤー${leftVisibleLayer}, 右パネル: レイヤー${rightVisibleLayer}`);
     } catch (error) {
         console.error('既存ノード読み込み失敗:', error);
     }
