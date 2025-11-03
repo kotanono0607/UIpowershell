@@ -2797,12 +2797,35 @@ async function loadFolders() {
         const result = await callApi('/folders');
         if (result.success) {
             folders = result.folders || [];
-            console.log('フォルダ一覧読み込み完了:', folders.length, '個');
+            console.log('[フォルダ] 一覧読み込み完了:', folders.length, '個');
 
-            // 初回起動時、フォルダがある場合は最初のフォルダを選択
-            if (folders.length > 0 && !currentFolder) {
-                currentFolder = folders[0];
-                console.log(`デフォルトフォルダ「${currentFolder}」を選択しました`);
+            // 🔧 修正: フォルダが1つも無い場合、デフォルトフォルダを自動作成
+            if (folders.length === 0) {
+                console.warn('[フォルダ] フォルダが存在しません。デフォルトフォルダを作成します...');
+                const defaultFolderName = 'Default';
+                const createResult = await callApi('/folders', 'POST', { name: defaultFolderName });
+
+                if (createResult.success) {
+                    folders = [defaultFolderName];
+                    currentFolder = defaultFolderName;
+                    console.log(`[フォルダ] ✅ デフォルトフォルダ「${defaultFolderName}」を作成しました`);
+                } else {
+                    console.error('[フォルダ] ❌ デフォルトフォルダの作成に失敗しました:', createResult.error);
+                    // フォールバック: メモリ上だけでも設定
+                    currentFolder = 'Default';
+                    console.warn('[フォルダ] フォールバック: currentFolder を "Default" に設定しました（メモリ上のみ）');
+                }
+            } else {
+                // 初回起動時、フォルダがある場合は最初のフォルダを選択
+                if (!currentFolder) {
+                    currentFolder = folders[0];
+                    console.log(`[フォルダ] デフォルトフォルダ「${currentFolder}」を選択しました`);
+                }
+            }
+
+            // currentFolder が設定されている場合のみ、JSONを読み込む
+            if (currentFolder) {
+                console.log('[フォルダ] 現在のフォルダ:', currentFolder);
 
                 // コード.jsonとvariables.jsonを読み込む
                 await loadCodeJson();
@@ -2810,11 +2833,13 @@ async function loadFolders() {
 
                 // 既にノードがある場合は上書きしない（ユーザーが追加したノードを保護）
                 if (nodes.length === 0) {
-                    console.log('[デバッグ] ノードが空のため、memory.jsonから読み込みます');
+                    console.log('[フォルダ] ノードが空のため、memory.jsonから読み込みます');
                     await loadExistingNodes();
                 } else {
-                    console.log('[デバッグ] 既にノードがあるため、memory.jsonの読み込みをスキップします');
+                    console.log('[フォルダ] 既にノードがあるため、memory.jsonの読み込みをスキップします');
                 }
+            } else {
+                console.error('[フォルダ] ❌ currentFolder が設定されていません！');
             }
         }
     } catch (error) {
@@ -3168,12 +3193,19 @@ async function loadCodeJson() {
 
 // コード.jsonを保存する
 async function saveCodeJson() {
+    console.log('┌─ [コード.json保存] 開始 ─────────────');
+    console.log('│ currentFolder:', currentFolder);
+    console.log('│ エントリ数:', Object.keys(codeData["エントリ"] || {}).length);
+
     if (!currentFolder) {
-        console.warn('フォルダが選択されていないため、コード.json保存をスキップします');
+        console.error('│ ❌ エラー: フォルダが選択されていません！');
+        console.error('│ コード.json保存をスキップします');
+        console.log('└──────────────────────────────────────');
         return;
     }
 
     try {
+        console.log('│ → API呼び出し: POST /folders/' + currentFolder + '/code');
         const response = await fetch(`${API_BASE}/folders/${currentFolder}/code`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -3183,13 +3215,17 @@ async function saveCodeJson() {
         const result = await response.json();
 
         if (result.success) {
-            console.log('コード.json保存成功:', result.message);
+            console.log('│ ✅ 成功:', result.message);
+            console.log('│ 保存先: 03_history/' + currentFolder + '/コード.json');
         } else {
-            console.error('コード.json保存失敗:', result.error);
+            console.error('│ ❌ 失敗:', result.error);
         }
     } catch (error) {
-        console.error('コード.json保存エラー:', error);
+        console.error('│ ❌ エラー:', error);
+        console.error('│ スタックトレース:', error.stack);
     }
+
+    console.log('└──────────────────────────────────────');
 }
 
 // 処理番号でスクリプト内容を取得
