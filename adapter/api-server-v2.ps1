@@ -794,13 +794,33 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
         $folderName = $Request.Parameters.name
         Write-Host "[API] フォルダ名: $folderName" -ForegroundColor Yellow
 
+        # $Request オブジェクトの詳細を確認
+        Write-Host "[API] ========== Request オブジェクトのデバッグ ==========" -ForegroundColor Cyan
+        Write-Host "[API] Request 型: $($Request.GetType().FullName)" -ForegroundColor Cyan
+        Write-Host "[API] Request プロパティ一覧:" -ForegroundColor Cyan
+        $Request.PSObject.Properties | ForEach-Object {
+            $propName = $_.Name
+            $propValue = try { $_.Value } catch { "Error: $($_.Exception.Message)" }
+            Write-Host "[API]   - $propName : $propValue" -ForegroundColor Gray
+        }
+        Write-Host "[API] ====================================================" -ForegroundColor Cyan
+
         # リクエストボディを取得（ストリームは一度しか読めない可能性があるため、一度だけ読み込む）
         Write-Host "[API] Request.Body のデバッグ開始..." -ForegroundColor Cyan
         $bodyRaw = $Request.Body
 
         if ($null -eq $bodyRaw) {
             Write-Host "[API] ❌ Request.Body が null です" -ForegroundColor Red
-            throw "Request.Body が null です"
+
+            # Body が null の場合、他のプロパティを確認
+            Write-Host "[API] Request.BodyString を確認..." -ForegroundColor Yellow
+            if ($Request.PSObject.Properties['BodyString']) {
+                $bodyRaw = $Request.BodyString
+                Write-Host "[API] ✅ Request.BodyString を取得: $bodyRaw" -ForegroundColor Green
+            } else {
+                Write-Host "[API] ❌ Request.BodyString も存在しません" -ForegroundColor Red
+                throw "Request.Body が null です"
+            }
         }
 
         Write-Host "[API] Request.Body の型: $($bodyRaw.GetType().FullName)" -ForegroundColor Cyan
