@@ -423,6 +423,48 @@ function handleDrop(e) {
         const targetNodeId = target.dataset.nodeId;
         const draggedNodeId = draggedNode.dataset.nodeId;
 
+        const draggedNodeData = layerStructure[currentLayer].nodes.find(n => n.id === draggedNodeId);
+        const targetNodeData = layerStructure[currentLayer].nodes.find(n => n.id === targetNodeId);
+
+        if (!draggedNodeData || !targetNodeData) {
+            return false;
+        }
+
+        const currentY = draggedNodeData.y;
+        const newY = targetNodeData.y;
+
+        // ============================
+        // Phase 3: 整合性チェック
+        // ============================
+
+        // 1. 同色ブロック衝突チェック
+        const sameColorCollision = checkSameColorCollision(
+            draggedNodeData.color,
+            currentY,
+            newY,
+            draggedNodeData.id
+        );
+
+        if (sameColorCollision) {
+            alert('この位置には配置できません。\n同色のノードブロックと衝突します。');
+            return false;
+        }
+
+        // 2. ネスト禁止チェック
+        const nestingValidation = validateNesting(
+            draggedNodeData,
+            newY
+        );
+
+        if (nestingValidation.isProhibited) {
+            alert(`この位置には配置できません。\n${nestingValidation.reason}`);
+            return false;
+        }
+
+        // ============================
+        // バリデーション通過 → 移動実行
+        // ============================
+
         // ノード配列内で位置を入れ替え
         swapNodes(currentLayer, draggedNodeId, targetNodeId);
 
@@ -1327,6 +1369,346 @@ function saveNodeSettings() {
     alert('設定を保存しました。');
 
     closeNodeSettingsModal();
+}
+
+// ============================================
+// Phase 3: 整合性チェック（バリデーション）
+// ============================================
+
+/**
+ * 同色ブロック衝突チェック
+ * オリジナル: archive/02-4_ボタン操作配置.ps1:16-71 (10_ボタンの一覧取得)
+ */
+function checkSameColorCollision(nodeColor, currentY, newY, movingNodeId) {
+    // SpringGreenまたはLemonChiffonのみチェック対象
+    if (nodeColor !== 'SpringGreen' && nodeColor !== 'LemonChiffon') {
+        return false;
+    }
+
+    const layerNodes = layerStructure[currentLayer].nodes;
+    const minY = Math.min(currentY, newY);
+    const maxY = Math.max(currentY, newY);
+
+    // 移動範囲内に同色のノードが存在するかチェック
+    for (const node of layerNodes) {
+        const nodeY = node.y;
+        const nodeColorNormalized = node.color;
+
+        // 自分自身は除外
+        if (node.id === movingNodeId) continue;
+
+        // 移動範囲内にあるかチェック
+        if (nodeY >= minY && nodeY <= maxY) {
+            // 同色かチェック
+            if (nodeColor === 'SpringGreen' && nodeColorNormalized === 'SpringGreen') {
+                console.log(`[同色衝突] SpringGreenノード "${node.text}" と衝突`);
+                return true;
+            }
+            if (nodeColor === 'LemonChiffon' && nodeColorNormalized === 'LemonChiffon') {
+                console.log(`[同色衝突] LemonChiffonノード "${node.text}" と衝突`);
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
+ * ネスト禁止チェック
+ * オリジナル: 02-2_ネスト規制バリデーション_v2.ps1:280-488 (ドロップ禁止チェック_ネスト規制_v2)
+ */
+function validateNesting(movingNode, newY) {
+    const layerNodes = layerStructure[currentLayer].nodes;
+    const nodeColor = movingNode.color;
+
+    // 色の正規化
+    const isGreen = (nodeColor === 'SpringGreen' || nodeColor === 'Green');
+    const isYellow = (nodeColor === 'LemonChiffon' || nodeColor === 'Yellow');
+
+    // 全条件分岐ブロック範囲と全ループブロック範囲を取得
+    const allCondRanges = getAllGroupRanges(layerNodes, 'SpringGreen');
+    const allLoopRanges = getAllGroupRanges(layerNodes, 'LemonChiffon');
+
+    // ============================
+    // 1. 単体ノードが腹に落ちるケースの即時チェック
+    // ============================
+
+    if (isYellow) {
+        // ループノードを条件分岐の腹の中に入れるのは禁止
+        for (const cr of allCondRanges) {
+            if (newY >= cr.topY && newY <= cr.bottomY) {
+                return {
+                    isProhibited: true,
+                    reason: 'ループノードを条件分岐の内部に配置することはできません',
+                    violationType: 'loop_in_conditional',
+                    conflictGroupId: cr.groupId
+                };
+            }
+        }
+    } else if (isGreen) {
+        // 条件分岐ノードをループの腹に刺すのは禁止
+        for (const lr of allLoopRanges) {
+            if (newY >= lr.topY && newY <= lr.bottomY) {
+                return {
+                    isProhibited: true,
+                    reason: '条件分岐ノードをループの内部に配置することはできません',
+                    violationType: 'conditional_in_loop',
+                    conflictGroupId: lr.groupId
+                };
+            }
+        }
+    }
+
+    // ============================
+    // 2. グループ分断チェック
+    // ============================
+
+    if (isGreen) {
+        // 条件分岐グループがループの境界をまたぐかチェック
+        const isFragmented = checkGroupFragmentation(
+            layerNodes,
+            movingNode.id,
+            newY,
+            'SpringGreen',
+            'LemonChiffon'
+        );
+
+        if (isFragmented) {
+            return {
+                isProhibited: true,
+                reason: '条件分岐グループがループの境界をまたぐことはできません（グループ分断）',
+                violationType: 'group_fragmentation',
+                groupType: 'conditional'
+            };
+        }
+    }
+
+    if (isYellow) {
+        // ループグループが条件分岐の境界をまたぐかチェック
+        const isFragmented = checkGroupFragmentation(
+            layerNodes,
+            movingNode.id,
+            newY,
+            'LemonChiffon',
+            'SpringGreen'
+        );
+
+        if (isFragmented) {
+            return {
+                isProhibited: true,
+                reason: 'ループグループが条件分岐の境界をまたぐことはできません（グループ分断）',
+                violationType: 'group_fragmentation',
+                groupType: 'loop'
+            };
+        }
+    }
+
+    // ============================
+    // 3. グループ全体としての整合性チェック
+    // ============================
+
+    if (isGreen) {
+        // この条件分岐グループが移動後どういう縦範囲になるか
+        const movedCondRange = getGroupRangeAfterMove(layerNodes, movingNode.id, newY);
+
+        if (movedCondRange) {
+            for (const lr of allLoopRanges) {
+                const isPairIllegal = isIllegalPair(movedCondRange, lr);
+                if (isPairIllegal) {
+                    return {
+                        isProhibited: true,
+                        reason: '条件分岐とループの配置が不正です（交差または包含関係の違反）',
+                        violationType: 'illegal_nesting',
+                        conflictGroupId: lr.groupId
+                    };
+                }
+            }
+        }
+    }
+
+    if (isYellow) {
+        // このループグループが移動後どういう縦範囲になるか
+        const movedLoopRange = getGroupRangeAfterMove(layerNodes, movingNode.id, newY);
+
+        if (movedLoopRange) {
+            for (const cr of allCondRanges) {
+                const isPairIllegal = isIllegalPair(cr, movedLoopRange);
+                if (isPairIllegal) {
+                    return {
+                        isProhibited: true,
+                        reason: 'ループと条件分岐の配置が不正です（交差または包含関係の違反）',
+                        violationType: 'illegal_nesting',
+                        conflictGroupId: cr.groupId
+                    };
+                }
+            }
+        }
+    }
+
+    // ドロップ可能
+    return {
+        isProhibited: false,
+        message: 'ドロップ可能です'
+    };
+}
+
+/**
+ * 移動後のグループ範囲を計算
+ * オリジナル: 02-2_ネスト規制バリデーション_v2.ps1:23-84
+ */
+function getGroupRangeAfterMove(layerNodes, movingNodeId, newY) {
+    const movingNode = layerNodes.find(n => n.id === movingNodeId);
+    if (!movingNode || !movingNode.groupId) return null;
+
+    const gid = movingNode.groupId;
+
+    // 同じGroupIDの全ノードを集める（色に関係なく）
+    const sameGroupNodes = layerNodes.filter(n =>
+        n.groupId !== null && n.groupId.toString() === gid.toString()
+    );
+
+    if (sameGroupNodes.length < 2) return null;
+
+    // 各ノードのY座標を取得（移動中のノードは新しいY座標を使用）
+    const yList = sameGroupNodes.map(node =>
+        node.id === movingNodeId ? newY : node.y
+    );
+
+    const topY = Math.min(...yList);
+    const bottomY = Math.max(...yList);
+
+    return {
+        groupId: gid,
+        topY: topY,
+        bottomY: bottomY
+    };
+}
+
+/**
+ * 指定色のすべてのグループ範囲を取得
+ * オリジナル: 02-2_ネスト規制バリデーション_v2.ps1:87-146
+ */
+function getAllGroupRanges(layerNodes, targetColor) {
+    // 色でフィルタ
+    const colorNodes = layerNodes.filter(n =>
+        n.color !== null && n.color === targetColor
+    );
+
+    // GroupIDでグループ化
+    const groupedByGroupId = {};
+    colorNodes.forEach(node => {
+        const gid = node.groupId;
+        if (gid !== null) {
+            if (!groupedByGroupId[gid]) {
+                groupedByGroupId[gid] = [];
+            }
+            groupedByGroupId[gid].push(node);
+        }
+    });
+
+    const ranges = [];
+
+    for (const gid in groupedByGroupId) {
+        const group = groupedByGroupId[gid];
+        if (group.length < 1) continue;
+
+        // そのGroupIDの全ノード（色に関係なく）を取得
+        // 条件分岐の中間ノード(Gray)も含めるため
+        const allNodesInGroup = layerNodes.filter(n =>
+            n.groupId !== null && n.groupId.toString() === gid.toString()
+        );
+
+        if (allNodesInGroup.length < 2) continue;
+
+        const sorted = allNodesInGroup.sort((a, b) => a.y - b.y);
+        const topY = sorted[0].y;
+        const bottomY = sorted[sorted.length - 1].y;
+
+        ranges.push({
+            groupId: gid,
+            topY: topY,
+            bottomY: bottomY
+        });
+    }
+
+    return ranges;
+}
+
+/**
+ * 2つの範囲の違法性を判定
+ * オリジナル: 02-2_ネスト規制バリデーション_v2.ps1:149-198
+ */
+function isIllegalPair(condRange, loopRange) {
+    if (!condRange || !loopRange) return false;
+
+    const cTop = condRange.topY;
+    const cBot = condRange.bottomY;
+    const lTop = loopRange.topY;
+    const lBot = loopRange.bottomY;
+
+    // まず重なってるかどうか
+    const overlap = (cBot > lTop) && (cTop < lBot);
+    if (!overlap) {
+        // 完全に上下に離れてる → OK
+        return false;
+    }
+
+    // 条件分岐がループの完全内側ならOK
+    const condInsideLoop = (cTop >= lTop) && (cBot <= lBot);
+    if (condInsideLoop) {
+        // OK (ループが外側、条件分岐が内側) は合法
+        return false;
+    }
+
+    // それ以外の重なりはダメ
+    // - 交差 (片足だけ突っ込んでる)
+    // - ループが条件分岐の内側に丸ごと入る
+    return true;
+}
+
+/**
+ * グループ分断をチェック
+ * オリジナル: 02-2_ネスト規制バリデーション_v2.ps1:201-277
+ */
+function checkGroupFragmentation(layerNodes, movingNodeId, newY, groupColor, boundaryColor) {
+    const movingNode = layerNodes.find(n => n.id === movingNodeId);
+    if (!movingNode || !movingNode.groupId) return false;
+
+    const gid = movingNode.groupId;
+
+    // 同じGroupIDの全ノードを取得（色に関係なく）
+    const sameGroupNodes = layerNodes.filter(n =>
+        n.groupId !== null && n.groupId.toString() === gid.toString()
+    );
+
+    if (sameGroupNodes.length < 2) return false;
+
+    // 境界色のグループ範囲を全て取得
+    const boundaryRanges = getAllGroupRanges(layerNodes, boundaryColor);
+
+    for (const br of boundaryRanges) {
+        let insideCount = 0;
+        let outsideCount = 0;
+
+        // グループ内の各ノードが境界の内側か外側かチェック
+        for (const node of sameGroupNodes) {
+            const nodeY = (node.id === movingNodeId) ? newY : node.y;
+
+            if (nodeY >= br.topY && nodeY <= br.bottomY) {
+                insideCount++;
+            } else {
+                outsideCount++;
+            }
+        }
+
+        // 一部が内側、一部が外側 = グループ分断 = 禁止
+        if (insideCount > 0 && outsideCount > 0) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // ============================================
