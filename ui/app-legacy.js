@@ -2794,56 +2794,78 @@ async function deleteVariable(name) {
 
 async function loadFolders() {
     try {
+        console.log('┌─ [フォルダ初期化] 開始 ─────────────');
+
+        // 1. メイン.jsonから現在のフォルダを読み込む（PowerShell互換）
+        console.log('│ Step 1: メイン.jsonから現在のフォルダを読み込み');
+        try {
+            const mainJsonResult = await callApi('/main-json');
+            if (mainJsonResult.success) {
+                currentFolder = mainJsonResult.folderName;
+                console.log(`│ ✅ メイン.jsonから読み込み成功: ${currentFolder}`);
+                console.log(`│    フルパス: ${mainJsonResult.folderPath}`);
+            } else {
+                console.warn(`│ ⚠ メイン.jsonが存在しません: ${mainJsonResult.error}`);
+                currentFolder = null;
+            }
+        } catch (error) {
+            console.error('│ ❌ メイン.json読み込みエラー:', error);
+            currentFolder = null;
+        }
+
+        // 2. フォルダ一覧を取得
+        console.log('│ Step 2: フォルダ一覧を取得');
         const result = await callApi('/folders');
         if (result.success) {
             folders = result.folders || [];
-            console.log('[フォルダ] 一覧読み込み完了:', folders.length, '個');
+            console.log(`│ ✅ フォルダ一覧取得成功: ${folders.length}個`);
+            console.log(`│    フォルダ: [${folders.join(', ')}]`);
+        } else {
+            console.error('│ ❌ フォルダ一覧取得失敗');
+            folders = [];
+        }
 
-            // 🔧 修正: フォルダが1つも無い場合、デフォルトフォルダを自動作成
-            if (folders.length === 0) {
-                console.warn('[フォルダ] フォルダが存在しません。デフォルトフォルダを作成します...');
-                const defaultFolderName = 'Default';
-                const createResult = await callApi('/folders', 'POST', { name: defaultFolderName });
-
-                if (createResult.success) {
-                    folders = [defaultFolderName];
-                    currentFolder = defaultFolderName;
-                    console.log(`[フォルダ] ✅ デフォルトフォルダ「${defaultFolderName}」を作成しました`);
-                } else {
-                    console.error('[フォルダ] ❌ デフォルトフォルダの作成に失敗しました:', createResult.error);
-                    // フォールバック: メモリ上だけでも設定
-                    currentFolder = 'Default';
-                    console.warn('[フォルダ] フォールバック: currentFolder を "Default" に設定しました（メモリ上のみ）');
-                }
+        // 3. currentFolderが未設定またはフォルダ一覧に無い場合
+        if (!currentFolder || !folders.includes(currentFolder)) {
+            if (folders.length > 0) {
+                currentFolder = folders[0];
+                console.warn(`│ ⚠ currentFolderを最初のフォルダに設定: ${currentFolder}`);
             } else {
-                // 初回起動時、フォルダがある場合は最初のフォルダを選択
-                if (!currentFolder) {
-                    currentFolder = folders[0];
-                    console.log(`[フォルダ] デフォルトフォルダ「${currentFolder}」を選択しました`);
-                }
-            }
-
-            // currentFolder が設定されている場合のみ、JSONを読み込む
-            if (currentFolder) {
-                console.log('[フォルダ] 現在のフォルダ:', currentFolder);
-
-                // コード.jsonとvariables.jsonを読み込む
-                await loadCodeJson();
-                await loadVariablesJson();
-
-                // 既にノードがある場合は上書きしない（ユーザーが追加したノードを保護）
-                if (nodes.length === 0) {
-                    console.log('[フォルダ] ノードが空のため、memory.jsonから読み込みます');
-                    await loadExistingNodes();
-                } else {
-                    console.log('[フォルダ] 既にノードがあるため、memory.jsonの読み込みをスキップします');
-                }
-            } else {
-                console.error('[フォルダ] ❌ currentFolder が設定されていません！');
+                // フォルダが1つも無い場合は作成を促す
+                console.error('│ ❌ フォルダが1つも存在しません');
+                console.error('│    「フォルダ作成」ボタンから新しいフォルダを作成してください');
+                console.log('└──────────────────────────────────────');
+                return;
             }
         }
+
+        console.log('│ Step 3: 現在のフォルダ:', currentFolder);
+
+        // 4. JSON読み込み
+        if (currentFolder) {
+            console.log('│ Step 4: JSONファイルを読み込み');
+
+            // コード.jsonとvariables.jsonを読み込む
+            await loadCodeJson();
+            await loadVariablesJson();
+
+            // 既にノードがある場合は上書きしない（ユーザーが追加したノードを保護）
+            if (nodes.length === 0) {
+                console.log('│    memory.jsonからノードを読み込み');
+                await loadExistingNodes();
+            } else {
+                console.log('│    既存ノードを保護（memory.json読み込みスキップ）');
+            }
+
+            console.log('│ ✅ 初期化完了');
+        }
+
+        console.log('└──────────────────────────────────────');
     } catch (error) {
-        console.error('フォルダ一覧読み込み失敗:', error);
+        console.error('┌─ [フォルダ初期化] エラー ────────────');
+        console.error('│', error);
+        console.error('│ スタックトレース:', error.stack);
+        console.error('└──────────────────────────────────────');
     }
 }
 

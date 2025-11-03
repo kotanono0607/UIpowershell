@@ -573,6 +573,50 @@ New-PolarisRoute -Path "/api/folders/:name" -Method PUT -ScriptBlock {
     }
 }
 
+# メイン.json読み込み（現在のフォルダパス取得）
+New-PolarisRoute -Path "/api/main-json" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $rootDir = $global:RootDirForPolaris
+        $mainJsonPath = Join-Path $rootDir "03_history\メイン.json"
+
+        if (Test-Path $mainJsonPath) {
+            $content = Get-Content $mainJsonPath -Raw -Encoding UTF8
+            $mainData = $content | ConvertFrom-Json
+
+            # フォルダパスからフォルダ名を抽出
+            $folderPath = $mainData.フォルダパス
+            $folderName = Split-Path -Leaf $folderPath
+
+            $result = @{
+                success = $true
+                folderPath = $folderPath
+                folderName = $folderName
+            }
+            $json = $result | ConvertTo-Json -Compress
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+        } else {
+            $result = @{
+                success = $false
+                error = "メイン.jsonが存在しません"
+            }
+            $json = $result | ConvertTo-Json -Compress
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+        }
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # memory.json読み込み（フォルダごと）
 New-PolarisRoute -Path "/api/folders/:name/memory" -Method GET -ScriptBlock {
     Set-CorsHeaders -Response $Response
