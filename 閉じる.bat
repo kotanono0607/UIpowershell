@@ -15,11 +15,9 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8080" ^| findstr "LISTENING
 timeout /t 1 /nobreak > nul
 
 echo [2/5] アプリモードで起動したブラウザを閉じています...
-REM より確実な方法でブラウザを閉じる
-powershell -ExecutionPolicy Bypass -Command "& { Get-CimInstance Win32_Process | Where-Object { ($_.Name -eq 'chrome.exe' -or $_.Name -eq 'msedge.exe') -and $_.CommandLine -like '*--app=*localhost:8080*' } | ForEach-Object { Write-Host \"  - ブラウザプロセス (PID: $($_.ProcessId)) を終了中...\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } }"
-
-REM フォールバック: localhost:8080をタイトルに含むブラウザも閉じる
-powershell -ExecutionPolicy Bypass -Command "& { Get-Process chrome,msedge -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like '*localhost:8080*' } | ForEach-Object { Write-Host \"  - ブラウザウインドウ: $($_.MainWindowTitle) を終了中...\"; Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue } }"
+echo   （--app=http://localhost:8080 で起動されたプロセスのみ）
+REM --appモードで起動されたブラウザのみを閉じる（手動ブラウザは保護）
+powershell -ExecutionPolicy Bypass -Command "& { $found = $false; Get-CimInstance Win32_Process | Where-Object { ($_.Name -eq 'chrome.exe' -or $_.Name -eq 'msedge.exe') -and $_.CommandLine -like '*--app=*localhost:8080*' } | ForEach-Object { $found = $true; Write-Host \"  - ブラウザプロセス (PID: $($_.ProcessId), $($_.Name)) を終了中...\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; if (-not $found) { Write-Host \"  - アプリモードのブラウザは見つかりませんでした\" } }"
 
 timeout /t 1 /nobreak > nul
 
@@ -47,6 +45,8 @@ echo ✅ ポート8080を解放しました
 echo ✅ アプリモードで起動したブラウザを閉じました
 echo ✅ UIpowershell関連のPowerShellプロセスを終了しました
 echo ✅ PowerShellコンソールウインドウを閉じました
+echo.
+echo ℹ️  注意: 手動で開いたブラウザは影響を受けません
 echo.
 echo UIpowershellが完全に停止しました
 echo.
