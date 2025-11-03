@@ -158,20 +158,25 @@ body {
 }
 
 .category-panel.active {
-    display: block;
+    display: grid;
+    grid-template-columns: repeat(2, 104px);
+    gap: 8px;
 }
 
 .add-node-btn {
-    width: 100%;
+    width: 104px;
     height: 28px;
-    margin-bottom: 8px;
     border: 1px solid #999;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 11px;
     text-align: left;
     padding-left: 8px;
     display: flex;
     align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .add-node-btn:hover {
