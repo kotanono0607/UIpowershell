@@ -1237,7 +1237,7 @@ function addConditionSet(setting) {
 
     console.log(`[条件分岐作成] GroupID=${groupId} を割り当て`);
 
-    // 1. 開始ボタン
+    // 1. 開始ボタン（緑）
     const startNode = addSingleNode(
         { ...setting, テキスト: '条件分岐 開始', ボタン名: `${nodeCounter}-1` },
         '条件分岐 開始',
@@ -1246,25 +1246,34 @@ function addConditionSet(setting) {
         40
     );
 
-    // 2. 中間ライン（グレー、高さ1px、ドラッグ不可）
-    const middleNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 中間', 背景色: 'Gray', ボタン名: `${nodeCounter}-2` },
-        '条件分岐 中間',
-        baseY + 40,
-        groupId,
-        1  // 高さ1pxのライン
-    );
-
-    // 3. 終了ボタン
-    const endNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${nodeCounter}-3` },
-        '条件分岐 終了',
+    // 2. False分岐ノード（赤）
+    const falseNode = addSingleNode(
+        { ...setting, テキスト: 'False分岐', 背景色: 'Salmon', ボタン名: `${nodeCounter}-2` },
+        'False分岐',
         baseY + 45,
         groupId,
         40
     );
 
-    console.log(`[条件分岐作成完了] ${startNode.name}, ${middleNode.name}, ${endNode.name} (GroupID=${groupId})`);
+    // 3. True分岐ノード（青）
+    const trueNode = addSingleNode(
+        { ...setting, テキスト: 'True分岐', 背景色: 'CornflowerBlue', ボタン名: `${nodeCounter}-3` },
+        'True分岐',
+        baseY + 90,
+        groupId,
+        40
+    );
+
+    // 4. 終了ボタン（緑）
+    const endNode = addSingleNode(
+        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${nodeCounter}-4` },
+        '条件分岐 終了',
+        baseY + 135,
+        groupId,
+        40
+    );
+
+    console.log(`[条件分岐作成完了] 開始, False, True, 終了 (GroupID=${groupId})`);
 
     renderNodesInLayer(currentLayer);
     reorderNodesInLayer(currentLayer);
@@ -1315,7 +1324,12 @@ function renderNodesInLayer(layer) {
         btn.style.top = `${node.y}px`;
         btn.dataset.nodeId = node.id;
 
-        console.log(`[デバッグ] ノード配置: x=${node.x || 90}px, y=${node.y}px, text="${node.text}"`);
+        // GroupIDを設定（ループと条件分岐で使用）
+        if (node.groupId !== null && node.groupId !== undefined) {
+            btn.dataset.groupId = node.groupId;
+        }
+
+        console.log(`[デバッグ] ノード配置: x=${node.x || 90}px, y=${node.y}px, text="${node.text}", groupId=${node.groupId || 'なし'}`);
 
         // 赤枠スタイルを適用
         if (node.redBorder) {
