@@ -1189,7 +1189,7 @@ function checkScreenWidth() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('═══════════════════════════════════════════════');
-    console.log('UIpowershell Legacy UI v1.0.167 - 起動開始');
+    console.log('UIpowershell Legacy UI v1.0.168 - 起動開始');
     console.log('═══════════════════════════════════════════════');
 
     // 矢印描画機能を初期化（arrow-drawing.jsの内容が統合されているため即座に利用可能）
@@ -1464,10 +1464,11 @@ async function addNodeToLayer(setting) {
         // コード生成
         console.log('[addNodeToLayer] generateCode() を呼び出します');
         console.log('[addNodeToLayer]   - 処理番号:', setting.処理番号);
-        console.log('[addNodeToLayer]   - ボタン名:', node.name);
+        console.log('[addNodeToLayer]   - ノードID:', node.id);
+        console.log('[addNodeToLayer]   - ノード名:', node.name);
         console.log('[addNodeToLayer]   - 関数名:', setting.関数名);
         try {
-            const generatedCode = await generateCode(setting.処理番号, node.name);
+            const generatedCode = await generateCode(setting.処理番号, node.id);
             if (generatedCode) {
                 console.log('[addNodeToLayer] ✅ コード生成成功');
                 console.log('[addNodeToLayer] 生成されたコード:', generatedCode.substring(0, 100) + '...');
@@ -1536,7 +1537,8 @@ async function addLoopSet(setting) {
     );
 
     // コード生成（ループ構文）
-    await generateCode(setting.処理番号, startNode.name);
+    console.log(`[ループ作成] コード生成 - startNode.id: ${startNode.id}`);
+    await generateCode(setting.処理番号, startNode.id);
 
     // 2. 終了ボタン
     const endNode = addSingleNode(
@@ -1547,7 +1549,7 @@ async function addLoopSet(setting) {
         40
     );
 
-    console.log(`[ループ作成完了] ${startNode.name}, ${endNode.name} (GroupID=${groupId})`);
+    console.log(`[ループ作成完了] startNode.id: ${startNode.id}, endNode.id: ${endNode.id} (GroupID=${groupId})`);
 
     renderNodesInLayer(currentLayer);
     reorderNodesInLayer(currentLayer);
@@ -1570,7 +1572,8 @@ async function addConditionSet(setting) {
     );
 
     // コード生成（条件式）
-    await generateCode(setting.処理番号, startNode.name);
+    console.log(`[条件分岐作成] コード生成 - startNode.id: ${startNode.id}`);
+    await generateCode(setting.処理番号, startNode.id);
 
     // 2. 中間ライン（グレー、高さ1px）
     const middleNode = addSingleNode(
@@ -4135,9 +4138,9 @@ const codeGeneratorFunctions = {
 };
 
 // コード生成のメイン関数
-async function generateCode(処理番号, ボタン名, 直接エントリ = null) {
+async function generateCode(処理番号, ノードID, 直接エントリ = null) {
     try {
-        console.log(`[コード生成] 開始 - 処理番号: ${処理番号}, ボタン名: ${ボタン名}`);
+        console.log(`[コード生成] 開始 - 処理番号: ${処理番号}, ノードID: ${ノードID}`);
         console.log(`[コード生成] buttonSettings数: ${buttonSettings.length}`);
 
         // 処理番号から関数名を取得
@@ -4192,10 +4195,10 @@ async function generateCode(処理番号, ボタン名, 直接エントリ = nul
         }
 
         // コード.jsonに保存
-        console.log(`[コード生成] コード.jsonに保存します - ID: ${ボタン名}`);
-        await setCodeEntry(ボタン名, entryString);
+        console.log(`[コード生成] コード.jsonに保存します - ノードID: ${ノードID}`);
+        await setCodeEntry(ノードID, entryString);
 
-        console.log(`[コード生成] 成功: ID ${ボタン名} に保存しました`);
+        console.log(`[コード生成] 成功: ノードID ${ノードID} に保存しました`);
         return entryString;
     } catch (error) {
         console.error('[コード生成] エラーが発生しました:', error);
