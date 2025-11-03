@@ -1188,7 +1188,9 @@ function checkScreenWidth() {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('UIpowershell Legacy UI initialized');
+    console.log('═══════════════════════════════════════════════');
+    console.log('UIpowershell Legacy UI v1.0.164 - 起動開始');
+    console.log('═══════════════════════════════════════════════');
 
     // 矢印描画機能を初期化（arrow-drawing.jsの内容が統合されているため即座に利用可能）
     console.log('[矢印] Arrow drawing initialization...');
