@@ -198,33 +198,48 @@ body {
 }
 
 /* ============================================
-   中央ペイン: 可変幅（min-width 960px）
-   スクロールは中央のみ
+   中央ペイン: 左右2パネル表示（PowerShell互換）
    ============================================ */
 #center-container {
     flex: 1;
-    min-width: 960px;
+    min-width: 640px;
     display: flex;
+    flex-direction: row;
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
     background: #e0e0e0;
     margin-right: 16px;
+    gap: 10px;
+    padding: 10px;
 }
 
+/* 左右のパネルコンテナ */
+.dual-layer-panel {
+    width: 300px;
+    flex-shrink: 0;
+    position: relative;
+    height: fit-content;
+}
+
+/* 各レイヤーパネル */
 .layer-panel {
     width: 300px;
     background: #fff;
     border: 1px solid #999;
-    margin: 10px;
     display: none;
     flex-direction: column;
     overflow: hidden;
     flex-shrink: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
-.layer-panel.active {
+/* 表示中のレイヤーパネル */
+.layer-panel[style*="display: block"] {
     display: flex;
+    position: relative;
 }
 
 .layer-label {

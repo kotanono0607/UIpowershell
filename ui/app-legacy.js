@@ -9,7 +9,9 @@ const API_BASE = 'http://localhost:8080/api';
 // グローバル状態
 // ============================================
 
-let currentLayer = 1;           // 現在表示中のレイヤー (1-6)
+let currentLayer = 1;           // 現在の左パネルレイヤー (0-6)
+let leftVisibleLayer = 1;       // 左パネルに表示中のレイヤー
+let rightVisibleLayer = 2;      // 右パネルに表示中のレイヤー
 let currentCategory = 1;        // 現在選択中のカテゴリー (1-10)
 let nodes = [];                 // 全ノード配列（全レイヤー）
 let buttonSettings = [];        // ボタン設定.jsonのデータ
@@ -1022,6 +1024,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // API接続テスト
     await testApiConnection();
 
+    // 左右パネル表示を初期化
+    updateDualPanelDisplay();
+
     // ボタン設定.jsonを読み込み
     await loadButtonSettings();
 
@@ -1310,12 +1315,57 @@ function getNextAvailableY(layer) {
 }
 
 // ============================================
+// 左右パネル表示管理（PowerShell互換）
+// ============================================
+
+// 左右パネルの表示を更新
+function updateDualPanelDisplay() {
+    console.log(`[デュアルパネル] 左パネル: レイヤー${leftVisibleLayer}, 右パネル: レイヤー${rightVisibleLayer}`);
+
+    // 左パネルのすべてのレイヤーを非表示
+    for (let i = 0; i <= 6; i++) {
+        const leftPanel = document.getElementById(`layer-${i}`);
+        if (leftPanel) {
+            leftPanel.style.display = 'none';
+        }
+    }
+
+    // 右パネルのすべてのレイヤーを非表示
+    for (let i = 0; i <= 6; i++) {
+        const rightPanel = document.getElementById(`layer-${i}-right`);
+        if (rightPanel) {
+            rightPanel.style.display = 'none';
+        }
+    }
+
+    // 左パネルの指定レイヤーを表示
+    const leftPanel = document.getElementById(`layer-${leftVisibleLayer}`);
+    if (leftPanel) {
+        leftPanel.style.display = 'block';
+    }
+
+    // 右パネルの指定レイヤーを表示
+    const rightPanel = document.getElementById(`layer-${rightVisibleLayer}-right`);
+    if (rightPanel) {
+        rightPanel.style.display = 'block';
+    }
+
+    // レイヤーラベルを更新
+    document.getElementById('current-layer-label').textContent = `レイヤー${leftVisibleLayer} / レイヤー${rightVisibleLayer}`;
+}
+
+// ============================================
 // レイヤー内のノードを描画
 // ============================================
 
-function renderNodesInLayer(layer) {
-    const container = document.querySelector(`#layer-${layer} .node-list-container`);
-    if (!container) return;
+function renderNodesInLayer(layer, panelSide = 'left') {
+    // 左右パネル対応: panelSideに応じてコンテナを取得
+    const layerId = panelSide === 'right' ? `layer-${layer}-right` : `layer-${layer}`;
+    const container = document.querySelector(`#${layerId} .node-list-container`);
+    if (!container) {
+        console.warn(`[レンダリング] コンテナが見つかりません: ${layerId}`);
+        return;
+    }
 
     // Canvas要素を保持しながら、ノードボタンのみを削除
     Array.from(container.children).forEach(child => {
@@ -2010,20 +2060,29 @@ function handlePinkNodeClick(node) {
         baseY += 60; // 次のノードのY座標（間隔20px + 高さ40px）
     });
 
-    // 次レイヤーに切り替え
+    // 左右パネルをスライド
     currentLayer = nextLayer;
+    leftVisibleLayer = nextLayer;
+    rightVisibleLayer = Math.min(nextLayer + 1, 6);
 
-    // 画面を再描画
-    renderNodesInLayer(nextLayer);
+    // 左右パネルの表示を更新
+    updateDualPanelDisplay();
+
+    // 画面を再描画（左パネル）
+    renderNodesInLayer(nextLayer, 'left');
     reorderNodesInLayer(nextLayer);
 
-    // レイヤーラベルを更新
-    document.getElementById('current-layer-label').textContent = `レイヤー${nextLayer}`;
+    // 右パネルも再描画（空でも表示）
+    if (rightVisibleLayer <= 6) {
+        renderNodesInLayer(rightVisibleLayer, 'right');
+        reorderNodesInLayer(rightVisibleLayer);
+    }
 
     // memory.json自動保存
     saveMemoryJson();
 
     console.log(`[展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${entries.length}個のノード)`);
+    console.log(`[パネル表示] 左: レイヤー${leftVisibleLayer}, 右: レイヤー${rightVisibleLayer}`);
     alert(`レイヤー${nextLayer}に${entries.length}個のノードを展開しました。`);
 }
 
