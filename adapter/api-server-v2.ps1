@@ -313,9 +313,27 @@ New-PolarisRoute -Path "/api/nodes/all" -Method DELETE -ScriptBlock {
 
         $body = $bodyRaw | ConvertFrom-Json
         Write-Host "[API] JSON解析成功" -ForegroundColor Green
-        Write-Host "[API] 削除対象ノード数: $($body.nodes.Count)" -ForegroundColor Yellow
+        Write-Host "[API] body のプロパティ: $($body.PSObject.Properties.Name -join ', ')" -ForegroundColor Gray
 
-        $result = すべてのノードを削除_v2 -ノード配列 $body.nodes
+        # $body.nodesのnullチェック
+        $nodes = $body.nodes
+        if ($null -eq $nodes) {
+            Write-Host "[API] ⚠️ body.nodesがnullです。空配列として処理します" -ForegroundColor Yellow
+            $nodes = @()
+        } else {
+            Write-Host "[API] body.nodesの型: $($nodes.GetType().FullName)" -ForegroundColor Gray
+        }
+
+        Write-Host "[API] 削除対象ノード数: $($nodes.Count)" -ForegroundColor Yellow
+
+        # 最初の数個のノードIDを表示
+        if ($nodes.Count -gt 0) {
+            $sampleIds = $nodes | Select-Object -First 3 | ForEach-Object { $_.id }
+            Write-Host "[API] サンプルノードID: $($sampleIds -join ', ')" -ForegroundColor Gray
+        }
+
+        # ノード配列が空でも関数を呼び出す（関数内で空チェックあり）
+        $result = すべてのノードを削除_v2 -ノード配列 $nodes
 
         Write-Host "[API] ✅ 全ノード削除完了: $($result.deleteCount)個" -ForegroundColor Green
 
