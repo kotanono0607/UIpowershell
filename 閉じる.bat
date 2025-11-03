@@ -1,8 +1,11 @@
 @echo off
 chcp 65001 > nul
 echo ============================================
-echo UIpowershell - 完全停止（サーバー+ブラウザ）
+echo UIpowershell - 完全停止（サーバー+Edge）
 echo ============================================
+echo.
+echo ℹ️  Microsoft Edge（UIpowershell専用）のみ終了します
+echo    Chrome等の他のブラウザは影響を受けません
 echo.
 
 echo [1/5] ポート8080を使用しているプロセスを停止しています...
@@ -14,10 +17,9 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8080" ^| findstr "LISTENING
 
 timeout /t 1 /nobreak > nul
 
-echo [2/5] アプリモードで起動したブラウザを閉じています...
-echo   （--app=http://localhost:8080 で起動されたプロセスのみ）
-REM --appモードで起動されたブラウザのみを閉じる（手動ブラウザは保護）
-powershell -ExecutionPolicy Bypass -Command "& { $found = $false; Get-CimInstance Win32_Process | Where-Object { ($_.Name -eq 'chrome.exe' -or $_.Name -eq 'msedge.exe') -and $_.CommandLine -like '*--app=*localhost:8080*' } | ForEach-Object { $found = $true; Write-Host \"  - ブラウザプロセス (PID: $($_.ProcessId), $($_.Name)) を終了中...\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; if (-not $found) { Write-Host \"  - アプリモードのブラウザは見つかりませんでした\" } }"
+echo [2/5] Microsoft Edge（UIpowershell専用）を閉じています...
+REM Edge専用終了（Chrome対象外で完全分離）
+powershell -ExecutionPolicy Bypass -Command "& { $found = $false; Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'msedge.exe' -and $_.CommandLine -like '*--app=*localhost:8080*' } | ForEach-Object { $found = $true; Write-Host \"  - Edge (PID: $($_.ProcessId)) を終了中...\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; if (-not $found) { Write-Host \"  - UIpowershell用Edgeは見つかりませんでした\" } }"
 
 timeout /t 1 /nobreak > nul
 
@@ -42,11 +44,11 @@ timeout /t 1 /nobreak > nul
 echo [5/5] クリーンアップ完了
 echo.
 echo ✅ ポート8080を解放しました
-echo ✅ アプリモードで起動したブラウザを閉じました
+echo ✅ Microsoft Edge（UIpowershell専用）を閉じました
 echo ✅ UIpowershell関連のPowerShellプロセスを終了しました
 echo ✅ PowerShellコンソールウインドウを閉じました
 echo.
-echo ℹ️  注意: 手動で開いたブラウザは影響を受けません
+echo ✨ Chrome等の他のブラウザは影響を受けていません
 echo.
 echo UIpowershellが完全に停止しました
 echo.

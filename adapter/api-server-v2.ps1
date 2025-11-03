@@ -1030,41 +1030,32 @@ try {
     Write-Host "停止するには Ctrl+C を押してください" -ForegroundColor Yellow
     Write-Host ""
 
-    # ブラウザ自動起動（アプリモードで開く - 識別可能）
+    # ブラウザ自動起動（Edge専用 - Chrome分離）
     if ($AutoOpenBrowser) {
         Start-Sleep -Seconds 1
         $url = "http://localhost:$Port/index-legacy.html"
 
-        # Chromeを優先的に検索（アプリモード）
-        $chromePaths = @(
-            "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe",
-            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
-            "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
+        # Microsoft Edge専用で起動（Chromeと分離）
+        $edgePaths = @(
+            "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe",
+            "${env:ProgramFiles}\Microsoft\Edge\Application\msedge.exe"
         )
 
-        $chromeFound = $false
-        foreach ($chromePath in $chromePaths) {
-            if (Test-Path $chromePath) {
-                Write-Host "[ブラウザ] Chromeをアプリモードで起動します: $url" -ForegroundColor Green
+        $edgeFound = $false
+        foreach ($edgePath in $edgePaths) {
+            if (Test-Path $edgePath) {
+                Write-Host "[ブラウザ] Microsoft Edge（UIpowershell専用）をアプリモードで起動します" -ForegroundColor Green
+                Write-Host "           URL: $url" -ForegroundColor Cyan
                 # --app モードで起動（タブなし、独立ウインドウ）
-                Start-Process $chromePath -ArgumentList "--app=$url"
-                $chromeFound = $true
+                Start-Process $edgePath -ArgumentList "--app=$url"
+                $edgeFound = $true
                 break
             }
         }
 
-        # Chromeが見つからない場合、Microsoft Edgeを試す
-        if (-not $chromeFound) {
-            $edgePath = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
-            if (Test-Path $edgePath) {
-                Write-Host "[ブラウザ] Microsoft Edgeをアプリモードで起動します: $url" -ForegroundColor Green
-                # --app モードで起動（タブなし、独立ウインドウ）
-                Start-Process $edgePath -ArgumentList "--app=$url"
-            } else {
-                # デフォルトブラウザで開く（通常モード）
-                Write-Host "[ブラウザ] デフォルトブラウザで起動します: $url" -ForegroundColor Yellow
-                Start-Process $url
-            }
+        if (-not $edgeFound) {
+            Write-Host "[警告] Microsoft Edgeが見つかりません" -ForegroundColor Yellow
+            Write-Host "        手動でブラウザを開いてください: $url" -ForegroundColor Yellow
         }
     }
 

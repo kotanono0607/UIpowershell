@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 > nul
 echo ============================================
-echo UIpowershell - ブラウザを開く（アプリモード）
+echo UIpowershell - ブラウザを開く（Edge専用）
 echo ============================================
 echo.
 
@@ -9,24 +9,11 @@ set URL=http://localhost:8080/index-legacy.html
 
 echo サーバーURL: %URL%
 echo.
+echo ℹ️  UIpowershell専用にMicrosoft Edgeを使用します
+echo    （Chromeとの分離により、他のブラウザに影響しません）
+echo.
 
-REM Chrome を検索（優先順位1）
-set CHROME_PATH=
-if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" (
-    set CHROME_PATH=%ProgramFiles%\Google\Chrome\Application\chrome.exe
-) else if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" (
-    set CHROME_PATH=%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe
-) else if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" (
-    set CHROME_PATH=%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe
-)
-
-if defined CHROME_PATH (
-    echo [✓] Google Chrome をアプリモードで起動します...
-    start "" "%CHROME_PATH%" --app=%URL%
-    goto :END
-)
-
-REM Microsoft Edge を検索（優先順位2）
+REM Microsoft Edge を検索（UIpowershell専用）
 set EDGE_PATH=
 if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" (
     set EDGE_PATH=%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe
@@ -40,9 +27,14 @@ if defined EDGE_PATH (
     goto :END
 )
 
-REM デフォルトブラウザで開く（優先順位3）
-echo [i] Chrome/Edge が見つかりません。デフォルトブラウザで開きます...
-start "" "%URL%"
+REM Edgeが見つからない場合
+echo [!] Microsoft Edge が見つかりませんでした
+echo.
+echo 【対処方法】
+echo 1. Microsoft Edgeをインストールしてください
+echo 2. または、手動でブラウザを開いてください: %URL%
+echo.
+pause
 
 :END
 echo.
