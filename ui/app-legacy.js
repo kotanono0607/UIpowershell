@@ -70,9 +70,11 @@ function initializeArrowCanvas() {
                 canvas.style.pointerEvents = 'none'; // クリックイベントを透過
                 canvas.style.zIndex = '1'; // ノードの上に表示
 
-                // Canvasサイズを親要素に合わせる
+                // Canvasサイズを親要素に合わせる（内部サイズと表示サイズの両方を設定）
                 canvas.width = nodeList.scrollWidth;
                 canvas.height = nodeList.scrollHeight;
+                canvas.style.width = `${nodeList.scrollWidth}px`;  // ★追加：CSS表示サイズ
+                canvas.style.height = `${nodeList.scrollHeight}px`; // ★追加：CSS表示サイズ
 
                 // node-list-containerを相対配置に
                 nodeList.style.position = 'relative';
@@ -97,14 +99,14 @@ function initializeArrowCanvas() {
         canvas.style.position = 'absolute';
         canvas.style.top = '0';
         canvas.style.left = '0';
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
         canvas.style.pointerEvents = 'none';
         canvas.style.zIndex = '10';
 
-        // Canvasサイズを親要素に合わせる
+        // Canvasサイズを親要素に合わせる（内部サイズと表示サイズの両方を設定）
         canvas.width = mainContainer.scrollWidth;
         canvas.height = mainContainer.scrollHeight;
+        canvas.style.width = `${mainContainer.scrollWidth}px`;  // ★追加：CSS表示サイズ
+        canvas.style.height = `${mainContainer.scrollHeight}px`; // ★追加：CSS表示サイズ
 
         mainContainer.style.position = 'relative';
         mainContainer.appendChild(canvas);
@@ -232,6 +234,10 @@ function drawPanelArrows(layerId) {
         // scrollWidth/Heightを使用してコンテンツ全体をカバー
         canvas.width = Math.max(nodeListContainer.scrollWidth, nodeListContainer.clientWidth);
         canvas.height = Math.max(nodeListContainer.scrollHeight, nodeListContainer.clientHeight, 700); // 最小高さ700px
+
+        // ★重要：CSS表示サイズも更新
+        canvas.style.width = `${canvas.width}px`;
+        canvas.style.height = `${canvas.height}px`;
 
         if (canvas.width !== oldWidth || canvas.height !== oldHeight) {
             console.log(`[Canvas デバッグ] Canvas サイズ調整: ${oldWidth}x${oldHeight} → ${canvas.width}x${canvas.height}`);
@@ -786,6 +792,8 @@ function resizeCanvases() {
             if (mainContainer) {
                 canvas.width = mainContainer.scrollWidth;
                 canvas.height = mainContainer.scrollHeight;
+                canvas.style.width = `${mainContainer.scrollWidth}px`;  // ★追加：CSS表示サイズ
+                canvas.style.height = `${mainContainer.scrollHeight}px`; // ★追加：CSS表示サイズ
             }
         } else {
             const layerPanel = document.getElementById(id);
@@ -794,6 +802,8 @@ function resizeCanvases() {
                 if (nodeList) {
                     canvas.width = nodeList.scrollWidth;
                     canvas.height = nodeList.scrollHeight;
+                    canvas.style.width = `${nodeList.scrollWidth}px`;  // ★追加：CSS表示サイズ
+                    canvas.style.height = `${nodeList.scrollHeight}px`; // ★追加：CSS表示サイズ
                 }
             }
         }
