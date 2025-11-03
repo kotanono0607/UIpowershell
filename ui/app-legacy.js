@@ -354,15 +354,17 @@ function drawPanelArrows(layerId) {
     }
     console.log(`[デバッグ] 描画した通常矢印数: ${arrowCount}`);
 
+    // コンテナの矩形を取得（条件分岐とループで共通使用）
+    const containerRect = nodeListContainer.getBoundingClientRect();
+
     // 条件分岐の特別な矢印を描画
     conditionGroups.forEach(group => {
-        drawConditionalBranchArrows(ctx, group.startNode, group.middleNode, group.endNode, nodes);
+        drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect);
     });
 
     // ループの矢印を描画
     const loopGroups = findLoopGroups(nodes);
     console.log(`[デバッグ] ループグループ数: ${loopGroups.length}`);
-    const containerRect = layerPanel.querySelector('.node-list-container').getBoundingClientRect();
     loopGroups.forEach(group => {
         drawLoopArrows(ctx, group.startNode, group.endNode, containerRect);
     });
@@ -396,35 +398,37 @@ function drawPanelArrows(layerId) {
 // 条件分岐グループを見つける
 function findConditionGroups(nodes) {
     const groups = [];
+    let insideConditional = false;
+    let currentGroup = [];
 
+    // PowerShellの仕様: 緑色ボタンがペアで条件分岐を表す
     for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
         const color = window.getComputedStyle(node).backgroundColor;
-        const text = node.textContent.trim();
 
-        if (isSpringGreenColor(color) && text.includes('条件分岐 開始')) {
-            // 中間と終了を探す
-            let middleNode = null;
-            let endNode = null;
+        if (isSpringGreenColor(color)) {
+            if (!insideConditional) {
+                // 条件分岐開始
+                insideConditional = true;
+                currentGroup = [node]; // 開始ノード
+            } else {
+                // 条件分岐終了
+                currentGroup.push(node); // 終了ノード
 
-            for (let j = i + 1; j < nodes.length; j++) {
-                const nextNode = nodes[j];
-                const nextColor = window.getComputedStyle(nextNode).backgroundColor;
-                const nextText = nextNode.textContent.trim();
-
-                if (isSpringGreenColor(nextColor) || nextColor === 'rgb(128, 128, 128)') {
-                    if (nextText.includes('条件分岐 中間')) {
-                        middleNode = nextNode;
-                    } else if (nextText.includes('条件分岐 終了')) {
-                        endNode = nextNode;
-                        break;
-                    }
+                if (currentGroup.length >= 2) {
+                    groups.push({
+                        startNode: currentGroup[0],
+                        endNode: currentGroup[currentGroup.length - 1],
+                        innerNodes: currentGroup.slice(1, -1) // 開始と終了の間のノード
+                    });
                 }
-            }
 
-            if (middleNode && endNode) {
-                groups.push({ startNode: node, middleNode, endNode });
+                insideConditional = false;
+                currentGroup = [];
             }
+        } else if (insideConditional) {
+            // 条件分岐内のノード（赤または青）
+            currentGroup.push(node);
         }
     }
 
@@ -432,41 +436,23 @@ function findConditionGroups(nodes) {
 }
 
 // 条件分岐の複雑な矢印を描画
-function drawConditionalBranchArrows(ctx, startNode, middleNode, endNode, allNodes) {
-    const containerRect = startNode.closest('.node-list-container').getBoundingClientRect();
-
+function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, containerRect) {
     const startRect = startNode.getBoundingClientRect();
-    const middleRect = middleNode.getBoundingClientRect();
     const endRect = endNode.getBoundingClientRect();
 
-    // 開始ノードと終了ノードのインデックスを取得
-    const startIndex = allNodes.indexOf(startNode);
-    const middleIndex = allNodes.indexOf(middleNode);
-    const endIndex = allNodes.indexOf(endNode);
+    // 内部ノードを赤と青に分類
+    const redNodes = innerNodes.filter(node => isSalmonColor(window.getComputedStyle(node).backgroundColor));
+    const blueNodes = innerNodes.filter(node => isBlueColor(window.getComputedStyle(node).backgroundColor));
 
-    if (startIndex === -1 || middleIndex === -1 || endIndex === -1) return;
+    console.log(`[条件分岐] 赤ノード数: ${redNodes.length}, 青ノード数: ${blueNodes.length}`);
 
-    // 開始と中間の間のノード（赤ブロック）
-    const redNodes = [];
-    for (let i = startIndex + 1; i < middleIndex; i++) {
-        const node = allNodes[i];
-        const color = window.getComputedStyle(node).backgroundColor;
-        if (isSalmonColor(color)) {
-            redNodes.push(node);
-        }
+    // 1. 緑（開始）→ 赤（False分岐）への下向き矢印
+    if (redNodes.length > 0) {
+        const firstRed = redNodes[0];
+        drawDownArrow(ctx, startNode, firstRed, 'rgb(250, 128, 114)');
     }
 
-    // 中間と終了の間のノード（青ブロック）
-    const blueNodes = [];
-    for (let i = middleIndex + 1; i < endIndex; i++) {
-        const node = allNodes[i];
-        const color = window.getComputedStyle(node).backgroundColor;
-        if (isBlueColor(color)) {
-            blueNodes.push(node);
-        }
-    }
-
-    // 緑→青の矢印（開始から右に出て青ブロックへ）
+    // 2. 緑（開始）→ 青（True分岐）への複雑な矢印（右→下）
     if (blueNodes.length > 0) {
         const firstBlue = blueNodes[0];
         const firstBlueRect = firstBlue.getBoundingClientRect();
@@ -476,9 +462,10 @@ function drawConditionalBranchArrows(ctx, startNode, middleNode, endNode, allNod
         const horizontalEndX = startX + 20;
         const blueY = firstBlueRect.top + firstBlueRect.height / 2 - containerRect.top;
 
-        // 右への横線
         ctx.strokeStyle = 'rgb(0, 0, 255)';
         ctx.lineWidth = 2;
+
+        // 右への横線
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.lineTo(horizontalEndX, startY);
@@ -490,7 +477,7 @@ function drawConditionalBranchArrows(ctx, startNode, middleNode, endNode, allNod
         ctx.lineTo(horizontalEndX, blueY);
         ctx.stroke();
 
-        // 青ブロックへの横線
+        // 青ボタンへの横線
         const blueRightX = firstBlueRect.right - containerRect.left;
         ctx.beginPath();
         ctx.moveTo(horizontalEndX, blueY);
@@ -498,19 +485,20 @@ function drawConditionalBranchArrows(ctx, startNode, middleNode, endNode, allNod
         ctx.stroke();
     }
 
-    // 赤→緑の矢印（赤ブロックから左に出て終了ノードへ）
+    // 3. 赤（False分岐）→ 緑（終了）への複雑な矢印（左→下→右）
     if (redNodes.length > 0) {
         const lastRed = redNodes[redNodes.length - 1];
         const lastRedRect = lastRed.getBoundingClientRect();
 
         const startX = lastRedRect.left - containerRect.left;
         const startY = lastRedRect.top + lastRedRect.height / 2 - containerRect.top;
-        const horizontalEndX = startX - 20;
+        const horizontalEndX = Math.max(startX - 20, 0);
         const endY = endRect.top + endRect.height / 2 - containerRect.top;
 
-        // 左への横線
         ctx.strokeStyle = 'rgb(250, 128, 114)';
         ctx.lineWidth = 2;
+
+        // 左への横線
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.lineTo(horizontalEndX, startY);
@@ -531,6 +519,12 @@ function drawConditionalBranchArrows(ctx, startNode, middleNode, endNode, allNod
 
         // 矢印ヘッド
         drawArrowHead(ctx, horizontalEndX, endY, endLeftX, endY);
+    }
+
+    // 4. 青（True分岐）→ 緑（終了）への下向き矢印
+    if (blueNodes.length > 0) {
+        const lastBlue = blueNodes[blueNodes.length - 1];
+        drawDownArrow(ctx, lastBlue, endNode, 'rgb(0, 0, 255)');
     }
 }
 
