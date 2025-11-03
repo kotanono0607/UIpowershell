@@ -1384,7 +1384,12 @@ async function addNodeToLayer(setting) {
         const node = addSingleNode(setting);
 
         // コード生成
-        await generateCode(setting.処理番号, node.name);
+        console.log('[デバッグ] generateCode() を呼び出します - 処理番号:', setting.処理番号, 'ボタン名:', node.name);
+        try {
+            await generateCode(setting.処理番号, node.name);
+        } catch (error) {
+            console.error('[デバッグ] generateCode() でエラーが発生しました:', error);
+        }
 
         // ★修正：画面を再描画（矢印も更新される）
         console.log('[デバッグ] renderNodesInLayer() を呼び出します');
@@ -3921,57 +3926,71 @@ const codeGeneratorFunctions = {
 
 // コード生成のメイン関数
 async function generateCode(処理番号, ボタン名, 直接エントリ = null) {
-    console.log(`[コード生成] 処理番号: ${処理番号}, ボタン名: ${ボタン名}`);
+    try {
+        console.log(`[コード生成] 開始 - 処理番号: ${処理番号}, ボタン名: ${ボタン名}`);
 
-    // 処理番号から関数名を取得
-    const 関数名 = getFunctionNameFromProcessingNumber(処理番号);
+        // 処理番号から関数名を取得
+        const 関数名 = getFunctionNameFromProcessingNumber(処理番号);
 
-    if (!関数名) {
-        console.error(`処理番号 ${処理番号} に対応する関数名が見つかりません`);
-        return null;
-    }
-
-    console.log(`[コード生成] 関数名: ${関数名}`);
-
-    // 関数を実行
-    const generatorFunc = codeGeneratorFunctions[関数名];
-
-    if (!generatorFunc) {
-        console.warn(`関数 ${関数名} は未実装です`);
-        return null;
-    }
-
-    let entryString = null;
-
-    // 特殊処理: 99-1の場合は直接エントリを渡す
-    if (処理番号 === '99-1') {
-        entryString = generatorFunc(直接エントリ);
-    } else {
-        // ダイアログを表示する場合は await
-        if (関数名 === 'ShowConditionBuilder' || 関数名 === 'ShowLoopBuilder') {
-            entryString = await generatorFunc();
-        } else {
-            entryString = generatorFunc();
+        if (!関数名) {
+            console.error(`[コード生成] エラー: 処理番号 ${処理番号} に対応する関数名が見つかりません`);
+            console.error(`[コード生成] buttonSettings:`, buttonSettings);
+            return null;
         }
-    }
 
-    // ユーザーがキャンセルした場合
-    if (entryString === null || entryString === undefined) {
-        console.log('[コード生成] ユーザーがキャンセルしました');
+        console.log(`[コード生成] 関数名: ${関数名}`);
+
+        // 関数を実行
+        const generatorFunc = codeGeneratorFunctions[関数名];
+
+        if (!generatorFunc) {
+            console.warn(`[コード生成] 警告: 関数 ${関数名} は未実装です`);
+            console.warn(`[コード生成] 利用可能な関数:`, Object.keys(codeGeneratorFunctions));
+            return null;
+        }
+
+        console.log(`[コード生成] 関数を実行します: ${関数名}`);
+
+        let entryString = null;
+
+        // 特殊処理: 99-1の場合は直接エントリを渡す
+        if (処理番号 === '99-1') {
+            entryString = generatorFunc(直接エントリ);
+        } else {
+            // ダイアログを表示する場合は await
+            if (関数名 === 'ShowConditionBuilder' || 関数名 === 'ShowLoopBuilder') {
+                console.log(`[コード生成] ダイアログを表示します`);
+                entryString = await generatorFunc();
+            } else {
+                entryString = generatorFunc();
+            }
+        }
+
+        console.log(`[コード生成] 生成されたコード:`, entryString);
+
+        // ユーザーがキャンセルした場合
+        if (entryString === null || entryString === undefined) {
+            console.log('[コード生成] ユーザーがキャンセルしました');
+            return null;
+        }
+
+        // 空文字列チェック
+        if (entryString.trim() === '') {
+            console.error('[コード生成] エラー: 生成されたコードが空です');
+            return null;
+        }
+
+        // コード.jsonに保存
+        console.log(`[コード生成] コード.jsonに保存します - ID: ${ボタン名}`);
+        await setCodeEntry(ボタン名, entryString);
+
+        console.log(`[コード生成] 成功: ID ${ボタン名} に保存しました`);
+        return entryString;
+    } catch (error) {
+        console.error('[コード生成] エラーが発生しました:', error);
+        console.error('[コード生成] スタックトレース:', error.stack);
         return null;
     }
-
-    // 空文字列チェック
-    if (entryString.trim() === '') {
-        console.error('[コード生成] エラー: 生成されたコードが空です');
-        return null;
-    }
-
-    // コード.jsonに保存
-    await setCodeEntry(ボタン名, entryString);
-
-    console.log(`[コード生成] 成功: ID ${ボタン名} に保存しました`);
-    return entryString;
 }
 
 // ============================================
