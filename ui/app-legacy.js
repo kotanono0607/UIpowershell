@@ -1189,7 +1189,7 @@ function checkScreenWidth() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('═══════════════════════════════════════════════');
-    console.log('UIpowershell Legacy UI v1.0.164 - 起動開始');
+    console.log('UIpowershell Legacy UI v1.0.165 - 起動開始');
     console.log('═══════════════════════════════════════════════');
 
     // 矢印描画機能を初期化（arrow-drawing.jsの内容が統合されているため即座に利用可能）
@@ -1215,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ボタン設定.jsonを読み込み
     await loadButtonSettings();
 
-    // カテゴリーパネルにノード追加ボタンを生成
+    // カテゴリーパネルにノード追加ボタンを生成（初期は無効化）
     generateAddNodeButtons();
 
     // イベントリスナー設定
@@ -1228,11 +1228,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadVariables();
 
     // フォルダ一覧を読み込み（デフォルトフォルダ自動選択）
+    console.log('[初期化] フォルダ初期化を開始...');
     await loadFolders();
+    console.log('[初期化] ✅ フォルダ初期化完了 - currentFolder:', currentFolder);
+
+    // ボタンを有効化
+    enableAddNodeButtons();
 
     // 既存のノードを読み込み（memory.jsonから）
     // ※loadFolders()の後に実行（currentFolderが設定された後）
     await loadExistingNodes();
+
+    console.log('═══════════════════════════════════════════════');
+    console.log('✅ UIpowershell 初期化完了');
+    console.log('═══════════════════════════════════════════════');
 });
 
 // リサイズ時のチェック
@@ -1341,6 +1350,7 @@ function generateAddNodeButtons() {
         btn.textContent = setting.テキスト;
         btn.style.backgroundColor = getColorCode(setting.背景色);
         btn.dataset.setting = JSON.stringify(setting);
+        btn.disabled = true;  // 初期化完了まで無効化
 
         btn.onclick = async () => {
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -1374,6 +1384,19 @@ function generateAddNodeButtons() {
     });
 
     console.log(`[ボタン生成] ✅ 完了 - ${generatedCount}/${buttonSettings.length} 個のボタンを生成しました`);
+    console.log(`[ボタン生成] ℹ️  ボタンは初期化完了まで無効化されています`);
+}
+
+// ノード追加ボタンを有効化
+function enableAddNodeButtons() {
+    console.log('[ボタン有効化] 開始...');
+    const buttons = document.querySelectorAll('.add-node-btn');
+    let count = 0;
+    buttons.forEach(btn => {
+        btn.disabled = false;
+        count++;
+    });
+    console.log(`[ボタン有効化] ✅ ${count}個のボタンを有効化しました`);
 }
 
 // 色名→CSSカラーコード変換
