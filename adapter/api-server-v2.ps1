@@ -742,7 +742,8 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
         }
 
         # memory.json形式に変換
-        $memoryData = @{}
+        # [ordered]を使用してレイヤーの順序を保持（1, 2, 3, 4, 5, 6の順）
+        $memoryData = [ordered]@{}
         $totalNodes = 0
 
         for ($i = 1; $i -le 6; $i++) {
@@ -751,6 +752,7 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
 
             foreach ($node in $layerNodes) {
                 # [ordered] を使用してフィールドの順序を既存のPS1形式に合わせる
+                # 既存PS1版: 05_メインフォームUI_矢印処理.ps1 1069-1081行
                 $構成 += [ordered]@{
                     ボタン名 = $node.name
                     X座標 = if ($node.x) { $node.x } else { 10 }
@@ -758,13 +760,11 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
                     順番 = if ($node.順番) { $node.順番 } else { 1 }
                     ボタン色 = $node.color
                     テキスト = $node.text
-                    処理番号 = $node.処理番号
+                    処理番号 = if ($node.処理番号) { $node.処理番号 } else { "未設定" }
                     高さ = if ($node.height) { $node.height } else { 40 }
                     幅 = if ($node.width) { $node.width } else { 280 }
-                    script = if ($node.script) { $node.script } else { "" }
-                    GroupID = $node.groupId
-                    関数名 = if ($node.関数名) { $node.関数名 } else { "" }
-                    ID = $node.id
+                    script = if ($node.script) { $node.script } else { "未設定" }
+                    GroupID = if ($node.groupId -ne $null -and $node.groupId -ne "") { $node.groupId } else { "" }
                 }
                 $totalNodes++
             }
