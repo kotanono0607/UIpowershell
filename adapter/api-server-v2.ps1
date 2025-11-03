@@ -750,8 +750,8 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
             $構成 = @()
 
             foreach ($node in $layerNodes) {
-                $構成 += @{
-                    ID = $node.id
+                # [ordered] を使用してフィールドの順序を既存のPS1形式に合わせる
+                $構成 += [ordered]@{
                     ボタン名 = $node.name
                     X座標 = if ($node.x) { $node.x } else { 10 }
                     Y座標 = $node.y
@@ -764,6 +764,7 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
                     script = if ($node.script) { $node.script } else { "" }
                     GroupID = $node.groupId
                     関数名 = if ($node.関数名) { $node.関数名 } else { "" }
+                    ID = $node.id
                 }
                 $totalNodes++
             }
