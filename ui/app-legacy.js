@@ -2295,7 +2295,6 @@ function handlePinkNodeClick(node) {
     console.log(`[展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${entries.length}個のノード展開、レイヤー移動なし)`);
     console.log(`[パネル表示] 左: レイヤー${leftVisibleLayer}, 右: レイヤー${rightVisibleLayer}`);
 }
-}
 
 // 赤枠に挟まれたボタンスタイルを適用
 function applyRedBorderToGroup() {
