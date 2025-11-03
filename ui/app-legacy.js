@@ -51,17 +51,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     // カテゴリーパネルにノード追加ボタンを生成
     generateAddNodeButtons();
 
-    // 既存のノードを読み込み（memory.jsonから）
-    await loadExistingNodes();
-
     // イベントリスナー設定
     setupEventListeners();
 
     // 変数を読み込み
     await loadVariables();
 
-    // フォルダ一覧を読み込み
+    // フォルダ一覧を読み込み（デフォルトフォルダ自動選択）
     await loadFolders();
+
+    // 既存のノードを読み込み（memory.jsonから）
+    // ※loadFolders()の後に実行（currentFolderが設定された後）
+    await loadExistingNodes();
 });
 
 // ============================================

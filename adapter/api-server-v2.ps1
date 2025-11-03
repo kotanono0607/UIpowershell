@@ -494,7 +494,7 @@ New-PolarisRoute -Path "/api/folders" -Method GET -ScriptBlock {
 New-PolarisRoute -Path "/api/folders" -Method POST -ScriptBlock {
     try {
         $body = $Request.Body | ConvertFrom-Json
-        $result = フォルダ作成イベント_v2 -FolderName $body.folderName
+        $result = フォルダ作成イベント_v2 -FolderName $body.name
         $json = $result | ConvertTo-Json -Compress
         $Response.SetContentType('application/json; charset=utf-8')
         $Response.Send($json)
@@ -974,10 +974,40 @@ try {
     Write-Host "停止するには Ctrl+C を押してください" -ForegroundColor Yellow
     Write-Host ""
 
-    # ブラウザ自動起動
+    # ブラウザ自動起動（新規ウインドウで開く）
     if ($AutoOpenBrowser) {
         Start-Sleep -Seconds 1
-        Start-Process "http://localhost:$Port/index-legacy.html"
+        $url = "http://localhost:$Port/index-legacy.html"
+
+        # Chromeを優先的に検索（新規ウインドウオプション付き）
+        $chromePaths = @(
+            "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe",
+            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
+            "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
+        )
+
+        $chromeFound = $false
+        foreach ($chromePath in $chromePaths) {
+            if (Test-Path $chromePath) {
+                Write-Host "[ブラウザ] Chromeを新規ウインドウで起動します: $url" -ForegroundColor Green
+                Start-Process $chromePath -ArgumentList "--new-window", $url
+                $chromeFound = $true
+                break
+            }
+        }
+
+        # Chromeが見つからない場合、Microsoft Edgeを試す
+        if (-not $chromeFound) {
+            $edgePath = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
+            if (Test-Path $edgePath) {
+                Write-Host "[ブラウザ] Microsoft Edgeを新規ウインドウで起動します: $url" -ForegroundColor Green
+                Start-Process $edgePath -ArgumentList "--new-window", $url
+            } else {
+                # デフォルトブラウザで開く（新規ウインドウは保証されない）
+                Write-Host "[ブラウザ] デフォルトブラウザで起動します: $url" -ForegroundColor Yellow
+                Start-Process $url
+            }
+        }
     }
 
     # サーバーを実行し続ける
