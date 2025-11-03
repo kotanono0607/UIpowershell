@@ -10,6 +10,13 @@
     box-sizing: border-box;
 }
 
+/* フルスクリーン表示のためのHTML要素スタイル */
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
 body {
     font-family: 'Yu Gothic UI', 'MS UI Gothic', sans-serif;
     background: #f0f0f0;
