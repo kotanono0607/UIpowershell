@@ -441,6 +441,12 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
     const endRect = endNode.getBoundingClientRect();
 
     // 内部ノードを赤と青に分類
+    console.log(`[条件分岐デバッグ] innerNodes数: ${innerNodes.length}`);
+    innerNodes.forEach((node, index) => {
+        const computedColor = window.getComputedStyle(node).backgroundColor;
+        console.log(`  [${index}] text="${node.textContent}", color="${computedColor}"`);
+    });
+
     const redNodes = innerNodes.filter(node => isSalmonColor(window.getComputedStyle(node).backgroundColor));
     const blueNodes = innerNodes.filter(node => isBlueColor(window.getComputedStyle(node).backgroundColor));
 
@@ -604,8 +610,8 @@ function drawLoopArrows(ctx, startNode, endNode, containerRect) {
 
 // 色が白かどうかを判定
 function isWhiteColor(colorString) {
-    // rgb(255, 255, 255) 形式の文字列を解析
-    const match = colorString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    // rgb() と rgba() の両方に対応
+    const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     if (match) {
         const r = parseInt(match[1]);
         const g = parseInt(match[2]);
@@ -617,7 +623,8 @@ function isWhiteColor(colorString) {
 
 // 色がSpringGreen（条件分岐）かどうかを判定
 function isSpringGreenColor(colorString) {
-    const match = colorString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    // rgb() と rgba() の両方に対応
+    const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     if (match) {
         const r = parseInt(match[1]);
         const g = parseInt(match[2]);
@@ -629,7 +636,8 @@ function isSpringGreenColor(colorString) {
 
 // 色がLemonChiffon（ループ）かどうかを判定
 function isLemonChiffonColor(colorString) {
-    const match = colorString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    // rgb() と rgba() の両方に対応
+    const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     if (match) {
         const r = parseInt(match[1]);
         const g = parseInt(match[2]);
@@ -641,7 +649,8 @@ function isLemonChiffonColor(colorString) {
 
 // 色がSalmon（条件分岐内の赤ブロック）かどうかを判定
 function isSalmonColor(colorString) {
-    const match = colorString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    // rgb() と rgba() の両方に対応
+    const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     if (match) {
         const r = parseInt(match[1]);
         const g = parseInt(match[2]);
@@ -653,20 +662,25 @@ function isSalmonColor(colorString) {
 
 // 色がBlue系（条件分岐内の青ブロック）かどうかを判定
 function isBlueColor(colorString) {
-    const match = colorString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    // rgb() と rgba() の両方に対応
+    const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     if (match) {
         const r = parseInt(match[1]);
         const g = parseInt(match[2]);
         const b = parseInt(match[3]);
         // FromArgb(200, 220, 255)
-        return r === 200 && g === 220 && b === 255;
+        const isMatch = r === 200 && g === 220 && b === 255;
+        console.log(`[isBlueColor] 検証: r=${r}, g=${g}, b=${b}, match=${isMatch}, input="${colorString}"`);
+        return isMatch;
     }
+    console.log(`[isBlueColor] パターンマッチ失敗: "${colorString}"`);
     return false;
 }
 
 // 色がPink（スクリプト展開ノード）かどうかを判定
 function isPinkColor(colorString) {
-    const match = colorString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    // rgb() と rgba() の両方に対応
+    const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     if (match) {
         const r = parseInt(match[1]);
         const g = parseInt(match[2]);
