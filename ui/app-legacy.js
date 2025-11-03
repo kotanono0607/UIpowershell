@@ -1273,13 +1273,22 @@ async function callApi(endpoint, method = 'GET', body = null) {
 
 async function loadButtonSettings() {
     try {
+        console.log('[ボタン設定] ロード開始...');
         // APIサーバー経由でボタン設定.jsonを読み込み
         // 注: 日本語URLのエンコード問題を避けるため、英語エイリアスを使用
         const response = await fetch('/button-settings.json');
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         buttonSettings = await response.json();
-        console.log('ボタン設定読み込み完了:', buttonSettings.length, '個');
+        console.log('[ボタン設定] ✅ ロード完了:', buttonSettings.length, '個');
+        console.log('[ボタン設定] 最初の3つ:', buttonSettings.slice(0, 3));
     } catch (error) {
-        console.error('ボタン設定読み込み失敗:', error);
+        console.error('[ボタン設定] ❌ ロード失敗:', error);
+        console.error('[ボタン設定] エラー詳細:', error.message);
+        console.error('[ボタン設定] スタックトレース:', error.stack);
         buttonSettings = [];
     }
 }
@@ -1289,6 +1298,8 @@ async function loadButtonSettings() {
 // ============================================
 
 function generateAddNodeButtons() {
+    console.log('[ボタン生成] 開始 - buttonSettings:', buttonSettings.length, '個');
+
     // 操作フレームパネル1-10の対応
     const panelMapping = {
         1: 'category-panel-1',
@@ -1303,16 +1314,24 @@ function generateAddNodeButtons() {
         10: 'category-panel-10'
     };
 
-    buttonSettings.forEach(setting => {
+    let generatedCount = 0;
+
+    buttonSettings.forEach((setting, index) => {
         // コンテナ名から数字を抽出（例：操作フレームパネル1 → 1）
         const containerNum = setting.コンテナ.match(/\d+/);
-        if (!containerNum) return;
+        if (!containerNum) {
+            console.warn(`[ボタン生成] コンテナ番号が見つかりません:`, setting.コンテナ);
+            return;
+        }
 
         const panelNum = parseInt(containerNum[0]);
         const panelId = panelMapping[panelNum];
         const panel = document.getElementById(panelId);
 
-        if (!panel) return;
+        if (!panel) {
+            console.warn(`[ボタン生成] パネルが見つかりません: ${panelId}`);
+            return;
+        }
 
         // ボタンを作成
         const btn = document.createElement('button');
@@ -1321,9 +1340,22 @@ function generateAddNodeButtons() {
         btn.style.backgroundColor = getColorCode(setting.背景色);
         btn.dataset.setting = JSON.stringify(setting);
 
-        btn.onclick = () => {
-            console.log('[ボタンクリック] ボタンがクリックされました:', setting.テキスト, '処理番号:', setting.処理番号);
-            addNodeToLayer(setting);
+        btn.onclick = async () => {
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('[ボタンクリック] ✅ ボタンがクリックされました');
+            console.log('[ボタンクリック] テキスト:', setting.テキスト);
+            console.log('[ボタンクリック] 処理番号:', setting.処理番号);
+            console.log('[ボタンクリック] 関数名:', setting.関数名);
+            console.log('[ボタンクリック] 背景色:', setting.背景色);
+            console.log('[ボタンクリック] setting全体:', setting);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+            try {
+                await addNodeToLayer(setting);
+            } catch (error) {
+                console.error('[ボタンクリック] ❌ エラーが発生しました:', error);
+                console.error('[ボタンクリック] スタックトレース:', error.stack);
+            }
         };
 
         // マウスオーバーで説明を表示
@@ -1332,7 +1364,14 @@ function generateAddNodeButtons() {
         };
 
         panel.appendChild(btn);
+        generatedCount++;
+
+        if (index < 3) {
+            console.log(`[ボタン生成] ${index + 1}/${buttonSettings.length}: ${setting.テキスト} (${setting.処理番号}) → ${panelId}`);
+        }
     });
+
+    console.log(`[ボタン生成] ✅ 完了 - ${generatedCount}/${buttonSettings.length} 個のボタンを生成しました`);
 }
 
 // 色名→CSSカラーコード変換
@@ -1370,38 +1409,62 @@ function switchCategory(categoryNum) {
 // ============================================
 
 async function addNodeToLayer(setting) {
-    console.log('[デバッグ] addNodeToLayer() 呼び出し:', setting.処理番号, setting.テキスト);
+    console.log('┌────────────────────────────────────────');
+    console.log('│ [addNodeToLayer] 開始');
+    console.log('├────────────────────────────────────────');
+    console.log('│ 処理番号:', setting.処理番号);
+    console.log('│ テキスト:', setting.テキスト);
+    console.log('│ 関数名:', setting.関数名);
+    console.log('│ 背景色:', setting.背景色);
+    console.log('│ 現在のレイヤー:', currentLayer);
+    console.log('└────────────────────────────────────────');
 
     // 処理番号で判定してセット作成
     if (setting.処理番号 === '1-2') {
         // 条件分岐：3個セット（開始・中間・終了）
-        console.log('[デバッグ] 条件分岐セット追加');
+        console.log('[addNodeToLayer] 条件分岐セット追加を開始');
         await addConditionSet(setting);
+        console.log('[addNodeToLayer] 条件分岐セット追加が完了');
     } else if (setting.処理番号 === '1-3') {
         // ループ：2個セット（開始・終了）
-        console.log('[デバッグ] ループセット追加');
+        console.log('[addNodeToLayer] ループセット追加を開始');
         await addLoopSet(setting);
+        console.log('[addNodeToLayer] ループセット追加が完了');
     } else {
         // 通常ノード：1個
-        console.log('[デバッグ] 通常ノード追加');
+        console.log('[addNodeToLayer] 通常ノード追加を開始');
         const node = addSingleNode(setting);
+        console.log('[addNodeToLayer] ノードを作成しました - ID:', node.id, 'name:', node.name);
 
         // コード生成
-        console.log('[デバッグ] generateCode() を呼び出します - 処理番号:', setting.処理番号, 'ボタン名:', node.name);
+        console.log('[addNodeToLayer] generateCode() を呼び出します');
+        console.log('[addNodeToLayer]   - 処理番号:', setting.処理番号);
+        console.log('[addNodeToLayer]   - ボタン名:', node.name);
+        console.log('[addNodeToLayer]   - 関数名:', setting.関数名);
         try {
-            await generateCode(setting.処理番号, node.name);
+            const generatedCode = await generateCode(setting.処理番号, node.name);
+            if (generatedCode) {
+                console.log('[addNodeToLayer] ✅ コード生成成功');
+                console.log('[addNodeToLayer] 生成されたコード:', generatedCode.substring(0, 100) + '...');
+            } else {
+                console.warn('[addNodeToLayer] ⚠ コード生成が null を返しました');
+            }
         } catch (error) {
-            console.error('[デバッグ] generateCode() でエラーが発生しました:', error);
+            console.error('[addNodeToLayer] ❌ generateCode() でエラーが発生しました:', error);
+            console.error('[addNodeToLayer] スタックトレース:', error.stack);
         }
 
         // ★修正：画面を再描画（矢印も更新される）
-        console.log('[デバッグ] renderNodesInLayer() を呼び出します');
+        console.log('[addNodeToLayer] renderNodesInLayer() を呼び出します');
         renderNodesInLayer(currentLayer);
         reorderNodesInLayer(currentLayer);
+        console.log('[addNodeToLayer] 通常ノード追加が完了');
     }
 
     // memory.json自動保存
+    console.log('[addNodeToLayer] memory.json自動保存を実行');
     saveMemoryJson();
+    console.log('[addNodeToLayer] 完了');
 }
 
 // 単一ノードを追加
