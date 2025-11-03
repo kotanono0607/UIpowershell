@@ -18,6 +18,54 @@ let edges = [];
 let sessionInfo = null;
 
 // ============================================
+// エッジ自動生成関数
+// ============================================
+
+/**
+ * ノード配列からエッジ（矢印）を自動生成
+ * レガシー版の矢印描画ロジックを再現：Y座標でソートして隣接ノード間に矢印を作成
+ *
+ * @param {Array} nodeArray - ノード配列
+ * @returns {Array} エッジ配列
+ */
+function generateEdgesFromNodes(nodeArray) {
+    if (!nodeArray || nodeArray.length === 0) {
+        console.log('[generateEdgesFromNodes] ノードが空のため、エッジを生成しません');
+        return [];
+    }
+
+    // ノードをY座標でソート（レガシー版の順序ロジックを再現）
+    const sortedNodes = [...nodeArray].sort((a, b) => {
+        return a.position.y - b.position.y;
+    });
+
+    // 隣接ノード間にエッジを生成
+    const newEdges = [];
+    for (let i = 0; i < sortedNodes.length - 1; i++) {
+        const sourceNode = sortedNodes[i];
+        const targetNode = sortedNodes[i + 1];
+
+        const edge = {
+            id: `e${sourceNode.id}-${targetNode.id}`,
+            source: sourceNode.id,
+            target: targetNode.id,
+            animated: true,  // アニメーション効果
+            type: 'smoothstep',  // スムーズなステップライン
+            style: {
+                stroke: '#007acc',  // 青色の矢印
+                strokeWidth: 2
+            }
+        };
+
+        newEdges.push(edge);
+        console.log(`[generateEdgesFromNodes] エッジ生成: ${sourceNode.id} → ${targetNode.id}`);
+    }
+
+    console.log(`[generateEdgesFromNodes] 合計 ${newEdges.length} 個のエッジを生成しました`);
+    return newEdges;
+}
+
+// ============================================
 // API通信関数 - 基本
 // ============================================
 
@@ -278,6 +326,9 @@ function initReactFlow() {
     const { ReactFlow, Background, Controls, MiniMap, applyNodeChanges, applyEdgeChanges } = ReactFlowRenderer;
     const flowContainer = document.getElementById('flow-container');
 
+    // 初期エッジを生成
+    edges = generateEdgesFromNodes(nodes);
+
     const App = () => {
         const [nodesState, setNodes] = React.useState(nodes);
         const [edgesState, setEdges] = React.useState(edges);
@@ -287,6 +338,11 @@ function initReactFlow() {
             setNodes(newNodes);
             nodes = newNodes;
             updateNodeCount();
+
+            // ノード変更時にエッジを再生成（位置変更を反映）
+            const newEdges = generateEdgesFromNodes(newNodes);
+            setEdges(newEdges);
+            edges = newEdges;
 
             // API側に同期
             syncNodes();
@@ -405,6 +461,9 @@ async function addNode(event) {
 
         nodes.push(newNode);
 
+        // エッジを再生成
+        edges = generateEdgesFromNodes(nodes);
+
         // APIにエントリを追加
         await fetch(`${API_BASE}/entry/add`, {
             method: 'POST',
@@ -456,6 +515,9 @@ async function deleteSelectedNodes() {
             // 削除対象のノードをすべて削除
             const deleteIds = result.deleteTargets;
             nodes = nodes.filter(node => !deleteIds.includes(node.id));
+
+            // エッジを再生成
+            edges = generateEdgesFromNodes(nodes);
 
             // 再描画
             initReactFlow();
