@@ -1529,6 +1529,9 @@ function updateDualPanelDisplay() {
 
     // レイヤーラベルを更新
     document.getElementById('current-layer-label').textContent = `レイヤー${leftVisibleLayer} / レイヤー${rightVisibleLayer}`;
+
+    // ナビゲーションボタンの状態を更新
+    updateNavigationButtons();
 }
 
 // ============================================
@@ -2450,44 +2453,81 @@ function deleteAllNodes() {
 // ============================================
 
 function navigateLayer(direction) {
-    if (direction === 'left') {
-        if (currentLayer > 0) {
-            currentLayer--;
+    if (direction === 'right') {
+        // 右矢印: レイヤーを進む（PowerShellの「左矢印」= 画面が左にスライド）
+
+        // スクリプト展開チェック（レイヤー1以降）
+        if (leftVisibleLayer >= 1) {
+            if (pinkSelectionArray[leftVisibleLayer].value !== 1) {
+                alert(`レイヤー${leftVisibleLayer + 1} に進むには、\nレイヤー${leftVisibleLayer} でスクリプト化ノードを展開してください。\n\n操作手順:\n1. Shift を押しながら複数のノードをクリック（赤枠が付きます）\n2. 「レイヤー化」ボタンをクリック\n3. 作成されたスクリプト化ノード（ピンク色）をクリック\n4. 次のレイヤーに展開されます`);
+                console.log(`[❌ 右矢印] レイヤー${leftVisibleLayer} でスクリプト展開中ではないため、進めません`);
+                return;
+            }
+            console.log(`[✅ 右矢印] レイヤー${leftVisibleLayer} でスクリプト展開中を確認。レイヤー${leftVisibleLayer + 1} に進みます`);
         }
-    } else if (direction === 'right') {
-        if (currentLayer < 6) {
-            currentLayer++;
+
+        // レイヤー範囲チェック（左パネルは最大5、右パネルは最大6）
+        if (leftVisibleLayer < 5) {
+            leftVisibleLayer++;
+            rightVisibleLayer++;
+
+            console.log(`[レイヤー進む] 左パネル: レイヤー${leftVisibleLayer}, 右パネル: レイヤー${rightVisibleLayer}`);
+
+            // 現在のレイヤーより深いレイヤーをクリア
+            clearDeeperLayers(leftVisibleLayer);
+        }
+    } else if (direction === 'left') {
+        // 左矢印: レイヤーを戻る（PowerShellの「右矢印」= 画面が右にスライド）
+
+        // レイヤー2以上の場合のみ戻れる（leftVisibleLayer > 1）
+        if (leftVisibleLayer > 1) {
+            leftVisibleLayer--;
+            rightVisibleLayer--;
+
+            console.log(`[レイヤー戻る] 左パネル: レイヤー${leftVisibleLayer}, 右パネル: レイヤー${rightVisibleLayer}`);
+
+            // 現在のレイヤーより深いレイヤーをクリア
+            clearDeeperLayers(leftVisibleLayer);
         }
     }
 
-    // レイヤー表示を更新
-    document.querySelectorAll('.layer-panel').forEach(panel => {
-        panel.classList.remove('active');
-        panel.style.display = 'none';
-    });
+    // デュアルパネル表示を更新
+    updateDualPanelDisplay();
 
-    const targetPanel = document.getElementById(`layer-${currentLayer}`);
-    if (targetPanel) {
-        targetPanel.classList.add('active');
-        targetPanel.style.display = 'flex';
+    // 両パネルを再描画
+    renderNodesInLayer(leftVisibleLayer, 'left');
+    renderNodesInLayer(rightVisibleLayer, 'right');
+
+    // memory.jsonを保存
+    saveMemoryJson();
+
+    // 矢印を再描画
+    refreshAllArrows();
+}
+
+// 現在のレイヤーより深いレイヤーをクリアする関数
+function clearDeeperLayers(currentLayer) {
+    console.log(`[クリア] レイヤー${currentLayer}より深いレイヤーをクリアします`);
+    for (let i = currentLayer + 1; i <= 6; i++) {
+        // レイヤー構造からノードを削除
+        const clearedCount = layerStructure[i].nodes.length;
+        layerStructure[i].nodes = [];
+
+        // グローバルnodesからも削除
+        nodes = nodes.filter(n => n.layer !== i);
+
+        // Pink選択配列をリセット
+        if (i >= 0 && i <= 6) {
+            pinkSelectionArray[i].value = 0;
+            pinkSelectionArray[i].expandedNode = null;
+            pinkSelectionArray[i].yCoord = 0;
+            pinkSelectionArray[i].initialY = 0;
+        }
+
+        if (clearedCount > 0) {
+            console.log(`  レイヤー${i}: ${clearedCount}個のノードをクリア`);
+        }
     }
-
-    // ラベル更新
-    const layerLabel = currentLayer === 0 ? 'レイヤー0（非表示左）' : `レイヤー${currentLayer}`;
-    document.getElementById('current-layer-label').textContent = layerLabel;
-    document.getElementById('path-text').textContent = layerLabel;
-
-    // レイヤー0の場合は特別な表示
-    if (currentLayer === 0) {
-        console.log('[レイヤー0表示] 非表示左パネルを表示中');
-        layerStructure[0].visible = true;
-    }
-
-    // 現在のレイヤーを再描画
-    renderNodesInLayer(currentLayer);
-
-    // 左右ボタンの有効/無効を更新
-    updateNavigationButtons();
 }
 
 // ナビゲーションボタンの状態を更新
@@ -2496,13 +2536,15 @@ function updateNavigationButtons() {
     const rightBtn = document.querySelector('[onclick*="navigateLayer(\'right\')"]');
 
     if (leftBtn) {
-        leftBtn.disabled = (currentLayer === 0);
-        leftBtn.style.opacity = (currentLayer === 0) ? '0.5' : '1';
+        // 左矢印: レイヤー1以下では戻れない
+        leftBtn.disabled = (leftVisibleLayer <= 1);
+        leftBtn.style.opacity = (leftVisibleLayer <= 1) ? '0.5' : '1';
     }
 
     if (rightBtn) {
-        rightBtn.disabled = (currentLayer === 6);
-        rightBtn.style.opacity = (currentLayer === 6) ? '0.5' : '1';
+        // 右矢印: 左パネルがレイヤー5以上では進めない
+        rightBtn.disabled = (leftVisibleLayer >= 5);
+        rightBtn.style.opacity = (leftVisibleLayer >= 5) ? '0.5' : '1';
     }
 }
 
