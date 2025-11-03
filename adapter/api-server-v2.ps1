@@ -1030,12 +1030,12 @@ try {
     Write-Host "停止するには Ctrl+C を押してください" -ForegroundColor Yellow
     Write-Host ""
 
-    # ブラウザ自動起動（新規ウインドウで開く）
+    # ブラウザ自動起動（アプリモードで開く - 識別可能）
     if ($AutoOpenBrowser) {
         Start-Sleep -Seconds 1
         $url = "http://localhost:$Port/index-legacy.html"
 
-        # Chromeを優先的に検索（新規ウインドウオプション付き）
+        # Chromeを優先的に検索（アプリモード）
         $chromePaths = @(
             "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe",
             "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
@@ -1045,8 +1045,9 @@ try {
         $chromeFound = $false
         foreach ($chromePath in $chromePaths) {
             if (Test-Path $chromePath) {
-                Write-Host "[ブラウザ] Chromeを新規ウインドウで起動します: $url" -ForegroundColor Green
-                Start-Process $chromePath -ArgumentList "--new-window", $url
+                Write-Host "[ブラウザ] Chromeをアプリモードで起動します: $url" -ForegroundColor Green
+                # --app モードで起動（タブなし、独立ウインドウ）
+                Start-Process $chromePath -ArgumentList "--app=$url"
                 $chromeFound = $true
                 break
             }
@@ -1056,10 +1057,11 @@ try {
         if (-not $chromeFound) {
             $edgePath = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
             if (Test-Path $edgePath) {
-                Write-Host "[ブラウザ] Microsoft Edgeを新規ウインドウで起動します: $url" -ForegroundColor Green
-                Start-Process $edgePath -ArgumentList "--new-window", $url
+                Write-Host "[ブラウザ] Microsoft Edgeをアプリモードで起動します: $url" -ForegroundColor Green
+                # --app モードで起動（タブなし、独立ウインドウ）
+                Start-Process $edgePath -ArgumentList "--app=$url"
             } else {
-                # デフォルトブラウザで開く（新規ウインドウは保証されない）
+                # デフォルトブラウザで開く（通常モード）
                 Write-Host "[ブラウザ] デフォルトブラウザで起動します: $url" -ForegroundColor Yellow
                 Start-Process $url
             }

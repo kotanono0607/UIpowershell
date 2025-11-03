@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 > nul
 echo ============================================
-echo UIpowershell - ブラウザを開く（新規ウインドウ）
+echo UIpowershell - ブラウザを開く（アプリモード）
 echo ============================================
 echo.
 
@@ -21,8 +21,8 @@ if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" (
 )
 
 if defined CHROME_PATH (
-    echo [✓] Google Chrome を新規ウインドウで起動します...
-    start "" "%CHROME_PATH%" --new-window "%URL%"
+    echo [✓] Google Chrome をアプリモードで起動します...
+    start "" "%CHROME_PATH%" --app=%URL%
     goto :END
 )
 
@@ -35,8 +35,8 @@ if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" (
 )
 
 if defined EDGE_PATH (
-    echo [✓] Microsoft Edge を新規ウインドウで起動します...
-    start "" "%EDGE_PATH%" --new-window "%URL%"
+    echo [✓] Microsoft Edge をアプリモードで起動します...
+    start "" "%EDGE_PATH%" --app=%URL%
     goto :END
 )
 
