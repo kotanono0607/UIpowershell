@@ -8,27 +8,30 @@ echo ℹ️  Microsoft Edge（UIpowershell専用）のみ終了します
 echo    Chrome等の他のブラウザは影響を受けません
 echo.
 
-echo [1/5] ポート8080を使用しているプロセスを停止しています...
-REM ポート8080を使用しているプロセスを停止
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8080" ^| findstr "LISTENING"') do (
-    echo   - PID %%a を終了中...
-    taskkill /F /PID %%a 2>nul
+echo [1/5] ポート8080-8090を使用しているプロセスを停止しています...
+REM ポート8080-8090の範囲でリスニングしているプロセスを停止
+for /L %%p in (8080,1,8090) do (
+    for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":%%p" ^| findstr "LISTENING"') do (
+        echo   - ポート%%p: PID %%a を終了中...
+        taskkill /F /PID %%a 2>nul
+    )
 )
 
 timeout /t 1 /nobreak > nul
 
 echo [2/5] Microsoft Edge（UIpowershell専用）を閉じています...
 REM Edge専用終了（Chrome対象外で完全分離）
-powershell -ExecutionPolicy Bypass -Command "& { $found = $false; Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'msedge.exe' -and $_.CommandLine -like '*--app=*localhost:8080*' } | ForEach-Object { $found = $true; Write-Host \"  - Edge (PID: $($_.ProcessId)) を終了中...\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; if (-not $found) { Write-Host \"  - UIpowershell用Edgeは見つかりませんでした\" } }"
+REM 方法1: WMI経由でCommandLineをチェック（より互換性が高い）
+powershell -ExecutionPolicy Bypass -Command "& { $found = $false; try { Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'msedge.exe' -and $_.CommandLine -like '*--app=*localhost:*' } | ForEach-Object { $found = $true; Write-Host \"  - Edge (PID: $($_.ProcessId), CommandLine確認) を終了中...\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } } catch { Write-Host \"  - WMIによる検索をスキップ\" }; if (-not $found) { try { $procs = Get-Process msedge -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like '*localhost*' }; if ($procs) { $procs | ForEach-Object { $found = $true; Write-Host \"  - Edge (PID: $($_.Id), WindowTitle確認) を終了中...\"; Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue } } } catch {} }; if (-not $found) { Write-Host \"  - UIpowershell用Edgeは見つかりませんでした\" } }"
 
 timeout /t 1 /nobreak > nul
 
 echo [3/5] UIpowershell関連のPowerShellプロセスを停止しています...
-REM api-server-v2.ps1を実行しているPowerShellを停止
-powershell -ExecutionPolicy Bypass -Command "& { Get-CimInstance Win32_Process | Where-Object { ($_.Name -eq 'powershell.exe' -or $_.Name -eq 'pwsh.exe') -and $_.CommandLine -like '*api-server-v2.ps1*' } | ForEach-Object { Write-Host \"  - APIサーバー (PID: $($_.ProcessId)) を終了中...\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } }"
+REM api-server-v2.ps1を実行しているPowerShellを停止（WMI経由で確実に）
+powershell -ExecutionPolicy Bypass -Command "& { $found = $false; try { Get-WmiObject Win32_Process | Where-Object { ($_.Name -eq 'powershell.exe' -or $_.Name -eq 'pwsh.exe') -and $_.CommandLine -like '*api-server-v2.ps1*' } | ForEach-Object { $found = $true; Write-Host \"  - APIサーバー (PID: $($_.ProcessId)) を終了中...\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } } catch {}; if (-not $found) { try { Get-Process | Where-Object { ($_.Name -eq 'powershell' -or $_.Name -eq 'pwsh') -and $_.MainWindowTitle -like '*api-server*' } | ForEach-Object { Write-Host \"  - APIサーバー (PID: $($_.Id)) を終了中...\"; Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue } } catch {} } }"
 
 REM quick-start.ps1を実行しているPowerShellを停止
-powershell -ExecutionPolicy Bypass -Command "& { Get-CimInstance Win32_Process | Where-Object { ($_.Name -eq 'powershell.exe' -or $_.Name -eq 'pwsh.exe') -and $_.CommandLine -like '*quick-start.ps1*' } | ForEach-Object { Write-Host \"  - QuickStartプロセス (PID: $($_.ProcessId)) を終了中...\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } }"
+powershell -ExecutionPolicy Bypass -Command "& { $found = $false; try { Get-WmiObject Win32_Process | Where-Object { ($_.Name -eq 'powershell.exe' -or $_.Name -eq 'pwsh.exe') -and $_.CommandLine -like '*quick-start.ps1*' } | ForEach-Object { $found = $true; Write-Host \"  - QuickStartプロセス (PID: $($_.ProcessId)) を終了中...\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } } catch {}; if (-not $found) { try { Get-Process | Where-Object { ($_.Name -eq 'powershell' -or $_.Name -eq 'pwsh') -and $_.MainWindowTitle -like '*quick-start*' } | ForEach-Object { Write-Host \"  - QuickStartプロセス (PID: $($_.Id)) を終了中...\"; Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue } } catch {} } }"
 
 timeout /t 1 /nobreak > nul
 
@@ -43,7 +46,7 @@ timeout /t 1 /nobreak > nul
 
 echo [5/5] クリーンアップ完了
 echo.
-echo ✅ ポート8080を解放しました
+echo ✅ ポート8080-8090の範囲でリスニングしていたプロセスを終了しました
 echo ✅ Microsoft Edge（UIpowershell専用）を閉じました
 echo ✅ UIpowershell関連のPowerShellプロセスを終了しました
 echo ✅ PowerShellコンソールウインドウを閉じました
