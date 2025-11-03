@@ -1359,6 +1359,23 @@ function renderNodesInLayer(layer) {
             btn.addEventListener('dragover', handleDragOver);
             btn.addEventListener('drop', handleDrop);
 
+            // クリックイベント（Shift+クリックで赤枠トグル、通常クリックでピンクノード展開）
+            btn.addEventListener('click', (e) => {
+                if (e.shiftKey) {
+                    // Shift+クリック: 赤枠トグル
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleShiftClick(node);
+                } else {
+                    // 通常クリック: ピンクノードの場合は展開処理
+                    if (node.color === 'Pink') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePinkNodeClick(node);
+                    }
+                }
+            });
+
             // ダブルクリックで詳細設定を開く
             btn.addEventListener('dblclick', () => {
                 openNodeSettings(node);
@@ -1868,6 +1885,37 @@ function toggleRedBorder() {
     console.log(`[赤枠トグル] ノード「${targetNode.text}」の赤枠を${targetNode.redBorder ? '追加' : '削除'}しました`);
 
     hideContextMenu();
+}
+
+// Shift+クリックで赤枠トグル（PowerShell互換）
+function handleShiftClick(node) {
+    const layerNodes = layerStructure[currentLayer].nodes;
+    const targetNode = layerNodes.find(n => n.id === node.id);
+
+    if (!targetNode) return;
+
+    // 赤枠をトグル
+    targetNode.redBorder = !targetNode.redBorder;
+
+    // グローバル配列も更新
+    const globalNode = nodes.find(n => n.id === targetNode.id);
+    if (globalNode) {
+        globalNode.redBorder = targetNode.redBorder;
+    }
+
+    renderNodesInLayer(currentLayer);
+
+    // memory.json自動保存
+    saveMemoryJson();
+
+    console.log(`[Shift+クリック] ノード「${targetNode.text}」の赤枠を${targetNode.redBorder ? '追加' : '削除'}しました`);
+}
+
+// ピンクノードクリックで展開処理（PowerShell互換）
+function handlePinkNodeClick(node) {
+    console.log(`[ピンクノードクリック] ノード「${node.text}」がクリックされました`);
+    // TODO: 次レイヤーへの展開処理を実装
+    alert('ピンクノード展開機能は次のステップで実装します。');
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
