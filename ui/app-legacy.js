@@ -1246,34 +1246,25 @@ function addConditionSet(setting) {
         40
     );
 
-    // 2. False分岐ノード（赤）
-    const falseNode = addSingleNode(
-        { ...setting, テキスト: 'False分岐', 背景色: 'Salmon', ボタン名: `${nodeCounter}-2` },
-        'False分岐',
+    // 2. 中間ライン（グレー、高さ1px）
+    const middleNode = addSingleNode(
+        { ...setting, テキスト: '条件分岐 中間', 背景色: 'Gray', ボタン名: `${nodeCounter}-2` },
+        '条件分岐 中間',
+        baseY + 45 - 5,  // 5px上に調整
+        groupId,
+        1  // 高さ1px
+    );
+
+    // 3. 終了ボタン（緑）
+    const endNode = addSingleNode(
+        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${nodeCounter}-3` },
+        '条件分岐 終了',
         baseY + 45,
         groupId,
         40
     );
 
-    // 3. True分岐ノード（青）
-    const trueNode = addSingleNode(
-        { ...setting, テキスト: 'True分岐', 背景色: 'CornflowerBlue', ボタン名: `${nodeCounter}-3` },
-        'True分岐',
-        baseY + 90,
-        groupId,
-        40
-    );
-
-    // 4. 終了ボタン（緑）
-    const endNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${nodeCounter}-4` },
-        '条件分岐 終了',
-        baseY + 135,
-        groupId,
-        40
-    );
-
-    console.log(`[条件分岐作成完了] 開始, False, True, 終了 (GroupID=${groupId})`);
+    console.log(`[条件分岐作成完了] 開始, 中間, 終了 (GroupID=${groupId})`);
 
     renderNodesInLayer(currentLayer);
     reorderNodesInLayer(currentLayer);
@@ -1418,6 +1409,9 @@ function handleDragOver(e) {
     const target = e.target;
     if (target.classList.contains('node-button') && target !== draggedNode) {
         target.classList.add('drag-over');
+    } else if (target.classList.contains('node-list-container')) {
+        // レイヤーパネルへのドロップも許可
+        target.classList.add('drag-over-container');
     }
 
     return false;
@@ -1430,63 +1424,95 @@ function handleDrop(e) {
 
     const target = e.target;
     target.classList.remove('drag-over');
+    target.classList.remove('drag-over-container');
 
+    if (!draggedNode) {
+        return false;
+    }
+
+    const draggedNodeId = draggedNode.dataset.nodeId;
+    const draggedNodeData = layerStructure[currentLayer].nodes.find(n => n.id === draggedNodeId);
+
+    if (!draggedNodeData) {
+        return false;
+    }
+
+    let newY;
+
+    // ケース1: ノードボタンへのドロップ（位置を入れ替え）
     if (target.classList.contains('node-button') && target !== draggedNode) {
-        // ドロップ位置のノードを取得
         const targetNodeId = target.dataset.nodeId;
-        const draggedNodeId = draggedNode.dataset.nodeId;
-
-        const draggedNodeData = layerStructure[currentLayer].nodes.find(n => n.id === draggedNodeId);
         const targetNodeData = layerStructure[currentLayer].nodes.find(n => n.id === targetNodeId);
 
-        if (!draggedNodeData || !targetNodeData) {
+        if (!targetNodeData) {
             return false;
         }
 
-        const currentY = draggedNodeData.y;
-        const newY = targetNodeData.y;
-
-        // ============================
-        // Phase 3: 整合性チェック
-        // ============================
-
-        // 1. 同色ブロック衝突チェック
-        const sameColorCollision = checkSameColorCollision(
-            draggedNodeData.color,
-            currentY,
-            newY,
-            draggedNodeData.id
-        );
-
-        if (sameColorCollision) {
-            alert('この位置には配置できません。\n同色のノードブロックと衝突します。');
-            return false;
-        }
-
-        // 2. ネスト禁止チェック
-        const nestingValidation = validateNesting(
-            draggedNodeData,
-            newY
-        );
-
-        if (nestingValidation.isProhibited) {
-            alert(`この位置には配置できません。\n${nestingValidation.reason}`);
-            return false;
-        }
-
-        // ============================
-        // バリデーション通過 → 移動実行
-        // ============================
-
-        // ノード配列内で位置を入れ替え
-        swapNodes(currentLayer, draggedNodeId, targetNodeId);
-
-        // 再描画
-        renderNodesInLayer(currentLayer);
-
-        // memory.json自動保存
-        saveMemoryJson();
+        newY = targetNodeData.y;
     }
+    // ケース2: レイヤーパネルの空きスペースへのドロップ
+    else if (target.classList.contains('node-list-container')) {
+        // ドロップ位置のY座標を計算（PowerShellの実装に準拠）
+        const rect = target.getBoundingClientRect();
+        const dropY = e.clientY - rect.top;  // コンテナ内の相対Y座標
+
+        // ボタンの中心が来るように調整
+        const buttonHeight = draggedNodeData.height || 40;
+        newY = dropY - (buttonHeight / 2) + 10;
+
+        // 最小値チェック
+        if (newY < 10) {
+            newY = 10;
+        }
+    } else {
+        return false;
+    }
+
+    const currentY = draggedNodeData.y;
+
+    // ============================
+    // Phase 3: 整合性チェック
+    // ============================
+
+    // 1. 同色ブロック衝突チェック
+    const sameColorCollision = checkSameColorCollision(
+        draggedNodeData.color,
+        currentY,
+        newY,
+        draggedNodeData.id
+    );
+
+    if (sameColorCollision) {
+        alert('この位置には配置できません。\n同色のノードブロックと衝突します。');
+        return false;
+    }
+
+    // 2. ネスト禁止チェック
+    const nestingValidation = validateNesting(
+        draggedNodeData,
+        newY
+    );
+
+    if (nestingValidation.isProhibited) {
+        alert(`この位置には配置できません。\n${nestingValidation.reason}`);
+        return false;
+    }
+
+    // ============================
+    // バリデーション通過 → 移動実行
+    // ============================
+
+    // Y座標を更新
+    draggedNodeData.y = newY;
+
+    // 上詰め再配置
+    reorderNodesInLayer(currentLayer);
+
+    // 再描画
+    renderNodesInLayer(currentLayer);
+
+    // memory.json自動保存
+    saveMemoryJson();
 
     return false;
 }
@@ -2971,6 +2997,12 @@ function setupEventListeners() {
             alert('⚠️ Redo機能は将来実装予定です');
             return;
         }
+    });
+
+    // レイヤーパネルへのドラッグ&ドロップイベント設定
+    document.querySelectorAll('.node-list-container').forEach(container => {
+        container.addEventListener('dragover', handleDragOver);
+        container.addEventListener('drop', handleDrop);
     });
 
     console.log('📌 キーボードショートカット有効化:');
