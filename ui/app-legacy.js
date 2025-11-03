@@ -3228,13 +3228,21 @@ async function saveCodeJson() {
 
     try {
         console.log('│ → API呼び出し: POST /folders/' + currentFolder + '/code');
+        console.log('│ → URL:', `${API_BASE}/folders/${currentFolder}/code`);
+        console.log('│ → codeData:', JSON.stringify(codeData).substring(0, 200) + '...');
+
         const response = await fetch(`${API_BASE}/folders/${currentFolder}/code`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ codeData: codeData })
         });
 
+        console.log('│ ← レスポンス受信');
+        console.log('│ ← ステータス:', response.status, response.statusText);
+        console.log('│ ← Content-Type:', response.headers.get('Content-Type'));
+
         const result = await response.json();
+        console.log('│ ← JSONパース完了:', result);
 
         if (result.success) {
             console.log('│ ✅ 成功:', result.message);
@@ -3244,6 +3252,7 @@ async function saveCodeJson() {
         }
     } catch (error) {
         console.error('│ ❌ エラー:', error);
+        console.error('│ エラーメッセージ:', error.message);
         console.error('│ スタックトレース:', error.stack);
     }
 
