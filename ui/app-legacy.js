@@ -431,6 +431,13 @@ function renderNodesInLayer(layer) {
 
         container.appendChild(btn);
     });
+
+    // 矢印を再描画
+    if (window.arrowDrawing) {
+        setTimeout(() => {
+            window.arrowDrawing.drawPanelArrows(`layer-${layer}`);
+        }, 10);
+    }
 }
 
 // ============================================
