@@ -53,6 +53,12 @@ for (let i = 0; i <= 6; i++) {
     });
 }
 
+// コード.json管理（スクリプト内容）
+let codeData = {
+    "エントリ": {},
+    "最後のID": 0
+};
+
 // ================================================================
 // arrow-drawing.js
 // 矢印描画機能（PS1からの移植）
@@ -2715,6 +2721,9 @@ async function loadFolders() {
                 currentFolder = folders[0];
                 console.log(`デフォルトフォルダ「${currentFolder}」を選択しました`);
 
+                // コード.jsonを読み込む
+                await loadCodeJson();
+
                 // 既にノードがある場合は上書きしない（ユーザーが追加したノードを保護）
                 if (nodes.length === 0) {
                     console.log('[デバッグ] ノードが空のため、memory.jsonから読み込みます');
@@ -2763,23 +2772,29 @@ function closeFolderModal() {
     document.getElementById('folder-modal').classList.remove('show');
 }
 
-function selectFolder() {
+async function selectFolder() {
     const select = document.getElementById('folder-select');
     const folderName = select.value;
 
     if (!folderName) return;
 
-    callApi(`/folders/${folderName}`, 'PUT')
-        .then(result => {
-            if (result.success) {
-                currentFolder = folderName;
-                alert(`フォルダ「${folderName}」に切り替えました。`);
-                closeFolderModal();
-                loadExistingNodes();
-            } else {
-                alert(`フォルダ切り替えに失敗しました: ${result.error}`);
-            }
-        });
+    try {
+        const result = await callApi(`/folders/${folderName}`, 'PUT');
+        if (result.success) {
+            currentFolder = folderName;
+            alert(`フォルダ「${folderName}」に切り替えました。`);
+            closeFolderModal();
+
+            // コード.jsonとmemory.jsonを読み込む
+            await loadCodeJson();
+            await loadExistingNodes();
+        } else {
+            alert(`フォルダ切り替えに失敗しました: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('フォルダ切り替えエラー:', error);
+        alert(`フォルダ切り替えエラー: ${error.message}`);
+    }
 }
 
 // ============================================
@@ -3021,6 +3036,90 @@ async function saveMemoryJson() {
     } catch (error) {
         console.error('memory.json保存エラー:', error);
     }
+}
+
+// ============================================
+// コード.json管理（スクリプト内容）
+// ============================================
+
+// コード.jsonを読み込む
+async function loadCodeJson() {
+    if (!currentFolder) {
+        console.warn('フォルダが選択されていないため、コード.json読み込みをスキップします');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/folders/${currentFolder}/code`);
+        const result = await response.json();
+
+        if (result.success) {
+            codeData = result.data;
+            console.log('コード.json読み込み成功:', codeData);
+        } else {
+            console.error('コード.json読み込み失敗:', result.error);
+            // 空のデータで初期化
+            codeData = {
+                "エントリ": {},
+                "最後のID": 0
+            };
+        }
+    } catch (error) {
+        console.error('コード.json読み込みエラー:', error);
+        // 空のデータで初期化
+        codeData = {
+            "エントリ": {},
+            "最後のID": 0
+        };
+    }
+}
+
+// コード.jsonを保存する
+async function saveCodeJson() {
+    if (!currentFolder) {
+        console.warn('フォルダが選択されていないため、コード.json保存をスキップします');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/folders/${currentFolder}/code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ codeData: codeData })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('コード.json保存成功:', result.message);
+        } else {
+            console.error('コード.json保存失敗:', result.error);
+        }
+    } catch (error) {
+        console.error('コード.json保存エラー:', error);
+    }
+}
+
+// 処理番号でスクリプト内容を取得
+function getCodeEntry(処理番号) {
+    if (!処理番号) return '';
+
+    const entry = codeData["エントリ"][処理番号];
+    return entry || '';
+}
+
+// 処理番号でスクリプト内容を設定
+async function setCodeEntry(処理番号, content) {
+    if (!処理番号) {
+        console.warn('処理番号が指定されていません');
+        return;
+    }
+
+    codeData["エントリ"][処理番号] = content;
+    console.log(`[コード設定] ${処理番号}: ${content.substring(0, 50)}...`);
+
+    // コード.jsonを保存
+    await saveCodeJson();
 }
 
 // ============================================

@@ -692,6 +692,95 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
     }
 }
 
+# コード.json読み込み（フォルダごと）
+New-PolarisRoute -Path "/api/folders/:name/code" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $folderName = $Request.Parameters.name
+        $rootDir = $global:RootDirForPolaris
+        $codePath = Join-Path $rootDir "03_history\$folderName\コード.json"
+
+        if (Test-Path $codePath) {
+            $content = Get-Content $codePath -Raw -Encoding UTF8
+            $codeData = $content | ConvertFrom-Json
+
+            $result = @{
+                success = $true
+                data = $codeData
+                folderName = $folderName
+            }
+            $json = $result | ConvertTo-Json -Depth 10
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+        } else {
+            # コード.jsonが存在しない場合は空の構造を返す
+            $emptyCode = @{
+                "エントリ" = @{}
+                "最後のID" = 0
+            }
+            $result = @{
+                success = $true
+                data = $emptyCode
+                folderName = $folderName
+                message = "コード.jsonが存在しないため、空のデータを返しました"
+            }
+            $json = $result | ConvertTo-Json -Depth 10
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+        }
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# コード.json保存（フォルダごと）
+New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $folderName = $Request.Parameters.name
+        $body = $Request.Body | ConvertFrom-Json
+        $codeData = $body.codeData
+
+        $rootDir = $global:RootDirForPolaris
+        $folderPath = Join-Path $rootDir "03_history\$folderName"
+        $codePath = Join-Path $folderPath "コード.json"
+
+        # フォルダが存在しない場合は作成
+        if (-not (Test-Path $folderPath)) {
+            New-Item -ItemType Directory -Path $folderPath -Force | Out-Null
+        }
+
+        # JSON形式で保存
+        $json = $codeData | ConvertTo-Json -Depth 10
+        $json | Out-File -FilePath $codePath -Encoding UTF8 -Force
+
+        $result = @{
+            success = $true
+            folderName = $folderName
+            message = "コード.jsonを保存しました"
+        }
+        $resultJson = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($resultJson)
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # --------------------------------------------
 # バリデーションAPI（02-2_ネスト規制バリデーション_v2.ps1）
 # --------------------------------------------
