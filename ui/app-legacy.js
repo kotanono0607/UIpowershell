@@ -2613,12 +2613,26 @@ async function deleteAllNodes() {
         // 現在のレイヤーのノードを取得
         const currentLayerNodes = layerStructure[currentLayer].nodes;
 
+        // 🔍 デバッグ: 送信するデータを詳細に確認
+        console.log('[全削除] 🔍 送信するノード数:', currentLayerNodes.length);
+        if (currentLayerNodes.length > 0) {
+            console.log('[全削除] 🔍 最初のノードの構造:', currentLayerNodes[0]);
+            console.log('[全削除] 🔍 最初のノードのid:', currentLayerNodes[0].id);
+            console.log('[全削除] 🔍 最初のノードのname:', currentLayerNodes[0].name);
+        }
+        const requestBody = { nodes: currentLayerNodes };
+        console.log('[全削除] 🔍 送信するJSON (最初の500文字):', JSON.stringify(requestBody).substring(0, 500));
+        console.log('[全削除] 🔍 送信先URL:', `${API_BASE}/nodes/all`);
+
         // APIエンドポイント呼び出し
         const response = await fetch(`${API_BASE}/nodes/all`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nodes: currentLayerNodes })
+            body: JSON.stringify(requestBody)
         });
+
+        console.log('[全削除] 🔍 レスポンスステータス:', response.status);
+        console.log('[全削除] 🔍 レスポンスOK:', response.ok);
 
         const result = await response.json();
 

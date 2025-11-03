@@ -20,6 +20,7 @@ $script:RootDir = Split-Path -Parent $PSScriptRoot
 
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host "UIpowershell - Polaris API Server V2" -ForegroundColor Cyan
+Write-Host "Version: 1.0.177 (DELETE全削除デバッグ版)" -ForegroundColor Yellow
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -290,6 +291,11 @@ New-PolarisRoute -Path "/api/nodes/:id" -Method DELETE -ScriptBlock {
 
 # すべてのノードを削除
 New-PolarisRoute -Path "/api/nodes/all" -Method DELETE -ScriptBlock {
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
+    Write-Host "[API] 🔥 DELETE /api/nodes/all エンドポイントが呼ばれました！" -ForegroundColor Magenta
+    Write-Host "[API] 🔍 Request.Method: $($Request.Method)" -ForegroundColor Cyan
+    Write-Host "[API] 🔍 Request.Path: $($Request.Path)" -ForegroundColor Cyan
+
     Set-CorsHeaders -Response $Response
     try {
         Write-Host "[API] 全ノード削除リクエスト受信" -ForegroundColor Cyan
