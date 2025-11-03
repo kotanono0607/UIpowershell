@@ -1189,7 +1189,7 @@ function checkScreenWidth() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('═══════════════════════════════════════════════');
-    console.log('UIpowershell Legacy UI v1.0.166 - 起動開始');
+    console.log('UIpowershell Legacy UI v1.0.167 - 起動開始');
     console.log('═══════════════════════════════════════════════');
 
     // 矢印描画機能を初期化（arrow-drawing.jsの内容が統合されているため即座に利用可能）
@@ -3121,8 +3121,18 @@ async function loadExistingNodes() {
             if (!layerData || !layerData.構成) continue;
 
             layerData.構成.forEach(nodeData => {
+                // IDが保存されていればそれを使用、なければ新規生成（後方互換性）
+                let nodeId;
+                if (nodeData.ID) {
+                    nodeId = nodeData.ID;
+                    console.log(`[memory.json読み込み] ノードID復元: ${nodeId}`);
+                } else {
+                    nodeId = `node-${nodeCounter++}`;
+                    console.warn(`[memory.json読み込み] ノードIDが保存されていないため新規生成: ${nodeId}`);
+                }
+
                 const node = {
-                    id: `node-${nodeCounter++}`,
+                    id: nodeId,
                     name: nodeData.ボタン名 || '',
                     text: nodeData.テキスト || '',
                     color: nodeData.ボタン色 || 'White',
@@ -3141,6 +3151,18 @@ async function loadExistingNodes() {
                 layerStructure[layerNum].nodes.push(node);
             });
         }
+
+        // nodeCounter を更新（既存ノードの最大ID + 1）
+        nodes.forEach(node => {
+            const match = node.id.match(/^(\d+)-/);
+            if (match) {
+                const idNum = parseInt(match[1]);
+                if (idNum >= nodeCounter) {
+                    nodeCounter = idNum + 1;
+                }
+            }
+        });
+        console.log(`[memory.json読み込み] nodeCounter を ${nodeCounter} に更新しました`);
 
         // 左右両方のパネルを再描画
         renderNodesInLayer(leftVisibleLayer, 'left');

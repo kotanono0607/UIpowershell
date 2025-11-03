@@ -694,6 +694,7 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
 
             foreach ($node in $layerNodes) {
                 $構成 += @{
+                    ID = $node.id
                     ボタン名 = $node.name
                     X座標 = if ($node.x) { $node.x } else { 10 }
                     Y座標 = $node.y
