@@ -788,32 +788,63 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method GET -ScriptBlock {
 New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
     Set-CorsHeaders -Response $Response
     try {
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        Write-Host "[API] コード.json保存リクエスト受信" -ForegroundColor Cyan
+
         $folderName = $Request.Parameters.name
+        Write-Host "[API] フォルダ名: $folderName" -ForegroundColor Yellow
+
         $body = $Request.Body | ConvertFrom-Json
         $codeData = $body.codeData
+        Write-Host "[API] 受信データ: $($body | ConvertTo-Json -Compress -Depth 2)" -ForegroundColor Yellow
 
         $rootDir = $global:RootDirForPolaris
         $folderPath = Join-Path $rootDir "03_history\$folderName"
         $codePath = Join-Path $folderPath "コード.json"
 
+        Write-Host "[API] 保存先パス: $codePath" -ForegroundColor Yellow
+        Write-Host "[API] フォルダパス: $folderPath" -ForegroundColor Yellow
+
         # フォルダが存在しない場合は作成
         if (-not (Test-Path $folderPath)) {
+            Write-Host "[API] フォルダが存在しないため作成します" -ForegroundColor Magenta
             New-Item -ItemType Directory -Path $folderPath -Force | Out-Null
+        } else {
+            Write-Host "[API] フォルダは既に存在します" -ForegroundColor Green
         }
 
         # JSON形式で保存
         $json = $codeData | ConvertTo-Json -Depth 10
+        Write-Host "[API] JSON生成完了 (長さ: $($json.Length) 文字)" -ForegroundColor Yellow
+        Write-Host "[API] JSON内容の最初の200文字: $($json.Substring(0, [Math]::Min(200, $json.Length)))" -ForegroundColor Gray
+
         $json | Out-File -FilePath $codePath -Encoding UTF8 -Force
+
+        # 保存確認
+        if (Test-Path $codePath) {
+            $fileInfo = Get-Item $codePath
+            Write-Host "[API] ✅ ファイル保存成功" -ForegroundColor Green
+            Write-Host "[API]    ファイルサイズ: $($fileInfo.Length) バイト" -ForegroundColor Green
+            Write-Host "[API]    最終更新時刻: $($fileInfo.LastWriteTime)" -ForegroundColor Green
+        } else {
+            Write-Host "[API] ❌ ファイル保存後に存在確認失敗" -ForegroundColor Red
+        }
 
         $result = @{
             success = $true
             folderName = $folderName
             message = "コード.jsonを保存しました"
+            filePath = $codePath
         }
         $resultJson = $result | ConvertTo-Json -Compress
         $Response.SetContentType('application/json; charset=utf-8')
         $Response.Send($resultJson)
+
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     } catch {
+        Write-Host "[API] ❌ エラー発生: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "[API] スタックトレース: $($_.Exception.StackTrace)" -ForegroundColor Red
+
         $Response.SetStatusCode(500)
         $errorResult = @{
             success = $false
