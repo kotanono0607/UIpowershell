@@ -1467,8 +1467,13 @@ async function addNodeToLayer(setting) {
         console.log('[addNodeToLayer]   - ノードID:', node.id);
         console.log('[addNodeToLayer]   - ノード名:', node.name);
         console.log('[addNodeToLayer]   - 関数名:', setting.関数名);
+
+        // ベースIDを抽出 (PowerShell互換: "1-1" → "1")
+        const baseId = node.id.split('-')[0];
+        console.log('[addNodeToLayer]   - ベースID:', baseId);
+
         try {
-            const generatedCode = await generateCode(setting.処理番号, node.id);
+            const generatedCode = await generateCode(setting.処理番号, baseId);
             if (generatedCode) {
                 console.log('[addNodeToLayer] ✅ コード生成成功');
                 console.log('[addNodeToLayer] 生成されたコード:', generatedCode.substring(0, 100) + '...');
@@ -1494,9 +1499,14 @@ async function addNodeToLayer(setting) {
 }
 
 // 単一ノードを追加
-function addSingleNode(setting, customText = null, customY = null, customGroupId = null, customHeight = 40) {
-    const nodeId = `${nodeCounter}-1`;
-    nodeCounter++;
+function addSingleNode(setting, customText = null, customY = null, customGroupId = null, customHeight = 40, customNodeId = null) {
+    // カスタムIDが指定されていない場合は自動生成
+    const nodeId = customNodeId || `${nodeCounter}-1`;
+
+    // カスタムIDが指定されていない場合のみカウンタをインクリメント
+    if (!customNodeId) {
+        nodeCounter++;
+    }
 
     const node = {
         id: nodeId,
@@ -1525,31 +1535,37 @@ async function addLoopSet(setting) {
     const groupId = loopGroupCounter++;
     const baseY = getNextAvailableY(currentLayer);
 
-    console.log(`[ループ作成] GroupID=${groupId} を割り当て`);
+    // ベースIDを取得してカウンタをインクリメント
+    const baseId = nodeCounter;
+    nodeCounter++;
+
+    console.log(`[ループ作成] GroupID=${groupId}, ベースID=${baseId} を割り当て`);
 
     // 1. 開始ボタン
     const startNode = addSingleNode(
-        { ...setting, テキスト: 'ループ 開始', ボタン名: `${nodeCounter}-1` },
+        { ...setting, テキスト: 'ループ 開始', ボタン名: `${baseId}-1` },
         'ループ 開始',
         baseY,
         groupId,
-        40
+        40,
+        `${baseId}-1`  // カスタムID指定
     );
 
-    // コード生成（ループ構文）
-    console.log(`[ループ作成] コード生成 - startNode.id: ${startNode.id}`);
-    await generateCode(setting.処理番号, startNode.id);
+    // コード生成（ループ構文） - ベースIDを渡す
+    console.log(`[ループ作成] コード生成 - ベースID: ${baseId}`);
+    await generateCode(setting.処理番号, `${baseId}`);
 
     // 2. 終了ボタン
     const endNode = addSingleNode(
-        { ...setting, テキスト: 'ループ 終了', ボタン名: `${nodeCounter}-2` },
+        { ...setting, テキスト: 'ループ 終了', ボタン名: `${baseId}-2` },
         'ループ 終了',
         baseY + 45,
         groupId,
-        40
+        40,
+        `${baseId}-2`  // カスタムID指定
     );
 
-    console.log(`[ループ作成完了] startNode.id: ${startNode.id}, endNode.id: ${endNode.id} (GroupID=${groupId})`);
+    console.log(`[ループ作成完了] startNode.id: ${startNode.id}, endNode.id: ${endNode.id} (GroupID=${groupId}, ベースID=${baseId})`);
 
     renderNodesInLayer(currentLayer);
     reorderNodesInLayer(currentLayer);
@@ -1560,40 +1576,47 @@ async function addConditionSet(setting) {
     const groupId = conditionGroupCounter++;
     const baseY = getNextAvailableY(currentLayer);
 
-    console.log(`[条件分岐作成] GroupID=${groupId} を割り当て`);
+    // ベースIDを取得してカウンタをインクリメント
+    const baseId = nodeCounter;
+    nodeCounter++;
+
+    console.log(`[条件分岐作成] GroupID=${groupId}, ベースID=${baseId} を割り当て`);
 
     // 1. 開始ボタン（緑）
     const startNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 開始', ボタン名: `${nodeCounter}-1` },
+        { ...setting, テキスト: '条件分岐 開始', ボタン名: `${baseId}-1` },
         '条件分岐 開始',
         baseY,
         groupId,
-        40
+        40,
+        `${baseId}-1`  // カスタムID指定
     );
 
-    // コード生成（条件式）
-    console.log(`[条件分岐作成] コード生成 - startNode.id: ${startNode.id}`);
-    await generateCode(setting.処理番号, startNode.id);
+    // コード生成（条件式） - ベースIDを渡す
+    console.log(`[条件分岐作成] コード生成 - ベースID: ${baseId}`);
+    await generateCode(setting.処理番号, `${baseId}`);
 
     // 2. 中間ライン（グレー、高さ1px）
     const middleNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 中間', 背景色: 'Gray', ボタン名: `${nodeCounter}-2` },
+        { ...setting, テキスト: '条件分岐 中間', 背景色: 'Gray', ボタン名: `${baseId}-2` },
         '条件分岐 中間',
         baseY + 45 - 5,  // 5px上に調整
         groupId,
-        1  // 高さ1px
+        1,  // 高さ1px
+        `${baseId}-2`  // カスタムID指定
     );
 
     // 3. 終了ボタン（緑）
     const endNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${nodeCounter}-3` },
+        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${baseId}-3` },
         '条件分岐 終了',
         baseY + 45,
         groupId,
-        40
+        40,
+        `${baseId}-3`  // カスタムID指定
     );
 
-    console.log(`[条件分岐作成完了] 開始, 中間, 終了 (GroupID=${groupId})`);
+    console.log(`[条件分岐作成完了] 開始:${startNode.id}, 中間:${middleNode.id}, 終了:${endNode.id} (GroupID=${groupId}, ベースID=${baseId})`);
 
     renderNodesInLayer(currentLayer);
     reorderNodesInLayer(currentLayer);
