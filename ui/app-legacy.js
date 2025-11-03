@@ -1321,7 +1321,10 @@ function generateAddNodeButtons() {
         btn.style.backgroundColor = getColorCode(setting.背景色);
         btn.dataset.setting = JSON.stringify(setting);
 
-        btn.onclick = () => addNodeToLayer(setting);
+        btn.onclick = () => {
+            console.log('[ボタンクリック] ボタンがクリックされました:', setting.テキスト, '処理番号:', setting.処理番号);
+            addNodeToLayer(setting);
+        };
 
         // マウスオーバーで説明を表示
         btn.onmouseenter = () => {
@@ -3719,9 +3722,11 @@ function setupDialogEventListeners() {
     const btnConditionSave = document.getElementById('btn-condition-save');
     if (btnConditionSave) {
         btnConditionSave.addEventListener('click', () => {
+            console.log('[条件分岐ダイアログ] 保存ボタンがクリックされました');
             let code = document.getElementById('condition-preview').value;
 
             if (!code || code.trim() === '') {
+                console.warn('[条件分岐ダイアログ] 条件式が空です');
                 alert('条件式が設定されていません。');
                 return;
             }
@@ -3736,13 +3741,17 @@ function setupDialogEventListeners() {
             });
             code = processedLines.join('\n');
 
-            console.log('[条件分岐ダイアログ] 保存:', code);
+            console.log('[条件分岐ダイアログ] 保存するコード:', code);
+            console.log('[条件分岐ダイアログ] conditionBuilderResolver:', conditionBuilderResolver ? '存在' : 'null');
 
             document.getElementById('condition-builder-modal').classList.remove('show');
 
             if (conditionBuilderResolver) {
+                console.log('[条件分岐ダイアログ] resolverを呼び出します');
                 conditionBuilderResolver(code);
                 conditionBuilderResolver = null;
+            } else {
+                console.error('[条件分岐ダイアログ] エラー: conditionBuilderResolverがnullです');
             }
         });
     }
@@ -3773,9 +3782,11 @@ function setupDialogEventListeners() {
     const btnLoopSave = document.getElementById('btn-loop-save');
     if (btnLoopSave) {
         btnLoopSave.addEventListener('click', () => {
+            console.log('[ループダイアログ] 保存ボタンがクリックされました');
             let code = document.getElementById('loop-preview').value;
 
             if (!code || code.trim() === '') {
+                console.warn('[ループダイアログ] ループ構文が空です');
                 alert('ループ構文が設定されていません。');
                 return;
             }
@@ -3790,13 +3801,17 @@ function setupDialogEventListeners() {
             });
             code = processedLines.join('\n');
 
-            console.log('[ループダイアログ] 保存:', code);
+            console.log('[ループダイアログ] 保存するコード:', code);
+            console.log('[ループダイアログ] loopBuilderResolver:', loopBuilderResolver ? '存在' : 'null');
 
             document.getElementById('loop-builder-modal').classList.remove('show');
 
             if (loopBuilderResolver) {
+                console.log('[ループダイアログ] resolverを呼び出します');
                 loopBuilderResolver(code);
                 loopBuilderResolver = null;
+            } else {
+                console.error('[ループダイアログ] エラー: loopBuilderResolverがnullです');
             }
         });
     }
@@ -3928,6 +3943,7 @@ const codeGeneratorFunctions = {
 async function generateCode(処理番号, ボタン名, 直接エントリ = null) {
     try {
         console.log(`[コード生成] 開始 - 処理番号: ${処理番号}, ボタン名: ${ボタン名}`);
+        console.log(`[コード生成] buttonSettings数: ${buttonSettings.length}`);
 
         // 処理番号から関数名を取得
         const 関数名 = getFunctionNameFromProcessingNumber(処理番号);
