@@ -230,25 +230,32 @@ body {
     overflow-y: auto;
     padding: 12px;
     position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, 134px);
+    gap: 8px;
+    align-content: start;
 }
 
 /* ============================================
    ノードボタン
    ============================================ */
 .node-button {
-    width: 276px;
+    width: 134px;
     height: 28px;
     border: 1px solid #000;
+    border-radius: 4px;
     cursor: move;
-    font-size: 11px;
-    text-align: center;
+    font-size: 10px;
+    text-align: left;
+    padding-left: 8px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
     position: relative;
     user-select: none;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .node-button:hover {
