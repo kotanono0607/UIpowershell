@@ -3529,29 +3529,49 @@ async function setCodeEntry(id, content) {
 let currentSettingsNode = null;
 
 function openNodeSettings(node) {
-    currentSettingsNode = node;
-
     console.log('[ノード設定] モーダルを開く:', node.text, 'ID:', node.id);
+    console.log('[ノード設定] 渡されたノードオブジェクト:', JSON.stringify(node, null, 2));
+
+    // ノードIDで最新の情報を取得（layerStructureから）
+    let actualNode = null;
+    for (let layer = 1; layer <= 6; layer++) {
+        const found = layerStructure[layer].nodes.find(n => n.id === node.id);
+        if (found) {
+            actualNode = found;
+            console.log('[ノード設定] ✅ レイヤー', layer, 'から最新ノード情報を取得しました');
+            break;
+        }
+    }
+
+    if (!actualNode) {
+        console.error('[ノード設定] ❌ ノードIDが見つかりません:', node.id);
+        alert('ノード情報が見つかりませんでした。');
+        return;
+    }
+
+    currentSettingsNode = actualNode;
+
+    console.log('[ノード設定] 最新ノードオブジェクト:', JSON.stringify(actualNode, null, 2));
 
     // モーダルを表示
     document.getElementById('node-settings-modal').classList.add('show');
-    document.getElementById('settings-node-name').textContent = node.text;
-    document.getElementById('settings-node-text').value = node.text;
-    document.getElementById('settings-node-script').value = node.script || '';
+    document.getElementById('settings-node-name').textContent = actualNode.text;
+    document.getElementById('settings-node-text').value = actualNode.text;
+    document.getElementById('settings-node-script').value = actualNode.script || '';
 
     // 外観設定を設定
-    document.getElementById('settings-node-color').value = node.color || 'White';
-    document.getElementById('settings-node-width').value = node.width || 280;
-    document.getElementById('settings-node-height').value = node.height || 40;
-    document.getElementById('settings-node-x').value = node.x || 10;
-    document.getElementById('settings-node-y').value = node.y || 10;
+    document.getElementById('settings-node-color').value = actualNode.color || 'White';
+    document.getElementById('settings-node-width').value = actualNode.width || 280;
+    document.getElementById('settings-node-height').value = actualNode.height || 40;
+    document.getElementById('settings-node-x').value = actualNode.x || 10;
+    document.getElementById('settings-node-y').value = actualNode.y || 10;
 
-    console.log('[ノード設定] 現在の設定:', {
-        color: node.color,
-        width: node.width,
-        height: node.height,
-        x: node.x,
-        y: node.y
+    console.log('[ノード設定] 入力フィールドに設定した値:', {
+        color: actualNode.color,
+        width: actualNode.width,
+        height: actualNode.height,
+        x: actualNode.x,
+        y: actualNode.y
     });
 
     // カスタムフィールドをクリア
@@ -3559,29 +3579,29 @@ function openNodeSettings(node) {
     customFields.innerHTML = '';
 
     // 処理番号に応じたカスタムフィールドを追加
-    if (node.処理番号 === '1-2') {
+    if (actualNode.処理番号 === '1-2') {
         // 条件分岐
         customFields.innerHTML = `
             <div style="margin-bottom: 15px; padding: 10px; background: #fff3cd; border-radius: 5px;">
                 <label><strong>条件分岐設定:</strong></label>
                 <div style="margin-top: 8px;">
                     <label>条件式:</label>
-                    <input type="text" id="condition-expression" value="${node.conditionExpression || ''}" style="width: 100%; padding: 5px;" placeholder="例: $変数 -eq '値'" />
+                    <input type="text" id="condition-expression" value="${actualNode.conditionExpression || ''}" style="width: 100%; padding: 5px;" placeholder="例: $変数 -eq '値'" />
                 </div>
             </div>
         `;
-    } else if (node.処理番号 === '1-3') {
+    } else if (actualNode.処理番号 === '1-3') {
         // ループ
         customFields.innerHTML = `
             <div style="margin-bottom: 15px; padding: 10px; background: #d1ecf1; border-radius: 5px;">
                 <label><strong>ループ設定:</strong></label>
                 <div style="margin-top: 8px;">
                     <label>ループ回数:</label>
-                    <input type="number" id="loop-count" value="${node.loopCount || 1}" style="width: 100%; padding: 5px;" />
+                    <input type="number" id="loop-count" value="${actualNode.loopCount || 1}" style="width: 100%; padding: 5px;" />
                 </div>
                 <div style="margin-top: 8px;">
                     <label>ループ変数名:</label>
-                    <input type="text" id="loop-variable" value="${node.loopVariable || 'i'}" style="width: 100%; padding: 5px;" />
+                    <input type="text" id="loop-variable" value="${actualNode.loopVariable || 'i'}" style="width: 100%; padding: 5px;" />
                 </div>
             </div>
         `;
@@ -3651,10 +3671,13 @@ async function saveNodeSettings() {
     if (globalNodeIndex !== -1) {
         nodes[globalNodeIndex] = Object.assign({}, currentSettingsNode);
         console.log('[ノード設定] グローバルノード配列を更新:', globalNodeIndex);
+    } else {
+        console.warn('[ノード設定] ⚠️ グローバルノード配列でノードが見つかりません:', currentSettingsNode.id);
     }
 
-    // 再描画
-    renderNodesInLayer(currentLayer);
+    // 再描画（ノードが属するレイヤーを再描画）
+    console.log('[ノード設定] レイヤー', currentSettingsNode.layer, 'を再描画します');
+    renderNodesInLayer(currentSettingsNode.layer);
 
     // memory.json自動保存
     await saveMemoryJson();
