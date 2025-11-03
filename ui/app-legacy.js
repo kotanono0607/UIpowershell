@@ -84,6 +84,20 @@ function checkScreenWidth() {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('UIpowershell Legacy UI initialized');
 
+    // arrow-drawing.jsが読み込まれるまで待機
+    let retryCount = 0;
+    while (!window.arrowDrawing && retryCount < 50) {
+        console.log(`[デバッグ] arrow-drawing.js読み込み待機中... (${retryCount + 1}/50)`);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        retryCount++;
+    }
+
+    if (window.arrowDrawing) {
+        console.log('[デバッグ] arrow-drawing.js読み込み成功！');
+    } else {
+        console.error('[デバッグ] arrow-drawing.js読み込みタイムアウト - 矢印機能は利用できません');
+    }
+
     // 画面幅チェック
     checkScreenWidth();
 
@@ -399,8 +413,12 @@ function renderNodesInLayer(layer) {
         btn.title = node.text;
 
         btn.style.backgroundColor = getColorCode(node.color);
+        btn.style.position = 'absolute';
+        btn.style.left = `${node.x || 90}px`;  // X座標を設定（デフォルト90px）
         btn.style.top = `${node.y}px`;
         btn.dataset.nodeId = node.id;
+
+        console.log(`[デバッグ] ノード配置: x=${node.x || 90}px, y=${node.y}px, text="${node.text}"`);
 
         // 赤枠スタイルを適用
         if (node.redBorder) {

@@ -236,10 +236,12 @@ body {
     overflow-y: auto;
     padding: 12px;
     position: relative;
-    display: grid;
-    grid-template-columns: repeat(2, 134px);
-    gap: 8px;
-    align-content: start;
+    /* グリッドレイアウトを削除 - ノードは絶対配置(absolute)で配置されます */
+    /* display: grid; */
+    /* grid-template-columns: repeat(2, 134px); */
+    /* gap: 8px; */
+    /* align-content: start; */
+    min-height: 700px;  /* 最小高さを確保 */
 }
 
 /* ============================================
