@@ -1,6 +1,7 @@
 /* ============================================
-   UIpowershell - Legacy UI Style
-   既存Windows Forms版の完全再現
+   UIpowershell - Legacy UI Style (3-Pane Layout)
+   厳密なpx指定による3ペイン構成
+   画面基準: 1920×1080
    ============================================ */
 
 * {
@@ -14,55 +15,61 @@ body {
     background: #f0f0f0;
     color: #000;
     overflow: hidden;
-    width: 100vw;
+    width: 100%;
     height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
 /* ============================================
-   メニューバー
+   ヘッダー（統合）: 40px固定
    ============================================ */
-#menubar {
+#header {
+    height: 40px;
     background: #2d2d2d;
     color: #fff;
     display: flex;
-    padding: 0;
-    height: 30px;
+    align-items: center;
     border-bottom: 1px solid #3e3e42;
+    flex-shrink: 0;
+}
+
+#menubar {
+    display: flex;
+    height: 40px;
+    align-items: center;
 }
 
 .menu-item {
-    padding: 5px 15px;
+    padding: 0 16px;
+    height: 40px;
     cursor: pointer;
     transition: background 0.2s;
     display: flex;
     align-items: center;
+    font-size: 12px;
 }
 
 .menu-item:hover {
     background: #3e3e42;
 }
 
-/* ============================================
-   ツールバー
-   ============================================ */
 #toolbar {
-    background: #fff;
-    padding: 10px;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
-    border-bottom: 2px solid #ccc;
-    height: 50px;
+    margin-left: 16px;
+    height: 40px;
 }
 
 #toolbar button {
-    padding: 5px 15px;
-    border: 1px solid #999;
+    padding: 0 12px;
+    border: 1px solid #666;
     cursor: pointer;
-    font-size: 12px;
-    height: 30px;
+    font-size: 11px;
+    height: 28px;
+    background: #fff;
+    color: #000;
 }
 
 .btn-white {
@@ -76,51 +83,64 @@ body {
 .btn-nav {
     background: #fff;
     font-size: 14px;
-    width: 40px;
+    width: 32px;
+    height: 28px;
 }
 
 #current-layer-label {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
-    color: #000;
+    color: #fff;
+    margin: 0 8px;
 }
 
 /* ============================================
-   メインコンテナ
+   メインコンテナ: 3ペイン構成
+   高さ = 100vh - 40px(ヘッダー) - 28px(フッター) = calc(100vh - 68px)
    ============================================ */
 #main-container {
     display: flex;
-    flex: 1;
+    height: calc(100vh - 68px);
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 /* ============================================
-   左側パネル（操作パネル）
+   左ペイン: 240px固定
    ============================================ */
 #left-panel {
-    width: 300px;
-    background: #fff;
-    border-right: 2px solid #ccc;
+    width: 240px;
+    background: #f2f2f2;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    flex-shrink: 0;
+    margin-right: 16px;
 }
 
 #category-buttons {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.category-section-title {
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 16px;
+    margin-bottom: 8px;
 }
 
 .category-btn {
-    width: 140px;
-    height: 30px;
+    width: 100%;
+    height: 28px;
     border: 1px solid #999;
     cursor: pointer;
-    font-size: 12px;
-    text-align: center;
-    margin-left: 10px;
-    margin-bottom: 0;
+    font-size: 11px;
+    text-align: left;
+    padding-left: 8px;
 }
 
 .category-btn:hover {
@@ -130,8 +150,7 @@ body {
 #node-buttons-container {
     flex: 1;
     overflow-y: auto;
-    padding: 10px;
-    position: relative;
+    margin-top: 16px;
 }
 
 .category-panel {
@@ -143,16 +162,16 @@ body {
 }
 
 .add-node-btn {
-    width: 280px;
-    height: 40px;
-    margin-bottom: 5px;
+    width: 100%;
+    height: 28px;
+    margin-bottom: 8px;
     border: 1px solid #999;
     cursor: pointer;
-    font-size: 12px;
-    text-align: center;
+    font-size: 11px;
+    text-align: left;
+    padding-left: 8px;
     display: flex;
     align-items: center;
-    justify-content: center;
 }
 
 .add-node-btn:hover {
@@ -161,14 +180,18 @@ body {
 }
 
 /* ============================================
-   中央パネル（レイヤーシステム）
+   中央ペイン: 可変幅（min-width 960px）
+   スクロールは中央のみ
    ============================================ */
 #center-container {
     flex: 1;
+    min-width: 960px;
     display: flex;
     position: relative;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     background: #e0e0e0;
+    margin-right: 16px;
 }
 
 .layer-panel {
@@ -179,6 +202,7 @@ body {
     display: none;
     flex-direction: column;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .layer-panel.active {
@@ -187,35 +211,36 @@ body {
 
 .layer-label {
     background: #ddd;
-    padding: 5px;
+    padding: 8px;
     text-align: center;
     font-weight: bold;
-    font-size: 10px;
+    font-size: 11px;
     color: blue;
     border-bottom: 1px solid #999;
+    height: 28px;
 }
 
 .node-list-container {
     flex: 1;
     overflow-y: auto;
-    padding: 10px;
+    padding: 12px;
     position: relative;
 }
 
 /* ============================================
-   ノードボタン（縦並びリスト）
+   ノードボタン
    ============================================ */
 .node-button {
-    width: 280px;
-    height: 40px;
+    width: 276px;
+    height: 28px;
     border: 1px solid #000;
     cursor: move;
-    font-size: 12px;
+    font-size: 11px;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     position: relative;
     user-select: none;
     transition: all 0.2s ease;
@@ -244,67 +269,113 @@ body {
 }
 
 .node-springgreen {
-    background: rgb(0, 255, 127); /* SpringGreen */
+    background: rgb(0, 255, 127);
 }
 
 .node-lemonchiffon {
-    background: rgb(255, 250, 205); /* LemonChiffon */
+    background: rgb(255, 250, 205);
 }
 
 .node-pink {
-    background: rgb(252, 160, 158); /* ピンク赤色 */
+    background: rgb(252, 160, 158);
 }
 
 /* ============================================
-   右側パネル（プレビュー）
+   右ペイン: 320px固定（折りたたみ可）
    ============================================ */
 #right-panel {
-    width: 300px;
+    width: 320px;
     background: #f5f5f5;
-    border-left: 2px solid #ccc;
-    padding: 10px;
+    padding: 12px;
     overflow-y: auto;
+    flex-shrink: 0;
+    transition: width 0.3s ease, margin-right 0.3s ease;
+}
+
+#right-panel.collapsed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+    margin-right: 0;
 }
 
 .panel-label {
     font-size: 12px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+}
+
+#right-panel-toggle {
+    position: absolute;
+    top: 44px;
+    right: 4px;
+    width: 24px;
+    height: 48px;
+    background: #3e3e42;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#right-panel-toggle:hover {
+    background: #4e4e52;
 }
 
 /* ============================================
-   説明フレーム
+   説明エリア（右ペイン内）
    ============================================ */
 #description-panel {
-    height: 200px;
     background: #fff;
-    border-top: 2px solid #ccc;
-    padding: 15px;
-    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 12px;
+    margin-bottom: 16px;
 }
 
 #description-text {
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.6;
 }
 
 /* ============================================
-   階層パス表示
+   フッター: 28px固定
    ============================================ */
 #hierarchy-path {
-    height: 30px;
+    height: 28px;
     background: lightcyan;
     border-top: 1px solid #999;
-    padding: 5px 10px;
+    padding: 0 12px;
     display: flex;
     align-items: center;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     color: darkblue;
+    flex-shrink: 0;
 }
 
 #path-text {
-    margin-left: 5px;
+    margin-left: 8px;
+}
+
+/* ============================================
+   レスポンシブ対応
+   画面幅<1600pxで右ペイン自動折りたたみ
+   ============================================ */
+@media (max-width: 1599px) {
+    #right-panel {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        margin-right: 0;
+    }
+
+    #right-panel-toggle::before {
+        content: '▶';
+    }
 }
 
 /* ============================================

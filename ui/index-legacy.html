@@ -3,32 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UIpowershell - Visual RPA Platform (既存UI再現版)</title>
+    <title>UIpowershell - Visual RPA Platform (3ペイン構成)</title>
     <link rel="stylesheet" href="style-legacy.css">
 </head>
 <body>
-    <!-- メニューバー -->
-    <div id="menubar">
-        <div class="menu-item" onclick="executeCode()">実行</div>
-        <div class="menu-item" onclick="openVariableModal()">変数</div>
-        <div class="menu-item" onclick="createFolder()">フォルダ作成</div>
-        <div class="menu-item" onclick="switchFolder()">フォルダ切替</div>
-        <div class="menu-item" onclick="createSnapshot()">📸 スナップショット作成</div>
-        <div class="menu-item" onclick="restoreSnapshot()">↩️ スナップショット復元</div>
+    <!-- ヘッダー: 40px -->
+    <div id="header">
+        <!-- メニューバー -->
+        <div id="menubar">
+            <div class="menu-item" onclick="executeCode()">実行</div>
+            <div class="menu-item" onclick="openVariableModal()">変数</div>
+            <div class="menu-item" onclick="createFolder()">フォルダ作成</div>
+            <div class="menu-item" onclick="switchFolder()">フォルダ切替</div>
+            <div class="menu-item" onclick="createSnapshot()">📸 スナップショット</div>
+            <div class="menu-item" onclick="restoreSnapshot()">↩️ 復元</div>
+        </div>
+
+        <!-- ツールバー -->
+        <div id="toolbar">
+            <button onclick="deleteAllNodes()" class="btn-danger">全削除</button>
+            <button onclick="navigateLayer('left')" class="btn-nav">◀</button>
+            <span id="current-layer-label">レイヤー1</span>
+            <button onclick="navigateLayer('right')" class="btn-nav">▶</button>
+        </div>
     </div>
 
-    <!-- ツールバー（上部） -->
-    <div id="toolbar">
-        <button onclick="layerizeNode()" class="btn-white">レイヤー化</button>
-        <button onclick="deleteAllNodes()" class="btn-danger">全削除</button>
-        <button onclick="openVariableModal()" class="btn-white">変数</button>
-        <span style="flex: 1"></span>
-        <button onclick="navigateLayer('left')" class="btn-nav">◀</button>
-        <span id="current-layer-label">レイヤー1</span>
-        <button onclick="navigateLayer('right')" class="btn-nav">▶</button>
-    </div>
+    <!-- 右ペイン折りたたみボタン -->
+    <button id="right-panel-toggle" onclick="toggleRightPanel()">◀</button>
 
-    <!-- メインコンテンツエリア -->
+    <!-- メインコンテナ: 3ペイン構成 -->
     <div id="main-container">
         <!-- 左側：操作パネル（10カテゴリー切り替え） -->
         <div id="left-panel">
@@ -101,21 +104,23 @@
             <div id="layer-6" class="layer-panel" style="display: none;"></div>
         </div>
 
-        <!-- 右側：プレビューパネル -->
+        <!-- 右ペイン: 320px固定（折りたたみ可） -->
         <div id="right-panel">
-            <div class="panel-label">プレビューパネル</div>
+            <!-- 説明エリア -->
+            <div id="description-panel">
+                <div class="panel-label">説明</div>
+                <div id="description-text">ここに説明文が表示されます。</div>
+            </div>
+
+            <!-- プレビューエリア -->
+            <div class="panel-label">プレビュー</div>
             <div id="preview-content">
                 <!-- 右側のレイヤーのプレビュー -->
             </div>
         </div>
     </div>
 
-    <!-- 説明フレーム -->
-    <div id="description-panel">
-        <div id="description-text">ここに説明文が表示されます。</div>
-    </div>
-
-    <!-- 階層パス表示 -->
+    <!-- フッター: 28px -->
     <div id="hierarchy-path">
         📍 階層パス: <span id="path-text">レイヤー1</span>
     </div>

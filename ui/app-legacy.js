@@ -35,12 +35,57 @@ let nodeCounter = 1;
 let loopGroupCounter = 1000;      // ループ用（1000番台）
 let conditionGroupCounter = 2000; // 条件分岐用（2000番台）
 
+// 右ペイン状態
+let rightPanelCollapsed = false;
+
+// ============================================
+// 右ペイン折りたたみ
+// ============================================
+
+function toggleRightPanel() {
+    const rightPanel = document.getElementById('right-panel');
+    const toggleBtn = document.getElementById('right-panel-toggle');
+
+    rightPanelCollapsed = !rightPanelCollapsed;
+
+    if (rightPanelCollapsed) {
+        rightPanel.classList.add('collapsed');
+        toggleBtn.textContent = '▶';
+    } else {
+        rightPanel.classList.remove('collapsed');
+        toggleBtn.textContent = '◀';
+    }
+}
+
+// 画面幅チェック（1600px未満で自動折りたたみ）
+function checkScreenWidth() {
+    const rightPanel = document.getElementById('right-panel');
+    const toggleBtn = document.getElementById('right-panel-toggle');
+
+    if (window.innerWidth < 1600) {
+        if (!rightPanelCollapsed) {
+            rightPanel.classList.add('collapsed');
+            toggleBtn.textContent = '▶';
+            rightPanelCollapsed = true;
+        }
+    } else {
+        if (rightPanelCollapsed) {
+            rightPanel.classList.remove('collapsed');
+            toggleBtn.textContent = '◀';
+            rightPanelCollapsed = false;
+        }
+    }
+}
+
 // ============================================
 // 初期化
 // ============================================
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('UIpowershell Legacy UI initialized');
+
+    // 画面幅チェック
+    checkScreenWidth();
 
     // API接続テスト
     await testApiConnection();
@@ -64,6 +109,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ※loadFolders()の後に実行（currentFolderが設定された後）
     await loadExistingNodes();
 });
+
+// リサイズ時のチェック
+window.addEventListener('resize', checkScreenWidth);
 
 // ============================================
 // API通信
