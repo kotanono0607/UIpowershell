@@ -167,6 +167,32 @@ function drawDownArrow(ctx, fromNode, toNode, color = '#000000') {
     const endX = toRect.left + toRect.width / 2 - containerRect.left;
     const endY = toRect.top - containerRect.top;
 
+    // 詳細デバッグログ
+    console.log(`[座標デバッグ] fromRect:`, {
+        left: fromRect.left,
+        right: fromRect.right,
+        top: fromRect.top,
+        bottom: fromRect.bottom,
+        width: fromRect.width,
+        height: fromRect.height
+    });
+    console.log(`[座標デバッグ] toRect:`, {
+        left: toRect.left,
+        right: toRect.right,
+        top: toRect.top,
+        bottom: toRect.bottom,
+        width: toRect.width,
+        height: toRect.height
+    });
+    console.log(`[座標デバッグ] containerRect:`, {
+        left: containerRect.left,
+        top: containerRect.top,
+        width: containerRect.width,
+        height: containerRect.height
+    });
+    console.log(`[座標デバッグ] 計算された矢印座標: (${startX}, ${startY}) → (${endX}, ${endY}), color=${color}`);
+    console.log(`[座標デバッグ] Canvas dimensions: ${ctx.canvas.width} x ${ctx.canvas.height}`);
+
     // 線を描画
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
@@ -174,6 +200,8 @@ function drawDownArrow(ctx, fromNode, toNode, color = '#000000') {
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.stroke();
+
+    console.log(`[座標デバッグ] stroke() 実行完了`);
 
     // 矢印ヘッドを描画
     drawArrowHead(ctx, startX, startY, endX, endY);
@@ -189,8 +217,17 @@ function drawPanelArrows(layerId) {
         return;
     }
 
+    console.log(`[Canvas デバッグ] Canvas element:`, canvas);
+    console.log(`[Canvas デバッグ] Canvas visible:`, canvas.offsetWidth > 0 && canvas.offsetHeight > 0);
+    console.log(`[Canvas デバッグ] Canvas style.display:`, canvas.style.display);
+    console.log(`[Canvas デバッグ] Canvas style.visibility:`, canvas.style.visibility);
+    console.log(`[Canvas デバッグ] Canvas style.opacity:`, canvas.style.opacity);
+    console.log(`[Canvas デバッグ] Canvas dimensions: ${canvas.width}x${canvas.height}, offset: ${canvas.offsetWidth}x${canvas.offsetHeight}`);
+
     const ctx = canvas.getContext('2d');
+    console.log(`[Canvas デバッグ] Context:`, ctx);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    console.log(`[Canvas デバッグ] clearRect完了: (0, 0, ${canvas.width}, ${canvas.height})`);
     ctx.imageSmoothingEnabled = true;
 
     const layerPanel = document.getElementById(layerId);
