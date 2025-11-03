@@ -218,18 +218,24 @@ body {
     margin-bottom: 5px;
     position: relative;
     user-select: none;
+    transition: all 0.2s ease;
 }
 
 .node-button:hover {
     border: 2px solid #00f;
+    box-shadow: 0 2px 4px rgba(0, 0, 255, 0.2);
 }
 
 .node-button.dragging {
-    opacity: 0.5;
+    opacity: 0.6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: scale(1.02);
+    cursor: grabbing;
 }
 
 .node-button.drag-over {
-    border-top: 3px solid #f00;
+    border-top: 4px solid #f00;
+    background-color: rgba(255, 0, 0, 0.05) !important;
 }
 
 /* ノードの色分類 */

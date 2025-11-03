@@ -207,6 +207,28 @@
         </div>
     </div>
 
+    <!-- コード生成結果モーダル -->
+    <div id="code-result-modal" class="modal">
+        <div class="modal-content" style="width: 80%; max-width: 900px;">
+            <h2>✅ コード生成完了</h2>
+            <button class="modal-close" onclick="closeCodeResultModal()">×</button>
+            <div class="modal-body">
+                <div id="code-result-info" style="margin-bottom: 15px;">
+                    <!-- 結果情報（ノード数、出力先など） -->
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="font-weight: bold;">生成されたコード:</label>
+                </div>
+                <textarea id="code-result-preview" rows="20" readonly style="width: 100%; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; background: #f5f5f5; border: 1px solid #ccc; padding: 10px;"></textarea>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button onclick="copyGeneratedCode()">📋 コピー</button>
+                    <button onclick="openGeneratedFile()">📂 ファイルを開く</button>
+                    <button onclick="closeCodeResultModal()">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app-legacy.js"></script>
 </body>
 </html>

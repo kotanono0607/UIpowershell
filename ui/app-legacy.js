@@ -331,7 +331,14 @@ function renderNodesInLayer(layer) {
     layerNodes.forEach(node => {
         const btn = document.createElement('div');
         btn.className = 'node-button';
-        btn.textContent = node.text;
+
+        // テキストの省略表示（20文字以上は省略）
+        const displayText = node.text.length > 20 ? node.text.substring(0, 20) + '...' : node.text;
+        btn.textContent = displayText;
+
+        // ツールチップ（title属性）で完全なテキストを表示
+        btn.title = node.text;
+
         btn.style.backgroundColor = getColorCode(node.color);
         btn.style.top = `${node.y}px`;
         btn.dataset.nodeId = node.id;
@@ -360,7 +367,9 @@ function renderNodesInLayer(layer) {
             const setting = buttonSettings.find(s => s.処理番号 === node.処理番号);
             if (setting) {
                 btn.onmouseenter = () => {
-                    document.getElementById('description-text').textContent = setting.説明 || '';
+                    const description = setting.説明 || '';
+                    const fullText = `${node.text}\n\n${description}`;
+                    document.getElementById('description-text').textContent = fullText;
                 };
             }
         }
@@ -875,15 +884,43 @@ function navigateLayer(direction) {
     });
 
     const targetPanel = document.getElementById(`layer-${currentLayer}`);
-    targetPanel.classList.add('active');
-    targetPanel.style.display = 'flex';
+    if (targetPanel) {
+        targetPanel.classList.add('active');
+        targetPanel.style.display = 'flex';
+    }
 
     // ラベル更新
-    document.getElementById('current-layer-label').textContent = `レイヤー${currentLayer}`;
-    document.getElementById('path-text').textContent = `レイヤー${currentLayer}`;
+    const layerLabel = currentLayer === 0 ? 'レイヤー0（非表示左）' : `レイヤー${currentLayer}`;
+    document.getElementById('current-layer-label').textContent = layerLabel;
+    document.getElementById('path-text').textContent = layerLabel;
+
+    // レイヤー0の場合は特別な表示
+    if (currentLayer === 0) {
+        console.log('[レイヤー0表示] 非表示左パネルを表示中');
+        layerStructure[0].visible = true;
+    }
 
     // 現在のレイヤーを再描画
     renderNodesInLayer(currentLayer);
+
+    // 左右ボタンの有効/無効を更新
+    updateNavigationButtons();
+}
+
+// ナビゲーションボタンの状態を更新
+function updateNavigationButtons() {
+    const leftBtn = document.querySelector('[onclick*="navigateLayer(\'left\')"]');
+    const rightBtn = document.querySelector('[onclick*="navigateLayer(\'right\')"]');
+
+    if (leftBtn) {
+        leftBtn.disabled = (currentLayer === 0);
+        leftBtn.style.opacity = (currentLayer === 0) ? '0.5' : '1';
+    }
+
+    if (rightBtn) {
+        rightBtn.disabled = (currentLayer === 6);
+        rightBtn.style.opacity = (currentLayer === 6) ? '0.5' : '1';
+    }
 }
 
 // ============================================
@@ -1107,13 +1144,54 @@ async function executeCode() {
         });
 
         if (result.success) {
-            alert(`コード生成成功！\n\n出力先: ${result.outputPath}\nノード数: ${result.nodeCount}`);
+            // 結果モーダルに情報を表示
+            const infoDiv = document.getElementById('code-result-info');
+            infoDiv.innerHTML = `
+                <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border: 1px solid #4caf50;">
+                    <p style="margin-bottom: 8px;"><strong>📊 ノード数:</strong> ${result.nodeCount}個</p>
+                    <p style="margin-bottom: 8px;"><strong>📁 出力先:</strong> ${result.outputPath || '（メモリ内のみ）'}</p>
+                    <p style="margin-bottom: 0;"><strong>⏱️ 生成時刻:</strong> ${new Date().toLocaleString('ja-JP')}</p>
+                </div>
+            `;
+
+            // 生成されたコードをプレビューに表示
+            const codePreview = document.getElementById('code-result-preview');
+            codePreview.value = result.generatedCode || '（コードプレビューは利用できません）';
+
+            // グローバル変数に保存（コピー/ファイルオープン用）
+            window.lastGeneratedCode = {
+                code: result.generatedCode,
+                path: result.outputPath
+            };
+
+            // モーダルを表示
+            document.getElementById('code-result-modal').classList.add('show');
         } else {
             alert(`コード生成失敗: ${result.error}`);
         }
     } catch (error) {
         console.error('コード生成エラー:', error);
         alert(`コード生成中にエラーが発生しました: ${error.message}`);
+    }
+}
+
+function closeCodeResultModal() {
+    document.getElementById('code-result-modal').classList.remove('show');
+}
+
+function copyGeneratedCode() {
+    const codePreview = document.getElementById('code-result-preview');
+    codePreview.select();
+    document.execCommand('copy');
+    alert('✅ 生成されたコードをクリップボードにコピーしました！');
+}
+
+function openGeneratedFile() {
+    if (window.lastGeneratedCode && window.lastGeneratedCode.path) {
+        // PowerShellでファイルを開く（Windows環境）
+        alert(`ファイルを開きます: ${window.lastGeneratedCode.path}\n\n（この機能はブラウザ制限により未実装です）`);
+    } else {
+        alert('出力ファイルのパスが見つかりません。');
     }
 }
 
@@ -1721,13 +1799,84 @@ function setupEventListeners() {
         hideContextMenu();
     });
 
-    // ESCキーでモーダルを閉じる
+    // キーボードショートカット
     document.addEventListener('keydown', (e) => {
+        // ESCキーでモーダルを閉じる
         if (e.key === 'Escape') {
             closeVariableModal();
             closeFolderModal();
             closeScriptModal();
             closeNodeSettingsModal();
+            closeCodeResultModal();
+            hideContextMenu();
+            return;
+        }
+
+        // モーダルが開いている場合は他のショートカットを無効化
+        const anyModalOpen = document.querySelector('.modal.show');
+        if (anyModalOpen) return;
+
+        // 左右矢印キーでレイヤーナビゲーション
+        if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+            navigateLayer('left');
+            e.preventDefault();
+            return;
+        }
+        if (e.key === 'ArrowRight' && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+            navigateLayer('right');
+            e.preventDefault();
+            return;
+        }
+
+        // Ctrl+S: 保存（memory.json自動保存）
+        if (e.key === 's' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            saveMemoryJson();
+            alert('💾 memory.json を保存しました');
+            return;
+        }
+
+        // Ctrl+E: コード生成実行
+        if (e.key === 'e' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            executeCode();
+            return;
+        }
+
+        // Ctrl+Shift+V: 変数管理を開く
+        if (e.key === 'V' && e.ctrlKey && e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            openVariableModal();
+            return;
+        }
+
+        // Delete: 選択中のノードを削除（コンテキストメニューが表示されている場合）
+        if (e.key === 'Delete' && contextMenuTarget) {
+            e.preventDefault();
+            deleteNode();
+            return;
+        }
+
+        // Ctrl+Z: Undo（将来機能）
+        if (e.key === 'z' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            alert('⚠️ Undo機能は将来実装予定です');
+            return;
+        }
+
+        // Ctrl+Y: Redo（将来機能）
+        if (e.key === 'y' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            alert('⚠️ Redo機能は将来実装予定です');
+            return;
         }
     });
+
+    console.log('📌 キーボードショートカット有効化:');
+    console.log('  ← / →: レイヤー移動');
+    console.log('  Ctrl+S: 保存');
+    console.log('  Ctrl+E: コード生成');
+    console.log('  Ctrl+Shift+V: 変数管理');
+    console.log('  Delete: ノード削除');
+    console.log('  Esc: モーダルを閉じる');
 }
