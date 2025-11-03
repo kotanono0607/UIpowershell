@@ -1219,6 +1219,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // イベントリスナー設定
     setupEventListeners();
 
+    // ダイアログのイベントリスナー設定（DOM ready後）
+    setupDialogEventListeners();
+
     // 変数を読み込み
     await loadVariables();
 
@@ -3066,6 +3069,13 @@ async function loadCodeJson() {
 
         if (result.success) {
             codeData = result.data;
+            // 🔧 修正: "エントリ"プロパティが存在しない場合は初期化
+            if (!codeData["エントリ"]) {
+                codeData["エントリ"] = {};
+            }
+            if (typeof codeData["最後のID"] !== 'number') {
+                codeData["最後のID"] = 0;
+            }
             console.log('コード.json読み込み成功:', codeData);
         } else {
             console.error('コード.json読み込み失敗:', result.error);
@@ -3130,6 +3140,11 @@ async function setCodeEntry(id, content) {
     if (!content || content.trim() === '') {
         console.warn('コンテンツが空です');
         return;
+    }
+
+    // 🔧 修正: codeDataの初期化確認
+    if (!codeData["エントリ"]) {
+        codeData["エントリ"] = {};
     }
 
     // "---" で文字列を分割
@@ -3684,6 +3699,121 @@ function setupEventListeners() {
 }
 
 // ============================================
+// ダイアログのイベントリスナー設定（DOM ready後に呼び出し）
+// ============================================
+function setupDialogEventListeners() {
+    // ============================================
+    // 条件分岐ダイアログのイベントリスナー
+    // ============================================
+
+    const btnAddCondition = document.getElementById('btn-add-condition');
+    if (btnAddCondition) {
+        btnAddCondition.addEventListener('click', addConditionRow);
+    }
+
+    const btnConditionSave = document.getElementById('btn-condition-save');
+    if (btnConditionSave) {
+        btnConditionSave.addEventListener('click', () => {
+            let code = document.getElementById('condition-preview').value;
+
+            if (!code || code.trim() === '') {
+                alert('条件式が設定されていません。');
+                return;
+            }
+
+            // コメント行を "---" に置換（PowerShell互換）
+            const lines = code.split('\n');
+            const processedLines = lines.map(line => {
+                if (line.trim().startsWith('#')) {
+                    return '---';
+                }
+                return line;
+            });
+            code = processedLines.join('\n');
+
+            console.log('[条件分岐ダイアログ] 保存:', code);
+
+            document.getElementById('condition-builder-modal').classList.remove('show');
+
+            if (conditionBuilderResolver) {
+                conditionBuilderResolver(code);
+                conditionBuilderResolver = null;
+            }
+        });
+    }
+
+    const btnConditionCancel = document.getElementById('btn-condition-cancel');
+    if (btnConditionCancel) {
+        btnConditionCancel.addEventListener('click', () => {
+            console.log('[条件分岐ダイアログ] キャンセル');
+
+            document.getElementById('condition-builder-modal').classList.remove('show');
+
+            if (conditionBuilderResolver) {
+                conditionBuilderResolver(null);
+                conditionBuilderResolver = null;
+            }
+        });
+    }
+
+    // ============================================
+    // ループダイアログのイベントリスナー
+    // ============================================
+
+    const loopTypeSelect = document.getElementById('loop-type-select');
+    if (loopTypeSelect) {
+        loopTypeSelect.addEventListener('change', updateLoopSettings);
+    }
+
+    const btnLoopSave = document.getElementById('btn-loop-save');
+    if (btnLoopSave) {
+        btnLoopSave.addEventListener('click', () => {
+            let code = document.getElementById('loop-preview').value;
+
+            if (!code || code.trim() === '') {
+                alert('ループ構文が設定されていません。');
+                return;
+            }
+
+            // コメント行を "---" に置換（PowerShell互換）
+            const lines = code.split('\n');
+            const processedLines = lines.map(line => {
+                if (line.trim().startsWith('#')) {
+                    return '---';
+                }
+                return line;
+            });
+            code = processedLines.join('\n');
+
+            console.log('[ループダイアログ] 保存:', code);
+
+            document.getElementById('loop-builder-modal').classList.remove('show');
+
+            if (loopBuilderResolver) {
+                loopBuilderResolver(code);
+                loopBuilderResolver = null;
+            }
+        });
+    }
+
+    const btnLoopCancel = document.getElementById('btn-loop-cancel');
+    if (btnLoopCancel) {
+        btnLoopCancel.addEventListener('click', () => {
+            console.log('[ループダイアログ] キャンセル');
+
+            document.getElementById('loop-builder-modal').classList.remove('show');
+
+            if (loopBuilderResolver) {
+                loopBuilderResolver(null);
+                loopBuilderResolver = null;
+            }
+        });
+    }
+
+    console.log('📌 ダイアログイベントリスナー設定完了');
+}
+
+// ============================================
 // 変数管理機能（variables.json）
 // ============================================
 
@@ -4063,47 +4193,7 @@ function updateConditionPreview() {
     }
 }
 
-// ボタンイベント設定
-document.getElementById('btn-add-condition').addEventListener('click', addConditionRow);
-
-document.getElementById('btn-condition-save').addEventListener('click', () => {
-    let code = document.getElementById('condition-preview').value;
-
-    if (!code || code.trim() === '') {
-        alert('条件式が設定されていません。');
-        return;
-    }
-
-    // コメント行を "---" に置換（PowerShell互換）
-    const lines = code.split('\n');
-    const processedLines = lines.map(line => {
-        if (line.trim().startsWith('#')) {
-            return '---';
-        }
-        return line;
-    });
-    code = processedLines.join('\n');
-
-    console.log('[条件分岐ダイアログ] 保存:', code);
-
-    document.getElementById('condition-builder-modal').classList.remove('show');
-
-    if (conditionBuilderResolver) {
-        conditionBuilderResolver(code);
-        conditionBuilderResolver = null;
-    }
-});
-
-document.getElementById('btn-condition-cancel').addEventListener('click', () => {
-    console.log('[条件分岐ダイアログ] キャンセル');
-
-    document.getElementById('condition-builder-modal').classList.remove('show');
-
-    if (conditionBuilderResolver) {
-        conditionBuilderResolver(null);
-        conditionBuilderResolver = null;
-    }
-});
+// 🔧 修正: イベントリスナーは setupDialogEventListeners() で設定される（DOM ready後）
 
 // ============================================
 // ShowLoopBuilder ダイアログ
@@ -4311,44 +4401,4 @@ function updateLoopPreview() {
     preview.value = code;
 }
 
-// イベントリスナー
-document.getElementById('loop-type-select').addEventListener('change', updateLoopSettings);
-
-document.getElementById('btn-loop-save').addEventListener('click', () => {
-    let code = document.getElementById('loop-preview').value;
-
-    if (!code || code.trim() === '') {
-        alert('ループ構文が設定されていません。');
-        return;
-    }
-
-    // コメント行を "---" に置換（PowerShell互換）
-    const lines = code.split('\n');
-    const processedLines = lines.map(line => {
-        if (line.trim().startsWith('#')) {
-            return '---';
-        }
-        return line;
-    });
-    code = processedLines.join('\n');
-
-    console.log('[ループダイアログ] 保存:', code);
-
-    document.getElementById('loop-builder-modal').classList.remove('show');
-
-    if (loopBuilderResolver) {
-        loopBuilderResolver(code);
-        loopBuilderResolver = null;
-    }
-});
-
-document.getElementById('btn-loop-cancel').addEventListener('click', () => {
-    console.log('[ループダイアログ] キャンセル');
-
-    document.getElementById('loop-builder-modal').classList.remove('show');
-
-    if (loopBuilderResolver) {
-        loopBuilderResolver(null);
-        loopBuilderResolver = null;
-    }
-});
+// 🔧 修正: イベントリスナーは setupDialogEventListeners() で設定される（DOM ready後）
