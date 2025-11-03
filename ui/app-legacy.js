@@ -3462,11 +3462,33 @@ async function saveCodeJson() {
 }
 
 // 処理番号でスクリプト内容を取得
+// setCodeEntryは "id-1", "id-2", "id-3" の形式でサブIDを生成するため、
+// それに対応した検索を行う
 function getCodeEntry(処理番号) {
     if (!処理番号) return '';
 
-    const entry = codeData["エントリ"][処理番号];
-    return entry || '';
+    console.log('[getCodeEntry] ID:', 処理番号);
+
+    // 1. まず、そのままのIDで検索（既存の動作）
+    if (codeData["エントリ"][処理番号]) {
+        console.log('[getCodeEntry] ✅ 直接ヒット:', 処理番号);
+        return codeData["エントリ"][処理番号];
+    }
+
+    // 2. サブID形式 (id-1, id-2, ...) で検索してすべて結合
+    const entries = Object.keys(codeData["エントリ"])
+        .filter(key => key.startsWith(処理番号 + '-'))
+        .sort()  // "1-1-1", "1-1-2", "1-1-3" の順にソート
+        .map(key => codeData["エントリ"][key]);
+
+    if (entries.length > 0) {
+        console.log(`[getCodeEntry] ✅ サブID検索ヒット: ${entries.length}個のエントリを結合`);
+        // "---"で結合して返す（PowerShell互換）
+        return entries.join('\n---\n');
+    }
+
+    console.log('[getCodeEntry] ❌ エントリが見つかりません:', 処理番号);
+    return '';
 }
 
 // 処理番号でスクリプト内容を設定
