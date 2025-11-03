@@ -158,13 +158,15 @@ body {
 }
 
 .category-panel.active {
-    display: block;
+    display: grid;
+    grid-template-columns: repeat(2, 104px);
+    gap: 8px;
 }
 
 .add-node-btn {
-    width: 100%;
+    width: 104px;
     height: 28px;
-    margin-bottom: 8px;
+    margin-bottom: 0;
     border: 1px solid #999;
     border-radius: 4px;
     cursor: pointer;
