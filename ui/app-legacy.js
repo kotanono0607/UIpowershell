@@ -89,6 +89,10 @@ function initializeArrowCanvas() {
                 canvas.width = parentWidth;
                 canvas.height = parentHeight;
 
+                // 🔥 修正: CSS表示サイズを明示的に設定（矢印表示に必須）
+                canvas.style.width = parentWidth + 'px';
+                canvas.style.height = parentHeight + 'px';
+
                 nodeList.appendChild(canvas);
 
                 console.log(`[初期化] layer-${i} Canvas作成後:`, {
@@ -131,6 +135,11 @@ function initializeArrowCanvas() {
         const parentHeight = Math.max(mainContainer.clientHeight, mainContainer.scrollHeight, 1200);
         canvas.width = parentWidth;
         canvas.height = parentHeight;
+
+        // 🔥 修正: CSS表示サイズを明示的に設定（矢印表示に必須）
+        canvas.style.width = parentWidth + 'px';
+        canvas.style.height = parentHeight + 'px';
+
         mainContainer.appendChild(canvas);
 
         arrowState.canvasMap.set('main', canvas);
