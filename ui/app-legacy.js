@@ -1996,12 +1996,42 @@ function layerizeNode() {
     const layerNodes = layerStructure[currentLayer].nodes;
 
     // 赤枠ノードを収集
-    const redBorderNodes = layerNodes.filter(n => n.redBorder);
+    let redBorderNodes = layerNodes.filter(n => n.redBorder);
 
     if (redBorderNodes.length === 0) {
         alert('レイヤー化するには、まず赤枠でノードを選択してください。');
         hideContextMenu();
         return;
+    }
+
+    // 赤枠に挟まれたノードも赤枠にする（PowerShell互換）
+    if (redBorderNodes.length >= 2) {
+        // Y座標でソート
+        const sortedNodes = [...layerNodes].sort((a, b) => a.y - b.y);
+        const redBorderIndices = redBorderNodes.map(node => sortedNodes.findIndex(n => n.id === node.id));
+
+        const startIndex = Math.min(...redBorderIndices);
+        const endIndex = Math.max(...redBorderIndices);
+
+        console.log(`[レイヤー化] 赤枠で囲まれた範囲: インデックス${startIndex}～${endIndex}`);
+
+        // 挟まれたノードを赤枠にする
+        for (let i = startIndex + 1; i < endIndex; i++) {
+            const enclosedNode = sortedNodes[i];
+            if (!enclosedNode.redBorder) {
+                enclosedNode.redBorder = true;
+                console.log(`  [囲み処理] ノード「${enclosedNode.text}」を赤枠に追加`);
+
+                // グローバル配列も更新
+                const globalNode = nodes.find(n => n.id === enclosedNode.id);
+                if (globalNode) {
+                    globalNode.redBorder = true;
+                }
+            }
+        }
+
+        // 赤枠ノードを再収集
+        redBorderNodes = layerNodes.filter(n => n.redBorder);
     }
 
     // Y座標でソート
@@ -2050,15 +2080,24 @@ function layerizeNode() {
     nodes.push(newNode);
     layerNodes.push(newNode);
 
-    // 画面を再描画
-    renderNodesInLayer(currentLayer);
-    reorderNodesInLayer(currentLayer);
+    // Pink選択配列を更新（PowerShell互換）
+    pinkSelectionArray[currentLayer].initialY = minY;
+    pinkSelectionArray[currentLayer].value = 1;
+
+    // 左右パネルの表示を更新
+    updateDualPanelDisplay();
+
+    // 画面を再描画（左右両パネル）
+    renderNodesInLayer(leftVisibleLayer, 'left');
+    renderNodesInLayer(rightVisibleLayer, 'right');
 
     // memory.json自動保存
     saveMemoryJson();
 
+    // 矢印を再描画
+    refreshAllArrows();
+
     console.log(`[レイヤー化] レイヤー${currentLayer}: ${sortedRedNodes.length}個 → ノード${newNodeId} (スクリプト)`);
-    alert(`${sortedRedNodes.length}個のノードをレイヤー化しました。`);
 
     hideContextMenu();
 }
@@ -2240,30 +2279,22 @@ function handlePinkNodeClick(node) {
         baseY += 60; // 次のノードのY座標（間隔20px + 高さ40px）
     });
 
-    // 左右パネルをスライド
-    currentLayer = nextLayer;
-    leftVisibleLayer = nextLayer;
-    rightVisibleLayer = Math.min(nextLayer + 1, 6);
-
-    // 左右パネルの表示を更新
+    // 左右パネルの表示を更新（現在のレイヤーに留まる）
     updateDualPanelDisplay();
 
-    // 画面を再描画（左パネル）
-    renderNodesInLayer(nextLayer, 'left');
-    reorderNodesInLayer(nextLayer);
-
-    // 右パネルも再描画（空でも表示）
-    if (rightVisibleLayer <= 6) {
-        renderNodesInLayer(rightVisibleLayer, 'right');
-        reorderNodesInLayer(rightVisibleLayer);
-    }
+    // 画面を再描画（左パネルと右パネル）
+    renderNodesInLayer(leftVisibleLayer, 'left');
+    renderNodesInLayer(rightVisibleLayer, 'right');
 
     // memory.json自動保存
     saveMemoryJson();
 
-    console.log(`[展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${entries.length}個のノード)`);
+    // 矢印を再描画
+    refreshAllArrows();
+
+    console.log(`[展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${entries.length}個のノード展開、レイヤー移動なし)`);
     console.log(`[パネル表示] 左: レイヤー${leftVisibleLayer}, 右: レイヤー${rightVisibleLayer}`);
-    alert(`レイヤー${nextLayer}に${entries.length}個のノードを展開しました。`);
+}
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
