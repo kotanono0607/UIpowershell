@@ -217,6 +217,27 @@ function drawPanelArrows(layerId) {
         return;
     }
 
+    const layerPanel = document.getElementById(layerId);
+    if (!layerPanel) {
+        console.error(`[デバッグ] レイヤーパネルが見つかりません: ${layerId}`);
+        return;
+    }
+
+    // ★重要: Canvasサイズをコンテナに合わせて調整
+    const nodeListContainer = layerPanel.querySelector('.node-list-container');
+    if (nodeListContainer) {
+        const oldWidth = canvas.width;
+        const oldHeight = canvas.height;
+
+        // scrollWidth/Heightを使用してコンテンツ全体をカバー
+        canvas.width = Math.max(nodeListContainer.scrollWidth, nodeListContainer.clientWidth);
+        canvas.height = Math.max(nodeListContainer.scrollHeight, nodeListContainer.clientHeight, 700); // 最小高さ700px
+
+        if (canvas.width !== oldWidth || canvas.height !== oldHeight) {
+            console.log(`[Canvas デバッグ] Canvas サイズ調整: ${oldWidth}x${oldHeight} → ${canvas.width}x${canvas.height}`);
+        }
+    }
+
     console.log(`[Canvas デバッグ] Canvas element:`, canvas);
     console.log(`[Canvas デバッグ] Canvas visible:`, canvas.offsetWidth > 0 && canvas.offsetHeight > 0);
     console.log(`[Canvas デバッグ] Canvas style.display:`, canvas.style.display);
@@ -229,12 +250,6 @@ function drawPanelArrows(layerId) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     console.log(`[Canvas デバッグ] clearRect完了: (0, 0, ${canvas.width}, ${canvas.height})`);
     ctx.imageSmoothingEnabled = true;
-
-    const layerPanel = document.getElementById(layerId);
-    if (!layerPanel) {
-        console.error(`[デバッグ] レイヤーパネルが見つかりません: ${layerId}`);
-        return;
-    }
 
     const nodes = Array.from(layerPanel.querySelectorAll('.node-button'));
     console.log(`[デバッグ] 取得したノード数: ${nodes.length}`);
