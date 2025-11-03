@@ -1538,10 +1538,62 @@ function swapNodes(layer, nodeId1, nodeId2) {
 function reorderNodesInLayer(layer) {
     const layerNodes = layerStructure[layer].nodes.sort((a, b) => a.y - b.y);
 
+    // "条件分岐 開始"、"条件分岐 中間"、"条件分岐 終了"の位置を特定
+    let startIndex = -1;
+    let middleIndex = -1;
+    let endIndex = -1;
+
+    for (let i = 0; i < layerNodes.length; i++) {
+        if (layerNodes[i].text === '条件分岐 開始') {
+            startIndex = i;
+        }
+        if (layerNodes[i].text === '条件分岐 中間') {
+            middleIndex = i;
+        }
+        if (layerNodes[i].text === '条件分岐 終了') {
+            endIndex = i;
+        }
+    }
+
     let currentY = 10;
-    layerNodes.forEach(node => {
-        node.y = currentY;
-        currentY += 45;
+
+    layerNodes.forEach((node, index) => {
+        const buttonText = node.text;
+
+        // ボタンの色を設定する条件分岐（PowerShellの実装に準拠）
+        if (startIndex !== -1 && middleIndex !== -1 && index > startIndex && index < middleIndex) {
+            // 開始〜中間の間: Salmon（False分岐）
+            // スクリプト化ノードは除外（Pinkのまま）
+            if (node.color !== 'Pink') {
+                node.color = 'Salmon';
+            }
+        } else if (middleIndex !== -1 && endIndex !== -1 && index > middleIndex && index < endIndex) {
+            // 中間〜終了の間: CornflowerBlue（True分岐）
+            // スクリプト化ノードは除外（Pinkのまま）
+            if (node.color !== 'Pink') {
+                node.color = 'CornflowerBlue';
+            }
+        } else {
+            // 条件分岐の外側：SalmonまたはCornflowerBlueの場合はWhiteに戻す
+            if (node.color === 'Salmon' || node.color === 'CornflowerBlue') {
+                node.color = 'White';
+            }
+            // スクリプト化ノードはPinkのまま
+        }
+
+        // ボタン間隔と高さの調整（"条件分岐 中間"の場合は特殊）
+        let interval, height;
+        if (buttonText === '条件分岐 中間') {
+            interval = 10;  // 通常20のところ10
+            height = 0;     // 通常40のところ0
+        } else {
+            interval = 20;
+            height = 40;
+        }
+
+        // Y座標を設定
+        node.y = currentY + interval;
+        currentY = node.y + height;
     });
 
     renderNodesInLayer(layer);
