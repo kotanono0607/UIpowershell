@@ -1189,7 +1189,7 @@ function checkScreenWidth() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('═══════════════════════════════════════════════');
-    console.log('UIpowershell Legacy UI v1.0.168 - 起動開始');
+    console.log('UIpowershell Legacy UI v1.0.169 - 起動開始');
     console.log('═══════════════════════════════════════════════');
 
     // 矢印描画機能を初期化（arrow-drawing.jsの内容が統合されているため即座に利用可能）
@@ -2585,18 +2585,58 @@ function findLoopSet(layerNodes, targetNode) {
     };
 }
 
-// 全削除
-function deleteAllNodes() {
-    const confirmed = confirm('すべてのノードを削除しますか？');
+// 全削除（現在のレイヤーのノードをすべて削除）
+async function deleteAllNodes() {
+    console.log('[全削除] 開始 - currentLayer:', currentLayer);
+    console.log('[全削除] 現在のノード数:', layerStructure[currentLayer].nodes.length);
+
+    if (layerStructure[currentLayer].nodes.length === 0) {
+        alert('削除するノードがありません。');
+        return;
+    }
+
+    const confirmed = confirm(`レイヤー${currentLayer}のすべてのノード（${layerStructure[currentLayer].nodes.length}個）を削除しますか？`);
     if (!confirmed) return;
 
-    layerStructure[currentLayer].nodes = [];
-    nodes = nodes.filter(n => n.layer !== currentLayer);
+    try {
+        console.log('[全削除] APIを呼び出します...');
 
-    renderNodesInLayer(currentLayer);
+        // 現在のレイヤーのノードを取得
+        const currentLayerNodes = layerStructure[currentLayer].nodes;
 
-    // memory.json自動保存
-    saveMemoryJson();
+        // APIエンドポイント呼び出し
+        const response = await fetch(`${API_BASE}/nodes/all`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nodes: currentLayerNodes })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('[全削除] API成功:', result.message);
+            console.log('[全削除] 削除されたノード数:', result.deleteCount);
+
+            // ローカルのノード配列を更新
+            layerStructure[currentLayer].nodes = [];
+            nodes = nodes.filter(n => n.layer !== currentLayer);
+
+            // 画面を再描画
+            renderNodesInLayer(currentLayer);
+
+            // memory.json自動保存
+            await saveMemoryJson();
+
+            alert(`${result.deleteCount}個のノードを削除しました。`);
+            console.log('[全削除] 完了');
+        } else {
+            console.error('[全削除] API失敗:', result.error);
+            alert(`削除に失敗しました: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('[全削除] エラー:', error);
+        alert(`削除中にエラーが発生しました: ${error.message}`);
+    }
 }
 
 // ============================================
