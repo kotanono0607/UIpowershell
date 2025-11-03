@@ -241,16 +241,26 @@ function switchCategory(categoryNum) {
 // ============================================
 
 function addNodeToLayer(setting) {
+    console.log('[デバッグ] addNodeToLayer() 呼び出し:', setting.処理番号, setting.テキスト);
+
     // 処理番号で判定してセット作成
     if (setting.処理番号 === '1-2') {
         // 条件分岐：3個セット（開始・中間・終了）
+        console.log('[デバッグ] 条件分岐セット追加');
         addConditionSet(setting);
     } else if (setting.処理番号 === '1-3') {
         // ループ：2個セット（開始・終了）
+        console.log('[デバッグ] ループセット追加');
         addLoopSet(setting);
     } else {
         // 通常ノード：1個
+        console.log('[デバッグ] 通常ノード追加');
         addSingleNode(setting);
+
+        // ★修正：画面を再描画（矢印も更新される）
+        console.log('[デバッグ] renderNodesInLayer() を呼び出します');
+        renderNodesInLayer(currentLayer);
+        reorderNodesInLayer(currentLayer);
     }
 
     // memory.json自動保存
@@ -438,10 +448,14 @@ function renderNodesInLayer(layer) {
     });
 
     // 矢印を再描画
+    console.log(`[デバッグ] renderNodesInLayer(${layer}): 矢印を再描画します`);
     if (window.arrowDrawing) {
         setTimeout(() => {
+            console.log(`[デバッグ] setTimeout実行: drawPanelArrows('layer-${layer}') を呼び出し`);
             window.arrowDrawing.drawPanelArrows(`layer-${layer}`);
         }, 10);
+    } else {
+        console.error('[デバッグ] window.arrowDrawing が存在しません！');
     }
 }
 

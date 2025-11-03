@@ -126,17 +126,26 @@ function drawDownArrow(ctx, fromNode, toNode, color = '#000000') {
 
 // パネル内のノード間矢印を描画
 function drawPanelArrows(layerId) {
+    console.log(`[デバッグ] drawPanelArrows() 呼び出し: layerId=${layerId}`);
+
     const canvas = arrowState.canvasMap.get(layerId);
-    if (!canvas) return;
+    if (!canvas) {
+        console.error(`[デバッグ] Canvas が見つかりません: ${layerId}`);
+        return;
+    }
 
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = true;
 
     const layerPanel = document.getElementById(layerId);
-    if (!layerPanel) return;
+    if (!layerPanel) {
+        console.error(`[デバッグ] レイヤーパネルが見つかりません: ${layerId}`);
+        return;
+    }
 
     const nodes = Array.from(layerPanel.querySelectorAll('.node-button'));
+    console.log(`[デバッグ] 取得したノード数: ${nodes.length}`);
 
     // ノードをY座標でソート
     nodes.sort((a, b) => {
@@ -147,8 +156,10 @@ function drawPanelArrows(layerId) {
 
     // 条件分岐グループを特定
     const conditionGroups = findConditionGroups(nodes);
+    console.log(`[デバッグ] 条件分岐グループ数: ${conditionGroups.length}`);
 
     // 隣接ノード間に矢印を描画
+    let arrowCount = 0;
     for (let i = 0; i < nodes.length - 1; i++) {
         const currentNode = nodes[i];
         const nextNode = nodes[i + 1];
@@ -159,7 +170,9 @@ function drawPanelArrows(layerId) {
 
         // 白→白の場合は黒の矢印を描画
         if (isWhiteColor(currentColor) && isWhiteColor(nextColor)) {
+            console.log(`[デバッグ] 白→白の矢印を描画: ${i} → ${i+1}`);
             drawDownArrow(ctx, currentNode, nextNode, '#000000');
+            arrowCount++;
         }
         // 白→緑（条件分岐開始前）
         else if (isWhiteColor(currentColor) && isSpringGreenColor(nextColor)) {
@@ -186,6 +199,7 @@ function drawPanelArrows(layerId) {
             drawDownArrow(ctx, currentNode, nextNode, 'rgb(200, 220, 255)');
         }
     }
+    console.log(`[デバッグ] 描画した通常矢印数: ${arrowCount}`);
 
     // 条件分岐の特別な矢印を描画
     conditionGroups.forEach(group => {
@@ -194,9 +208,13 @@ function drawPanelArrows(layerId) {
 
     // ループの矢印を描画
     const loopGroups = findLoopGroups(nodes);
+    console.log(`[デバッグ] ループグループ数: ${loopGroups.length}`);
+    const containerRect = layerPanel.querySelector('.node-list-container').getBoundingClientRect();
     loopGroups.forEach(group => {
         drawLoopArrows(ctx, group.startNode, group.endNode, containerRect);
     });
+
+    console.log(`[デバッグ] drawPanelArrows() 完了: ${layerId}`);
 }
 
 // 条件分岐グループを見つける
