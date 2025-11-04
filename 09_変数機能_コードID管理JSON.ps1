@@ -330,7 +330,7 @@ function IDでエントリを取得 {
     if ($json内容.PSObject.Properties['エントリ']) {
         $利用可能なキー = $json内容."エントリ".PSObject.Properties.Name
         Write-Host "[DEBUG] 利用可能なエントリキー数: $($利用可能なキー.Count)" -ForegroundColor Yellow
-        Write-Host "[DEBUG] 最初の5つのキー: $($利用可能なキー | Select-Object -First 5)" -ForegroundColor Yellow
+        Write-Host "[DEBUG] 全てのキー: $($利用可能なキー -join ', ')" -ForegroundColor Yellow
 
         if ($json内容."エントリ".PSObject.Properties.Name -contains $ID) {
             # エントリを返す
@@ -339,6 +339,7 @@ function IDでエントリを取得 {
         }
         else {
             Write-Warning "指定されたID ($ID) のエントリは存在しません。"
+            Write-Host "[DEBUG] 検索したID '$ID' に似たキー: $($利用可能なキー | Where-Object { $_ -like "*$ID*" -or $ID -like "*$_*" })" -ForegroundColor Magenta
             return $null
         }
     } else {
