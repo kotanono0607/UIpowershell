@@ -95,7 +95,8 @@ function 実行イベント_v2 {
             # 処理番号プロパティがあればそれを優先、なければノード名から抽出
             if ($button.PSObject.Properties['処理番号'] -and $button.処理番号) {
                 # 処理番号から抽出 (例: "1-1" -> "1", "1-6" -> "6")
-                $baseId = ($button.処理番号 -split '-')[0]
+                # 形式: "レイヤーID-エントリID" → 後ろの部分（エントリID）を使用
+                $baseId = ($button.処理番号 -split '-')[-1]
                 Write-Host "[DEBUG] 処理番号から抽出: $($button.処理番号) -> ベースID: $baseId" -ForegroundColor Cyan
             } else {
                 # ノード名から抽出 (例: "9-1" -> "9", "10-1" -> "10")
