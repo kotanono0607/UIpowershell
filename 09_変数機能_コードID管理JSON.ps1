@@ -301,11 +301,17 @@ function IDでエントリを取得 {
         [string]$ID
     )
 
+    Write-Host "[DEBUG] IDでエントリを取得 - 検索ID: $ID" -ForegroundColor Yellow
+    Write-Host "[DEBUG] jsonパス: $global:jsonパス" -ForegroundColor Yellow
+
     # JSONファイルが存在しない場合
     if (-Not (Test-Path $global:jsonパス)) {
         Write-Error "JSONストアが存在しません。まずは `JSONストアを初期化` を実行してください。"
+        Write-Host "[DEBUG] ファイルが存在しません: $global:jsonパス" -ForegroundColor Red
         return $null
     }
+
+    Write-Host "[DEBUG] ファイル存在確認: OK" -ForegroundColor Green
 
     # JSONファイルを読み込む（共通関数使用）
     $json内容 = Read-JsonSafe -Path $global:jsonパス -Required $true -Silent $true
@@ -314,12 +320,29 @@ function IDでエントリを取得 {
         return $null
     }
 
-    if ($json内容."エントリ".PSObject.Properties.Name -contains $ID) {
-        # エントリを返す
-        return $json内容."エントリ".$ID
-    }
-    else {
-        Write-Warning "指定されたID ($ID) のエントリは存在しません。"
+    Write-Host "[DEBUG] JSON読み込み: OK" -ForegroundColor Green
+
+    # エントリプロパティの確認
+    $エントリプロパティ名 = $json内容.PSObject.Properties.Name
+    Write-Host "[DEBUG] JSONの第1レベルプロパティ: $($エントリプロパティ名 -join ', ')" -ForegroundColor Yellow
+
+    # エントリが存在するか確認
+    if ($json内容.PSObject.Properties['エントリ']) {
+        $利用可能なキー = $json内容."エントリ".PSObject.Properties.Name
+        Write-Host "[DEBUG] 利用可能なエントリキー数: $($利用可能なキー.Count)" -ForegroundColor Yellow
+        Write-Host "[DEBUG] 最初の5つのキー: $($利用可能なキー | Select-Object -First 5)" -ForegroundColor Yellow
+
+        if ($json内容."エントリ".PSObject.Properties.Name -contains $ID) {
+            # エントリを返す
+            Write-Host "[DEBUG] エントリ発見: $ID" -ForegroundColor Green
+            return $json内容."エントリ".$ID
+        }
+        else {
+            Write-Warning "指定されたID ($ID) のエントリは存在しません。"
+            return $null
+        }
+    } else {
+        Write-Host "[DEBUG] 'エントリ' プロパティが存在しません" -ForegroundColor Red
         return $null
     }
 }
