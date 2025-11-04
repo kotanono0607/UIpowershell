@@ -189,6 +189,7 @@ function 実行イベント_v2 {
         return @{
             success = $true
             message = "PowerShellコードを生成しました"
+            code = $output
             outputPath = $OutputPath
             nodeCount = $buttonCount
             codeLength = $output.Length

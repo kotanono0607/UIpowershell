@@ -571,6 +571,14 @@ New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
 
         Write-Host "[DEBUG] 実行イベント_v2 completed successfully" -ForegroundColor Green
         Write-Host "[DEBUG] Result type: $($result.GetType().Name)" -ForegroundColor Green
+        Write-Host "[DEBUG] Result keys: $($result.Keys -join ', ')" -ForegroundColor Green
+        Write-Host "[DEBUG] Result.success: $($result.success)" -ForegroundColor Green
+        if ($result.code) {
+            Write-Host "[DEBUG] Result.code length: $($result.code.Length) 文字" -ForegroundColor Green
+            Write-Host "[DEBUG] Result.code (最初の200文字): $($result.code.Substring(0, [Math]::Min(200, $result.code.Length)))" -ForegroundColor Green
+        } else {
+            Write-Host "[DEBUG] Result.code が存在しません" -ForegroundColor Yellow
+        }
 
         $json = $result | ConvertTo-Json -Compress
         $Response.SetContentType('application/json; charset=utf-8')
