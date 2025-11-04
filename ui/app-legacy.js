@@ -1815,32 +1815,52 @@ function renderNodesInLayer(layer, panelSide = 'left') {
 // グローエフェクトを適用
 // ============================================
 function applyGlowEffects() {
+    console.log('═══════════════════════════════════════════════════');
     console.log('[グローエフェクト] applyGlowEffects() 開始');
+    console.log('═══════════════════════════════════════════════════');
 
     if (!glowState.sourceNode || glowState.targetLayer === null) {
-        console.log('[グローエフェクト] グローステートが無効なため、適用をスキップ');
+        console.log('[グローエフェクト] ⚠️ グローステートが無効なため、適用をスキップ');
+        console.log('  - sourceNode:', glowState.sourceNode);
+        console.log('  - targetLayer:', glowState.targetLayer);
         return;
     }
 
-    console.log(`[グローエフェクト] ソース: レイヤー${glowState.sourceLayer}, ノード${glowState.sourceNode.id}`);
-    console.log(`[グローエフェクト] ターゲット: レイヤー${glowState.targetLayer}`);
+    console.log(`[グローエフェクト] ✅ ソース: レイヤー${glowState.sourceLayer}, ノードID: ${glowState.sourceNode.id}, テキスト: "${glowState.sourceNode.text}"`);
+    console.log(`[グローエフェクト] ✅ ターゲット: レイヤー${glowState.targetLayer}`);
 
     // 1. すべてのノードからglow-sourceクラスを削除
-    document.querySelectorAll('.node-button.glow-source').forEach(el => {
+    const existingGlowSources = document.querySelectorAll('.node-button.glow-source');
+    console.log(`[グローエフェクト] 既存のglow-sourceクラスを削除: ${existingGlowSources.length}個`);
+    existingGlowSources.forEach(el => {
         el.classList.remove('glow-source');
     });
 
     // 2. グローソースノード（ピンクノード）を探してglow-sourceを適用
-    document.querySelectorAll('.node-button').forEach(btn => {
+    const allNodeButtons = document.querySelectorAll('.node-button');
+    console.log(`[グローエフェクト] 全ノードボタン数: ${allNodeButtons.length}`);
+
+    let foundSourceNode = false;
+    allNodeButtons.forEach(btn => {
         const nodeId = parseInt(btn.dataset.nodeId);
+        const nodeText = btn.querySelector('.node-text')?.textContent || 'N/A';
+
         if (nodeId === glowState.sourceNode.id) {
             btn.classList.add('glow-source');
-            console.log(`[グローエフェクト] ノード${nodeId}にglow-sourceクラスを適用`);
+            foundSourceNode = true;
+            console.log(`[グローエフェクト] ✨ ノードID: ${nodeId}, テキスト: "${nodeText}" にglow-sourceクラスを適用しました！`);
+            console.log(`[グローエフェクト] ✨ 適用されたクラス: ${btn.className}`);
         }
     });
 
+    if (!foundSourceNode) {
+        console.warn(`[グローエフェクト] ⚠️ ソースノード（ID: ${glowState.sourceNode.id}）が見つかりませんでした！`);
+    }
+
     // 3. すべてのコンテナからglow-target-containerクラスを削除
-    document.querySelectorAll('.node-list-container.glow-target-container').forEach(el => {
+    const existingGlowContainers = document.querySelectorAll('.node-list-container.glow-target-container');
+    console.log(`[グローエフェクト] 既存のglow-target-containerクラスを削除: ${existingGlowContainers.length}個`);
+    existingGlowContainers.forEach(el => {
         el.classList.remove('glow-target-container');
     });
 
@@ -1848,20 +1868,32 @@ function applyGlowEffects() {
     const targetLayerId = `layer-${glowState.targetLayer}`;
     const targetLayerIdRight = `layer-${glowState.targetLayer}-right`;
 
+    console.log(`[グローエフェクト] ターゲットコンテナを検索中...`);
+    console.log(`  - 左パネルID: ${targetLayerId}`);
+    console.log(`  - 右パネルID: ${targetLayerIdRight}`);
+
     const targetContainerLeft = document.querySelector(`#${targetLayerId} .node-list-container`);
     const targetContainerRight = document.querySelector(`#${targetLayerIdRight} .node-list-container`);
 
     if (targetContainerLeft) {
         targetContainerLeft.classList.add('glow-target-container');
-        console.log(`[グローエフェクト] 左パネル ${targetLayerId} にglow-target-containerクラスを適用`);
+        console.log(`[グローエフェクト] ✨ 左パネル ${targetLayerId} にglow-target-containerクラスを適用しました！`);
+        console.log(`[グローエフェクト] ✨ 適用されたクラス: ${targetContainerLeft.className}`);
+    } else {
+        console.warn(`[グローエフェクト] ⚠️ 左パネル ${targetLayerId} のコンテナが見つかりませんでした`);
     }
 
     if (targetContainerRight) {
         targetContainerRight.classList.add('glow-target-container');
-        console.log(`[グローエフェクト] 右パネル ${targetLayerIdRight} にglow-target-containerクラスを適用`);
+        console.log(`[グローエフェクト] ✨ 右パネル ${targetLayerIdRight} にglow-target-containerクラスを適用しました！`);
+        console.log(`[グローエフェクト] ✨ 適用されたクラス: ${targetContainerRight.className}`);
+    } else {
+        console.warn(`[グローエフェクト] ⚠️ 右パネル ${targetLayerIdRight} のコンテナが見つかりませんでした`);
     }
 
-    console.log('[グローエフェクト] applyGlowEffects() 完了');
+    console.log('═══════════════════════════════════════════════════');
+    console.log('[グローエフェクト] ✅ applyGlowEffects() 完了');
+    console.log('═══════════════════════════════════════════════════');
 }
 
 // ============================================
