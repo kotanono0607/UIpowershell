@@ -1829,11 +1829,18 @@ function applyGlowEffects() {
     console.log(`[グローエフェクト] ✅ ソース: レイヤー${glowState.sourceLayer}, ノードID: ${glowState.sourceNode.id}, テキスト: "${glowState.sourceNode.text}"`);
     console.log(`[グローエフェクト] ✅ ターゲット: レイヤー${glowState.targetLayer}`);
 
-    // 1. すべてのノードからglow-sourceクラスを削除
+    // 1. すべてのノードからglow-sourceクラスとインラインスタイルを削除
     const existingGlowSources = document.querySelectorAll('.node-button.glow-source');
     console.log(`[グローエフェクト] 既存のglow-sourceクラスを削除: ${existingGlowSources.length}個`);
     existingGlowSources.forEach(el => {
         el.classList.remove('glow-source');
+        // インラインスタイルもクリア
+        el.style.backgroundColor = '';
+        el.style.outline = '';
+        el.style.border = '';
+        el.style.transform = '';
+        el.style.zIndex = '';
+        el.style.animation = '';
     });
 
     // 2. グローソースノード（ピンクノード）を探してglow-sourceを適用
@@ -1849,9 +1856,19 @@ function applyGlowEffects() {
         // 文字列として比較（"node-11" === "node-11"）
         if (nodeId === String(glowState.sourceNode.id)) {
             btn.classList.add('glow-source');
+
+            // CSSだけでは優先度が足りないため、JavaScriptで直接スタイルを設定
+            btn.style.backgroundColor = '#FFD700';  // 金色
+            btn.style.outline = '5px dashed #FF0000';  // 赤い点線
+            btn.style.border = '4px solid #FF1493';  // ピンクの実線
+            btn.style.transform = 'scale(1.1)';  // 拡大
+            btn.style.zIndex = '100';  // 最前面
+            btn.style.animation = 'glowPulse 1.5s ease-in-out infinite';
+
             foundSourceNode = true;
-            console.log(`[グローエフェクト] ✨ ノードID: ${nodeId}, テキスト: "${nodeText}" にglow-sourceクラスを適用しました！`);
+            console.log(`[グローエフェクト] ✨ ノードID: ${nodeId}, テキスト: "${nodeText}" にglow-sourceクラスとインラインスタイルを適用しました！`);
             console.log(`[グローエフェクト] ✨ 適用されたクラス: ${btn.className}`);
+            console.log(`[グローエフェクト] ✨ インラインスタイル: ${btn.style.cssText}`);
         }
     });
 
