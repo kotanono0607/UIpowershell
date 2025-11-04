@@ -507,7 +507,23 @@ New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
         Write-Host "[/api/execute/generate] リクエスト受信" -ForegroundColor Cyan
         Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
-        $body = $Request.Body | ConvertFrom-Json
+        # Request.Body は null の可能性があるため、Request.BodyString を使用
+        $bodyRaw = $null
+        if ($null -eq $Request.Body) {
+            Write-Host "[API] Request.Body が null です。Request.BodyString を確認..." -ForegroundColor Yellow
+            if ($Request.PSObject.Properties['BodyString']) {
+                $bodyRaw = $Request.BodyString
+                Write-Host "[API] ✅ Request.BodyString を取得しました" -ForegroundColor Green
+            } else {
+                throw "Request.Body と Request.BodyString の両方が null です"
+            }
+        } else {
+            $bodyRaw = $Request.Body
+            Write-Host "[API] ✅ Request.Body を取得しました" -ForegroundColor Green
+        }
+
+        Write-Host "[DEBUG] bodyRaw 長: $($bodyRaw.Length) 文字" -ForegroundColor Yellow
+        $body = $bodyRaw | ConvertFrom-Json
 
         # デバッグ: 受信データを確認
         Write-Host "[DEBUG] Received body: $($body | ConvertTo-Json -Depth 3 -Compress)" -ForegroundColor Yellow
