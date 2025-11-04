@@ -2126,6 +2126,8 @@ function swapNodes(layer, nodeId1, nodeId2) {
 function reorderNodesInLayer(layer) {
     const layerNodes = layerStructure[layer].nodes.sort((a, b) => a.y - b.y);
 
+    console.log(`[色変更] reorderNodesInLayer レイヤー${layer}: ${layerNodes.length}個のノード`);
+
     // "条件分岐 開始"、"条件分岐 中間"、"条件分岐 終了"の位置を特定
     let startIndex = -1;
     let middleIndex = -1;
@@ -2134,39 +2136,58 @@ function reorderNodesInLayer(layer) {
     for (let i = 0; i < layerNodes.length; i++) {
         if (layerNodes[i].text === '条件分岐 開始') {
             startIndex = i;
+            console.log(`[色変更] 条件分岐 開始 見つかった: index=${i}`);
         }
         if (layerNodes[i].text === '条件分岐 中間') {
             middleIndex = i;
+            console.log(`[色変更] 条件分岐 中間 見つかった: index=${i}`);
         }
         if (layerNodes[i].text === '条件分岐 終了') {
             endIndex = i;
+            console.log(`[色変更] 条件分岐 終了 見つかった: index=${i}`);
         }
     }
+
+    console.log(`[色変更] インデックス: 開始=${startIndex}, 中間=${middleIndex}, 終了=${endIndex}`);
+
+    // 条件分岐が存在するかチェック
+    const hasConditionBranch = (startIndex !== -1 && middleIndex !== -1 && endIndex !== -1);
+    console.log(`[色変更] 条件分岐の存在: ${hasConditionBranch}`);
 
     let currentY = 10;
 
     layerNodes.forEach((node, index) => {
         const buttonText = node.text;
+        const beforeColor = node.color;
 
-        // ボタンの色を設定する条件分岐（PowerShellの実装に準拠）
-        if (startIndex !== -1 && middleIndex !== -1 && index > startIndex && index < middleIndex) {
-            // 開始〜中間の間: Salmon（False分岐）
-            // スクリプト化ノードは除外（Pinkのまま）
-            if (node.color !== 'Pink') {
-                node.color = 'Salmon';
-            }
-        } else if (middleIndex !== -1 && endIndex !== -1 && index > middleIndex && index < endIndex) {
-            // 中間〜終了の間: LightBlue（True分岐）
-            // スクリプト化ノードは除外（Pinkのまま）
-            if (node.color !== 'Pink') {
-                node.color = 'LightBlue';
+        // 条件分岐が存在する場合のみ色変更を行う
+        if (hasConditionBranch) {
+            // ボタンの色を設定する条件分岐（PowerShellの実装に準拠）
+            if (index > startIndex && index < middleIndex) {
+                // 開始〜中間の間: Salmon（False分岐）
+                // スクリプト化ノードは除外（Pinkのまま）
+                if (node.color !== 'Pink') {
+                    node.color = 'Salmon';
+                    console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → Salmon (False分岐)`);
+                }
+            } else if (index > middleIndex && index < endIndex) {
+                // 中間〜終了の間: LightBlue（True分岐）
+                // スクリプト化ノードは除外（Pinkのまま）
+                if (node.color !== 'Pink') {
+                    node.color = 'LightBlue';
+                    console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → LightBlue (True分岐)`);
+                }
+            } else {
+                // 条件分岐の外側：SalmonまたはLightBlueの場合はWhiteに戻す
+                if (node.color === 'Salmon' || node.color === 'LightBlue') {
+                    node.color = 'White';
+                    console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → White (外側)`);
+                }
+                // スクリプト化ノードはPinkのまま
             }
         } else {
-            // 条件分岐の外側：SalmonまたはLightBlueの場合はWhiteに戻す
-            if (node.color === 'Salmon' || node.color === 'LightBlue') {
-                node.color = 'White';
-            }
-            // スクリプト化ノードはPinkのまま
+            // 条件分岐が存在しない場合は、色を保持（変更しない）
+            console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} のまま（条件分岐なし）`);
         }
 
         // ボタン間隔と高さの調整（"条件分岐 中間"の場合は特殊）
@@ -2587,6 +2608,8 @@ function handlePinkNodeClick(node) {
         const text = parts[2];
         const script = parts[3] || '';
 
+        console.log(`[展開処理] エントリ${index}: ID=${originalId}, 色=${color}, テキスト=${text}`);
+
         // 条件分岐の中間ノードは高さ1px、座標計算も特殊
         const isMiddleNode = (text === '条件分岐 中間' || color === 'Gray');
         const nodeHeight = isMiddleNode ? 1 : 40;
@@ -2614,7 +2637,7 @@ function handlePinkNodeClick(node) {
             redBorder: false
         };
 
-        console.log(`[展開処理] ノード${index + 1}/${entries.length}: ${text} (色: ${color}, Y: ${nodeY})`);
+        console.log(`[展開処理] ノード作成: ID=${newNodeId}, テキスト=${text}, 色=${color}, Y=${nodeY}`);
 
         // グローバル配列とレイヤーに追加
         nodes.push(newNode);
