@@ -1897,13 +1897,14 @@ function applyGlowEffects() {
             btn.classList.add('glow-source');
 
             // モダンなグロー＆シャドウ効果を直接スタイルで設定
-            btn.style.border = '3px solid rgba(255, 20, 147, 0.8)';  // 濃いピンクのボーダー
-            btn.style.borderRadius = '6px';
-            btn.style.transform = 'scale(1.08)';  // わずかに拡大
-            btn.style.transformOrigin = 'center center';  // 中心から拡大（ずれ防止）
+            // 注: transform: scaleやborderの変更はレイアウトに影響するため、使用しない
             btn.style.zIndex = '100';  // 最前面
             btn.style.position = 'relative';
             btn.style.transition = 'all 0.3s ease';
+
+            // outlineを使用（レイアウトに影響しない）
+            btn.style.outline = '3px solid rgba(255, 20, 147, 0.8)';
+            btn.style.outlineOffset = '-3px'; // 内側に表示
 
             // 3重の光の輪を表現するbox-shadow（アニメーション用のキーフレームを使用）
             btn.style.boxShadow = `
@@ -2586,6 +2587,9 @@ function handlePinkNodeClick(node) {
         const text = parts[2];
         const script = parts[3] || '';
 
+        // 条件分岐の中間ノードは高さ1pxに設定
+        const nodeHeight = (text === '条件分岐 中間' || color === 'Gray') ? 1 : 40;
+
         // 新しいノードを作成
         const newNodeId = nodeCounter++;
         const newNode = {
@@ -2597,7 +2601,7 @@ function handlePinkNodeClick(node) {
             y: baseY,
             x: 90,
             width: 280,
-            height: 40,
+            height: nodeHeight,
             script: script,
             redBorder: false
         };
