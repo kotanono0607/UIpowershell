@@ -39,6 +39,9 @@ if (-not $メインデータ.フォルダパス) {
 }
 $新規フォルダパス = $メインデータ.フォルダパス
 
+# グローバル変数を設定
+$global:folderPath = $新規フォルダパス
+
 # コード.json のパスを設定
 $global:jsonパス = Join-Path -Path $新規フォルダパス -ChildPath "コード.json"
 
