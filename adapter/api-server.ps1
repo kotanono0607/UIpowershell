@@ -95,6 +95,13 @@ Write-Host "[OK] JSON操作ユーティリティ" -ForegroundColor Green
 . "$script:RootDir\09_変数機能_コードID管理JSON.ps1"
 Write-Host "[OK] コードID管理JSON" -ForegroundColor Green
 
+# v2ファイルを読み込み（コード生成に必要）
+. "$script:RootDir\12_コードメイン_コード本文_v2.ps1"
+Write-Host "[OK] コードメイン_コード本文_v2" -ForegroundColor Green
+
+. "$script:RootDir\08_メインF機能_メインボタン処理_v2.ps1"
+Write-Host "[OK] メインF機能_メインボタン処理_v2" -ForegroundColor Green
+
 # 必要に応じて他のビジネスロジックファイルも読み込み
 # . "$script:RootDir\13_コードサブ汎用関数.ps1"
 # . "$script:RootDir\14_コードサブ_EXCEL.ps1"
@@ -298,6 +305,33 @@ New-PolarisRoute -Path "/api/entry/:id" -Method DELETE -ScriptBlock {
     }
 }
 
+# PowerShellコード生成（実行イベント）
+New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
+    try {
+        $body = $Request.Body | ConvertFrom-Json
+
+        # 実行イベント_v2 関数を呼び出し
+        $result = 実行イベント_v2 `
+            -ノード配列 $body.nodes `
+            -OutputPath $body.outputPath `
+            -OpenFile $body.openFile
+
+        $Response.Json(@{
+            success = $true
+            data = $result
+            nodeCount = $body.nodes.Count
+            outputPath = $body.outputPath
+            generatedCode = $result.generatedCode
+        })
+    } catch {
+        $Response.SetStatusCode(500)
+        $Response.Json(@{
+            success = $false
+            error = $_.Exception.Message
+        })
+    }
+}
+
 # --------------------------------------------
 # ボタン配置・移動API（既存の02-4_ボタン操作配置.ps1から）
 # --------------------------------------------
@@ -353,6 +387,7 @@ try {
     Write-Host "  GET  /api/entry/:id           - エントリ取得" -ForegroundColor White
     Write-Host "  GET  /api/entries/all         - 全エントリ取得" -ForegroundColor White
     Write-Host "  DELETE /api/entry/:id         - エントリ削除" -ForegroundColor White
+    Write-Host "  POST /api/execute/generate    - PowerShellコード生成" -ForegroundColor White
     Write-Host "  PUT  /api/button/position     - ボタン位置更新" -ForegroundColor White
     Write-Host ""
     Write-Host "停止するには Ctrl+C を押してください" -ForegroundColor Yellow
