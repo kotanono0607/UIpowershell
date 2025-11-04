@@ -1839,13 +1839,15 @@ function applyGlowEffects() {
     // 2. グローソースノード（ピンクノード）を探してglow-sourceを適用
     const allNodeButtons = document.querySelectorAll('.node-button');
     console.log(`[グローエフェクト] 全ノードボタン数: ${allNodeButtons.length}`);
+    console.log(`[グローエフェクト] 検索対象のノードID: "${glowState.sourceNode.id}" (型: ${typeof glowState.sourceNode.id})`);
 
     let foundSourceNode = false;
     allNodeButtons.forEach(btn => {
-        const nodeId = parseInt(btn.dataset.nodeId);
+        const nodeId = btn.dataset.nodeId;  // 文字列として取得
         const nodeText = btn.querySelector('.node-text')?.textContent || 'N/A';
 
-        if (nodeId === glowState.sourceNode.id) {
+        // 文字列として比較（"node-11" === "node-11"）
+        if (nodeId === String(glowState.sourceNode.id)) {
             btn.classList.add('glow-source');
             foundSourceNode = true;
             console.log(`[グローエフェクト] ✨ ノードID: ${nodeId}, テキスト: "${nodeText}" にglow-sourceクラスを適用しました！`);
@@ -1855,6 +1857,10 @@ function applyGlowEffects() {
 
     if (!foundSourceNode) {
         console.warn(`[グローエフェクト] ⚠️ ソースノード（ID: ${glowState.sourceNode.id}）が見つかりませんでした！`);
+        console.warn(`[グローエフェクト] デバッグ: 利用可能なノードID一覧:`);
+        document.querySelectorAll('.node-button').forEach(btn => {
+            console.warn(`  - ${btn.dataset.nodeId} (型: ${typeof btn.dataset.nodeId})`);
+        });
     }
 
     // 3. すべてのコンテナからglow-target-containerクラスを削除
