@@ -2,7 +2,7 @@
 function JSON初回 {
 # ファイルパスの設定
 $スクリプトディレクトリ = $PSScriptRoot
-$global:jsonパス = Join-Path -Path $スクリプトディレクトリ -ChildPath "コード.json"
+$global:jsonパス = "$スクリプトディレクトリ/コード.json"
 
 
 
@@ -19,7 +19,7 @@ if (-not $スクリプトディレクトリ) {
 
 
 
-$メインJSONパス = "$スクリプトディレクトリ\03_history\メイン.json" 
+$メインJSONパス = "$スクリプトディレクトリ/03_history/メイン.json" 
 
 # メイン.json の存在確認
 if (-not (Test-Path -Path $メインJSONパス)) {
@@ -39,8 +39,8 @@ if (-not $メインデータ.フォルダパス) {
 }
 $新規フォルダパス = $メインデータ.フォルダパス
 
-# コード.json のパスを設定
-$global:jsonパス = Join-Path -Path $新規フォルダパス -ChildPath "コード.json"
+# コード.json のパスを設定（Unix/Linux互換のため直接結合）
+$global:jsonパス = "$新規フォルダパス/コード.json"
 
 # コード.json の存在確認
 if (-not (Test-Path -Path $global:jsonパス)) {
