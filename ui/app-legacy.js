@@ -3059,9 +3059,24 @@ async function executeCode() {
     if (!confirmed) return;
 
     try {
-        // 現在のレイヤーのノードを送信
-        const result = await callApi('/execute/generate', 'POST', {
-            nodes: layerStructure[currentLayer].nodes.map(n => ({
+        // 現在のレイヤーのノードを取得
+        const currentLayerNodes = layerStructure[currentLayer]?.nodes || [];
+
+        console.log('[DEBUG] executeCode called');
+        console.log('[DEBUG] currentLayer:', currentLayer);
+        console.log('[DEBUG] layerStructure:', layerStructure);
+        console.log('[DEBUG] currentLayerNodes:', currentLayerNodes);
+        console.log('[DEBUG] currentLayerNodes.length:', currentLayerNodes.length);
+
+        // ノードが存在しない場合の検証
+        if (currentLayerNodes.length === 0) {
+            alert('現在のレイヤーにノードがありません。ノードを追加してから実行してください。');
+            return;
+        }
+
+        // 送信データを準備
+        const requestData = {
+            nodes: currentLayerNodes.map(n => ({
                 id: n.id,
                 text: n.text,
                 color: n.color,
@@ -3070,7 +3085,13 @@ async function executeCode() {
             })),
             outputPath: null,
             openFile: false
-        });
+        };
+
+        console.log('[DEBUG] Request data:', JSON.stringify(requestData, null, 2));
+        console.log('[DEBUG] Request nodes count:', requestData.nodes.length);
+
+        // 現在のレイヤーのノードを送信
+        const result = await callApi('/execute/generate', 'POST', requestData);
 
         if (result.success) {
             // 結果モーダルに情報を表示

@@ -310,24 +310,55 @@ New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
     try {
         $body = $Request.Body | ConvertFrom-Json
 
+        # デバッグ: 受信データを確認
+        Write-Host "[DEBUG] Received body: $($body | ConvertTo-Json -Depth 3 -Compress)" -ForegroundColor Yellow
+        Write-Host "[DEBUG] nodes type: $($body.nodes.GetType().Name)" -ForegroundColor Yellow
+        Write-Host "[DEBUG] nodes count: $($body.nodes.Count)" -ForegroundColor Yellow
+        Write-Host "[DEBUG] nodes is null: $($null -eq $body.nodes)" -ForegroundColor Yellow
+
+        # ノード配列の検証
+        if ($null -eq $body.nodes -or $body.nodes.Count -eq 0) {
+            $Response.SetStatusCode(400)
+            $Response.Json(@{
+                success = $false
+                error = "ノード配列が空またはNULLです"
+            })
+            return
+        }
+
+        # 配列として確実に変換
+        $nodeArray = @($body.nodes)
+
+        # OutputPathとOpenFileのデフォルト値設定
+        $outputPath = if ($body.outputPath) { $body.outputPath } else { $null }
+        $openFile = if ($body.PSObject.Properties.Name -contains 'openFile') { [bool]$body.openFile } else { $false }
+
+        Write-Host "[DEBUG] Calling 実行イベント_v2 with nodeArray count: $($nodeArray.Count)" -ForegroundColor Green
+
         # 実行イベント_v2 関数を呼び出し
         $result = 実行イベント_v2 `
-            -ノード配列 $body.nodes `
-            -OutputPath $body.outputPath `
-            -OpenFile $body.openFile
+            -ノード配列 $nodeArray `
+            -OutputPath $outputPath `
+            -OpenFile $openFile
+
+        Write-Host "[DEBUG] 実行イベント_v2 completed successfully" -ForegroundColor Green
 
         $Response.Json(@{
             success = $true
             data = $result
-            nodeCount = $body.nodes.Count
-            outputPath = $body.outputPath
+            nodeCount = $nodeArray.Count
+            outputPath = $outputPath
             generatedCode = $result.generatedCode
         })
     } catch {
+        Write-Host "[ERROR] Exception in /api/execute/generate: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "[ERROR] Stack trace: $($_.ScriptStackTrace)" -ForegroundColor Red
+
         $Response.SetStatusCode(500)
         $Response.Json(@{
             success = $false
             error = $_.Exception.Message
+            stackTrace = $_.ScriptStackTrace
         })
     }
 }
