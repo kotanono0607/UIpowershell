@@ -589,6 +589,9 @@ tr:hover {
     z-index: 100 !important;
     position: relative !important;
     box-sizing: border-box !important;
+    /* テスト用：非常に目立つ背景色 */
+    background-color: #FFD700 !important;  /* 金色 */
+    outline: 5px dashed #FF0000 !important;  /* 赤い点線 */
 }
 
 @keyframes glowPulse {
@@ -620,6 +623,9 @@ tr:hover {
     border: 3px solid rgba(255, 20, 147, 0.6) !important;  /* より濃く、太く */
     animation: targetGlow 1.5s ease-in-out infinite !important;
     box-sizing: border-box !important;
+    /* テスト用：非常に目立つ背景色 */
+    background: #FFFF00 !important;  /* 黄色 */
+    outline: 5px solid #00FF00 !important;  /* 緑の実線 */
 }
 
 @keyframes targetGlow {
