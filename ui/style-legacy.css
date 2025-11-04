@@ -583,54 +583,55 @@ tr:hover {
 
 /* ピンクノード（スクリプト化ノード）のグローエフェクト */
 .node-button.glow-source {
-    animation: glowPulse 2s ease-in-out infinite;
-    box-shadow:
-        0 0 30px rgba(255, 105, 180, 0.6),
-        0 0 60px rgba(255, 105, 180, 0.4),
-        0 0 90px rgba(255, 105, 180, 0.2) !important;
+    animation: glowPulse 2s ease-in-out infinite !important;
     border: 3px solid #FF69B4 !important;
-    transform: scale(1.05);
-    z-index: 100;
+    transform: scale(1.05) !important;
+    z-index: 100 !important;
+    position: relative !important;
 }
 
 @keyframes glowPulse {
     0%, 100% {
         box-shadow:
-            0 0 30px rgba(255, 105, 180, 0.6),
-            0 0 60px rgba(255, 105, 180, 0.4),
-            0 0 90px rgba(255, 105, 180, 0.2);
+            0 0 30px rgba(255, 105, 180, 0.8),
+            0 0 60px rgba(255, 105, 180, 0.6),
+            0 0 90px rgba(255, 105, 180, 0.4),
+            0 4px 8px rgba(0, 0, 0, 0.2) !important;
     }
     50% {
         box-shadow:
-            0 0 40px rgba(255, 105, 180, 0.8),
-            0 0 80px rgba(255, 105, 180, 0.6),
-            0 0 120px rgba(255, 105, 180, 0.4);
+            0 0 50px rgba(255, 105, 180, 1),
+            0 0 100px rgba(255, 105, 180, 0.8),
+            0 0 150px rgba(255, 105, 180, 0.6),
+            0 6px 12px rgba(0, 0, 0, 0.3) !important;
     }
 }
 
 /* 展開先レイヤーのグローエフェクト */
 .node-list-container.glow-target-container {
-    position: relative;
-    padding: 20px;
-    border-radius: 16px;
+    position: relative !important;
+    padding: 20px !important;
+    border-radius: 16px !important;
     background: linear-gradient(135deg,
-        rgba(255, 105, 180, 0.1),
-        rgba(255, 182, 193, 0.05)
-    );
-    border: 2px solid rgba(255, 105, 180, 0.3);
-    animation: targetGlow 2s ease-in-out infinite;
+        rgba(255, 105, 180, 0.15),
+        rgba(255, 182, 193, 0.08)
+    ) !important;
+    border: 2px solid rgba(255, 105, 180, 0.5) !important;
+    animation: targetGlow 2s ease-in-out infinite !important;
 }
 
 @keyframes targetGlow {
     0%, 100% {
         box-shadow:
-            inset 0 0 30px rgba(255, 105, 180, 0.2),
-            0 0 20px rgba(255, 105, 180, 0.3);
+            inset 0 0 40px rgba(255, 105, 180, 0.3),
+            0 0 30px rgba(255, 105, 180, 0.5) !important;
+        border-color: rgba(255, 105, 180, 0.5);
     }
     50% {
         box-shadow:
-            inset 0 0 40px rgba(255, 105, 180, 0.3),
-            0 0 30px rgba(255, 105, 180, 0.4);
+            inset 0 0 60px rgba(255, 105, 180, 0.4),
+            0 0 50px rgba(255, 105, 180, 0.7) !important;
+        border-color: rgba(255, 105, 180, 0.8);
     }
 }
 

@@ -1056,8 +1056,8 @@ function refreshAllArrows() {
         drawPanelArrows(`layer-${i}-right`);
     }
 
-    // パネル間矢印も再描画（ピンクノード展開時）
-    drawCrossPanelPinkArrows();
+    // パネル間矢印は不要（グローエフェクトで表現）
+    // drawCrossPanelPinkArrows();
 }
 
 // リサイズ時にCanvasサイズを調整
@@ -1804,7 +1804,10 @@ function renderNodesInLayer(layer, panelSide = 'left') {
     // グローターゲットエフェクトを適用（展開先レイヤーの場合）
     if (glowState.targetLayer !== null && glowState.targetLayer === layer) {
         container.classList.add('glow-target-container');
-        console.log(`[グローエフェクト] ターゲットレイヤー${layer}にglow-target-containerクラスを適用`);
+        console.log(`[グローエフェクト] ターゲットレイヤー${layer}(${panelSide})にglow-target-containerクラスを適用`);
+        console.log(`[グローエフェクト] コンテナID: ${layerId}, classList:`, container.classList.toString());
+    } else {
+        console.log(`[グローエフェクト] レイヤー${layer}(${panelSide}): グロー非適用 (target=${glowState.targetLayer})`);
     }
 
     // 矢印を再描画
