@@ -543,14 +543,7 @@ function drawPanelArrows(layerId) {
         else if (isLemonChiffonColor(currentColor) && isWhiteColor(nextColor)) {
             drawDownArrow(ctx, currentNode, nextNode, '#000000');
         }
-        // 赤→赤（条件分岐内の赤ブロック）
-        else if (isSalmonColor(currentColor) && isSalmonColor(nextColor)) {
-            drawDownArrow(ctx, currentNode, nextNode, 'rgb(250, 128, 114)');
-        }
-        // 青→青（条件分岐内の青ブロック）
-        else if (isBlueColor(currentColor) && isBlueColor(nextColor)) {
-            drawDownArrow(ctx, currentNode, nextNode, 'rgb(200, 220, 255)');
-        }
+        // 注: 赤→赤と青→青はdrawConditionalBranchArrows内で処理されるため、ここでは削除
     }
     console.log(`[デバッグ] 描画した通常矢印数: ${arrowCount}`);
 
@@ -669,7 +662,7 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         const horizontalEndX = startX + 20;
         const blueY = firstBlueRect.top + firstBlueRect.height / 2 - containerRect.top;
 
-        ctx.strokeStyle = 'rgb(0, 0, 255)';
+        ctx.strokeStyle = 'rgb(200, 220, 255)';  // v1.0.187の仕様：薄い青
         ctx.lineWidth = 2;
 
         // 右への横線
@@ -692,15 +685,14 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         ctx.stroke();
     }
 
-    // 3. 赤（またはGray）→ 緑（終了）への複雑な矢印（左→下→右）
-    // 青ノードがない場合のみ必要
-    if ((redNodes.length > 0 || grayNodes.length > 0) && blueNodes.length === 0) {
-        // Grayノードがあればそれを、なければ最後の赤ノードを使用
-        const sourceNode = grayNodes.length > 0 ? grayNodes[grayNodes.length - 1] : redNodes[redNodes.length - 1];
-        const sourceRect = sourceNode.getBoundingClientRect();
+    // 3. 赤（False分岐）→ 緑（終了）への複雑な矢印（左→下→右）
+    // v1.0.187の仕様：青ノードの有無に関係なく常に描画
+    if (redNodes.length > 0) {
+        const lastRed = redNodes[redNodes.length - 1];
+        const lastRedRect = lastRed.getBoundingClientRect();
 
-        const startX = sourceRect.left - containerRect.left;
-        const startY = sourceRect.top + sourceRect.height / 2 - containerRect.top;
+        const startX = lastRedRect.left - containerRect.left;
+        const startY = lastRedRect.top + lastRedRect.height / 2 - containerRect.top;
         const horizontalEndX = Math.max(startX - 20, 0);
         const endY = endRect.top + endRect.height / 2 - containerRect.top;
 
@@ -730,19 +722,24 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         drawArrowHead(ctx, horizontalEndX, endY, endLeftX, endY);
     }
 
-    // 4. innerNodes間の矢印を描画（赤ノード間、Gray含む）
+    // 4. innerNodes間の矢印を描画（赤ノード間、Gray含む、青ノード間）
     for (let i = 0; i < innerNodes.length - 1; i++) {
         const currentNode = innerNodes[i];
         const nextNode = innerNodes[i + 1];
         const currentColor = window.getComputedStyle(currentNode).backgroundColor;
         const nextColor = window.getComputedStyle(nextNode).backgroundColor;
 
-        // 矢印の色を決定（次のノードの色に基づく）
+        // 矢印の色を決定（現在と次のノードの色に基づく）
         let arrowColor = '#000000'; // デフォルト
-        if (isBlueColor(nextColor)) {
-            arrowColor = 'rgb(0, 0, 255)'; // 青への矢印は青色
-        } else if (isSalmonColor(nextColor) || isGrayColor(nextColor)) {
-            arrowColor = 'rgb(250, 128, 114)'; // 赤またはGrayへの矢印は赤色
+
+        // 青→青の場合
+        if (isBlueColor(currentColor) && isBlueColor(nextColor)) {
+            arrowColor = 'rgb(200, 220, 255)'; // v1.0.187の仕様：薄い青
+        }
+        // 赤→赤またはGray関連の場合
+        else if ((isSalmonColor(currentColor) || isGrayColor(currentColor)) &&
+                 (isSalmonColor(nextColor) || isGrayColor(nextColor))) {
+            arrowColor = 'rgb(250, 128, 114)'; // 赤色
         }
 
         // 下向き矢印を描画
@@ -753,7 +750,7 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
     // 5. 青（True分岐）→ 緑（終了）への下向き矢印
     if (blueNodes.length > 0) {
         const lastBlue = blueNodes[blueNodes.length - 1];
-        drawDownArrow(ctx, lastBlue, endNode, 'rgb(0, 0, 255)');
+        drawDownArrow(ctx, lastBlue, endNode, 'rgb(200, 220, 255)');  // v1.0.187の仕様：薄い青
     }
 }
 
