@@ -582,32 +582,25 @@ tr:hover {
    ============================================ */
 
 /* ピンクノード（スクリプト化ノード）のグローエフェクト */
+/* 注: JavaScriptでインラインスタイルを設定するため、ここではアニメーションのみ定義 */
 .node-button.glow-source {
-    animation: glowPulse 1.5s ease-in-out infinite !important;
-    border: 4px solid #FF1493 !important;  /* より濃いピンク */
-    transform: scale(1.1) !important;  /* より大きく */
-    z-index: 100 !important;
-    position: relative !important;
-    box-sizing: border-box !important;
-    /* テスト用：非常に目立つ背景色 */
-    background-color: #FFD700 !important;  /* 金色 */
-    outline: 5px dashed #FF0000 !important;  /* 赤い点線 */
+    /* スタイルはJavaScriptで直接適用 */
 }
 
 @keyframes glowPulse {
     0%, 100% {
         box-shadow:
-            0 0 40px rgba(255, 20, 147, 0.9),      /* 1重目: 濃く、大きく */
-            0 0 80px rgba(255, 105, 180, 0.7),     /* 2重目 */
-            0 0 120px rgba(255, 182, 193, 0.5),    /* 3重目 */
-            0 4px 12px rgba(0, 0, 0, 0.3) !important;  /* 影 */
+            0 0 20px rgba(255, 20, 147, 0.6),      /* 1重目: 内側の光 */
+            0 0 40px rgba(255, 105, 180, 0.4),     /* 2重目: 中間の光 */
+            0 0 60px rgba(255, 182, 193, 0.3),     /* 3重目: 外側の光 */
+            0 4px 12px rgba(0, 0, 0, 0.2);  /* 影 */
     }
     50% {
         box-shadow:
-            0 0 60px rgba(255, 20, 147, 1),        /* 1重目: 最大輝度 */
-            0 0 120px rgba(255, 105, 180, 0.9),    /* 2重目 */
-            0 0 180px rgba(255, 182, 193, 0.7),    /* 3重目 */
-            0 6px 16px rgba(0, 0, 0, 0.4) !important;  /* 影 */
+            0 0 30px rgba(255, 20, 147, 0.8),      /* 1重目: より強く */
+            0 0 60px rgba(255, 105, 180, 0.6),     /* 2重目: より広く */
+            0 0 90px rgba(255, 182, 193, 0.4),     /* 3重目: さらに広く */
+            0 6px 16px rgba(0, 0, 0, 0.3);  /* 影 */
     }
 }
 
@@ -615,33 +608,30 @@ tr:hover {
 .node-list-container.glow-target-container {
     position: relative !important;
     padding: 20px !important;
-    border-radius: 16px !important;
+    border-radius: 12px !important;
     background: linear-gradient(135deg,
-        rgba(255, 105, 180, 0.20),
-        rgba(255, 182, 193, 0.12)
+        rgba(255, 105, 180, 0.08),
+        rgba(255, 182, 193, 0.05)
     ) !important;
-    border: 3px solid rgba(255, 20, 147, 0.6) !important;  /* より濃く、太く */
-    animation: targetGlow 1.5s ease-in-out infinite !important;
+    border: 2px solid rgba(255, 105, 180, 0.4) !important;
+    animation: targetGlow 2s ease-in-out infinite !important;
     box-sizing: border-box !important;
-    /* テスト用：非常に目立つ背景色 */
-    background: #FFFF00 !important;  /* 黄色 */
-    outline: 5px solid #00FF00 !important;  /* 緑の実線 */
 }
 
 @keyframes targetGlow {
     0%, 100% {
         box-shadow:
-            inset 0 0 50px rgba(255, 105, 180, 0.4),   /* 内側の光 */
-            0 0 40px rgba(255, 105, 180, 0.6),         /* 外側の光 */
-            0 0 80px rgba(255, 182, 193, 0.4) !important;  /* 広がる光 */
-        border-color: rgba(255, 20, 147, 0.6) !important;
+            inset 0 0 30px rgba(255, 105, 180, 0.15),  /* 控えめな内側の光 */
+            0 0 20px rgba(255, 105, 180, 0.3),         /* 外側の光 */
+            0 0 40px rgba(255, 182, 193, 0.2);         /* 広がる光 */
+        border-color: rgba(255, 105, 180, 0.4);
     }
     50% {
         box-shadow:
-            inset 0 0 70px rgba(255, 105, 180, 0.5),   /* 内側の光（強） */
-            0 0 60px rgba(255, 105, 180, 0.8),         /* 外側の光（強） */
-            0 0 120px rgba(255, 182, 193, 0.6) !important;  /* 広がる光（強） */
-        border-color: rgba(255, 20, 147, 0.9) !important;
+            inset 0 0 40px rgba(255, 105, 180, 0.2),   /* 内側の光（少し強く） */
+            0 0 30px rgba(255, 105, 180, 0.4),         /* 外側の光（強） */
+            0 0 60px rgba(255, 182, 193, 0.3);         /* 広がる光（強） */
+        border-color: rgba(255, 105, 180, 0.6);
     }
 }
 

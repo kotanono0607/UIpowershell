@@ -1835,11 +1835,13 @@ function applyGlowEffects() {
     existingGlowSources.forEach(el => {
         el.classList.remove('glow-source');
         // インラインスタイルもクリア
-        el.style.backgroundColor = '';
-        el.style.outline = '';
         el.style.border = '';
+        el.style.borderRadius = '';
         el.style.transform = '';
         el.style.zIndex = '';
+        el.style.position = '';
+        el.style.transition = '';
+        el.style.boxShadow = '';
         el.style.animation = '';
     });
 
@@ -1857,18 +1859,25 @@ function applyGlowEffects() {
         if (nodeId === String(glowState.sourceNode.id)) {
             btn.classList.add('glow-source');
 
-            // CSSだけでは優先度が足りないため、JavaScriptで直接スタイルを設定
-            btn.style.backgroundColor = '#FFD700';  // 金色
-            btn.style.outline = '5px dashed #FF0000';  // 赤い点線
-            btn.style.border = '4px solid #FF1493';  // ピンクの実線
-            btn.style.transform = 'scale(1.1)';  // 拡大
+            // モダンなグロー＆シャドウ効果を直接スタイルで設定
+            btn.style.border = '3px solid rgba(255, 20, 147, 0.8)';  // 濃いピンクのボーダー
+            btn.style.borderRadius = '6px';
+            btn.style.transform = 'scale(1.08)';  // わずかに拡大
             btn.style.zIndex = '100';  // 最前面
-            btn.style.animation = 'glowPulse 1.5s ease-in-out infinite';
+            btn.style.position = 'relative';
+            btn.style.transition = 'all 0.3s ease';
+
+            // 3重の光の輪を表現するbox-shadow（アニメーション用のキーフレームを使用）
+            btn.style.boxShadow = `
+                0 0 20px rgba(255, 20, 147, 0.6),
+                0 0 40px rgba(255, 105, 180, 0.4),
+                0 0 60px rgba(255, 182, 193, 0.3),
+                0 4px 12px rgba(0, 0, 0, 0.2)
+            `;
+            btn.style.animation = 'glowPulse 2s ease-in-out infinite';
 
             foundSourceNode = true;
-            console.log(`[グローエフェクト] ✨ ノードID: ${nodeId}, テキスト: "${nodeText}" にglow-sourceクラスとインラインスタイルを適用しました！`);
-            console.log(`[グローエフェクト] ✨ 適用されたクラス: ${btn.className}`);
-            console.log(`[グローエフェクト] ✨ インラインスタイル: ${btn.style.cssText}`);
+            console.log(`[グローエフェクト] ✨ ノードID: ${nodeId}, テキスト: "${nodeText}" にモダンなグローエフェクトを適用しました！`);
         }
     });
 
