@@ -2587,8 +2587,16 @@ function handlePinkNodeClick(node) {
         const text = parts[2];
         const script = parts[3] || '';
 
-        // 条件分岐の中間ノードは高さ1pxに設定
-        const nodeHeight = (text === '条件分岐 中間' || color === 'Gray') ? 1 : 40;
+        // 条件分岐の中間ノードは高さ1px、座標計算も特殊
+        const isMiddleNode = (text === '条件分岐 中間' || color === 'Gray');
+        const nodeHeight = isMiddleNode ? 1 : 40;
+
+        // ボタン間隔と高さの調整（"条件分岐 中間"の場合は特殊）
+        const interval = isMiddleNode ? 10 : 20;  // 通常20のところ10
+        const heightForNext = isMiddleNode ? 0 : 40;  // 通常40のところ0
+
+        // Y座標を設定
+        const nodeY = baseY + interval;
 
         // 新しいノードを作成
         const newNodeId = nodeCounter++;
@@ -2598,7 +2606,7 @@ function handlePinkNodeClick(node) {
             color: color,
             処理番号: '99-1', // スクリプト化ノードの処理番号
             layer: nextLayer,
-            y: baseY,
+            y: nodeY,
             x: 90,
             width: 280,
             height: nodeHeight,
@@ -2606,14 +2614,19 @@ function handlePinkNodeClick(node) {
             redBorder: false
         };
 
-        console.log(`[展開処理] ノード${index + 1}/${entries.length}: ${text} (色: ${color})`);
+        console.log(`[展開処理] ノード${index + 1}/${entries.length}: ${text} (色: ${color}, Y: ${nodeY})`);
 
         // グローバル配列とレイヤーに追加
         nodes.push(newNode);
         layerStructure[nextLayer].nodes.push(newNode);
 
-        baseY += 60; // 次のノードのY座標（間隔20px + 高さ40px）
+        // 次のノードのbaseY計算（中間ノードは特殊）
+        baseY = nodeY + heightForNext;
     });
+
+    // 条件分岐の色変え（赤・青）を適用するため、reorderNodesInLayerを呼ぶ
+    // （これにより座標も正しく再計算され、色も正しく設定される）
+    reorderNodesInLayer(nextLayer);
 
     // 左右パネルの表示を更新（現在のレイヤーに留まる）
     updateDualPanelDisplay();
