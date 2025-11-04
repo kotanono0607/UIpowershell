@@ -1738,11 +1738,7 @@ function renderNodesInLayer(layer, panelSide = 'left') {
             btn.classList.add('red-border');
         }
 
-        // グローソースエフェクトを適用（ピンクノードかつグローソースの場合）
-        if (node.color === 'Pink' && glowState.sourceNode && glowState.sourceNode.id === node.id) {
-            btn.classList.add('glow-source');
-            console.log(`[グローエフェクト] ソースノードにglow-sourceクラスを適用: ${node.text}`);
-        }
+        // グローエフェクトはapplyGlowEffects()で一括適用
 
         // 高さを設定（中間ラインは1px、通常は40px）
         if (node.height && node.height === 1) {
@@ -1801,14 +1797,7 @@ function renderNodesInLayer(layer, panelSide = 'left') {
         container.appendChild(btn);
     });
 
-    // グローターゲットエフェクトを適用（展開先レイヤーの場合）
-    if (glowState.targetLayer !== null && glowState.targetLayer === layer) {
-        container.classList.add('glow-target-container');
-        console.log(`[グローエフェクト] ターゲットレイヤー${layer}(${panelSide})にglow-target-containerクラスを適用`);
-        console.log(`[グローエフェクト] コンテナID: ${layerId}, classList:`, container.classList.toString());
-    } else {
-        console.log(`[グローエフェクト] レイヤー${layer}(${panelSide}): グロー非適用 (target=${glowState.targetLayer})`);
-    }
+    // グローエフェクトはapplyGlowEffects()で一括適用
 
     // 矢印を再描画
     console.log(`[デバッグ] renderNodesInLayer(${layer}): 矢印を再描画します`);
@@ -1820,6 +1809,59 @@ function renderNodesInLayer(layer, panelSide = 'left') {
     } else {
         console.error('[デバッグ] window.arrowDrawing が存在しません！');
     }
+}
+
+// ============================================
+// グローエフェクトを適用
+// ============================================
+function applyGlowEffects() {
+    console.log('[グローエフェクト] applyGlowEffects() 開始');
+
+    if (!glowState.sourceNode || glowState.targetLayer === null) {
+        console.log('[グローエフェクト] グローステートが無効なため、適用をスキップ');
+        return;
+    }
+
+    console.log(`[グローエフェクト] ソース: レイヤー${glowState.sourceLayer}, ノード${glowState.sourceNode.id}`);
+    console.log(`[グローエフェクト] ターゲット: レイヤー${glowState.targetLayer}`);
+
+    // 1. すべてのノードからglow-sourceクラスを削除
+    document.querySelectorAll('.node-button.glow-source').forEach(el => {
+        el.classList.remove('glow-source');
+    });
+
+    // 2. グローソースノード（ピンクノード）を探してglow-sourceを適用
+    document.querySelectorAll('.node-button').forEach(btn => {
+        const nodeId = parseInt(btn.dataset.nodeId);
+        if (nodeId === glowState.sourceNode.id) {
+            btn.classList.add('glow-source');
+            console.log(`[グローエフェクト] ノード${nodeId}にglow-sourceクラスを適用`);
+        }
+    });
+
+    // 3. すべてのコンテナからglow-target-containerクラスを削除
+    document.querySelectorAll('.node-list-container.glow-target-container').forEach(el => {
+        el.classList.remove('glow-target-container');
+    });
+
+    // 4. ターゲットレイヤーのコンテナ（leftとright）にglow-target-containerを適用
+    const targetLayerId = `layer-${glowState.targetLayer}`;
+    const targetLayerIdRight = `layer-${glowState.targetLayer}-right`;
+
+    const targetContainerLeft = document.querySelector(`#${targetLayerId} .node-list-container`);
+    const targetContainerRight = document.querySelector(`#${targetLayerIdRight} .node-list-container`);
+
+    if (targetContainerLeft) {
+        targetContainerLeft.classList.add('glow-target-container');
+        console.log(`[グローエフェクト] 左パネル ${targetLayerId} にglow-target-containerクラスを適用`);
+    }
+
+    if (targetContainerRight) {
+        targetContainerRight.classList.add('glow-target-container');
+        console.log(`[グローエフェクト] 右パネル ${targetLayerIdRight} にglow-target-containerクラスを適用`);
+    }
+
+    console.log('[グローエフェクト] applyGlowEffects() 完了');
 }
 
 // ============================================
@@ -2474,6 +2516,11 @@ function handlePinkNodeClick(node) {
     renderNodesInLayer(leftVisibleLayer, 'left');
     renderNodesInLayer(rightVisibleLayer, 'right');
 
+    // グローエフェクトを再適用（レンダリング後に実行）
+    setTimeout(() => {
+        applyGlowEffects();
+    }, 50);
+
     // memory.json自動保存
     saveMemoryJson();
 
@@ -2769,6 +2816,11 @@ function navigateLayer(direction) {
     // 両パネルを再描画
     renderNodesInLayer(leftVisibleLayer, 'left');
     renderNodesInLayer(rightVisibleLayer, 'right');
+
+    // グローエフェクトを再適用
+    setTimeout(() => {
+        applyGlowEffects();
+    }, 50);
 
     // memory.jsonを保存
     saveMemoryJson();
