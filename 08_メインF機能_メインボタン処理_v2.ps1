@@ -92,19 +92,19 @@ function 実行イベント_v2 {
             $buttonInfo = "ノード名: $buttonName, テキスト: $buttonText, 色: $colorName"
             Write-Host $buttonInfo
 
-            # 処理番号プロパティがあればそれを優先、なければノード名から抽出
+            # 処理番号プロパティがあればそれを優先してそのまま使用、なければノード名から抽出
             if ($button.PSObject.Properties['処理番号'] -and $button.処理番号) {
-                # 処理番号から抽出 (例: "1-1" -> "1", "1-6" -> "6")
-                # 形式: "レイヤーID-エントリID" → 後ろの部分（エントリID）を使用
-                $baseId = ($button.処理番号 -split '-')[-1]
-                Write-Host "[DEBUG] 処理番号から抽出: $($button.処理番号) -> ベースID: $baseId" -ForegroundColor Cyan
+                # 処理番号をそのまま使用 (例: "1-1", "1-6")
+                # コード.jsonのキーは "1-1", "6-1" などのサブID形式で保存されている
+                $id = $button.処理番号
+                Write-Host "[DEBUG] 処理番号をそのまま使用: $id" -ForegroundColor Cyan
             } else {
                 # ノード名から抽出 (例: "9-1" -> "9", "10-1" -> "10")
                 # ハイフンが含まれている場合は最初の部分を使用、含まれていない場合はそのまま使用
                 $baseId = if ($buttonName -match '-') { ($buttonName -split '-')[0] } else { $buttonName }
-                Write-Host "[DEBUG] ノードIDから抽出: $buttonName -> ベースID: $baseId" -ForegroundColor Cyan
+                $id = $baseId
+                Write-Host "[DEBUG] ノードIDから抽出: $buttonName -> ID: $id" -ForegroundColor Cyan
             }
-            $id = $baseId
 
             # エントリを取得
             try {
