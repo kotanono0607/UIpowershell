@@ -640,7 +640,7 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
     const startRect = startNode.getBoundingClientRect();
     const endRect = endNode.getBoundingClientRect();
 
-    // 内部ノードを赤と青に分類
+    // 内部ノードを赤、Gray、青に分類
     console.log(`[条件分岐デバッグ] innerNodes数: ${innerNodes.length}`);
     innerNodes.forEach((node, index) => {
         const computedColor = window.getComputedStyle(node).backgroundColor;
@@ -648,9 +648,10 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
     });
 
     const redNodes = innerNodes.filter(node => isSalmonColor(window.getComputedStyle(node).backgroundColor));
+    const grayNodes = innerNodes.filter(node => isGrayColor(window.getComputedStyle(node).backgroundColor));
     const blueNodes = innerNodes.filter(node => isBlueColor(window.getComputedStyle(node).backgroundColor));
 
-    console.log(`[条件分岐] 赤ノード数: ${redNodes.length}, 青ノード数: ${blueNodes.length}`);
+    console.log(`[条件分岐] 赤ノード数: ${redNodes.length}, Grayノード数: ${grayNodes.length}, 青ノード数: ${blueNodes.length}`);
 
     // 1. 緑（開始）→ 赤（False分岐）への下向き矢印
     if (redNodes.length > 0) {
@@ -691,13 +692,15 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         ctx.stroke();
     }
 
-    // 3. 赤（False分岐）→ 緑（終了）への複雑な矢印（左→下→右）
-    if (redNodes.length > 0) {
-        const lastRed = redNodes[redNodes.length - 1];
-        const lastRedRect = lastRed.getBoundingClientRect();
+    // 3. 赤（またはGray）→ 緑（終了）への複雑な矢印（左→下→右）
+    // 青ノードがない場合のみ必要
+    if ((redNodes.length > 0 || grayNodes.length > 0) && blueNodes.length === 0) {
+        // Grayノードがあればそれを、なければ最後の赤ノードを使用
+        const sourceNode = grayNodes.length > 0 ? grayNodes[grayNodes.length - 1] : redNodes[redNodes.length - 1];
+        const sourceRect = sourceNode.getBoundingClientRect();
 
-        const startX = lastRedRect.left - containerRect.left;
-        const startY = lastRedRect.top + lastRedRect.height / 2 - containerRect.top;
+        const startX = sourceRect.left - containerRect.left;
+        const startY = sourceRect.top + sourceRect.height / 2 - containerRect.top;
         const horizontalEndX = Math.max(startX - 20, 0);
         const endY = endRect.top + endRect.height / 2 - containerRect.top;
 
@@ -727,7 +730,27 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         drawArrowHead(ctx, horizontalEndX, endY, endLeftX, endY);
     }
 
-    // 4. 青（True分岐）→ 緑（終了）への下向き矢印
+    // 4. innerNodes間の矢印を描画（赤ノード間、Gray含む）
+    for (let i = 0; i < innerNodes.length - 1; i++) {
+        const currentNode = innerNodes[i];
+        const nextNode = innerNodes[i + 1];
+        const currentColor = window.getComputedStyle(currentNode).backgroundColor;
+        const nextColor = window.getComputedStyle(nextNode).backgroundColor;
+
+        // 矢印の色を決定（次のノードの色に基づく）
+        let arrowColor = '#000000'; // デフォルト
+        if (isBlueColor(nextColor)) {
+            arrowColor = 'rgb(0, 0, 255)'; // 青への矢印は青色
+        } else if (isSalmonColor(nextColor) || isGrayColor(nextColor)) {
+            arrowColor = 'rgb(250, 128, 114)'; // 赤またはGrayへの矢印は赤色
+        }
+
+        // 下向き矢印を描画
+        drawDownArrow(ctx, currentNode, nextNode, arrowColor);
+        console.log(`[条件分岐] innerNodes間矢印: ${currentNode.textContent} → ${nextNode.textContent} (色: ${arrowColor})`);
+    }
+
+    // 5. 青（True分岐）→ 緑（終了）への下向き矢印
     if (blueNodes.length > 0) {
         const lastBlue = blueNodes[blueNodes.length - 1];
         drawDownArrow(ctx, lastBlue, endNode, 'rgb(0, 0, 255)');
@@ -874,6 +897,19 @@ function isBlueColor(colorString) {
         return isMatch;
     }
     console.log(`[isBlueColor] パターンマッチ失敗: "${colorString}"`);
+    return false;
+}
+
+// 色がGray（条件分岐の中間ノード）かどうかを判定
+function isGrayColor(colorString) {
+    // rgb() と rgba() の両方に対応
+    const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        return r === 128 && g === 128 && b === 128;
+    }
     return false;
 }
 
@@ -1838,6 +1874,7 @@ function applyGlowEffects() {
         el.style.border = '';
         el.style.borderRadius = '';
         el.style.transform = '';
+        el.style.transformOrigin = '';
         el.style.zIndex = '';
         el.style.position = '';
         el.style.transition = '';
@@ -1863,6 +1900,7 @@ function applyGlowEffects() {
             btn.style.border = '3px solid rgba(255, 20, 147, 0.8)';  // 濃いピンクのボーダー
             btn.style.borderRadius = '6px';
             btn.style.transform = 'scale(1.08)';  // わずかに拡大
+            btn.style.transformOrigin = 'center center';  // 中心から拡大（ずれ防止）
             btn.style.zIndex = '100';  // 最前面
             btn.style.position = 'relative';
             btn.style.transition = 'all 0.3s ease';
