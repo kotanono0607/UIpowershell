@@ -71,6 +71,13 @@ const arrowState = {
     canvasMap: new Map() // layerId -> canvas element
 };
 
+// グローエフェクト状態管理
+const glowState = {
+    sourceNode: null,      // グロー元のピンクノード
+    sourceLayer: null,     // グロー元のレイヤー
+    targetLayer: null      // グローターゲットのレイヤー（展開先）
+};
+
 // Canvas要素を各レイヤーパネルに追加
 function initializeArrowCanvas() {
     console.log('[矢印] initializeArrowCanvas() 開始');
@@ -1696,6 +1703,9 @@ function renderNodesInLayer(layer, panelSide = 'left') {
     });
     console.log(`[デバッグ] renderNodesInLayer(${layer}): Canvas要素を保持してノードをクリア`);
 
+    // グローエフェクトのクラスをクリア（再適用のため）
+    container.classList.remove('glow-target-container');
+
     // Y座標でソート
     const layerNodes = layerStructure[layer].nodes.sort((a, b) => a.y - b.y);
 
@@ -1726,6 +1736,12 @@ function renderNodesInLayer(layer, panelSide = 'left') {
         // 赤枠スタイルを適用
         if (node.redBorder) {
             btn.classList.add('red-border');
+        }
+
+        // グローソースエフェクトを適用（ピンクノードかつグローソースの場合）
+        if (node.color === 'Pink' && glowState.sourceNode && glowState.sourceNode.id === node.id) {
+            btn.classList.add('glow-source');
+            console.log(`[グローエフェクト] ソースノードにglow-sourceクラスを適用: ${node.text}`);
         }
 
         // 高さを設定（中間ラインは1px、通常は40px）
@@ -1784,6 +1800,12 @@ function renderNodesInLayer(layer, panelSide = 'left') {
 
         container.appendChild(btn);
     });
+
+    // グローターゲットエフェクトを適用（展開先レイヤーの場合）
+    if (glowState.targetLayer !== null && glowState.targetLayer === layer) {
+        container.classList.add('glow-target-container');
+        console.log(`[グローエフェクト] ターゲットレイヤー${layer}にglow-target-containerクラスを適用`);
+    }
 
     // 矢印を再描画
     console.log(`[デバッグ] renderNodesInLayer(${layer}): 矢印を再描画します`);
@@ -2379,6 +2401,12 @@ function handlePinkNodeClick(node) {
     // arrowStateも更新
     arrowState.pinkSelected = true;
     arrowState.selectedPinkButton = node;
+
+    // グローエフェクトの設定
+    glowState.sourceNode = node;
+    glowState.sourceLayer = parentLayer;
+    glowState.targetLayer = nextLayer;
+    console.log(`[グローエフェクト] 設定 - ソース: レイヤー${parentLayer}, ターゲット: レイヤー${nextLayer}`);
 
     // 次レイヤーをクリア
     console.log(`[展開処理] レイヤー${nextLayer}をクリア中...`);
