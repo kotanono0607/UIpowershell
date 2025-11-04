@@ -92,14 +92,23 @@ function 実行イベント_v2 {
             $buttonInfo = "ノード名: $buttonName, テキスト: $buttonText, 色: $colorName"
             Write-Host $buttonInfo
 
-            # ノード名のみをIDとして使用
-            $id = $buttonName
+            # ノード名からベースIDを抽出（例: "9-1" -> "9", "10-1" -> "10"）
+            # ハイフンが含まれている場合は最初の部分を使用、含まれていない場合はそのまま使用
+            $baseId = if ($buttonName -match '-') { ($buttonName -split '-')[0] } else { $buttonName }
+            $id = $baseId
+
+            Write-Host "[DEBUG] ノードID: $buttonName -> ベースID: $id" -ForegroundColor Cyan
 
             # エントリを取得
-            $取得したエントリ = IDでエントリを取得 -ID $id
-            Write-Host "取得したエントリ: $取得したエントリ"
+            try {
+                $取得したエントリ = IDでエントリを取得 -ID $id
+                Write-Host "取得したエントリ: $取得したエントリ"
+            } catch {
+                Write-Host "[ERROR] IDでエントリを取得に失敗: $($_.Exception.Message)" -ForegroundColor Red
+                $取得したエントリ = $null
+            }
 
-            if ($取得したエントリ -ne $null) {
+            if ($取得したエントリ -ne $null -and $取得したエントリ -ne "") {
                 # エントリの内容をコンソールに出力
                 Write-Host "エントリID: $id`n内容:`n$取得したエントリ`n"
 
@@ -111,6 +120,9 @@ function 実行イベント_v2 {
 
                 # エントリの内容のみを$outputに追加（空行を追加）
                 $output += "$取得したエントリ`n`n"
+            } else {
+                Write-Host "[WARNING] エントリが見つかりません: ノードID=$buttonName, ベースID=$id" -ForegroundColor Yellow
+                Write-Host "[WARNING] このノードはスキップされます" -ForegroundColor Yellow
             }
 
             # 現在のノードがGreenの場合、lastGreenParentIdを更新
