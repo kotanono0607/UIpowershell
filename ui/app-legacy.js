@@ -3106,11 +3106,11 @@ async function executeCode() {
 
             // 生成されたコードをプレビューに表示
             const codePreview = document.getElementById('code-result-preview');
-            codePreview.value = result.generatedCode || '（コードプレビューは利用できません）';
+            codePreview.value = result.code || '（コードプレビューは利用できません）';
 
             // グローバル変数に保存（コピー/ファイルオープン用）
             window.lastGeneratedCode = {
-                code: result.generatedCode,
+                code: result.code,
                 path: result.outputPath
             };
 
