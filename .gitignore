@@ -8,6 +8,5 @@
 03_history/**/*_snapshot.json
 03_history/**/snapshot_info.json
 
-# ログファイル（実行時に自動生成されるログ）
-logs/
-*.log
+# ログファイルをGit管理対象に変更（ログ共有のため）
+# logs/ と *.log を削除しました
