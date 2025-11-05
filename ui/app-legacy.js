@@ -1505,7 +1505,34 @@ function generateAddNodeButtons() {
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
             try {
-                await addNodeToLayer(setting);
+                // 条件分岐ビルダーの場合はダイアログを表示
+                if (setting.関数名 === 'ShowConditionBuilder') {
+                    console.log('[ボタンクリック] 条件分岐ビルダーダイアログを表示します');
+                    const dialogCode = await showConditionBuilderDialog(false);
+                    if (dialogCode) {
+                        console.log('[ボタンクリック] 条件分岐コードを取得しました');
+                        await addNodeToLayer(setting);
+                    } else {
+                        console.log('[ボタンクリック] 条件分岐がキャンセルされました');
+                        return; // キャンセル時は何もしない
+                    }
+                }
+                // ループビルダーの場合はダイアログを表示
+                else if (setting.関数名 === 'ShowLoopBuilder') {
+                    console.log('[ボタンクリック] ループビルダーダイアログを表示します');
+                    const dialogCode = await showLoopBuilderDialog();
+                    if (dialogCode) {
+                        console.log('[ボタンクリック] ループコードを取得しました');
+                        await addNodeToLayer(setting);
+                    } else {
+                        console.log('[ボタンクリック] ループがキャンセルされました');
+                        return; // キャンセル時は何もしない
+                    }
+                }
+                // その他のボタンは直接ノード追加
+                else {
+                    await addNodeToLayer(setting);
+                }
             } catch (error) {
                 console.error('[ボタンクリック] ❌ エラーが発生しました:', error);
                 console.error('[ボタンクリック] スタックトレース:', error.stack);
