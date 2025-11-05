@@ -6,6 +6,108 @@
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
+// ブラウザコンソールログキャプチャ
+// ============================================
+
+// オリジナルのconsoleメソッドを保存
+const originalConsole = {
+    log: console.log,
+    error: console.error,
+    warn: console.warn,
+    info: console.info,
+    debug: console.debug
+};
+
+// ログバッファ
+let consoleLogBuffer = [];
+
+// ログをサーバーに送信
+async function sendLogsToServer(logs) {
+    if (logs.length === 0) return;
+
+    try {
+        await fetch(`${API_BASE}/browser-logs`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                logs: logs,
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent
+            })
+        });
+    } catch (err) {
+        // サーバー送信失敗時はオリジナルconsoleに出力のみ
+        originalConsole.error('[ログ送信エラー]', err);
+    }
+}
+
+// コンソールメソッドをラップ
+function wrapConsoleMethod(method, level) {
+    console[method] = function(...args) {
+        // オリジナルのconsoleを実行
+        originalConsole[method].apply(console, args);
+
+        // ログをバッファに追加
+        const logEntry = {
+            level: level,
+            timestamp: new Date().toISOString(),
+            message: args.map(arg => {
+                if (typeof arg === 'object') {
+                    try {
+                        return JSON.stringify(arg);
+                    } catch (e) {
+                        return String(arg);
+                    }
+                }
+                return String(arg);
+            }).join(' ')
+        };
+
+        consoleLogBuffer.push(logEntry);
+
+        // エラーは即座に送信
+        if (level === 'error') {
+            sendLogsToServer([logEntry]);
+            consoleLogBuffer = consoleLogBuffer.filter(log => log !== logEntry);
+        }
+    };
+}
+
+// console.log, error, warn, info, debugをラップ
+wrapConsoleMethod('log', 'log');
+wrapConsoleMethod('error', 'error');
+wrapConsoleMethod('warn', 'warn');
+wrapConsoleMethod('info', 'info');
+wrapConsoleMethod('debug', 'debug');
+
+// 定期的にバッファをサーバーに送信（5秒ごと）
+setInterval(() => {
+    if (consoleLogBuffer.length > 0) {
+        const logsToSend = [...consoleLogBuffer];
+        consoleLogBuffer = [];
+        sendLogsToServer(logsToSend);
+    }
+}, 5000);
+
+// ページアンロード時に残りのログを送信
+window.addEventListener('beforeunload', () => {
+    if (consoleLogBuffer.length > 0) {
+        const logsToSend = [...consoleLogBuffer];
+        // sendBeacon APIを使用（非同期で確実に送信）
+        const data = JSON.stringify({
+            logs: logsToSend,
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent
+        });
+        navigator.sendBeacon(`${API_BASE}/browser-logs`, new Blob([data], { type: 'application/json' }));
+    }
+});
+
+console.log('[ブラウザログ] コンソールログキャプチャ機能を初期化しました');
+
+// ============================================
 // グローバル状態
 // ============================================
 

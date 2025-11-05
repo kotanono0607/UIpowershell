@@ -1465,6 +1465,79 @@ New-PolarisRoute -Path "/api/node/execute/:functionName" -Method POST -ScriptBlo
 }
 
 # ============================================
+# ブラウザコンソールログ受信API
+# ============================================
+
+# ブラウザコンソールログを受信してファイルに保存
+New-PolarisRoute -Path "/api/browser-logs" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        # リクエストボディを取得
+        $bodyRaw = $null
+        if ($null -eq $Request.Body) {
+            if ($Request.PSObject.Properties['BodyString']) {
+                $bodyRaw = $Request.BodyString
+            } else {
+                throw "Request.Body が null です"
+            }
+        } else {
+            $bodyRaw = $Request.Body
+        }
+
+        $body = $bodyRaw | ConvertFrom-Json
+
+        # ログディレクトリの確認
+        $logDir = Join-Path $script:RootDir "logs"
+        if (-not (Test-Path $logDir)) {
+            New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+        }
+
+        # ブラウザコンソールログファイル名（日付ごと）
+        $dateStr = Get-Date -Format "yyyyMMdd"
+        $browserLogFile = Join-Path $logDir "browser-console_$dateStr.log"
+
+        # ログエントリを整形
+        $logEntries = $body.logs | ForEach-Object {
+            $timestamp = $_.timestamp
+            $level = $_.level.ToUpper()
+            $message = $_.message
+            "[$timestamp] [$level] $message"
+        }
+
+        # ファイルに追記（UTF-8 BOMなし）
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        $existingContent = ""
+        if (Test-Path $browserLogFile) {
+            $existingContent = [System.IO.File]::ReadAllText($browserLogFile, $utf8NoBom)
+        }
+
+        $newContent = $existingContent + ($logEntries -join "`r`n") + "`r`n"
+        [System.IO.File]::WriteAllText($browserLogFile, $newContent, $utf8NoBom)
+
+        # 成功レスポンス
+        $result = @{
+            success = $true
+            logCount = $body.logs.Count
+            logFile = $browserLogFile
+        }
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+
+    } catch {
+        Write-Host "[ブラウザログAPI] エラー: $($_.Exception.Message)" -ForegroundColor Red
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# ============================================
 # 4. 静的ファイル（HTML/JS）の提供設定
 # ============================================
 
@@ -1632,6 +1705,9 @@ try {
     Write-Host "  POST /api/entry/add                 - エントリ追加" -ForegroundColor Gray
     Write-Host "  GET  /api/entry/:id                 - エントリ取得" -ForegroundColor Gray
     Write-Host "  GET  /api/entries/all               - 全エントリ取得" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "【ブラウザログ】" -ForegroundColor White
+    Write-Host "  POST /api/browser-logs              - ブラウザコンソールログ受信" -ForegroundColor Gray
     Write-Host ""
     Write-Host "停止するには Ctrl+C を押してください" -ForegroundColor Yellow
     Write-Host ""
