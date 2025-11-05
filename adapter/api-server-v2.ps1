@@ -15,6 +15,25 @@ param(
 $script:RootDir = Split-Path -Parent $PSScriptRoot
 
 # ============================================
+# ログファイル設定
+# ============================================
+
+# ログディレクトリの作成
+$logDir = Join-Path $script:RootDir "logs"
+if (-not (Test-Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
+
+# ログファイル名（日付時刻付き）
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$logFile = Join-Path $logDir "api-server-v2_$timestamp.log"
+
+# トランスクリプト開始
+Start-Transcript -Path $logFile -Append -Force
+Write-Host "[ログ] ログファイル: $logFile" -ForegroundColor Green
+Write-Host ""
+
+# ============================================
 # 1. モジュール読み込み
 # ============================================
 
@@ -1662,4 +1681,9 @@ try {
 } finally {
     # クリーンアップ
     Stop-Polaris
+
+    # トランスクリプト停止
+    Write-Host ""
+    Write-Host "[ログ] ログファイルに保存しました: $logFile" -ForegroundColor Green
+    Stop-Transcript
 }

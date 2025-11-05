@@ -7,3 +7,7 @@
 # スナップショットファイル（ユーザー環境固有）
 03_history/**/*_snapshot.json
 03_history/**/snapshot_info.json
+
+# ログファイル（実行時に自動生成されるログ）
+logs/
+*.log
