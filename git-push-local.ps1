@@ -66,25 +66,34 @@ try {
     $現在ブランチ = ([string](実行git @('rev-parse','--abbrev-ref','HEAD') -静か)).Trim()
     情報 "現在のブランチ: $現在ブランチ"
 
-    # 2) mainブランチの場合は確認
+    # 自動プッシュモード（閉じる.batから呼ばれた場合）
+    $自動モード = ($env:AUTO_PUSH -eq '1')
+
+    # 2) mainブランチの場合は確認（自動モードでは確認スキップ）
     if ($現在ブランチ -eq 'main') {
-        Write-Host ""
-        Write-Host "【警告】mainブランチに直接コミットします" -ForegroundColor Yellow
-        Write-Host "  ローカルの変更がリモートのmainブランチに反映されます。" -ForegroundColor Yellow
-        Write-Host ""
-        $continue = Read-Host "mainブランチにコミット・プッシュしますか？ (y/N)"
-        if ($continue -ne 'y') {
-            失敗 "ユーザーによりキャンセルされました"
+        if (-not $自動モード) {
+            Write-Host ""
+            Write-Host "【警告】mainブランチに直接コミットします" -ForegroundColor Yellow
+            Write-Host "  ローカルの変更がリモートのmainブランチに反映されます。" -ForegroundColor Yellow
+            Write-Host ""
+            $continue = Read-Host "mainブランチにコミット・プッシュしますか？ (y/N)"
+            if ($continue -ne 'y') {
+                失敗 "ユーザーによりキャンセルされました"
+            }
+            情報 "mainブランチへのコミット・プッシュを続行します"
+        } else {
+            情報 "mainブランチに自動プッシュします"
         }
-        情報 "mainブランチへのコミット・プッシュを続行します"
     }
 
-    # 3) claudeブランチでない場合も確認
+    # 3) claudeブランチでない場合も確認（自動モードでは確認スキップ）
     if ($現在ブランチ -ne 'main' -and $現在ブランチ -notmatch '^claude/') {
-        警告 "現在のブランチは main または claude/* ではありません: $現在ブランチ"
-        $continue = Read-Host "このブランチにコミットしますか？ (y/N)"
-        if ($continue -ne 'y') {
-            失敗 "ユーザーによりキャンセルされました"
+        if (-not $自動モード) {
+            警告 "現在のブランチは main または claude/* ではありません: $現在ブランチ"
+            $continue = Read-Host "このブランチにコミットしますか？ (y/N)"
+            if ($continue -ne 'y') {
+                失敗 "ユーザーによりキャンセルされました"
+            }
         }
     }
 
