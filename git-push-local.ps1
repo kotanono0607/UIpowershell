@@ -182,7 +182,22 @@ try {
 
     # 10) コミット
     情報 "コミット中..."
-    実行git @('commit','-m', $コミットメッセージ)
+
+    # コミットメッセージを一時ファイルに書き込む（文字化け対策）
+    $tempMsgFile = Join-Path $作業パス ".git\COMMIT_EDITMSG_TEMP"
+    try {
+        # UTF-8 BOMなしで保存
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($tempMsgFile, $コミットメッセージ, $utf8NoBom)
+
+        # ファイルからコミットメッセージを読み込む
+        実行git @('commit','-F', $tempMsgFile)
+    } finally {
+        # 一時ファイルを削除
+        if (Test-Path $tempMsgFile) {
+            Remove-Item $tempMsgFile -Force -ErrorAction SilentlyContinue
+        }
+    }
     Write-Host ""
 
     # 11) リモートブランチの存在確認
