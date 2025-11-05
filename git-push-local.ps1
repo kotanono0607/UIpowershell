@@ -115,38 +115,11 @@ try {
     Write-Host $status
     Write-Host ""
 
-    # 6) .gitignoreで除外されているファイルをチェック（logsなど）
-    $logsPath = Join-Path $作業パス "logs"
-    if (Test-Path $logsPath) {
-        情報 "logsディレクトリが検出されました"
-
-        # .gitignoreにlogsが含まれているかチェック
-        $gitignorePath = Join-Path $作業パス ".gitignore"
-        $logsIgnored = $false
-        if (Test-Path $gitignorePath) {
-            $gitignoreContent = Get-Content $gitignorePath -Raw
-            if ($gitignoreContent -match '(?m)^logs(/|$)') {
-                $logsIgnored = $true
-                警告 "logsディレクトリは.gitignoreで除外されています"
-            }
-        }
-
-        if (-not $logsIgnored) {
-            警告 "logsディレクトリは.gitignoreに追加されていません"
-            $addLogs = Read-Host "logsディレクトリをコミットに含めますか？ (y/N)"
-            if ($addLogs -ne 'y') {
-                情報 ".gitignoreにlogsを追加します"
-                Add-Content -Path $gitignorePath -Value "`nlogs/" -Encoding UTF8
-                実行git静か @('add','.gitignore')
-            }
-        }
-    }
-
-    # 7) 全変更をステージング
+    # 6) 全変更をステージング（確認プロンプトなし）
     情報 "変更をステージング中..."
     実行git静か @('add','.')
 
-    # 8) ステージングされた内容を確認
+    # 7) ステージングされた内容を確認
     $staged = 実行git @('diff','--cached','--name-status') -静か
     if ([string]::IsNullOrWhiteSpace($staged)) {
         情報 "ステージングされた変更がありません（.gitignoreで除外された可能性）"
@@ -160,7 +133,7 @@ try {
     Write-Host $staged
     Write-Host ""
 
-    # 9) コミットメッセージの生成
+    # 8) コミットメッセージの生成
     if ([string]::IsNullOrWhiteSpace($コミットメッセージ)) {
         # 自動生成: 変更されたファイルの概要
         $stagedLines = [regex]::Split([string]$staged, "\r?\n") | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
@@ -180,7 +153,7 @@ try {
         情報 "コミットメッセージ: $コミットメッセージ"
     }
 
-    # 10) コミット
+    # 9) コミット
     情報 "コミット中..."
 
     # コミットメッセージを一時ファイルに書き込む（文字化け対策）
@@ -200,7 +173,7 @@ try {
     }
     Write-Host ""
 
-    # 11) リモートブランチの存在確認
+    # 10) リモートブランチの存在確認
     $remoteExists = $false
     try {
         実行git静か @('rev-parse','--verify', "origin/$現在ブランチ")
@@ -209,7 +182,7 @@ try {
         情報 "リモートブランチが存在しません。新規作成します。"
     }
 
-    # 12) プッシュ
+    # 11) プッシュ
     情報 "リモートにプッシュ中..."
     $強制許可 = ($env:PUSH_FORCE -eq '1')
 
