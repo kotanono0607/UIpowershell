@@ -38,8 +38,8 @@
                  "4-1":  "if (\"1\" -eq \"1\") {",
                  "4-2":  "} else {",
                  "4-3":  "}",
-                 "13-1":  "Write-Host \"OK\"",
-                 "13-2":  "}",
+                 "13-1":  "if (\"1\" -eq \"1\") {",
+                 "13-2":  "} else {",
                  "9-1":  "Write-Host \"OK\"",
                  "10-1":  "Write-Host \"OK\"",
                  "5-1":  "Write-Host \"OK\"",
@@ -80,7 +80,8 @@
                  "78-1":  "Write-Host \"OK\"",
                  "83-1":  "Write-Host \"OK\"",
                  "85-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")",
-                 "14-1":  "Write-Host \"OK\""
+                 "14-1":  "Write-Host \"OK\"",
+                 "13-3":  "}"
              },
     "最後のID":  109
 }
