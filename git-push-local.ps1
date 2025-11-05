@@ -66,14 +66,22 @@ try {
     $現在ブランチ = ([string](実行git @('rev-parse','--abbrev-ref','HEAD') -静か)).Trim()
     情報 "現在のブランチ: $現在ブランチ"
 
-    # 2) mainブランチにいる場合はエラー
+    # 2) mainブランチの場合は確認
     if ($現在ブランチ -eq 'main') {
-        失敗 "mainブランチでは直接コミットできません。claude/* ブランチに切り替えてください。"
+        Write-Host ""
+        Write-Host "【警告】mainブランチに直接コミットします" -ForegroundColor Yellow
+        Write-Host "  ローカルの変更がリモートのmainブランチに反映されます。" -ForegroundColor Yellow
+        Write-Host ""
+        $continue = Read-Host "mainブランチにコミット・プッシュしますか？ (y/N)"
+        if ($continue -ne 'y') {
+            失敗 "ユーザーによりキャンセルされました"
+        }
+        情報 "mainブランチへのコミット・プッシュを続行します"
     }
 
-    # 3) claudeブランチかチェック
-    if ($現在ブランチ -notmatch '^claude/') {
-        警告 "現在のブランチは claude/* ではありません: $現在ブランチ"
+    # 3) claudeブランチでない場合も確認
+    if ($現在ブランチ -ne 'main' -and $現在ブランチ -notmatch '^claude/') {
+        警告 "現在のブランチは main または claude/* ではありません: $現在ブランチ"
         $continue = Read-Host "このブランチにコミットしますか？ (y/N)"
         if ($continue -ne 'y') {
             失敗 "ユーザーによりキャンセルされました"
