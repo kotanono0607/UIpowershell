@@ -40,22 +40,15 @@ foreach ($file in $serverLogs) {
     }
 }
 
-# ブラウザコンソールログファイル（browser-console_*.log）で今日以外のものを削除
-$todayStr = Get-Date -Format "yyyyMMdd"
+# ブラウザコンソールログファイル（browser-console_*.log）を全て削除
 $browserLogs = Get-ChildItem -Path $logDir -Filter "browser-console_*.log" -ErrorAction SilentlyContinue
 foreach ($file in $browserLogs) {
-    # ファイル名から日付を抽出
-    if ($file.Name -match "browser-console_(\d{8})\.log") {
-        $fileDate = $matches[1]
-        if ($fileDate -ne $todayStr) {
-            try {
-                Remove-Item -Path $file.FullName -Force
-                Write-Host "  [削除] $($file.Name)" -ForegroundColor Gray
-                $deletedCount++
-            } catch {
-                Write-Host "  [警告] 削除失敗: $($file.Name)" -ForegroundColor Yellow
-            }
-        }
+    try {
+        Remove-Item -Path $file.FullName -Force
+        Write-Host "  [削除] $($file.Name)" -ForegroundColor Gray
+        $deletedCount++
+    } catch {
+        Write-Host "  [警告] 削除失敗: $($file.Name)" -ForegroundColor Yellow
     }
 }
 
