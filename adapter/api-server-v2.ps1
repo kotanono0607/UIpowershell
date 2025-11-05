@@ -24,6 +24,48 @@ if (-not (Test-Path $logDir)) {
     New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 }
 
+# 古いログファイルを削除（起動のたびにクリーンアップ）
+Write-Host "[ログ] 古いログファイルをクリーンアップします..." -ForegroundColor Cyan
+$deletedCount = 0
+
+# サーバーログファイル（api-server-v2_*.log）を全て削除
+$serverLogs = Get-ChildItem -Path $logDir -Filter "api-server-v2_*.log" -ErrorAction SilentlyContinue
+foreach ($file in $serverLogs) {
+    try {
+        Remove-Item -Path $file.FullName -Force
+        Write-Host "  [削除] $($file.Name)" -ForegroundColor Gray
+        $deletedCount++
+    } catch {
+        Write-Host "  [警告] 削除失敗: $($file.Name)" -ForegroundColor Yellow
+    }
+}
+
+# ブラウザコンソールログファイル（browser-console_*.log）で今日以外のものを削除
+$todayStr = Get-Date -Format "yyyyMMdd"
+$browserLogs = Get-ChildItem -Path $logDir -Filter "browser-console_*.log" -ErrorAction SilentlyContinue
+foreach ($file in $browserLogs) {
+    # ファイル名から日付を抽出
+    if ($file.Name -match "browser-console_(\d{8})\.log") {
+        $fileDate = $matches[1]
+        if ($fileDate -ne $todayStr) {
+            try {
+                Remove-Item -Path $file.FullName -Force
+                Write-Host "  [削除] $($file.Name)" -ForegroundColor Gray
+                $deletedCount++
+            } catch {
+                Write-Host "  [警告] 削除失敗: $($file.Name)" -ForegroundColor Yellow
+            }
+        }
+    }
+}
+
+if ($deletedCount -gt 0) {
+    Write-Host "[ログ] $deletedCount 個のログファイルを削除しました" -ForegroundColor Green
+} else {
+    Write-Host "[ログ] 削除するログファイルはありませんでした" -ForegroundColor Gray
+}
+Write-Host ""
+
 # ログファイル名（日付時刻付き）
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $logFile = Join-Path $logDir "api-server-v2_$timestamp.log"
