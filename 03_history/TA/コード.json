@@ -28,7 +28,7 @@
                  "15-1-1":  "Write-Host \"OK\"",
                  "16-1-1":  "for ($i = 0; $i -lt 10; $i += 1) {",
                  "16-1-2":  "}",
-                 "11-1":  "for ($i = 0; $i -lt 10; $i += 1) {",
+                 "11-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")",
                  "11-2":  "}",
                  "12-1":  "if (\"1\" -eq \"1\") {",
                  "12-2":  "} else {",

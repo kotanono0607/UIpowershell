@@ -69,4 +69,6 @@ echo.
 echo UIpowershellが完全に停止しました
 echo.
 echo このウインドウは5秒後に自動的に閉じます...
+
+pause
 timeout /t 5
