@@ -1322,6 +1322,130 @@ New-PolarisRoute -Path "/api/entries/all" -Method GET -ScriptBlock {
 }
 
 # ============================================
+# ノード関数実行 - 動的ノード設定機能
+# ============================================
+
+# 利用可能なノード関数一覧を取得
+New-PolarisRoute -Path "/api/node/functions" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $codeDir = Join-Path $script:RootDir "00_code"
+
+        if (Test-Path $codeDir) {
+            # 00_code/*.ps1 ファイルを取得
+            $scriptFiles = Get-ChildItem -Path $codeDir -Filter "*.ps1"
+
+            $functions = @()
+            foreach ($file in $scriptFiles) {
+                $functionName = $file.BaseName -replace '-', '_'
+                $functions += @{
+                    fileName = $file.Name
+                    functionName = $functionName
+                    scriptPath = $file.FullName
+                }
+            }
+
+            $result = @{
+                success = $true
+                data = $functions
+            }
+            $json = $result | ConvertTo-Json -Compress -Depth 5
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+        } else {
+            $result = @{
+                success = $false
+                error = "00_code directory not found"
+            }
+            $json = $result | ConvertTo-Json -Compress
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+        }
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# ノード関数を実行
+New-PolarisRoute -Path "/api/node/execute/:functionName" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $functionName = $Request.Parameters.functionName
+        Write-Host "[ノード関数実行] 関数名: $functionName" -ForegroundColor Cyan
+
+        # 関数名をファイル名に変換（例: "8_1" -> "8-1.ps1"）
+        $fileName = $functionName -replace '_', '-'
+        $scriptPath = Join-Path $script:RootDir "00_code\$fileName.ps1"
+
+        Write-Host "[ノード関数実行] スクリプトパス: $scriptPath" -ForegroundColor Gray
+
+        if (-not (Test-Path $scriptPath)) {
+            $Response.SetStatusCode(404)
+            $errorResult = @{
+                success = $false
+                error = "Script file not found: $fileName.ps1"
+            }
+            $json = $errorResult | ConvertTo-Json -Compress
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+            return
+        }
+
+        # スクリプトを読み込み
+        . $scriptPath
+        Write-Host "[ノード関数実行] スクリプト読み込み完了" -ForegroundColor Green
+
+        # リクエストボディを取得
+        $params = @{}
+        if ($Request.Body) {
+            $bodyJson = $Request.Body | ConvertFrom-Json
+            # プロパティをハッシュテーブルに変換
+            $bodyJson.PSObject.Properties | ForEach-Object {
+                $params[$_.Name] = $_.Value
+            }
+            Write-Host "[ノード関数実行] パラメータ: $($params | ConvertTo-Json -Compress)" -ForegroundColor Gray
+        }
+
+        # 関数を実行
+        if ($params.Count -gt 0) {
+            $code = & $functionName @params
+        } else {
+            $code = & $functionName
+        }
+
+        Write-Host "[ノード関数実行] 実行完了" -ForegroundColor Green
+
+        $result = @{
+            success = $true
+            code = $code
+            functionName = $functionName
+        }
+        $json = $result | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+            stackTrace = $_.ScriptStackTrace
+        }
+        Write-Host "[ノード関数実行エラー] $($_.Exception.Message)" -ForegroundColor Red
+        $json = $errorResult | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# ============================================
 # 4. 静的ファイル（HTML/JS）の提供設定
 # ============================================
 

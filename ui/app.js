@@ -16,6 +16,7 @@ let reactFlowInstance = null;
 let nodes = [];
 let edges = [];
 let sessionInfo = null;
+let nodeTypes = [];  // 動的に読み込むノードタイプ（ボタン設定.jsonから）
 
 // ============================================
 // エッジ自動生成関数
@@ -258,6 +259,71 @@ async function executeMenuAction(actionId, parameters = {}) {
 }
 
 // ============================================
+// API通信関数 - 動的ノード設定
+// ============================================
+
+/**
+ * ボタン設定.jsonを読み込む
+ */
+async function loadButtonSettings() {
+    try {
+        const response = await fetch('/button-settings.json');
+        const settings = await response.json();
+
+        // ノードタイプ配列を作成
+        nodeTypes = settings.map(btn => ({
+            id: btn.処理番号,
+            text: btn.テキスト,
+            color: btn.背景色,
+            functionName: btn.関数名,
+            description: btn.説明
+        }));
+
+        console.log(`[ボタン設定読み込み] ${nodeTypes.length}個のノードタイプを読み込みました`);
+        return nodeTypes;
+    } catch (error) {
+        console.error('[ボタン設定読み込みエラー]', error);
+        // フォールバック: 基本的なノードタイプのみ
+        nodeTypes = [
+            { id: '1-2', text: '条件分岐', color: 'SpringGreen', functionName: 'ShowConditionBuilder' },
+            { id: '1-3', text: 'ループ', color: 'LemonChiffon', functionName: 'ShowLoopBuilder' }
+        ];
+        return nodeTypes;
+    }
+}
+
+/**
+ * ノード関数を実行
+ */
+async function executeNodeFunction(functionName, params = {}) {
+    try {
+        console.log(`[ノード関数実行] 関数: ${functionName}, パラメータ:`, params);
+
+        const response = await fetch(`${API_BASE}/node/execute/${functionName}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log(`[ノード関数実行成功] コード生成完了`);
+            return result;
+        } else {
+            throw new Error(result.error || 'ノード関数実行に失敗しました');
+        }
+    } catch (error) {
+        console.error('[ノード関数実行エラー]', error);
+        throw error;
+    }
+}
+
+// ============================================
 // UI更新関数
 // ============================================
 
@@ -295,7 +361,38 @@ function closeModal(modalId) {
 }
 
 function showAddNodeModal() {
+    // ノードタイプセレクターを更新
+    updateNodeTypeSelector();
     showModal('modal-add-node');
+}
+
+/**
+ * ノードタイプセレクターを動的に更新
+ */
+function updateNodeTypeSelector() {
+    const select = document.getElementById('input-type');
+    if (!select) return;
+
+    // 既存のオプションをクリア
+    select.innerHTML = '';
+
+    // デフォルトオプション
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = '-- ノードタイプを選択 --';
+    select.appendChild(defaultOption);
+
+    // 動的に読み込んだノードタイプを追加
+    nodeTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type.id;
+        option.textContent = type.text;
+        option.dataset.functionName = type.functionName;
+        option.dataset.color = type.color;
+        select.appendChild(option);
+    });
+
+    console.log(`[ノードタイプセレクター更新] ${nodeTypes.length}個のオプションを追加`);
 }
 
 function showVariableModal() {
@@ -406,6 +503,13 @@ function initReactFlow() {
 
     ReactDOM.render(React.createElement(App), flowContainer);
     updateNodeCount();
+
+    // ボタン設定を読み込み
+    loadButtonSettings().then(() => {
+        console.log('[初期化] ボタン設定の読み込み完了');
+    }).catch(error => {
+        console.error('[初期化エラー] ボタン設定の読み込み失敗:', error);
+    });
 }
 
 // ============================================
@@ -415,9 +519,15 @@ function initReactFlow() {
 async function addNode(event) {
     event.preventDefault();
 
-    const type = document.getElementById('input-type').value;
+    const typeSelect = document.getElementById('input-type');
+    const type = typeSelect.value;
     const text = document.getElementById('input-text').value;
     const code = document.getElementById('input-code').value;
+
+    if (!type) {
+        alert('ノードタイプを選択してください');
+        return;
+    }
 
     try {
         // 新しいIDを生成
@@ -425,23 +535,35 @@ async function addNode(event) {
         const idData = await idResp.json();
         const newId = idData.id;
 
-        // ノードの色を決定
-        let color = 'White';
+        // 選択されたノードタイプ情報を取得
+        const selectedOption = typeSelect.selectedOptions[0];
+        const color = selectedOption.dataset.color || 'White';
+        const functionName = selectedOption.dataset.functionName;
+
+        // ノード関数が定義されている場合は実行
+        let generatedCode = code;
+        if (functionName && functionName !== 'ShowConditionBuilder' && functionName !== 'ShowLoopBuilder') {
+            try {
+                console.log(`[ノード追加] 関数実行: ${functionName}`);
+                const result = await executeNodeFunction(functionName, {});
+                if (result.success && result.code) {
+                    generatedCode = result.code;
+                    console.log(`[ノード追加] 生成されたコード:`, generatedCode);
+                }
+            } catch (funcError) {
+                console.error(`[ノード追加] 関数実行エラー:`, funcError);
+                // 関数実行が失敗してもノード追加は続行
+            }
+        }
+
+        // CSSクラスを色に基づいて決定
         let cssClass = '';
-        switch (type) {
-            case 'conditional':
-                color = 'SpringGreen';
-                cssClass = 'node-conditional';
-                break;
-            case 'loop':
-                color = 'LemonChiffon';
-                cssClass = 'node-loop';
-                break;
-            case 'start':
-            case 'end':
-                color = 'Gray';
-                cssClass = 'node-start';
-                break;
+        if (color === 'SpringGreen') {
+            cssClass = 'node-conditional';
+        } else if (color === 'LemonChiffon') {
+            cssClass = 'node-loop';
+        } else if (color === 'Gray') {
+            cssClass = 'node-start';
         }
 
         // 新しいノードを追加
@@ -472,7 +594,7 @@ async function addNode(event) {
                 targetID: newId,
                 TypeName: type,
                 displayText: text,
-                code: code,
+                code: generatedCode,  // 関数で生成されたコードまたはユーザー入力コード
                 toID: null,
                 order: nodes.length
             })
