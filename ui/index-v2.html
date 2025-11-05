@@ -559,6 +559,59 @@
         </div>
     </div>
 
+    <!-- 条件分岐ビルダーモーダル -->
+    <div id="condition-builder-modal" class="modal">
+        <div class="modal-content" style="width: 900px; max-height: 80vh; overflow-y: auto;">
+            <h2>条件式の設定</h2>
+
+            <div id="condition-items-container" style="margin-bottom: 20px;">
+                <!-- 条件入力フィールドが動的に追加される -->
+            </div>
+
+            <button id="btn-add-condition" class="button" style="margin-bottom: 20px;">条件追加</button>
+
+            <div style="margin-bottom: 20px;">
+                <label>条件式プレビュー:</label>
+                <textarea id="condition-preview" readonly style="width: 100%; height: 120px; padding: 10px; font-family: monospace; background-color: #f5f5f5;"></textarea>
+            </div>
+
+            <div class="modal-buttons">
+                <button id="btn-condition-save" class="button">保存</button>
+                <button id="btn-condition-cancel" class="button">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ループビルダーモーダル -->
+    <div id="loop-builder-modal" class="modal">
+        <div class="modal-content" style="width: 700px; max-height: 80vh; overflow-y: auto;">
+            <h2>ループ構文の設定</h2>
+
+            <div style="margin-bottom: 20px;">
+                <label>ループの種類を選択してください:</label>
+                <select id="loop-type-select" style="width: 100%; padding: 8px; margin-top: 5px;">
+                    <option value="for">固定回数ループ</option>
+                    <option value="foreach">コレクションのループ</option>
+                    <option value="while">条件付きループ</option>
+                </select>
+            </div>
+
+            <div id="loop-settings-container" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                <!-- ループタイプに応じた設定フィールドが動的に表示される -->
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label>ループ構文プレビュー:</label>
+                <textarea id="loop-preview" readonly style="width: 100%; height: 120px; padding: 10px; font-family: monospace; background-color: #f5f5f5;"></textarea>
+            </div>
+
+            <div class="modal-buttons">
+                <button id="btn-loop-save" class="button">保存</button>
+                <button id="btn-loop-cancel" class="button">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
     <!-- React, ReactDOM, React Flow -->
     <script crossorigin src="libs/react.production.min.js"></script>
     <script crossorigin src="libs/react-dom.production.min.js"></script>
