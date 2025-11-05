@@ -431,7 +431,7 @@
             <form id="form-add-node" onsubmit="addNode(event)">
                 <div class="form-group">
                     <label>ノードタイプ</label>
-                    <select id="input-type" required>
+                    <select id="input-type" onchange="onNodeTypeChange()" required>
                         <option value="start">開始</option>
                         <option value="process">処理</option>
                         <option value="conditional">条件分岐</option>
@@ -443,9 +443,18 @@
                     <label>表示テキスト</label>
                     <input type="text" id="input-text" placeholder="例: Excelを開く" required>
                 </div>
+
+                <!-- パラメータ入力エリア（動的に生成） -->
+                <div id="node-params-container" style="display:none;">
+                    <h3 style="font-size: 14px; margin-top: 15px; margin-bottom: 10px; color: #007acc;">パラメータ</h3>
+                    <div id="node-params-inputs">
+                        <!-- JavaScriptで動的に生成 -->
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>コード（オプション）</label>
-                    <textarea id="input-code" rows="4" placeholder="PowerShellコードを入力..."></textarea>
+                    <textarea id="input-code" rows="4" placeholder="PowerShellコードを入力...または関数が自動生成します"></textarea>
                 </div>
                 <div class="modal-buttons">
                     <button type="submit">追加</button>

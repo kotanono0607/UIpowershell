@@ -18,6 +18,26 @@ let edges = [];
 let sessionInfo = null;
 let nodeTypes = [];  // 動的に読み込むノードタイプ（ボタン設定.jsonから）
 
+// ノードタイプごとのパラメータ定義
+const nodeParameters = {
+    '99_1': [
+        { name: '直接エントリ', type: 'textarea', placeholder: 'Write-Host "Hello"_Write-Host "World"', required: true, rows: 3 }
+    ],
+    '1_8': [
+        { name: '秒数', type: 'number', placeholder: '5', required: true, min: 1 }
+    ],
+    '1_6': [
+        { name: 'メッセージ', type: 'text', placeholder: '処理が完了しました', required: true }
+    ],
+    '8_1': [
+        { name: 'Excelファイルパス', type: 'text', placeholder: 'C:\\data\\file.xlsx', required: true },
+        { name: 'シート名', type: 'text', placeholder: 'Sheet1', required: true }
+    ],
+    '1_4': [
+        // パラメータなし
+    ]
+};
+
 // ============================================
 // エッジ自動生成関数
 // ============================================
@@ -395,6 +415,64 @@ function updateNodeTypeSelector() {
     console.log(`[ノードタイプセレクター更新] ${nodeTypes.length}個のオプションを追加`);
 }
 
+/**
+ * ノードタイプ変更時の処理（パラメータフィールド生成）
+ */
+function onNodeTypeChange() {
+    const typeSelect = document.getElementById('input-type');
+    const selectedOption = typeSelect.selectedOptions[0];
+
+    if (!selectedOption) return;
+
+    const functionName = selectedOption.dataset.functionName;
+    const paramsContainer = document.getElementById('node-params-container');
+    const paramsInputs = document.getElementById('node-params-inputs');
+
+    // パラメータ定義を取得
+    const params = nodeParameters[functionName] || [];
+
+    if (params.length === 0) {
+        // パラメータなし
+        paramsContainer.style.display = 'none';
+        paramsInputs.innerHTML = '';
+        return;
+    }
+
+    // パラメータ入力フィールドを生成
+    paramsContainer.style.display = 'block';
+    paramsInputs.innerHTML = '';
+
+    params.forEach((param, index) => {
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+
+        const label = document.createElement('label');
+        label.textContent = param.name;
+        formGroup.appendChild(label);
+
+        let input;
+        if (param.type === 'textarea') {
+            input = document.createElement('textarea');
+            input.rows = param.rows || 3;
+        } else {
+            input = document.createElement('input');
+            input.type = param.type;
+            if (param.min !== undefined) input.min = param.min;
+            if (param.max !== undefined) input.max = param.max;
+        }
+
+        input.id = `param-${index}`;
+        input.name = param.name;
+        input.placeholder = param.placeholder || '';
+        if (param.required) input.required = true;
+
+        formGroup.appendChild(input);
+        paramsInputs.appendChild(formGroup);
+    });
+
+    console.log(`[パラメータフィールド生成] ${params.length}個のパラメータを追加`);
+}
+
 function showVariableModal() {
     showModal('modal-variables');
     loadVariables();
@@ -540,18 +618,31 @@ async function addNode(event) {
         const color = selectedOption.dataset.color || 'White';
         const functionName = selectedOption.dataset.functionName;
 
+        // パラメータを収集
+        const params = {};
+        const paramsInputs = document.getElementById('node-params-inputs');
+        if (paramsInputs) {
+            const inputs = paramsInputs.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                params[input.name] = input.value;
+            });
+        }
+
+        console.log(`[ノード追加] パラメータ:`, params);
+
         // ノード関数が定義されている場合は実行
         let generatedCode = code;
         if (functionName && functionName !== 'ShowConditionBuilder' && functionName !== 'ShowLoopBuilder') {
             try {
                 console.log(`[ノード追加] 関数実行: ${functionName}`);
-                const result = await executeNodeFunction(functionName, {});
+                const result = await executeNodeFunction(functionName, params);
                 if (result.success && result.code) {
                     generatedCode = result.code;
                     console.log(`[ノード追加] 生成されたコード:`, generatedCode);
                 }
             } catch (funcError) {
                 console.error(`[ノード追加] 関数実行エラー:`, funcError);
+                alert(`関数実行エラー: ${funcError.message}\n\nノードは追加されますが、コードは生成されませんでした。`);
                 // 関数実行が失敗してもノード追加は続行
             }
         }
