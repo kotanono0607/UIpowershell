@@ -38,7 +38,7 @@
                  "4-1":  "if (\"1\" -eq \"1\") {",
                  "4-2":  "} else {",
                  "4-3":  "}",
-                 "13-1":  "if (\"1\" -eq \"1\") {",
+                 "13-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")",
                  "13-2":  "} else {",
                  "9-1":  "Write-Host \"OK\"",
                  "10-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")",
