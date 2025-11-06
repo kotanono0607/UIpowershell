@@ -1453,8 +1453,18 @@ New-PolarisRoute -Path "/api/node/execute/:functionName" -Method POST -ScriptBlo
         }
 
         # スクリプトを読み込み
+        Write-Host "[ノード関数実行] 📂 ファイルを読み込み中..." -ForegroundColor Yellow
+        Write-Host "[ノード関数実行] 📄 ファイルパス: $scriptPath" -ForegroundColor Gray
+        Write-Host "[ノード関数実行] ⏰ ファイル更新日時: $((Get-Item $scriptPath).LastWriteTime)" -ForegroundColor Gray
+
+        # ファイル内容をプレビュー表示（デバッグ用）
+        $fileContent = Get-Content $scriptPath -Raw
+        $preview = $fileContent.Substring(0, [Math]::Min(200, $fileContent.Length))
+        Write-Host "[ノード関数実行] 📝 ファイルプレビュー (先頭200文字):" -ForegroundColor Gray
+        Write-Host $preview -ForegroundColor DarkGray
+
         . $scriptPath
-        Write-Host "[ノード関数実行] スクリプト読み込み完了" -ForegroundColor Green
+        Write-Host "[ノード関数実行] ✅ スクリプト読み込み完了" -ForegroundColor Green
 
         # リクエストボディを取得
         $params = @{}
@@ -1468,13 +1478,17 @@ New-PolarisRoute -Path "/api/node/execute/:functionName" -Method POST -ScriptBlo
         }
 
         # 関数を実行
+        Write-Host "[ノード関数実行] 🚀 関数 '$functionName' を実行中..." -ForegroundColor Yellow
         if ($params.Count -gt 0) {
             $code = & $functionName @params
         } else {
             $code = & $functionName
         }
 
-        Write-Host "[ノード関数実行] 実行完了" -ForegroundColor Green
+        Write-Host "[ノード関数実行] ✅ 関数実行完了" -ForegroundColor Green
+        Write-Host "[ノード関数実行] 📤 生成されたコード (先頭200文字):" -ForegroundColor Gray
+        $codePreview = $code.Substring(0, [Math]::Min(200, $code.Length))
+        Write-Host $codePreview -ForegroundColor DarkGray
 
         $result = @{
             success = $true
