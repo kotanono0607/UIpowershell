@@ -1,8 +1,12 @@
-﻿# ローカル変更をclaudeブランチにプッシュ (Ver 1.0)
+﻿# ローカル変更をmainブランチにプッシュ (Ver 2.0)
 # 使い方:
 #   .\git-push-local.ps1                              # 自動コミットメッセージ
 #   .\git-push-local.ps1 "Feat: 新機能追加"            # カスタムメッセージ
 #   $env:PUSH_FORCE=1; .\git-push-local.ps1           # 強制プッシュ許可
+#
+# 動作:
+#   - claudeブランチの場合: 変更をコミット後、mainにマージしてプッシュ
+#   - mainブランチの場合: 変更を直接コミット＆プッシュ
 
 param(
     [string]$コミットメッセージ = ""
@@ -103,93 +107,152 @@ try {
 
     # 5) 変更の確認
     $status = 実行git @('status','--porcelain') -静か
-    if ([string]::IsNullOrWhiteSpace($status)) {
+    $変更あり = -not [string]::IsNullOrWhiteSpace($status)
+
+    if (-not $変更あり) {
         情報 "コミットする変更がありません"
-        Write-Host ""
-        情報 "完了（変更なし）"
-        exit 0
-    }
 
-    Write-Host ""
-    Write-Host "【変更ファイル一覧】" -ForegroundColor Yellow
-    Write-Host $status
-    Write-Host ""
-
-    # 6) 全変更をステージング（確認プロンプトなし）
-    情報 "変更をステージング中..."
-    実行git静か @('add','.')
-
-    # 7) ステージングされた内容を確認
-    $staged = 実行git @('diff','--cached','--name-status') -静か
-    if ([string]::IsNullOrWhiteSpace($staged)) {
-        情報 "ステージングされた変更がありません（.gitignoreで除外された可能性）"
-        Write-Host ""
-        情報 "完了（変更なし）"
-        exit 0
-    }
-
-    Write-Host ""
-    Write-Host "【ステージングされたファイル】" -ForegroundColor Yellow
-    Write-Host $staged
-    Write-Host ""
-
-    # 8) コミットメッセージの生成
-    if ([string]::IsNullOrWhiteSpace($コミットメッセージ)) {
-        # 自動生成: 変更されたファイルの概要
-        $stagedLines = [regex]::Split([string]$staged, "\r?\n") | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
-        $fileCount = @($stagedLines).Count
-
-        # 主な変更タイプを判定
-        $changeTypes = @()
-        if ($staged -match '^A\s') { $changeTypes += "追加" }
-        if ($staged -match '^M\s') { $changeTypes += "更新" }
-        if ($staged -match '^D\s') { $changeTypes += "削除" }
-
-        $changeDesc = if ($changeTypes.Count -gt 0) { $changeTypes -join "・" } else { "変更" }
-
-        $コミットメッセージ = "Update: $changeDesc ($fileCount ファイル)"
-        情報 "自動生成されたコミットメッセージ: $コミットメッセージ"
-    } else {
-        情報 "コミットメッセージ: $コミットメッセージ"
-    }
-
-    # 9) コミット
-    情報 "コミット中..."
-
-    # コミットメッセージを一時ファイルに書き込む（文字化け対策）
-    $tempMsgFile = Join-Path $作業パス ".git\COMMIT_EDITMSG_TEMP"
-    try {
-        # UTF-8 BOMなしで保存
-        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-        [System.IO.File]::WriteAllText($tempMsgFile, $コミットメッセージ, $utf8NoBom)
-
-        # ファイルからコミットメッセージを読み込む
-        実行git @('commit','-F', $tempMsgFile)
-    } finally {
-        # 一時ファイルを削除
-        if (Test-Path $tempMsgFile) {
-            Remove-Item $tempMsgFile -Force -ErrorAction SilentlyContinue
+        # claudeブランチの場合は、mainにマージする処理へ
+        if ($現在ブランチ -match '^claude/') {
+            情報 "claudeブランチの内容をmainにマージします"
+            # 変更はないが、マージ処理は続行
+        } else {
+            Write-Host ""
+            情報 "完了（変更なし）"
+            exit 0
         }
     }
-    Write-Host ""
 
-    # 10) リモートブランチの存在確認
-    $remoteExists = $false
-    try {
-        実行git静か @('rev-parse','--verify', "origin/$現在ブランチ")
-        $remoteExists = $true
-    } catch {
-        情報 "リモートブランチが存在しません。新規作成します。"
+    # 6) 変更がある場合のみコミット処理を実行
+    if ($変更あり) {
+        Write-Host ""
+        Write-Host "【変更ファイル一覧】" -ForegroundColor Yellow
+        Write-Host $status
+        Write-Host ""
+
+        # 全変更をステージング（確認プロンプトなし）
+        情報 "変更をステージング中..."
+        実行git静か @('add','.')
+
+        # ステージングされた内容を確認
+        $staged = 実行git @('diff','--cached','--name-status') -静か
+        if ([string]::IsNullOrWhiteSpace($staged)) {
+            情報 "ステージングされた変更がありません（.gitignoreで除外された可能性）"
+
+            # claudeブランチの場合は、mainにマージする処理へ
+            if ($現在ブランチ -match '^claude/') {
+                情報 "claudeブランチの内容をmainにマージします"
+                $変更あり = $false
+            } else {
+                Write-Host ""
+                情報 "完了（変更なし）"
+                exit 0
+            }
+        } else {
+            Write-Host ""
+            Write-Host "【ステージングされたファイル】" -ForegroundColor Yellow
+            Write-Host $staged
+            Write-Host ""
+
+            # コミットメッセージの生成
+            if ([string]::IsNullOrWhiteSpace($コミットメッセージ)) {
+                # 自動生成: 変更されたファイルの概要
+                $stagedLines = [regex]::Split([string]$staged, "\r?\n") | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+                $fileCount = @($stagedLines).Count
+
+                # 主な変更タイプを判定
+                $changeTypes = @()
+                if ($staged -match '^A\s') { $changeTypes += "追加" }
+                if ($staged -match '^M\s') { $changeTypes += "更新" }
+                if ($staged -match '^D\s') { $changeTypes += "削除" }
+
+                $changeDesc = if ($changeTypes.Count -gt 0) { $changeTypes -join "・" } else { "変更" }
+
+                $コミットメッセージ = "Update: $changeDesc ($fileCount ファイル)"
+                情報 "自動生成されたコミットメッセージ: $コミットメッセージ"
+            } else {
+                情報 "コミットメッセージ: $コミットメッセージ"
+            }
+
+            # コミット
+            情報 "コミット中..."
+
+            # コミットメッセージを一時ファイルに書き込む（文字化け対策）
+            $tempMsgFile = Join-Path $作業パス ".git\COMMIT_EDITMSG_TEMP"
+            try {
+                # UTF-8 BOMなしで保存
+                $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+                [System.IO.File]::WriteAllText($tempMsgFile, $コミットメッセージ, $utf8NoBom)
+
+                # ファイルからコミットメッセージを読み込む
+                実行git @('commit','-F', $tempMsgFile)
+            } finally {
+                # 一時ファイルを削除
+                if (Test-Path $tempMsgFile) {
+                    Remove-Item $tempMsgFile -Force -ErrorAction SilentlyContinue
+                }
+            }
+            Write-Host ""
+        }
     }
 
-    # 11) プッシュ
-    情報 "リモートにプッシュ中..."
+    # 7) claudeブランチの場合、mainにマージ
+    if ($現在ブランチ -match '^claude/') {
+        Write-Host ""
+        情報 "claudeブランチからmainブランチにマージします..."
+
+        # mainにチェックアウト
+        情報 "mainブランチに切り替え中..."
+        実行git @('checkout','main')
+
+        # mainを最新化
+        情報 "mainブランチを最新化中..."
+        try {
+            実行git @('pull','origin','main')
+        } catch {
+            警告 "mainブランチのpullに失敗しました（リモートが空の可能性）。続行します。"
+        }
+
+        # claudeブランチをマージ
+        情報 "claudeブランチをマージ中..."
+        $mergeMsg = "Merge branch '$現在ブランチ' into main"
+
+        # マージメッセージを一時ファイルに書き込む（引用符の問題を回避）
+        $tempMergeMsgFile = Join-Path $作業パス ".git\MERGE_MSG_TEMP"
+        try {
+            $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+            [System.IO.File]::WriteAllText($tempMergeMsgFile, $mergeMsg, $utf8NoBom)
+
+            # ファイルからマージメッセージを読み込む
+            実行git @('merge','--no-ff',$現在ブランチ,'-F',$tempMergeMsgFile)
+        } finally {
+            # 一時ファイルを削除
+            if (Test-Path $tempMergeMsgFile) {
+                Remove-Item $tempMergeMsgFile -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        情報 "マージ完了"
+        Write-Host ""
+    }
+
+    # 8) mainブランチにプッシュ
+    情報 "mainブランチをリモートにプッシュ中..."
     $強制許可 = ($env:PUSH_FORCE -eq '1')
+
+    # リモートブランチの存在確認
+    $remoteExists = $false
+    try {
+        実行git静か @('rev-parse','--verify', "origin/main")
+        $remoteExists = $true
+    } catch {
+        情報 "リモートのmainブランチが存在しません。新規作成します。"
+    }
 
     if ($remoteExists) {
         # リモートブランチが存在する場合、ahead/behindをチェック
         try {
-            $ab = ([string](実行git @('rev-list','--left-right','--count', "$現在ブランチ...origin/$現在ブランチ") -静か)).Trim()
+            $ab = ([string](実行git @('rev-list','--left-right','--count', "main...origin/main") -静か)).Trim()
             $nums = $ab -split '\s+'
             if ($nums.Count -eq 2) {
                 $ahead = [int]$nums[0]
@@ -197,33 +260,36 @@ try {
                 情報 "ahead: $ahead, behind: $behind"
 
                 if ($behind -gt 0) {
-                    警告 "リモートブランチの方が進んでいます（behind: $behind）"
+                    警告 "リモートのmainブランチの方が進んでいます（behind: $behind）"
                     if ($強制許可) {
                         警告 "強制プッシュを実行します（PUSH_FORCE=1）"
-                        実行git @('push','--force-with-lease','origin', $現在ブランチ)
+                        実行git @('push','--force-with-lease','origin','main')
                     } else {
                         失敗 "プッシュできません。先にリモートの変更を取り込むか、`$env:PUSH_FORCE=1 を設定してください。"
                     }
                 } else {
-                    実行git @('push','origin', $現在ブランチ)
+                    実行git @('push','origin','main')
                 }
             }
         } catch {
             # rev-list失敗時は通常プッシュを試行
-            実行git @('push','origin', $現在ブランチ)
+            実行git @('push','origin','main')
         }
     } else {
         # 新規ブランチの場合
-        実行git @('push','-u','origin', $現在ブランチ)
+        実行git @('push','-u','origin','main')
     }
 
     Write-Host ""
     Write-Host "============================================" -ForegroundColor Green
-    情報 "完了: ローカル変更をリモートにプッシュしました"
+    情報 "完了: mainブランチをリモートにプッシュしました"
     Write-Host "============================================" -ForegroundColor Green
     Write-Host ""
-    情報 "ブランチ: $現在ブランチ"
-    情報 "コミットメッセージ: $コミットメッセージ"
+    if ($変更あり -and $コミットメッセージ) {
+        情報 "コミットメッセージ: $コミットメッセージ"
+    }
+    情報 "元のブランチ: $現在ブランチ"
+    情報 "プッシュ先: main"
     Write-Host ""
 
 } catch {
