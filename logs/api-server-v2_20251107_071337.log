@@ -1,0 +1,175 @@
+﻿**********************
+Windows PowerShell トランスクリプト開始
+開始時刻: 20251107071337
+ユーザー名: A-01\hello
+RunAs ユーザー: A-01\hello
+構成名: 
+コンピューター: A-01 (Microsoft Windows NT 10.0.26100.0)
+ホスト アプリケーション: powershell -NoExit -ExecutionPolicy Bypass -File .\adapter\api-server-v2.ps1 -AutoOpenBrowser
+プロセス ID: 31028
+PSVersion: 5.1.26100.6899
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.6899
+BuildVersion: 10.0.26100.6899
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+トランスクリプトが開始されました。出力ファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251107_071337.log
+[ログ] ログファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251107_071337.log
+
+==================================
+UIpowershell - Polaris API Server V2
+Version: 1.0.179 (UTF-8エンコーディング修正版)
+==================================
+
+[OK] Polarisモジュールを読み込みます: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\Modules\Polaris
+[OK] Polarisモジュールを読み込みました (Version: Polaris.Version)
+
+既存のPowerShell関数を読み込みます...
+[OK] JSON操作ユーティリティ
+
+[OK] コードID管理JSON
+
+Phase 2 v2ファイルを読み込みます...
+[OK] コードメイン_コード本文_v2
+[OK] 変数機能_変数管理UI_v2
+[OK] メインF機能_ツールバー作成_v2
+[OK] メインF機能_メインボタン処理_v2
+[OK] 削除処理_v2
+[OK] ネスト規制バリデーション_v2
+
+Phase 3 Adapterファイルを読み込みます...
+[OK] UIpowershell状態を初期化しました (SessionId: 273b0187-48d3-41f1-ae66-61a4b6489cf7)
+[OK] state-manager
+[OK] node-operations
+
+==================================
+
+静的ファイル提供を設定します...
+[OK] 静的ファイル提供を設定しました
+
+Polarisサーバーを起動します...
+  ポート: 8080
+  URL: http://localhost:8080
+  フロントエンド: http://localhost:8080/index-legacy.html
+
+==================================
+✓ サーバー起動成功！
+==================================
+
+アクセス先: http://localhost:8080
+
+APIエンドポイント（Phase 3対応）:
+
+【基本】
+  GET  /api/health                    - ヘルスチェック
+  GET  /api/session                   - セッション情報
+  GET  /api/debug                     - デバッグ情報
+
+【ノード管理】
+  GET  /api/nodes                     - 全ノード取得
+  PUT  /api/nodes                     - ノード配列を一括設定
+  POST /api/nodes                     - ノード追加
+  DELETE /api/nodes/:id               - ノード削除
+  DELETE /api/nodes/all               - 全ノード削除
+
+【変数管理】
+  GET  /api/variables                 - 変数一覧取得
+  GET  /api/variables/:name           - 変数取得
+  POST /api/variables                 - 変数追加
+  PUT  /api/variables/:name           - 変数更新
+  DELETE /api/variables/:name         - 変数削除
+
+【メニュー操作】
+  GET  /api/menu/structure            - メニュー構造取得
+  POST /api/menu/action/:actionId     - メニューアクション実行
+
+【実行・フォルダ】
+  POST /api/execute/generate          - PowerShellコード生成
+  GET  /api/folders                   - フォルダ一覧取得
+  POST /api/folders                   - フォルダ作成
+  PUT  /api/folders/:name             - フォルダ切り替え
+
+【バリデーション】
+  POST /api/validate/drop             - ドロップ可否チェック
+
+【コードID管理】
+  POST /api/id/generate               - 新規ID生成
+  POST /api/entry/add                 - エントリ追加
+  GET  /api/entry/:id                 - エントリ取得
+  GET  /api/entries/all               - 全エントリ取得
+
+【ブラウザログ】
+  POST /api/browser-logs              - ブラウザコンソールログ受信
+
+停止するには Ctrl+C を押してください
+
+[ブラウザ] Microsoft Edge（UIpowershell専用）をアプリモードで起動します
+           URL: http://localhost:8080/index-legacy.html
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"1-1":"if (\"1\" -eq \"1\") {","1-1-1":"Write-Host \"OK\"","1-1-2":"} else {","1-1-3":"}","6-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","4-1-1":"Write-Host \"OK\"","4-1-2":"} else {","4-1-3":"}","2-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","3-1-1":"Write-Host \"OK\"","7-1-1":"Write-Host \"OK\"","7-1-2":"}","6-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","6-1-2":"} else {","6-1-3":"}","9-1-1":"for ($i = 0; $i -lt 10; $i += 1) {","10-1-1":"Write-Host \"OK\"","11-1-1":"Write-Host \"OK\"","12-1-1":"Write-Host \"OK\"","13-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","5-1-1":"Write-Host \"OK\"","8-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","9-1-2":"}","9-1-3":"}","14-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","15-1-1":"Write-Host \"OK\"","16-1-1":"for ($i = 0; $i -lt 10; $i += 1) {","16-1-2":"}","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","11-2":"}","12-1":"if (\"1\" -eq \"1\") {","12-2":"} else {","12-3":"}","2-1":"Write-Host \"OK\"","3-1":"Write-Host \"OK\"","4-1":"if (\"1\" -eq \"1\") {","4-2":"} else {","4-3":"}","13-1":"if (\"1\" -eq \"1\") {","13-2":"} else {","9-1":"Write-Host \"OK\"","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","5-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","7-2":"}","1-2":"} else {","1-3":"}","18-1":"Write-Host \"OK\"","19-1":"Write-Host \"OK\"","70-1":"Write-Host \"OK\"","71-1":"Write-Host \"OK\"","72-1":"Write-Host \"OK\"","73-1":"Write-Host \"OK\"","108-1":"Write-Host \"OK\"","109-1":"Write-Host \"OK\"","37-1":"if (\"1\" -eq \"1\") {","37-2":"} else {","37-3":"}","38-1":"if (\"1\" -eq \"1\") {","38-2":"} else {","38-3":"}","47-1":"for ($i = 0; $i -lt 10; $i += 1) {","31-1":"if (\"1\" -eq \"1\") {","31-2":"} else {","31-3":"}","32-1":"for ($i = 0; $i -lt 10; $i += 1) {","32-2":"}","33-1":"if (\"1\" -eq \"1\") {","33-2":"} else {","33-3":"}","47-2":"}","48-1":"if (\"1\" -eq \"1\") {","48-2":"} else {","48-3":"}","52-1":"if (\"1\" -eq \"1\") {","52-2":"} else {","52-3":"}","78-1":"Write-Host \"OK\"","83-1":"Write-Host \"OK\"","85-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","14-1":"Write-Host \"OK\"","13-3":"}","17-1":"if (\"1\" -eq \"1\") {","17-2":"} else {","17-3":"}","20-1":"for ($i = 0; $i -lt 10; $i += 1) {","20-2":"}","21-1":"if (\"1\" -eq \"1\") {","21-2":"} else {","21-3":"}"},"最後のID":109}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"1-1":"if (\"1\" -eq \"1\") {","1-1-1":"Write-Host \"OK\"","1-1-2":"} else {","1-1-3":"}","6-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","4-1-1":"Write-Host \"OK\"","4-1-2":"} else {","4-1-3":"}","2-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","3-1-1":"Write-Host \"OK\"","7-1-1":"Write-Host \"OK\"","7-1-2":"}","6-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","6-1-2":"} else {","6-1-3":"}","9-1-1":"for ($i = 0; $i -lt 10; $i += 1) {","10-1-1":"Write-Host \"OK\"","11-1-1":"Write-Host \"OK\"","12-1-1":"Write-Host \"OK\"","13-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","5-1-1":"Write-Host \"OK\"","8-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","9-1-2":"}","9-1-3":"}","14-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","15-1-1":"Write-Host \"OK\"","16-1-1":"for ($i = 0; $i -lt 10; $i += 1) {","16-1-2":"}","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","11-2":"}","12-1":"if (\"1\" -eq \"1\") {","12-2":"} else {","12-3":"}","2-1":"Write-Host \"OK\"","3-1":"Write-Host \"OK\"","4-1":"if (\"1\" -eq \"1\") {","4-2":"} else {","4-3":"}","13-1":"if (\"1\" -eq \"1\") {","13-2":"} else {","9-1":"Write-Host \"OK\"","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","5-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","7-2":"}","1-2":"} else {","1-3":"}","18-1":"Write-Host \"OK\"","19-1":"Write-Host \"OK\"","70-1":"Write-Host \"OK\"","71-1":"Write-Host \"OK\"","72-1":"Write-Host \"OK\"","73-1":"Write-Host \"OK\"","108-1":"Write-Host \"OK\"","109-1":"Write-Host \"OK\"","37-1":"if (\"1\" -eq \"1\") {","37-2":"} else {","37-3":"}","38-1":"if (\"1\" -eq \"1\") {","38-2":"} else {","38-3":"}","47-1":"for ($i = 0; $i -lt 10; $i += 1) {","31-1":"if (\"1\" -eq \"1\") {","31-2":"} else {","31-3":"}","32-1":"for ($i = 0; $i -lt 10; $i += 1) {","32-2":"}","33-1":"if (\"1\" -eq \"1\") {","33-2":"} else {","33-3":"}","47-2":"}","48-1":"if (\"1\" -eq \"1\") {","48-2":"} else {","48-3":"}","52-1":"if (\"1\" -eq \"1\") {","52-2":"} else {","52-3":"}","78-1":"Write-Host \"OK\"","83-1":"Write-Host \"OK\"","85-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","14-1":"Write-Host \"OK\"","13-3":"}","17-1":"if (\"1\" -eq \"1\") {","17-2":"} else {","17-3":"}","20-1":"for ($i = 0; $i -lt 10; $i += 1) {","20-2":"}","21-1":"if (\"1\" -eq \"1\") {","21-2":"} else {","21-3":"}"},"最後のID":109}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 3467
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"1-1":"if (\"1\" -eq \"1\") {","1-1-1":"Write-Host \"OK\"","1-1-2":"} else {","1-1-3":"}","6-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Sh]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"1-1":"if (\"1\" -eq \"1\") {","1-1-1":"Write-Host \"OK\"","1-1-2":"} else {","1-1-3":"}","6-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","4-1-1":"Write-Host \"OK\"","4-1-2":"} else {","4-1-3":"}","2-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","3-1-1":"Write-Host \"OK\"","7-1-1":"Write-Host \"OK\"","7-1-2":"}","6-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","6-1-2":"} else {","6-1-3":"}","9-1-1":"for ($i = 0; $i -lt 10; $i += 1) {","10-1-1":"Write-Host \"OK\"","11-1-1":"Write-Host \"OK\"","12-1-1":"Write-Host \"OK\"","13-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","5-1-1":"Write-Host \"OK\"","8-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","9-1-2":"}","9-1-3":"}","14-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","15-1-1":"Write-Host \"OK\"","16-1-1":"for ($i = 0; $i -lt 10; $i += 1) {","16-1-2":"}","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","11-2":"}","12-1":"if (\"1\" -eq \"1\") {","12-2":"} else {","12-3":"}","2-1":"Write-Host \"OK\"","3-1":"Write-Host \"OK\"","4-1":"if (\"1\" -eq \"1\") {","4-2":"} else {","4-3":"}","13-1":"if (\"1\" -eq \"1\") {","13-2":"} else {","9-1":"Write-Host \"OK\"","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","5-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","7-2":"}","1-2":"} else {","1-3":"}","18-1":"Write-Host \"OK\"","19-1":"Write-Host \"OK\"","70-1":"Write-Host \"OK\"","71-1":"Write-Host \"OK\"","72-1":"Write-Host \"OK\"","73-1":"Write-Host \"OK\"","108-1":"Write-Host \"OK\"","109-1":"Write-Host \"OK\"","37-1":"if (\"1\" -eq \"1\") {","37-2":"} else {","37-3":"}","38-1":"if (\"1\" -eq \"1\") {","38-2":"} else {","38-3":"}","47-1":"for ($i = 0; $i -lt 10; $i += 1) {","31-1":"if (\"1\" -eq \"1\") {","31-2":"} else {","31-3":"}","32-1":"for ($i = 0; $i -lt 10; $i += 1) {","32-2":"}","33-1":"if (\"1\" -eq \"1\") {","33-2":"} else {","33-3":"}","47-2":"}","48-1":"if (\"1\" -eq \"1\") {","48-2":"} else {","48-3":"}","52-1":"if (\"1\" -eq \"1\") {","52-2":"} else {","52-3":"}","78-1":"Write-Host \"OK\"","83-1":"Write-Host \"OK\"","85-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","14-1":"Write-Host \"OK\"","13-3":"}","17-1":"if (\"1\" -eq \"1\") {","17-2":"} else {","17-3":"}","20-1":"for ($i = 0; $i -lt 10; $i += 1) {","20-2":"}","21-1":"if (\"1\" -eq \"1\") {","21-2":"} else {","21-3":"}"},"最後のID":109}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"1-1":"if (\"1\" -eq \"1\") {","1-1-1":"Write-Host \"OK\"","1-1-2":"} else {","1-1-3":"}","6-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","4-1-1":"Write-Host \"OK\"","4-1-2":"} else {","4-1-3":"}","2-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","3-1-1":"Write-Host \"OK\"","7-1-1":"Write-Host \"OK\"","7-1-2":"}","6-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","6-1-2":"} else {","6-1-3":"}","9-1-1":"for ($i = 0; $i -lt 10; $i += 1) {","10-1-1":"Write-Host \"OK\"","11-1-1":"Write-Host \"OK\"","12-1-1":"Write-Host \"OK\"","13-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","5-1-1":"Write-Host \"OK\"","8-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","9-1-2":"}","9-1-3":"}","14-1-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","15-1-1":"Write-Host \"OK\"","16-1-1":"for ($i = 0; $i -lt 10; $i += 1) {","16-1-2":"}","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","11-2":"}","12-1":"if (\"1\" -eq \"1\") {","12-2":"} else {","12-3":"}","2-1":"Write-Host \"OK\"","3-1":"Write-Host \"OK\"","4-1":"if (\"1\" -eq \"1\") {","4-2":"} else {","4-3":"}","13-1":"if (\"1\" -eq \"1\") {","13-2":"} else {","9-1":"Write-Host \"OK\"","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","5-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","7-2":"}","1-2":"} else {","1-3":"}","18-1":"Write-Host \"OK\"","19-1":"Write-Host \"OK\"","70-1":"Write-Host \"OK\"","71-1":"Write-Host \"OK\"","72-1":"Write-Host \"OK\"","73-1":"Write-Host \"OK\"","108-1":"Write-Host \"OK\"","109-1":"Write-Host \"OK\"","37-1":"if (\"1\" -eq \"1\") {","37-2":"} else {","37-3":"}","38-1":"if (\"1\" -eq \"1\") {","38-2":"} else {","38-3":"}","47-1":"for ($i = 0; $i -lt 10; $i += 1) {","31-1":"if (\"1\" -eq \"1\") {","31-2":"} else {","31-3":"}","32-1":"for ($i = 0; $i -lt 10; $i += 1) {","32-2":"}","33-1":"if (\"1\" -eq \"1\") {","33-2":"} else {","33-3":"}","47-2":"}","48-1":"if (\"1\" -eq \"1\") {","48-2":"} else {","48-3":"}","52-1":"if (\"1\" -eq \"1\") {","52-2":"} else {","52-3":"}","78-1":"Write-Host \"OK\"","83-1":"Write-Host \"OK\"","85-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです。\", \"タイトル\", \"OK\", \"Information\")","14-1":"Write-Host \"OK\"","13-3":"}","17-1":"if (\"1\" -eq \"1\") {","17-2":"} else {","17-3":"}","20-1":"for ($i = 0; $i -lt 10; $i += 1) {","20-2":"}","21-1":"if (\"1\" -eq \"1\") {","21-2":"} else {","21-3":"}"},"最後のID":109}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 5377 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "1-1":  "if (\"1\" -eq \"1\") {",
+                 "1-1-1":  "Write-Host \"OK\"",
+                 "1-1-2":  "} else {",
+                 "1-1-3":  "}",
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 5809 バイト
+[API]    最終更新時刻: 11/07/2025 07:13:49
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 1265 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 6個のノード
+[API] 合計ノード数: 6
+[API] JSON生成完了 (長さ: 3741 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 4199 バイト
+[API]    最終更新時刻: 11/07/2025 07:13:50
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
