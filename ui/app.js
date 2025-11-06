@@ -19,24 +19,9 @@ let sessionInfo = null;
 let nodeTypes = [];  // 動的に読み込むノードタイプ（ボタン設定.jsonから）
 
 // ノードタイプごとのパラメータ定義
-const nodeParameters = {
-    '99_1': [
-        { name: '直接エントリ', type: 'textarea', placeholder: 'Write-Host "Hello"_Write-Host "World"', required: true, rows: 3 }
-    ],
-    '1_8': [
-        { name: '秒数', type: 'number', placeholder: '5', required: true, min: 1 }
-    ],
-    '1_6': [
-        { name: 'メッセージ', type: 'text', placeholder: '処理が完了しました', required: true }
-    ],
-    '8_1': [
-        { name: 'Excelファイルパス', type: 'text', placeholder: 'C:\\data\\file.xlsx', required: true },
-        { name: 'シート名', type: 'text', placeholder: 'Sheet1', required: true }
-    ],
-    '1_4': [
-        // パラメータなし
-    ]
-};
+// 🔧 変更: ハードコードを削除し、ボタン設定.jsonから動的に読み込むように変更
+// （loadButtonSettings()関数でnodeTypes配列に含めて読み込む）
+// 新しいノードタイプを追加するには、ボタン設定.jsonに "パラメータ" プロパティを追加してください。
 
 // ============================================
 // エッジ自動生成関数
@@ -290,14 +275,32 @@ async function loadButtonSettings() {
         const response = await fetch('/button-settings.json');
         const settings = await response.json();
 
-        // ノードタイプ配列を作成
-        nodeTypes = settings.map(btn => ({
-            id: btn.処理番号,
-            text: btn.テキスト,
-            color: btn.背景色,
-            functionName: btn.関数名,
-            description: btn.説明
-        }));
+        // ノードタイプ配列を作成（パラメータ定義も含める）
+        nodeTypes = settings.map(btn => {
+            const nodeType = {
+                id: btn.処理番号,
+                text: btn.テキスト,
+                color: btn.背景色,
+                functionName: btn.関数名,
+                description: btn.説明,
+                parameters: []  // デフォルトは空配列
+            };
+
+            // パラメータ定義がある場合は変換
+            if (btn.パラメータ && Array.isArray(btn.パラメータ)) {
+                nodeType.parameters = btn.パラメータ.map(param => ({
+                    name: param.名前,
+                    type: param.型,
+                    placeholder: param.プレースホルダー || '',
+                    required: param.必須 || false,
+                    rows: param.行数,
+                    min: param.最小値,
+                    max: param.最大値
+                }));
+            }
+
+            return nodeType;
+        });
 
         console.log(`[ボタン設定読み込み] ${nodeTypes.length}個のノードタイプを読み込みました`);
         return nodeTypes;
@@ -428,8 +431,9 @@ function onNodeTypeChange() {
     const paramsContainer = document.getElementById('node-params-container');
     const paramsInputs = document.getElementById('node-params-inputs');
 
-    // パラメータ定義を取得
-    const params = nodeParameters[functionName] || [];
+    // パラメータ定義を取得（nodeTypesから取得）
+    const nodeType = nodeTypes.find(nt => nt.functionName === functionName);
+    const params = nodeType?.parameters || [];
 
     if (params.length === 0) {
         // パラメータなし
