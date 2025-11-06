@@ -4748,29 +4748,95 @@ function getArrayVariables() {
 // コード生成関数（PowerShell互換）
 // ============================================
 
+// ============================================
+// 汎用ノード関数実行（00_code/*.ps1を参照）
+// ============================================
+
+/**
+ * APIを通じて00_code/*.ps1の関数を実行
+ * @param {string} functionName - 関数名（例: "1_6"）
+ * @param {object} params - パラメータ（省略可）
+ * @returns {Promise<string>} - 生成されたコード
+ */
+async function executeNodeFunction(functionName, params = {}) {
+    try {
+        console.log(`[ノード関数実行] 関数: ${functionName}, パラメータ:`, params);
+
+        const response = await fetch(`${API_BASE}/node/execute/${functionName}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+        });
+
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success && result.code) {
+            console.log(`[ノード関数実行] 成功 - コード長: ${result.code.length}文字`);
+            return result.code;
+        } else {
+            throw new Error(result.error || '不明なエラー');
+        }
+    } catch (error) {
+        console.error(`[ノード関数実行] エラー:`, error);
+        throw error;
+    }
+}
+
+// ============================================
+// 個別のgenerate関数（フォールバック用）
+// ============================================
+
 // 1_1: 順次処理
-function generate_1_1() {
-    return 'Write-Host "OK"';
+async function generate_1_1() {
+    try {
+        return await executeNodeFunction('1_1');
+    } catch (error) {
+        console.warn('[generate_1_1] API呼び出し失敗、フォールバックを使用', error);
+        return 'Write-Host "OK"';
+    }
 }
 
 // 1_6: メッセージボックス表示
-function generate_1_6() {
-    return `Add-Type -AssemblyName System.Windows.Forms
+async function generate_1_6() {
+    try {
+        return await executeNodeFunction('1_6');
+    } catch (error) {
+        console.warn('[generate_1_6] API呼び出し失敗、フォールバックを使用', error);
+        return `Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです。", "タイトル", "OK", "Information")`;
+    }
 }
 
 // 99_1: カスタム処理（AAAA_プレフィックス）
-function generate_99_1(直接エントリ) {
-    if (!直接エントリ) {
-        return 'Write-Host "カスタム処理"';
+async function generate_99_1(直接エントリ) {
+    try {
+        // 直接エントリがない場合はデフォルト
+        if (!直接エントリ) {
+            return await executeNodeFunction('99_1', { '直接エントリ': '' });
+        }
+
+        const entryWithPrefix = "AAAA_" + 直接エントリ;
+        // アンダースコアを改行に置換
+        const processedEntry = entryWithPrefix.replace(/_/g, '\r\n');
+
+        return await executeNodeFunction('99_1', { '直接エントリ': processedEntry });
+    } catch (error) {
+        console.warn('[generate_99_1] API呼び出し失敗、フォールバックを使用', error);
+
+        if (!直接エントリ) {
+            return 'Write-Host "カスタム処理"';
+        }
+
+        const entryWithPrefix = "AAAA_" + 直接エントリ;
+        const processedEntry = entryWithPrefix.replace(/_/g, '\r\n');
+        return processedEntry;
     }
-
-    const entryWithPrefix = "AAAA_" + 直接エントリ;
-    // アンダースコアを改行に置換
-    const processedEntry = entryWithPrefix.replace(/_/g, '\r\n');
-
-    return processedEntry;
 }
+
 
 // ============================================
 // コード生成エンジン本体
@@ -4810,27 +4876,33 @@ async function generateCode(処理番号, ノードID, 直接エントリ = null
 
         // 関数を実行
         const generatorFunc = codeGeneratorFunctions[関数名];
-
-        if (!generatorFunc) {
-            console.warn(`[コード生成] 警告: 関数 ${関数名} は未実装です`);
-            console.warn(`[コード生成] 利用可能な関数:`, Object.keys(codeGeneratorFunctions));
-            return null;
-        }
-
-        console.log(`[コード生成] 関数を実行します: ${関数名}`);
-
         let entryString = null;
 
-        // 特殊処理: 99-1の場合は直接エントリを渡す
-        if (処理番号 === '99-1') {
-            entryString = generatorFunc(直接エントリ);
-        } else {
-            // ダイアログを表示する場合は await
-            if (関数名 === 'ShowConditionBuilder' || 関数名 === 'ShowLoopBuilder') {
-                console.log(`[コード生成] ダイアログを表示します`);
-                entryString = await generatorFunc();
+        if (generatorFunc) {
+            // codeGeneratorFunctionsに登録されている場合
+            console.log(`[コード生成] 登録済み関数を実行します: ${関数名}`);
+
+            // 特殊処理: 99-1の場合は直接エントリを渡す
+            if (処理番号 === '99-1') {
+                entryString = await generatorFunc(直接エントリ);
             } else {
-                entryString = generatorFunc();
+                // ダイアログを表示する場合は await
+                if (関数名 === 'ShowConditionBuilder' || 関数名 === 'ShowLoopBuilder') {
+                    console.log(`[コード生成] ダイアログを表示します`);
+                    entryString = await generatorFunc();
+                } else {
+                    entryString = await generatorFunc();
+                }
+            }
+        } else {
+            // 未実装の場合は、API経由で00_code/*.ps1を呼び出す
+            console.log(`[コード生成] 未実装関数 - API経由で00_code/*.ps1を呼び出します: ${関数名}`);
+            try {
+                entryString = await executeNodeFunction(関数名, {});
+            } catch (error) {
+                console.error(`[コード生成] API呼び出しエラー:`, error);
+                console.error(`[コード生成] 関数 ${関数名} の実行に失敗しました`);
+                return null;
             }
         }
 
