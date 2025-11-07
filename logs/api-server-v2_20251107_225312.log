@@ -1,0 +1,210 @@
+﻿**********************
+Windows PowerShell トランスクリプト開始
+開始時刻: 20251107225312
+ユーザー名: A-01\hello
+RunAs ユーザー: A-01\hello
+構成名: 
+コンピューター: A-01 (Microsoft Windows NT 10.0.26100.0)
+ホスト アプリケーション: powershell -NoExit -ExecutionPolicy Bypass -File .\adapter\api-server-v2.ps1 -AutoOpenBrowser
+プロセス ID: 29432
+PSVersion: 5.1.26100.6899
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.6899
+BuildVersion: 10.0.26100.6899
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+トランスクリプトが開始されました。出力ファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251107_225312.log
+[ログ] ログファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251107_225312.log
+
+==================================
+UIpowershell - Polaris API Server V2
+Version: 1.0.179 (UTF-8エンコーディング修正版)
+==================================
+
+[OK] Polarisモジュールを読み込みます: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\Modules\Polaris
+[OK] Polarisモジュールを読み込みました (Version: Polaris.Version)
+
+既存のPowerShell関数を読み込みます...
+[OK] JSON操作ユーティリティ
+
+[OK] コードID管理JSON
+
+Phase 2 v2ファイルを読み込みます...
+[OK] コードメイン_コード本文_v2
+[OK] 変数機能_変数管理UI_v2
+[OK] メインF機能_ツールバー作成_v2
+[OK] メインF機能_メインボタン処理_v2
+[OK] 削除処理_v2
+[OK] ネスト規制バリデーション_v2
+
+Phase 3 Adapterファイルを読み込みます...
+[OK] UIpowershell状態を初期化しました (SessionId: 299f48ae-f57f-441a-a7b9-34f08821f1b4)
+[OK] state-manager
+[OK] node-operations
+
+==================================
+
+静的ファイル提供を設定します...
+[OK] 静的ファイル提供を設定しました
+
+Polarisサーバーを起動します...
+  ポート: 8080
+  URL: http://localhost:8080
+  フロントエンド: http://localhost:8080/index-legacy.html
+
+エントリ
+--------
+@{1-1=$キーコマンドリスト = @("Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+F", "Alt+F4", "Del", "Enter", "Tab", "Shift+Tab", ...
+
+==================================
+✓ サーバー起動成功！
+==================================
+
+アクセス先: http://localhost:8080
+
+APIエンドポイント（Phase 3対応）:
+
+【基本】
+  GET  /api/health                    - ヘルスチェック
+  GET  /api/session                   - セッション情報
+  GET  /api/debug                     - デバッグ情報
+
+【ノード管理】
+  GET  /api/nodes                     - 全ノード取得
+  PUT  /api/nodes                     - ノード配列を一括設定
+  POST /api/nodes                     - ノード追加
+  DELETE /api/nodes/:id               - ノード削除
+  DELETE /api/nodes/all               - 全ノード削除
+
+【変数管理】
+  GET  /api/variables                 - 変数一覧取得
+  GET  /api/variables/:name           - 変数取得
+  POST /api/variables                 - 変数追加
+  PUT  /api/variables/:name           - 変数更新
+  DELETE /api/variables/:name         - 変数削除
+
+【メニュー操作】
+  GET  /api/menu/structure            - メニュー構造取得
+  POST /api/menu/action/:actionId     - メニューアクション実行
+
+【実行・フォルダ】
+  POST /api/execute/generate          - PowerShellコード生成
+  GET  /api/folders                   - フォルダ一覧取得
+  POST /api/folders                   - フォルダ作成
+  PUT  /api/folders/:name             - フォルダ切り替え
+
+【バリデーション】
+  POST /api/validate/drop             - ドロップ可否チェック
+
+【コードID管理】
+  POST /api/id/generate               - 新規ID生成
+  POST /api/entry/add                 - エントリ追加
+  GET  /api/entry/:id                 - エントリ取得
+  GET  /api/entries/all               - 全エントリ取得
+
+【ブラウザログ】
+  POST /api/browser-logs              - ブラウザコンソールログ受信
+
+停止するには Ctrl+C を押してください
+
+[ブラウザ] Microsoft Edge（UIpowershell専用）をアプリモードで起動します
+           URL: http://localhost:8080/index-legacy.html
+[ノード関数実行] 関数名: 3_1
+[ノード関数実行] スクリプトパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1
+[ノード関数実行] 📂 ファイルを読み込み中...
+[ノード関数実行] 📄 ファイルパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1
+[ノード関数実行] ⏰ ファイル更新日時: 11/07/2025 22:53:02
+[ノード関数実行] 📝 ファイルプレビュー (先頭200文字):
+
+function 3_1 {
+    # 繝繧､繧｢繝ｭ繧ｰ繧定｡ｨ遉ｺ縺励※蛟､繧貞叙蠕・
+    $繧ｭ繝ｼ繧ｳ繝槭Φ繝峨Μ繧ｹ繝・= @("Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+F", "Alt+F4", "Del", "Enter", "Tab", "Shift+Tab", "PageUp", "PageDown", "ArrowUp", "Arro
+[ノード関数実行] ✅ 汎用関数を読み込みました
+[ノード関数実行エラー] 発生場所 C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1:4 文字:21
++     $繧ｭ繝ｼ繧ｳ繝槭Φ繝峨Μ繧ｹ繝・= @("Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+F", "Alt ...
++                     ~~
+式またはステートメントのトークン '・=' を使用できません。
+
+発生場所 C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1:5 文字:10
++     $驕ｸ謚槭＆繧後◆鬆・岼 = 繝ｪ繧ｹ繝医°繧蛾・岼繧帝∈謚・-繝輔か繝ｼ繝繧ｿ繧､繝医Ν "繧ｭ繝ｼ繧ｳ繝槭Φ繝峨・驕ｸ謚・ ...
++          ~~~~~~~
+式またはステートメントのトークン '＆繧後◆鬆・岼' を使用できません。
+
+発生場所 C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1:11 文字:37
++         return "# 繧ｭ繝｣繝ｳ繧ｻ繝ｫ縺輔ｌ縺ｾ縺励◆"
++                                     ~
+文字列に終端記号 " がありません。
+
+発生場所 C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1:2 文字:14
++ function 3_1 {
++              ~
+ステートメント ブロックまたは型定義に終わりの '}' が存在しません。
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 1074 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 5個のノード
+[API] 合計ノード数: 5
+[API] JSON生成完了 (長さ: 3175 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 3519 バイト
+[API]    最終更新時刻: 11/07/2025 22:53:26
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[ノード関数実行] 関数名: 3_1
+[ノード関数実行] スクリプトパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1
+[ノード関数実行] 📂 ファイルを読み込み中...
+[ノード関数実行] 📄 ファイルパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1
+[ノード関数実行] ⏰ ファイル更新日時: 11/07/2025 22:53:02
+[ノード関数実行] 📝 ファイルプレビュー (先頭200文字):
+
+function 3_1 {
+    # 繝繧､繧｢繝ｭ繧ｰ繧定｡ｨ遉ｺ縺励※蛟､繧貞叙蠕・
+    $繧ｭ繝ｼ繧ｳ繝槭Φ繝峨Μ繧ｹ繝・= @("Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+F", "Alt+F4", "Del", "Enter", "Tab", "Shift+Tab", "PageUp", "PageDown", "ArrowUp", "Arro
+[ノード関数実行] ✅ 汎用関数を読み込みました
+[ノード関数実行エラー] 発生場所 C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1:4 文字:21
++     $繧ｭ繝ｼ繧ｳ繝槭Φ繝峨Μ繧ｹ繝・= @("Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+F", "Alt ...
++                     ~~
+式またはステートメントのトークン '・=' を使用できません。
+
+発生場所 C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1:5 文字:10
++     $驕ｸ謚槭＆繧後◆鬆・岼 = 繝ｪ繧ｹ繝医°繧蛾・岼繧帝∈謚・-繝輔か繝ｼ繝繧ｿ繧､繝医Ν "繧ｭ繝ｼ繧ｳ繝槭Φ繝峨・驕ｸ謚・ ...
++          ~~~~~~~
+式またはステートメントのトークン '＆繧後◆鬆・岼' を使用できません。
+
+発生場所 C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1:11 文字:37
++         return "# 繧ｭ繝｣繝ｳ繧ｻ繝ｫ縺輔ｌ縺ｾ縺励◆"
++                                     ~
+文字列に終端記号 " がありません。
+
+発生場所 C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\3-1.ps1:2 文字:14
++ function 3_1 {
++              ~
+ステートメント ブロックまたは型定義に終わりの '}' が存在しません。
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 1238 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 6個のノード
+[API] 合計ノード数: 6
+[API] JSON生成完了 (長さ: 3718 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 4126 バイト
+[API]    最終更新時刻: 11/07/2025 22:53:36
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
