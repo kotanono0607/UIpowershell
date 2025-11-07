@@ -247,3 +247,70 @@ function 数値を入力 {
         return $null
     }
 }
+
+# ============================================
+# RPA実行用関数
+# ============================================
+
+# キー操作関数 - キーコマンドを送信する
+function キー操作 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$キーコマンド
+    )
+
+    # キーコマンドをSendKeys形式に変換
+    $sendKeysCommand = $キーコマンド
+
+    # キーコマンドのマッピング（SendKeys形式に変換）
+    $keyMap = @{
+        "Ctrl+A" = "^a"
+        "Ctrl+C" = "^c"
+        "Ctrl+V" = "^v"
+        "Ctrl+F" = "^f"
+        "Alt+F4" = "%{F4}"
+        "Del" = "{DELETE}"
+        "Enter" = "{ENTER}"
+        "Tab" = "{TAB}"
+        "Shift+Tab" = "+{TAB}"
+        "PageUp" = "{PGUP}"
+        "PageDown" = "{PGDN}"
+        "ArrowUp" = "{UP}"
+        "ArrowDown" = "{DOWN}"
+        "ArrowLeft" = "{LEFT}"
+        "ArrowRight" = "{RIGHT}"
+        "Esc" = "{ESC}"
+    }
+
+    if ($keyMap.ContainsKey($キーコマンド)) {
+        $sendKeysCommand = $keyMap[$キーコマンド]
+    }
+
+    try {
+        # SendKeysを使用してキーを送信
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.SendKeys]::SendWait($sendKeysCommand)
+        Write-Host "キー操作を実行しました: $キーコマンド" -ForegroundColor Green
+    }
+    catch {
+        Write-Warning "キー操作の実行に失敗しました: $($_.Exception.Message)"
+    }
+}
+
+# 文字列入力関数 - 文字列をキーボード入力として送信する
+function 文字列入力 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$入力文字列
+    )
+
+    try {
+        # SendKeysを使用して文字列を送信
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.SendKeys]::SendWait($入力文字列)
+        Write-Host "文字列を入力しました: $入力文字列" -ForegroundColor Green
+    }
+    catch {
+        Write-Warning "文字列入力の実行に失敗しました: $($_.Exception.Message)"
+    }
+}
