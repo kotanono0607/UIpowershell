@@ -2659,6 +2659,34 @@ function handleShiftClick(node) {
     }
     // 同じ参照の場合は何もしない（既に targetNode の更新が反映されている）
 
+    // 赤枠に挟まれたノードも赤枠にする（PowerShell互換 - リアルタイム適用）
+    const allRedBorderNodes = layerNodes.filter(n => n.redBorder);
+    if (allRedBorderNodes.length >= 2) {
+        // Y座標でソート
+        const sortedNodes = [...layerNodes].sort((a, b) => a.y - b.y);
+        const redBorderIndices = allRedBorderNodes.map(node => sortedNodes.findIndex(n => n.id === node.id));
+
+        const startIndex = Math.min(...redBorderIndices);
+        const endIndex = Math.max(...redBorderIndices);
+
+        console.log(`[Shift+クリック] 赤枠で囲まれた範囲: インデックス${startIndex}～${endIndex}`);
+
+        // 挟まれたノードを赤枠にする
+        for (let i = startIndex + 1; i < endIndex; i++) {
+            const enclosedNode = sortedNodes[i];
+            if (!enclosedNode.redBorder) {
+                enclosedNode.redBorder = true;
+                console.log(`  [自動範囲拡張] ノード「${enclosedNode.text}」を赤枠に追加`);
+
+                // グローバル配列も更新
+                const globalNode = nodes.find(n => n.id === enclosedNode.id);
+                if (globalNode) {
+                    globalNode.redBorder = true;
+                }
+            }
+        }
+    }
+
     renderNodesInLayer(currentLayer);
 
     // memory.json自動保存
