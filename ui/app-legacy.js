@@ -2002,10 +2002,12 @@ function applyGlowEffects() {
         el.style.transform = '';
         el.style.transformOrigin = '';
         el.style.zIndex = '';
-        el.style.position = '';
+        // el.style.position = ''; // ← 削除：既存のpositionを保持
         el.style.transition = '';
         el.style.boxShadow = '';
         el.style.animation = '';
+        el.style.outline = '';
+        el.style.outlineOffset = '';
     });
 
     // 2. グローソースノード（ピンクノード）を探してglow-sourceを適用
@@ -2024,8 +2026,9 @@ function applyGlowEffects() {
 
             // モダンなグロー＆シャドウ効果を直接スタイルで設定
             // 注: transform: scaleやborderの変更はレイアウトに影響するため、使用しない
+            // 注: position変更もレイアウトに影響するため、既存のpositionを維持
             btn.style.zIndex = '100';  // 最前面
-            btn.style.position = 'relative';
+            // btn.style.position = 'relative'; // ← 削除：これが右下移動の原因
             btn.style.transition = 'all 0.3s ease';
 
             // outlineを使用（レイアウトに影響しない）
