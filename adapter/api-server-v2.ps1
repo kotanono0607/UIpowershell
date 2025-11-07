@@ -1469,6 +1469,13 @@ New-PolarisRoute -Path "/api/node/execute/:functionName" -Method POST -ScriptBlo
         Write-Host "[ノード関数実行] 📝 ファイルプレビュー (先頭200文字):" -ForegroundColor Gray
         Write-Host $preview -ForegroundColor DarkGray
 
+        # 汎用関数を読み込み（13_コードサブ汎用関数.ps1）
+        $汎用関数パス = Join-Path $script:RootDir "13_コードサブ汎用関数.ps1"
+        if (Test-Path $汎用関数パス) {
+            . $汎用関数パス
+            Write-Host "[ノード関数実行] ✅ 汎用関数を読み込みました" -ForegroundColor Green
+        }
+
         . $scriptPath
         Write-Host "[ノード関数実行] ✅ スクリプト読み込み完了" -ForegroundColor Green
 
