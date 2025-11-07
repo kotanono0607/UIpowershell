@@ -681,6 +681,12 @@ New-PolarisRoute -Path "/api/execute/script" -Method POST -ScriptBlock {
             return
         }
 
+        # 汎用関数を読み込み（13_コードサブ汎用関数.ps1）
+        $汎用関数パス = Join-Path $global:RootDirForPolaris "13_コードサブ汎用関数.ps1"
+        if (Test-Path $汎用関数パス) {
+            . $汎用関数パス
+        }
+
         # スクリプトを実行して出力を取得
         $output = Invoke-Expression $scriptContent 2>&1 | Out-String
 
