@@ -1,44 +1,44 @@
-# Invoke-MouseGet ŠÖ”‚Ì’è‹`
+ï»¿# Invoke-MouseGet é–¢æ•°ã®å®šç¾©
 function Invoke-MouseGet {
     param(
-        [string]$Caller  # ŒÄ‚Ño‚µŒ³‚Ì–¼‘O‚ğó‚¯æ‚éƒpƒ‰ƒ[ƒ^
+        [string]$Caller  # å‘¼ã³å‡ºã—å…ƒã®åå‰ã‚’å—ã‘å–ã‚‹ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
     )
 
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
 
-    # ƒOƒ[ƒoƒ‹•Ï”‚ğ‰Šú‰»
+    # ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã‚’åˆæœŸåŒ–
     $global:MouseClickResult = ""
 
     $form = New-Object System.Windows.Forms.Form
-    $form.Text = "ƒNƒŠƒbƒN‚µ‚ÄÀ•W‚ğæ“¾"
+    $form.Text = "ã‚¯ãƒªãƒƒã‚¯ã—ã¦åº§æ¨™ã‚’å–å¾—"
     $form.WindowState = 'Maximized'
     $form.TopMost = $true
-    $form.Opacity = 0.1  # ƒfƒoƒbƒO—p‚É“§–¾“x‚ğİ’è
+    $form.Opacity = 0.1  # ãƒ‡ãƒãƒƒã‚°ç”¨ã«é€æ˜åº¦ã‚’è¨­å®š
 
-    # ƒ}ƒEƒXƒNƒŠƒbƒNƒCƒxƒ“ƒg‚Ìİ’è
+    # ãƒã‚¦ã‚¹ã‚¯ãƒªãƒƒã‚¯ã‚¤ãƒ™ãƒ³ãƒˆã®è¨­å®š
     $form.Add_MouseClick({
         $pos = [System.Windows.Forms.Cursor]::Position
         $x = $pos.X
         $y = $pos.Y
-        Write-Host "ƒ}ƒEƒX‚ªƒNƒŠƒbƒN‚³‚ê‚Ü‚µ‚½BX=$x, Y=$y"
+        Write-Host "ãƒã‚¦ã‚¹ãŒã‚¯ãƒªãƒƒã‚¯ã•ã‚Œã¾ã—ãŸã€‚X=$x, Y=$y"
 
-        # ŒÄ‚Ño‚µŒ³‚É‚æ‚Á‚ÄƒeƒLƒXƒg‚ğ•Ï‰»‚³‚¹‚é
+        # å‘¼ã³å‡ºã—å…ƒã«ã‚ˆã£ã¦ãƒ†ã‚­ã‚¹ãƒˆã‚’å¤‰åŒ–ã•ã›ã‚‹
         if ($Caller -eq "Addon1") {
-            $global:MouseClickResult = "w’èÀ•W‚ğ¶ƒNƒŠƒbƒN -XÀ•W $x -YÀ•W $y"
+            $global:MouseClickResult = "æŒ‡å®šåº§æ¨™ã‚’å·¦ã‚¯ãƒªãƒƒã‚¯ -Xåº§æ¨™ $x -Yåº§æ¨™ $y"
         } elseif ($Caller -eq "Addon2") {
-            $global:MouseClickResult = "w’èÀ•W‚ÉˆÚ“® -XÀ•W $x -YÀ•W $y"
+            $global:MouseClickResult = "æŒ‡å®šåº§æ¨™ã«ç§»å‹• -Xåº§æ¨™ $x -Yåº§æ¨™ $y"
         } else {
-            $global:MouseClickResult = "w’èÀ•W‚ğ¶ƒNƒŠƒbƒN -XÀ•W $x -YÀ•W $y"
+            $global:MouseClickResult = "æŒ‡å®šåº§æ¨™ã‚’å·¦ã‚¯ãƒªãƒƒã‚¯ -Xåº§æ¨™ $x -Yåº§æ¨™ $y"
         }
 
-        # ƒtƒH[ƒ€‚ğ•Â‚¶‚é
+        # ãƒ•ã‚©ãƒ¼ãƒ ã‚’é–‰ã˜ã‚‹
         $form.DialogResult = [System.Windows.Forms.DialogResult]::OK
     })
 
-    # ƒtƒH[ƒ€‚ğƒ‚[ƒ_ƒ‹‚Å•\¦
+    # ãƒ•ã‚©ãƒ¼ãƒ ã‚’ãƒ¢ãƒ¼ãƒ€ãƒ«ã§è¡¨ç¤º
     $form.ShowDialog() | Out-Null
 
-    # Œ‹‰Ê‚ğ•Ô‚·iƒOƒ[ƒoƒ‹•Ï”‚Éİ’èÏ‚İj
+    # çµæœã‚’è¿”ã™ï¼ˆã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã«è¨­å®šæ¸ˆã¿ï¼‰
     return $global:MouseClickResult
 }
