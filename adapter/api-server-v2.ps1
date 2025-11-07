@@ -1503,21 +1503,9 @@ New-PolarisRoute -Path "/api/node/execute/:functionName" -Method POST -ScriptBlo
         $codePreview = $code.Substring(0, [Math]::Min(200, $code.Length))
         Write-Host $codePreview -ForegroundColor DarkGray
 
-        # 生成されたコードを実行
-        Write-Host "[ノード関数実行] 🚀 生成されたコードを実行中..." -ForegroundColor Yellow
-        try {
-            $executionResult = Invoke-Expression $code 2>&1 | Out-String
-            Write-Host "[ノード関数実行] ✅ コード実行完了" -ForegroundColor Green
-            Write-Host "[ノード関数実行] 📤 実行結果: $executionResult" -ForegroundColor Gray
-        } catch {
-            Write-Host "[ノード関数実行] ❌ コード実行エラー: $($_.Exception.Message)" -ForegroundColor Red
-            $executionResult = "エラー: $($_.Exception.Message)"
-        }
-
         $result = @{
             success = $true
             code = $code
-            executionResult = $executionResult
             functionName = $functionName
         }
         $json = $result | ConvertTo-Json -Compress -Depth 5
