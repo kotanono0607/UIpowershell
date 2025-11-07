@@ -1,4 +1,4 @@
-
+﻿
 function 3_1 {
     # ダイアログを表示して値を取得
     $キーコマンドリスト = @("Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+F", "Alt+F4", "Del", "Enter", "Tab", "Shift+Tab", "PageUp", "PageDown", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Esc")
