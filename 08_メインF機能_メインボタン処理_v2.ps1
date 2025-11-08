@@ -112,12 +112,17 @@ function 実行イベント_v2 {
 
                 # エントリが "AAAA" で始まる場合は展開（Pinkノード）
                 if ($取得したエントリ -match "^AAAA") {
-                    Write-Host "Pinkノード（スクリプト化されたノード）を展開します"
+                    Write-Host "[Pinkノード展開] Pinkノード（スクリプト化されたノード）を展開します" -ForegroundColor Magenta
+                    Write-Host "[Pinkノード展開] 展開前の内容: $取得したエントリ" -ForegroundColor Magenta
                     $取得したエントリ = ノードリストを展開 -ノードリスト文字列 $取得したエントリ
+                    Write-Host "[Pinkノード展開] 展開後の内容: $取得したエントリ" -ForegroundColor Magenta
+                    Write-Host "[Pinkノード展開] 展開後の長さ: $($取得したエントリ.Length) 文字" -ForegroundColor Magenta
                 }
 
                 # エントリの内容のみを$outputに追加（空行を追加）
+                Write-Host "[出力追加] $outputに追加中: 長さ=$($取得したエントリ.Length) 文字" -ForegroundColor Cyan
                 $output += "$取得したエントリ`n`n"
+                Write-Host "[出力追加] 追加後の$output長: $($output.Length) 文字" -ForegroundColor Cyan
             } else {
                 Write-Host "[WARNING] エントリが見つかりません: ノードID=$buttonName, ベースID=$id" -ForegroundColor Yellow
                 Write-Host "[WARNING] このノードはスキップされます" -ForegroundColor Yellow
@@ -185,6 +190,21 @@ function 実行イベント_v2 {
                 Write-Warning "ファイルを開く際にエラーが発生しました: $($_.Exception.Message)"
             }
         }
+
+        # 最終的なレスポンスデータのログ出力
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
+        Write-Host "[実行イベント完了] レスポンス情報:" -ForegroundColor Green
+        Write-Host "  success: $true" -ForegroundColor Green
+        Write-Host "  nodeCount: $buttonCount" -ForegroundColor Green
+        Write-Host "  outputPath: $OutputPath" -ForegroundColor Green
+        Write-Host "  output長: $($output.Length) 文字" -ForegroundColor Green
+        Write-Host "  outputが空: $([string]::IsNullOrWhiteSpace($output))" -ForegroundColor Green
+        if ($output.Length -gt 0) {
+            Write-Host "  output先頭200文字: $($output.Substring(0, [Math]::Min(200, $output.Length)))" -ForegroundColor Green
+        } else {
+            Write-Host "  ⚠ output が空です！" -ForegroundColor Yellow
+        }
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
 
         return @{
             success = $true

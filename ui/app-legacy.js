@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.204';  // アプリバージョン
+const APP_VERSION = '1.0.205';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3865,7 +3865,18 @@ async function executeCode() {
             console.log('✅ [実行] コード生成成功');
             console.log(`✅ [実行] 生成されたノード数: ${result.nodeCount}個`);
             console.log(`✅ [実行] 出力先: ${result.outputPath || '（メモリ内のみ）'}`);
-            console.log(`✅ [実行] 生成されたコード長: ${result.code ? result.code.length : 0}文字`);
+
+            // result.code の詳細情報をログ出力
+            console.log(`✅ [実行] result.code の型: ${typeof result.code}`);
+            console.log(`✅ [実行] result.code が存在: ${result.code !== undefined && result.code !== null}`);
+            if (result.code) {
+                console.log(`✅ [実行] 生成されたコード長: ${result.code.length}文字`);
+                console.log(`✅ [実行] コードプレビュー（先頭200文字）:`);
+                console.log(result.code.substring(0, 200));
+            } else {
+                console.log(`⚠ [実行] result.code が空です: null or undefined`);
+                console.log(`⚠ [実行] レスポンス全体:`, JSON.stringify(result, null, 2));
+            }
 
             // 結果モーダルに情報を表示
             const infoDiv = document.getElementById('code-result-info');
@@ -3879,7 +3890,13 @@ async function executeCode() {
 
             // 生成されたコードをプレビューに表示
             const codePreview = document.getElementById('code-result-preview');
-            codePreview.value = result.code || '（コードプレビューは利用できません）';
+            if (result.code) {
+                codePreview.value = result.code;
+                console.log('✅ [実行] コードプレビューに設定しました');
+            } else {
+                codePreview.value = '（コードプレビューは利用できません）';
+                console.log('⚠ [実行] コードプレビューが利用できません - result.code が空');
+            }
 
             // グローバル変数に保存（コピー/ファイルオープン用）
             window.lastGeneratedCode = {
