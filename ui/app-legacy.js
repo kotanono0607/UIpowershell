@@ -1708,9 +1708,10 @@ async function updateParentPinkNode(addedNodes, deletedNodes = []) {
         parentPinkNode.script = remainingEntries.join('_');
     }
 
-    // 追加されたノードの情報を生成（形式: "ノードID;色;テキスト;スクリプト"）
+    // 追加されたノードの情報を生成（形式: "ノードID;色;テキスト"）
+    // 注意: Pinkノードのscriptは含めない（子ノードの情報が重複してしまうため）
     const newEntries = addedNodes.map(node =>
-        `${node.id};${node.color};${node.text};${node.script || ''}`
+        `${node.id};${node.color};${node.text};`
     ).join('_');
 
     console.log('[親ピンクノード更新] 新しいエントリ:', newEntries);
