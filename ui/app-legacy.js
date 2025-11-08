@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.203';  // アプリバージョン
+const APP_VERSION = '1.0.204';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3831,7 +3831,7 @@ async function executeCode() {
         // ノードの詳細情報をログ出力
         console.log('✅ [実行] ノード一覧:');
         currentLayerNodes.forEach((node, index) => {
-            console.log(`  ${index + 1}. ID=${node.id}, テキスト="${node.text}", 色=${node.color}, 処理番号=${node.処理番号}`);
+            console.log(`✅ [実行]   ${index + 1}. ID=${node.id}, テキスト="${node.text}", 色=${node.color}, 処理番号=${node.処理番号}`);
         });
 
         // 送信データを準備
