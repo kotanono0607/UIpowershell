@@ -111,7 +111,6 @@ console.log('[ブラウザログ] コンソールログキャプチャ機能を�
 // グローバル状態
 // ============================================
 
-let currentLayer = 1;           // 現在の左パネルレイヤー (0-6)
 let leftVisibleLayer = 1;       // 左パネルに表示中のレイヤー
 let rightVisibleLayer = 2;      // 右パネルに表示中のレイヤー
 let currentCategory = 1;        // 現在選択中のカテゴリー (1-10)
@@ -1610,7 +1609,7 @@ async function addNodeToLayer(setting) {
     console.log('│ テキスト:', setting.テキスト);
     console.log('│ 関数名:', setting.関数名);
     console.log('│ 背景色:', setting.背景色);
-    console.log('│ 現在のレイヤー:', currentLayer);
+    console.log('│ 現在のレイヤー:', leftVisibleLayer);
     console.log('└────────────────────────────────────────');
 
     // 処理番号で判定してセット作成
@@ -1656,8 +1655,8 @@ async function addNodeToLayer(setting) {
 
         // ★修正：画面を再描画（矢印も更新される）
         console.log('[addNodeToLayer] renderNodesInLayer() を呼び出します');
-        renderNodesInLayer(currentLayer);
-        reorderNodesInLayer(currentLayer);
+        renderNodesInLayer(leftVisibleLayer);
+        reorderNodesInLayer(leftVisibleLayer);
         console.log('[addNodeToLayer] 通常ノード追加が完了');
     }
 
@@ -1682,9 +1681,9 @@ function addSingleNode(setting, customText = null, customY = null, customGroupId
         name: setting.ボタン名,
         text: customText || setting.テキスト,
         color: setting.背景色,
-        layer: currentLayer,
+        layer: leftVisibleLayer,
         x: 90,                              // X座標（中央寄せ）
-        y: customY || getNextAvailableY(currentLayer),
+        y: customY || getNextAvailableY(leftVisibleLayer),
         width: 280,                         // ボタン幅
         height: customHeight,               // ボタン高さ（中間ラインは1px）
         groupId: customGroupId,
@@ -1694,7 +1693,7 @@ function addSingleNode(setting, customText = null, customY = null, customGroupId
     };
 
     nodes.push(node);
-    layerStructure[currentLayer].nodes.push(node);
+    layerStructure[leftVisibleLayer].nodes.push(node);
 
     return node;
 }
@@ -1702,7 +1701,7 @@ function addSingleNode(setting, customText = null, customY = null, customGroupId
 // ループセット（2個）を追加
 async function addLoopSet(setting) {
     const groupId = loopGroupCounter++;
-    const baseY = getNextAvailableY(currentLayer);
+    const baseY = getNextAvailableY(leftVisibleLayer);
 
     // ベースIDを取得してカウンタをインクリメント
     const baseId = nodeCounter;
@@ -1736,14 +1735,14 @@ async function addLoopSet(setting) {
 
     console.log(`[ループ作成完了] startNode.id: ${startNode.id}, endNode.id: ${endNode.id} (GroupID=${groupId}, ベースID=${baseId})`);
 
-    renderNodesInLayer(currentLayer);
-    reorderNodesInLayer(currentLayer);
+    renderNodesInLayer(leftVisibleLayer);
+    reorderNodesInLayer(leftVisibleLayer);
 }
 
 // 条件分岐セット（3個）を追加
 async function addConditionSet(setting) {
     const groupId = conditionGroupCounter++;
-    const baseY = getNextAvailableY(currentLayer);
+    const baseY = getNextAvailableY(leftVisibleLayer);
 
     // ベースIDを取得してカウンタをインクリメント
     const baseId = nodeCounter;
@@ -1788,8 +1787,8 @@ async function addConditionSet(setting) {
 
     console.log(`[条件分岐作成完了] 開始:${startNode.id}, 中間:${middleNode.id}, 終了:${endNode.id} (GroupID=${groupId}, ベースID=${baseId})`);
 
-    renderNodesInLayer(currentLayer);
-    reorderNodesInLayer(currentLayer);
+    renderNodesInLayer(leftVisibleLayer);
+    reorderNodesInLayer(leftVisibleLayer);
 }
 
 // 次の利用可能なY座標を取得
@@ -2148,7 +2147,7 @@ function handleDrop(e) {
     }
 
     const draggedNodeId = draggedNode.dataset.nodeId;
-    const draggedNodeData = layerStructure[currentLayer].nodes.find(n => n.id === draggedNodeId);
+    const draggedNodeData = layerStructure[leftVisibleLayer].nodes.find(n => n.id === draggedNodeId);
 
     if (!draggedNodeData) {
         return false;
@@ -2159,7 +2158,7 @@ function handleDrop(e) {
     // ケース1: ノードボタンへのドロップ（位置を入れ替え）
     if (target.classList.contains('node-button') && target !== draggedNode) {
         const targetNodeId = target.dataset.nodeId;
-        const targetNodeData = layerStructure[currentLayer].nodes.find(n => n.id === targetNodeId);
+        const targetNodeData = layerStructure[leftVisibleLayer].nodes.find(n => n.id === targetNodeId);
 
         if (!targetNodeData) {
             return false;
@@ -2223,10 +2222,10 @@ function handleDrop(e) {
     draggedNodeData.y = newY;
 
     // 上詰め再配置
-    reorderNodesInLayer(currentLayer);
+    reorderNodesInLayer(leftVisibleLayer);
 
     // 再描画
-    renderNodesInLayer(currentLayer);
+    renderNodesInLayer(leftVisibleLayer);
 
     // memory.json自動保存
     saveMemoryJson();
@@ -2376,7 +2375,7 @@ function renameNode() {
     const newName = prompt('新しい名前を入力してください:', contextMenuTarget.text);
     if (newName && newName.trim() !== '') {
         contextMenuTarget.text = newName.trim();
-        renderNodesInLayer(currentLayer);
+        renderNodesInLayer(leftVisibleLayer);
     }
 
     hideContextMenu();
@@ -2467,7 +2466,7 @@ async function layerizeNode() {
         return;
     }
 
-    const layerNodes = layerStructure[currentLayer].nodes;
+    const layerNodes = layerStructure[leftVisibleLayer].nodes;
 
     // 赤枠ノードを収集
     let redBorderNodes = layerNodes.filter(n => n.redBorder);
@@ -2541,7 +2540,7 @@ async function layerizeNode() {
         text: 'スクリプト',
         color: 'Pink',
         処理番号: '99-1',
-        layer: currentLayer,
+        layer: leftVisibleLayer,
         y: minY,
         x: 90,
         width: 280,
@@ -2555,8 +2554,8 @@ async function layerizeNode() {
     layerNodes.push(newNode);
 
     // Pink選択配列を更新（PowerShell互換）
-    pinkSelectionArray[currentLayer].initialY = minY;
-    pinkSelectionArray[currentLayer].value = 1;
+    pinkSelectionArray[leftVisibleLayer].initialY = minY;
+    pinkSelectionArray[leftVisibleLayer].value = 1;
 
     // ★★★ 追加: コード.jsonにピンクノードの内容を保存 ★★★
     console.log(`[レイヤー化] コード.jsonに保存します - ノードID: ${newNodeId}`);
@@ -2590,7 +2589,7 @@ async function layerizeNode() {
     // 矢印を再描画
     refreshAllArrows();
 
-    console.log(`[レイヤー化] レイヤー${currentLayer}: ${sortedRedNodes.length}個 → ノード${newNodeId} (スクリプト)`);
+    console.log(`[レイヤー化] レイヤー${leftVisibleLayer}: ${sortedRedNodes.length}個 → ノード${newNodeId} (スクリプト)`);
 
     hideContextMenu();
 }
@@ -2619,14 +2618,14 @@ async function deleteNode() {
             nodes.splice(index, 1);
         }
 
-        const layerIndex = layerStructure[currentLayer].nodes.findIndex(n => n.id === id);
+        const layerIndex = layerStructure[leftVisibleLayer].nodes.findIndex(n => n.id === id);
         if (layerIndex !== -1) {
-            layerStructure[currentLayer].nodes.splice(layerIndex, 1);
+            layerStructure[leftVisibleLayer].nodes.splice(layerIndex, 1);
         }
     });
 
-    renderNodesInLayer(currentLayer);
-    reorderNodesInLayer(currentLayer);
+    renderNodesInLayer(leftVisibleLayer);
+    reorderNodesInLayer(leftVisibleLayer);
 
     // memory.json自動保存
     saveMemoryJson();
@@ -2640,7 +2639,7 @@ async function deleteNode() {
 function toggleRedBorder() {
     if (!contextMenuTarget) return;
 
-    const layerNodes = layerStructure[currentLayer].nodes;
+    const layerNodes = layerStructure[leftVisibleLayer].nodes;
     const targetNode = layerNodes.find(n => n.id === contextMenuTarget.id);
 
     if (!targetNode) {
@@ -2652,7 +2651,7 @@ function toggleRedBorder() {
     targetNode.redBorder = !targetNode.redBorder;
 
     // 画面を再描画
-    renderNodesInLayer(currentLayer);
+    renderNodesInLayer(leftVisibleLayer);
 
     // memory.json自動保存
     saveMemoryJson();
@@ -2664,7 +2663,7 @@ function toggleRedBorder() {
 
 // Shift+クリックで赤枠トグル（PowerShell互換）
 function handleShiftClick(node) {
-    const layerNodes = layerStructure[currentLayer].nodes;
+    const layerNodes = layerStructure[leftVisibleLayer].nodes;
     const targetNode = layerNodes.find(n => n.id === node.id);
 
     if (!targetNode) return;
@@ -2709,7 +2708,7 @@ function handleShiftClick(node) {
         }
     }
 
-    renderNodesInLayer(currentLayer);
+    renderNodesInLayer(leftVisibleLayer);
 
     // memory.json自動保存
     saveMemoryJson();
@@ -2853,7 +2852,7 @@ function handlePinkNodeClick(node) {
 function applyRedBorderToGroup() {
     if (!contextMenuTarget) return;
 
-    const layerNodes = layerStructure[currentLayer].nodes;
+    const layerNodes = layerStructure[leftVisibleLayer].nodes;
 
     // Y座標でソート
     const sortedNodes = [...layerNodes].sort((a, b) => a.y - b.y);
@@ -2886,7 +2885,7 @@ function applyRedBorderToGroup() {
     }
 
     // 画面を再描画
-    renderNodesInLayer(currentLayer);
+    renderNodesInLayer(leftVisibleLayer);
 
     // memory.json自動保存
     saveMemoryJson();
@@ -2899,7 +2898,7 @@ function applyRedBorderToGroup() {
 
 // 削除対象ノードIDリストを取得
 function getDeleteTargets(targetNode) {
-    const layerNodes = layerStructure[currentLayer].nodes;
+    const layerNodes = layerStructure[leftVisibleLayer].nodes;
 
     // 条件分岐（SpringGreen）のチェック
     if (targetNode.color === 'SpringGreen') {
@@ -3204,9 +3203,9 @@ function navigateLayer(direction) {
 }
 
 // 現在のレイヤーより深いレイヤーをクリアする関数
-function clearDeeperLayers(currentLayer) {
-    console.log(`[クリア] レイヤー${currentLayer}より深いレイヤーをクリアします`);
-    for (let i = currentLayer + 1; i <= 6; i++) {
+function clearDeeperLayers(leftVisibleLayer) {
+    console.log(`[クリア] レイヤー${leftVisibleLayer}より深いレイヤーをクリアします`);
+    for (let i = leftVisibleLayer + 1; i <= 6; i++) {
         // レイヤー構造からノードを削除
         const clearedCount = layerStructure[i].nodes.length;
         layerStructure[i].nodes = [];
@@ -3518,10 +3517,10 @@ async function executeCode() {
 
     try {
         // 現在のレイヤーのノードを取得
-        const currentLayerNodes = layerStructure[currentLayer]?.nodes || [];
+        const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
 
         console.log('[DEBUG] executeCode called');
-        console.log('[DEBUG] currentLayer:', currentLayer);
+        console.log('[DEBUG] leftVisibleLayer:', leftVisibleLayer);
         console.log('[DEBUG] layerStructure:', layerStructure);
         console.log('[DEBUG] currentLayerNodes:', currentLayerNodes);
         console.log('[DEBUG] currentLayerNodes.length:', currentLayerNodes.length);
@@ -3722,7 +3721,7 @@ async function restoreSnapshot() {
         console.log('[スナップショット復元] コードエントリ数:', Object.keys(codeData).length);
 
         // UIをリロード（現在のレイヤーを再描画）
-        renderNodesInLayer(currentLayer);
+        renderNodesInLayer(leftVisibleLayer);
 
         // memory.json と コード.json を保存（PowerShell版と同期）
         await saveMemoryJson();
@@ -4240,7 +4239,7 @@ function checkSameColorCollision(nodeColor, currentY, newY, movingNodeId) {
         return false;
     }
 
-    const layerNodes = layerStructure[currentLayer].nodes;
+    const layerNodes = layerStructure[leftVisibleLayer].nodes;
     const minY = Math.min(currentY, newY);
     const maxY = Math.max(currentY, newY);
 
@@ -4274,7 +4273,7 @@ function checkSameColorCollision(nodeColor, currentY, newY, movingNodeId) {
  * オリジナル: 02-2_ネスト規制バリデーション_v2.ps1:280-488 (ドロップ禁止チェック_ネスト規制_v2)
  */
 function validateNesting(movingNode, newY) {
-    const layerNodes = layerStructure[currentLayer].nodes;
+    const layerNodes = layerStructure[leftVisibleLayer].nodes;
     const nodeColor = movingNode.color;
 
     // 色の正規化
