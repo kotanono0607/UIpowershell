@@ -1601,6 +1601,73 @@ function switchCategory(categoryNum) {
 // ノード追加
 // ============================================
 
+// 親ピンクノードのスクリプトを更新する関数
+async function updateParentPinkNode(addedNodes) {
+    console.log('[親ピンクノード更新] 開始');
+    console.log('[親ピンクノード更新] 現在のレイヤー:', leftVisibleLayer);
+
+    // レイヤー1の場合は親がいないのでスキップ
+    if (leftVisibleLayer < 2) {
+        console.log('[親ピンクノード更新] レイヤー1なので親ピンクノードなし');
+        return;
+    }
+
+    const parentLayer = leftVisibleLayer - 1;
+    const parentPinkNodeId = pinkSelectionArray[parentLayer].expandedNode;
+
+    console.log('[親ピンクノード更新] 親レイヤー:', parentLayer);
+    console.log('[親ピンクノード更新] 親ピンクノードID:', parentPinkNodeId);
+
+    if (!parentPinkNodeId) {
+        console.warn('[親ピンクノード更新] 親ピンクノードIDが見つかりません');
+        return;
+    }
+
+    // 親ピンクノードを取得
+    const parentPinkNode = layerStructure[parentLayer].nodes.find(n => n.id === parentPinkNodeId);
+
+    if (!parentPinkNode) {
+        console.error('[親ピンクノード更新] 親ピンクノードが見つかりません:', parentPinkNodeId);
+        return;
+    }
+
+    console.log('[親ピンクノード更新] 親ピンクノード取得成功:', parentPinkNode);
+
+    // 追加されたノードの情報を生成（形式: "ノードID;色;テキスト;スクリプト"）
+    const newEntries = addedNodes.map(node =>
+        `${node.id};${node.color};${node.text};${node.script || ''}`
+    ).join('_');
+
+    console.log('[親ピンクノード更新] 新しいエントリ:', newEntries);
+
+    // 親ピンクノードのscriptに追加
+    if (parentPinkNode.script) {
+        parentPinkNode.script = parentPinkNode.script + '_' + newEntries;
+    } else {
+        parentPinkNode.script = newEntries;
+    }
+
+    console.log('[親ピンクノード更新] 更新後のscript:', parentPinkNode.script);
+
+    // グローバルnodesも更新
+    const globalNode = nodes.find(n => n.id === parentPinkNodeId);
+    if (globalNode) {
+        globalNode.script = parentPinkNode.script;
+    }
+
+    // コード.jsonに保存（"AAAA\n"プレフィックス付き、改行区切り）
+    const formattedEntryString = 'AAAA\n' + parentPinkNode.script.replace(/_/g, '\n');
+    console.log('[親ピンクノード更新] フォーマット後のエントリ:', formattedEntryString.substring(0, 100) + '...');
+
+    try {
+        await setCodeEntry(parentPinkNodeId, formattedEntryString);
+        console.log('[親ピンクノード更新] ✅ コード.json保存成功 - ノードID:', parentPinkNodeId);
+    } catch (error) {
+        console.error('[親ピンクノード更新] ❌ コード.json保存エラー:', error);
+        alert('親ピンクノードの更新に失敗しました。コンソールを確認してください。');
+    }
+}
+
 async function addNodeToLayer(setting) {
     console.log('┌────────────────────────────────────────');
     console.log('│ [addNodeToLayer] 開始');
@@ -1612,21 +1679,24 @@ async function addNodeToLayer(setting) {
     console.log('│ 現在のレイヤー:', leftVisibleLayer);
     console.log('└────────────────────────────────────────');
 
+    let addedNodes = [];
+
     // 処理番号で判定してセット作成
     if (setting.処理番号 === '1-2') {
         // 条件分岐：3個セット（開始・中間・終了）
         console.log('[addNodeToLayer] 条件分岐セット追加を開始');
-        await addConditionSet(setting);
+        addedNodes = await addConditionSet(setting);
         console.log('[addNodeToLayer] 条件分岐セット追加が完了');
     } else if (setting.処理番号 === '1-3') {
         // ループ：2個セット（開始・終了）
         console.log('[addNodeToLayer] ループセット追加を開始');
-        await addLoopSet(setting);
+        addedNodes = await addLoopSet(setting);
         console.log('[addNodeToLayer] ループセット追加が完了');
     } else {
         // 通常ノード：1個
         console.log('[addNodeToLayer] 通常ノード追加を開始');
         const node = addSingleNode(setting);
+        addedNodes = [node];
         console.log('[addNodeToLayer] ノードを作成しました - ID:', node.id, 'name:', node.name);
 
         // コード生成
@@ -1658,6 +1728,13 @@ async function addNodeToLayer(setting) {
         renderNodesInLayer(leftVisibleLayer);
         reorderNodesInLayer(leftVisibleLayer);
         console.log('[addNodeToLayer] 通常ノード追加が完了');
+    }
+
+    // ★ レイヤー2以降の場合、親ピンクノードに反映
+    console.log('[addNodeToLayer] 追加されたノード数:', addedNodes.length);
+    if (leftVisibleLayer >= 2 && addedNodes.length > 0) {
+        console.log('[addNodeToLayer] 親ピンクノードに反映します');
+        await updateParentPinkNode(addedNodes);
     }
 
     // memory.json自動保存
@@ -1737,6 +1814,9 @@ async function addLoopSet(setting) {
 
     renderNodesInLayer(leftVisibleLayer);
     reorderNodesInLayer(leftVisibleLayer);
+
+    // 追加されたノードを返す
+    return [startNode, endNode];
 }
 
 // 条件分岐セット（3個）を追加
@@ -1789,6 +1869,9 @@ async function addConditionSet(setting) {
 
     renderNodesInLayer(leftVisibleLayer);
     reorderNodesInLayer(leftVisibleLayer);
+
+    // 追加されたノードを返す
+    return [startNode, middleNode, endNode];
 }
 
 // 次の利用可能なY座標を取得
