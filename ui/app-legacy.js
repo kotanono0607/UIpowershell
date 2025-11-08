@@ -3,6 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
+const APP_VERSION = '1.0.200';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -1428,7 +1429,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadExistingNodes();
 
     console.log('═══════════════════════════════════════════════');
-    console.log('✅ UIpowershell 初期化完了');
+    console.log(`✅ UIpowershell 初期化完了 [Version: ${APP_VERSION}]`);
     console.log('═══════════════════════════════════════════════');
 });
 
@@ -2980,11 +2981,15 @@ async function handlePinkNodeClick(node) {
         const color = parts[1];
         const text = parts[2];
         let script = parts[3] || '';
+        let savedScriptForCodeJson = null;  // コード.jsonに保存する用（元のフォーマット）
 
         // ピンクノードの場合、コード.jsonからscriptデータを復元
         if (color === 'Pink' && !script) {
             const savedScript = getCodeEntry(originalId);
             if (savedScript) {
+                // コード.json保存用に保持（元のフォーマット）
+                savedScriptForCodeJson = savedScript;
+
                 // コード.json形式（"AAAA\n"プレフィックス + 改行区切り）をscript形式（アンダースコア区切り）に変換
                 // 例: "AAAA\n4;White;順次;\n---\n5;White;順次;" → "4;White;順次;_5;White;順次;"
                 script = savedScript
@@ -3032,6 +3037,16 @@ async function handlePinkNodeClick(node) {
         };
 
         console.log(`[展開処理] ノード作成: ID=${newNodeId}, テキスト=${text}, 色=${color}, Y=${nodeY}`);
+
+        // ピンクノードの場合、コード.jsonに新しいIDで保存
+        if (color === 'Pink' && savedScriptForCodeJson) {
+            console.log(`[展開処理] ピンクノードを新しいID(${newNodeId})でコード.jsonに保存します`);
+            setCodeEntry(newNodeId, savedScriptForCodeJson).then(() => {
+                console.log(`[展開処理] ✅ コード.json保存成功 - 新しいID: ${newNodeId}`);
+            }).catch(error => {
+                console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
+            });
+        }
 
         // IDマッピングを記録
         idMapping.push({ originalId, newNodeId });
