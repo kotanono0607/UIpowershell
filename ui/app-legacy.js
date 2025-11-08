@@ -2979,7 +2979,28 @@ async function handlePinkNodeClick(node) {
         const originalId = parts[0];
         const color = parts[1];
         const text = parts[2];
-        const script = parts[3] || '';
+        let script = parts[3] || '';
+
+        // ピンクノードの場合、コード.jsonからscriptデータを復元
+        if (color === 'Pink' && !script) {
+            const savedScript = getCodeEntry(originalId);
+            if (savedScript) {
+                // コード.json形式（"AAAA\n"プレフィックス + 改行区切り）をscript形式（アンダースコア区切り）に変換
+                // 例: "AAAA\n4;White;順次;\n---\n5;White;順次;" → "4;White;順次;_5;White;順次;"
+                script = savedScript
+                    .replace(/^AAAA\n/, '')  // "AAAA\n" プレフィックスを除去
+                    .replace(/\n---\n/g, '_')  // "\n---\n" を "_" に変換
+                    .replace(/\n/g, '_')  // 改行を "_" に変換
+                    .replace(/_+/g, '_')  // 連続するアンダースコアを1つに
+                    .trim();
+
+                console.log(`[展開処理] ✅ ピンクノードのscriptをコード.jsonから復元: ID=${originalId}`);
+                console.log(`[展開処理]    元のデータ: ${savedScript.substring(0, 100)}${savedScript.length > 100 ? '...' : ''}`);
+                console.log(`[展開処理]    変換後: ${script}`);
+            } else {
+                console.warn(`[展開処理] ⚠ ピンクノードのscriptが見つかりません: ID=${originalId}`);
+            }
+        }
 
         console.log(`[展開処理] エントリ${index}: ID=${originalId}, 色=${color}, テキスト=${text}`);
 
