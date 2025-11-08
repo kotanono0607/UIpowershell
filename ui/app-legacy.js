@@ -2866,7 +2866,7 @@ function handleShiftClick(node) {
 }
 
 // ピンクノードクリックで展開処理（PowerShell互換）
-function handlePinkNodeClick(node) {
+async function handlePinkNodeClick(node) {
     console.log(`[ピンクノードクリック] ノード「${node.text}」(ID: ${node.id}) がクリックされました`);
 
     // 親レイヤー番号を取得
@@ -2919,6 +2919,7 @@ function handlePinkNodeClick(node) {
     console.log(`[展開処理] ${entries.length}個のノードを展開します`);
 
     let baseY = 10; // 初期Y座標
+    const idMapping = []; // 元のID -> 新しいIDのマッピング
 
     entries.forEach((entry, index) => {
         const parts = entry.split(';');
@@ -2963,6 +2964,9 @@ function handlePinkNodeClick(node) {
 
         console.log(`[展開処理] ノード作成: ID=${newNodeId}, テキスト=${text}, 色=${color}, Y=${nodeY}`);
 
+        // IDマッピングを記録
+        idMapping.push({ originalId, newNodeId });
+
         // グローバル配列とレイヤーに追加
         nodes.push(newNode);
         layerStructure[nextLayer].nodes.push(newNode);
@@ -2970,6 +2974,36 @@ function handlePinkNodeClick(node) {
         // 次のノードのbaseY計算（中間ノードは特殊）
         baseY = nodeY + heightForNext;
     });
+
+    // ★★★ 追加: 親ピンクノードのscriptを新しいIDで更新 ★★★
+    console.log(`[展開処理] 親ピンクノードのscriptを新しいIDで更新します`);
+    console.log(`[展開処理] IDマッピング: ${idMapping.map(m => `${m.originalId}->${m.newNodeId}`).join(', ')}`);
+
+    let updatedScript = node.script;
+    idMapping.forEach(mapping => {
+        // 正規表現を使って、セミコロンやアンダースコアで区切られた位置のIDのみを置換
+        const regex = new RegExp(`(^|_)${mapping.originalId}(;|$)`, 'g');
+        updatedScript = updatedScript.replace(regex, `$1${mapping.newNodeId}$2`);
+    });
+
+    console.log(`[展開処理] 更新前のscript: ${node.script}`);
+    console.log(`[展開処理] 更新後のscript: ${updatedScript}`);
+
+    // 親ピンクノードを更新
+    node.script = updatedScript;
+    const globalNode = nodes.find(n => n.id === node.id);
+    if (globalNode) {
+        globalNode.script = updatedScript;
+    }
+
+    // コード.jsonに保存
+    const formattedEntryString = 'AAAA\n' + updatedScript.replace(/_/g, '\n');
+    try {
+        await setCodeEntry(node.id, formattedEntryString);
+        console.log(`[展開処理] ✅ コード.json保存成功 - ノードID: ${node.id}`);
+    } catch (error) {
+        console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
+    }
 
     // 条件分岐の色変え（赤・青）を適用するため、reorderNodesInLayerを呼ぶ
     // （これにより座標も正しく再計算され、色も正しく設定される）
