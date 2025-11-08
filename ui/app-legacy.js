@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.200';  // アプリバージョン
+const APP_VERSION = '1.0.201';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -1684,28 +1684,43 @@ async function updateParentPinkNode(addedNodes, deletedNodes = []) {
     console.log('[親ピンクノード更新] 親ピンクノード取得成功:', parentPinkNode);
 
     // ★★★ 追加: 削除されたノードを親ピンクノードのscriptから除去 ★★★
+    let insertionIndex = -1;  // 新しいノードを挿入する位置
     if (deletedNodes.length > 0) {
         console.log('[親ピンクノード更新] 削除ノードを親scriptから除去します');
 
         // 削除対象のノードIDセット
         const deletedNodeIds = new Set(deletedNodes.map(n => n.id));
 
+        // 削除されたノードの中で最小Y座標のノードを取得（挿入位置の基準）
+        const sortedDeletedNodes = [...deletedNodes].sort((a, b) => a.y - b.y);
+        const firstDeletedNodeId = sortedDeletedNodes[0].id;
+        console.log(`[親ピンクノード更新] 最初の削除ノードID: ${firstDeletedNodeId}`);
+
         // 親ピンクノードのscriptをエントリごとに分割
         const entries = parentPinkNode.script ? parentPinkNode.script.split('_').filter(e => e.trim() !== '') : [];
         console.log(`[親ピンクノード更新] 元のエントリ数: ${entries.length}`);
 
-        // 削除されていないエントリのみ保持
-        const remainingEntries = entries.filter(entry => {
+        // 削除されていないエントリのみ保持し、挿入位置を記録
+        const remainingEntries = [];
+        entries.forEach((entry, index) => {
             const parts = entry.split(';');
             const nodeId = parseInt(parts[0]);
             const isDeleted = deletedNodeIds.has(nodeId);
+
             if (isDeleted) {
+                // 最初に削除されるエントリの位置を記録
+                if (insertionIndex === -1 && nodeId === firstDeletedNodeId) {
+                    insertionIndex = remainingEntries.length;
+                    console.log(`[親ピンクノード更新] 挿入位置を記録: インデックス=${insertionIndex}`);
+                }
                 console.log(`[親ピンクノード更新] エントリ削除: ID=${nodeId}, entry="${entry}"`);
+            } else {
+                remainingEntries.push(entry);
             }
-            return !isDeleted;
         });
 
         console.log(`[親ピンクノード更新] 残りのエントリ数: ${remainingEntries.length}`);
+        console.log(`[親ピンクノード更新] 挿入位置: ${insertionIndex}`);
         parentPinkNode.script = remainingEntries.join('_');
     }
 
@@ -1717,11 +1732,23 @@ async function updateParentPinkNode(addedNodes, deletedNodes = []) {
 
     console.log('[親ピンクノード更新] 新しいエントリ:', newEntries);
 
-    // 親ピンクノードのscriptに追加
+    // 親ピンクノードのscriptに追加（削除された位置に挿入）
     if (parentPinkNode.script && parentPinkNode.script.trim() !== '') {
-        parentPinkNode.script = parentPinkNode.script + '_' + newEntries;
+        const entries = parentPinkNode.script.split('_').filter(e => e.trim() !== '');
+
+        // 挿入位置が有効な場合、その位置に挿入
+        if (insertionIndex >= 0 && insertionIndex <= entries.length) {
+            entries.splice(insertionIndex, 0, ...newEntries.split('_').filter(e => e.trim() !== ''));
+            parentPinkNode.script = entries.join('_');
+            console.log(`[親ピンクノード更新] インデックス${insertionIndex}に挿入しました`);
+        } else {
+            // 挿入位置が無効な場合、最後に追加（フォールバック）
+            parentPinkNode.script = parentPinkNode.script + '_' + newEntries;
+            console.log('[親ピンクノード更新] 最後に追加しました（フォールバック）');
+        }
     } else {
         parentPinkNode.script = newEntries;
+        console.log('[親ピンクノード更新] 新規作成しました');
     }
 
     console.log('[親ピンクノード更新] 更新後のscript:', parentPinkNode.script);
