@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.202';  // アプリバージョン
+const APP_VERSION = '1.0.203';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3807,21 +3807,32 @@ async function executeCode() {
     const confirmed = confirm('PowerShellコードを生成しますか？');
     if (!confirmed) return;
 
+    const startTime = performance.now();
+    console.log('');
+    console.log('═══════════════════════════════════════════════');
+    console.log('✅ [実行] PowerShellコード生成を開始');
+    console.log('═══════════════════════════════════════════════');
+    console.log(`✅ [実行] 開始時刻: ${new Date().toLocaleString('ja-JP')}`);
+    console.log(`✅ [実行] 対象レイヤー: レイヤー${leftVisibleLayer}`);
+
     try {
         // 現在のレイヤーのノードを取得
         const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
 
-        console.log('[DEBUG] executeCode called');
-        console.log('[DEBUG] leftVisibleLayer:', leftVisibleLayer);
-        console.log('[DEBUG] layerStructure:', layerStructure);
-        console.log('[DEBUG] currentLayerNodes:', currentLayerNodes);
-        console.log('[DEBUG] currentLayerNodes.length:', currentLayerNodes.length);
+        console.log(`✅ [実行] 現在のレイヤーのノード数: ${currentLayerNodes.length}個`);
 
         // ノードが存在しない場合の検証
         if (currentLayerNodes.length === 0) {
+            console.log('❌ [実行] エラー: 現在のレイヤーにノードがありません');
             alert('現在のレイヤーにノードがありません。ノードを追加してから実行してください。');
             return;
         }
+
+        // ノードの詳細情報をログ出力
+        console.log('✅ [実行] ノード一覧:');
+        currentLayerNodes.forEach((node, index) => {
+            console.log(`  ${index + 1}. ID=${node.id}, テキスト="${node.text}", 色=${node.color}, 処理番号=${node.処理番号}`);
+        });
 
         // 送信データを準備
         const requestData = {
@@ -3836,13 +3847,26 @@ async function executeCode() {
             openFile: false
         };
 
-        console.log('[DEBUG] Request data:', JSON.stringify(requestData, null, 2));
-        console.log('[DEBUG] Request nodes count:', requestData.nodes.length);
+        console.log('✅ [実行] APIリクエスト送信中...');
+        console.log(`✅ [実行] エンドポイント: /execute/generate`);
+        console.log(`✅ [実行] メソッド: POST`);
+        console.log(`✅ [実行] リクエストデータ:`, JSON.stringify(requestData, null, 2));
 
         // 現在のレイヤーのノードを送信
+        const apiStartTime = performance.now();
         const result = await callApi('/execute/generate', 'POST', requestData);
+        const apiEndTime = performance.now();
+        const apiDuration = (apiEndTime - apiStartTime).toFixed(2);
+
+        console.log(`✅ [実行] APIレスポンス受信完了 (所要時間: ${apiDuration}ms)`);
+        console.log(`✅ [実行] レスポンス:`, result);
 
         if (result.success) {
+            console.log('✅ [実行] コード生成成功');
+            console.log(`✅ [実行] 生成されたノード数: ${result.nodeCount}個`);
+            console.log(`✅ [実行] 出力先: ${result.outputPath || '（メモリ内のみ）'}`);
+            console.log(`✅ [実行] 生成されたコード長: ${result.code ? result.code.length : 0}文字`);
+
             // 結果モーダルに情報を表示
             const infoDiv = document.getElementById('code-result-info');
             infoDiv.innerHTML = `
@@ -3865,11 +3889,29 @@ async function executeCode() {
 
             // モーダルを表示
             document.getElementById('code-result-modal').classList.add('show');
+
+            const endTime = performance.now();
+            const totalDuration = (endTime - startTime).toFixed(2);
+            console.log(`✅ [実行] 総処理時間: ${totalDuration}ms`);
+            console.log('═══════════════════════════════════════════════');
+            console.log('✅ [実行] PowerShellコード生成が完了しました');
+            console.log('═══════════════════════════════════════════════');
+            console.log('');
         } else {
+            console.log('❌ [実行] コード生成失敗');
+            console.log(`❌ [実行] エラーメッセージ: ${result.error}`);
+            console.log('═══════════════════════════════════════════════');
+            console.log('');
             alert(`コード生成失敗: ${result.error}`);
         }
     } catch (error) {
-        console.error('コード生成エラー:', error);
+        const endTime = performance.now();
+        const totalDuration = (endTime - startTime).toFixed(2);
+        console.error('❌ [実行] コード生成エラー (所要時間: ' + totalDuration + 'ms)');
+        console.error('❌ [実行] エラーメッセージ:', error.message);
+        console.error('❌ [実行] スタックトレース:', error.stack);
+        console.log('═══════════════════════════════════════════════');
+        console.log('');
         alert(`コード生成中にエラーが発生しました: ${error.message}`);
     }
 }
