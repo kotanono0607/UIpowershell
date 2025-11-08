@@ -1602,9 +1602,11 @@ function switchCategory(categoryNum) {
 // ============================================
 
 // 親ピンクノードのスクリプトを更新する関数
-async function updateParentPinkNode(addedNodes) {
+async function updateParentPinkNode(addedNodes, deletedNodes = []) {
     console.log('[親ピンクノード更新] 開始');
     console.log('[親ピンクノード更新] 現在のレイヤー:', leftVisibleLayer);
+    console.log('[親ピンクノード更新] 追加ノード数:', addedNodes.length);
+    console.log('[親ピンクノード更新] 削除ノード数:', deletedNodes.length);
 
     // レイヤー1の場合は親がいないのでスキップ
     if (leftVisibleLayer < 2) {
@@ -1633,6 +1635,32 @@ async function updateParentPinkNode(addedNodes) {
 
     console.log('[親ピンクノード更新] 親ピンクノード取得成功:', parentPinkNode);
 
+    // ★★★ 追加: 削除されたノードを親ピンクノードのscriptから除去 ★★★
+    if (deletedNodes.length > 0) {
+        console.log('[親ピンクノード更新] 削除ノードを親scriptから除去します');
+
+        // 削除対象のノードIDセット
+        const deletedNodeIds = new Set(deletedNodes.map(n => n.id));
+
+        // 親ピンクノードのscriptをエントリごとに分割
+        const entries = parentPinkNode.script ? parentPinkNode.script.split('_').filter(e => e.trim() !== '') : [];
+        console.log(`[親ピンクノード更新] 元のエントリ数: ${entries.length}`);
+
+        // 削除されていないエントリのみ保持
+        const remainingEntries = entries.filter(entry => {
+            const parts = entry.split(';');
+            const nodeId = parseInt(parts[0]);
+            const isDeleted = deletedNodeIds.has(nodeId);
+            if (isDeleted) {
+                console.log(`[親ピンクノード更新] エントリ削除: ID=${nodeId}, entry="${entry}"`);
+            }
+            return !isDeleted;
+        });
+
+        console.log(`[親ピンクノード更新] 残りのエントリ数: ${remainingEntries.length}`);
+        parentPinkNode.script = remainingEntries.join('_');
+    }
+
     // 追加されたノードの情報を生成（形式: "ノードID;色;テキスト;スクリプト"）
     const newEntries = addedNodes.map(node =>
         `${node.id};${node.color};${node.text};${node.script || ''}`
@@ -1641,7 +1669,7 @@ async function updateParentPinkNode(addedNodes) {
     console.log('[親ピンクノード更新] 新しいエントリ:', newEntries);
 
     // 親ピンクノードのscriptに追加
-    if (parentPinkNode.script) {
+    if (parentPinkNode.script && parentPinkNode.script.trim() !== '') {
         parentPinkNode.script = parentPinkNode.script + '_' + newEntries;
     } else {
         parentPinkNode.script = newEntries;
@@ -2604,17 +2632,31 @@ async function layerizeNode() {
     const entryString = deletedNodeInfo.join('_');
 
     // 赤枠ノードをグローバル配列とレイヤーから削除
+    console.log(`[レイヤー化] 削除前のレイヤーノード数: ${layerNodes.length}`);
+    console.log(`[レイヤー化] 削除前のグローバルノード数: ${nodes.length}`);
+
     sortedRedNodes.forEach(node => {
+        console.log(`[レイヤー化] ノード削除中: ID=${node.id}, text="${node.text}"`);
+
         const globalIndex = nodes.findIndex(n => n.id === node.id);
         if (globalIndex !== -1) {
             nodes.splice(globalIndex, 1);
+            console.log(`  ✓ グローバル配列から削除 (インデックス: ${globalIndex})`);
+        } else {
+            console.warn(`  ⚠ グローバル配列に見つかりません`);
         }
 
         const layerIndex = layerNodes.findIndex(n => n.id === node.id);
         if (layerIndex !== -1) {
             layerNodes.splice(layerIndex, 1);
+            console.log(`  ✓ レイヤー配列から削除 (インデックス: ${layerIndex})`);
+        } else {
+            console.warn(`  ⚠ レイヤー配列に見つかりません`);
         }
     });
+
+    console.log(`[レイヤー化] 削除後のレイヤーノード数: ${layerNodes.length}`);
+    console.log(`[レイヤー化] 削除後のグローバルノード数: ${nodes.length}`);
 
     // 新しいピンクノードを作成
     const newNodeId = nodeCounter++;
@@ -2662,7 +2704,9 @@ async function layerizeNode() {
     // ★★★ 追加: レイヤー2以降の場合、親ピンクノードに反映 ★★★
     if (leftVisibleLayer >= 2) {
         console.log(`[レイヤー化] レイヤー${leftVisibleLayer}なので親ピンクノードに反映します`);
-        await updateParentPinkNode([newNode]);
+        console.log(`[レイヤー化] 削除されたノード: ${sortedRedNodes.map(n => `ID=${n.id}(${n.text})`).join(', ')}`);
+        console.log(`[レイヤー化] 追加するノード: ID=${newNode.id}(${newNode.text})`);
+        await updateParentPinkNode([newNode], sortedRedNodes);
     }
 
     // 左右パネルの表示を更新
