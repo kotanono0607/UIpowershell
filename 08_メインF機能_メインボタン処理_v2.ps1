@@ -67,8 +67,8 @@ function 実行イベント_v2 {
             }
         }
 
-        # Y座標でソート
-        $buttons = $ノード配列 | Sort-Object { $_.y }
+        # Y座標でソート（配列として強制）
+        $buttons = @($ノード配列 | Sort-Object { $_.y })
 
         # 出力用の文字列変数を初期化
         $output = @"
