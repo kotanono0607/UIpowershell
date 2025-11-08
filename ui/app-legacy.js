@@ -2659,6 +2659,12 @@ async function layerizeNode() {
         alert('ピンクノードの保存に失敗しました。コンソールを確認してください。');
     }
 
+    // ★★★ 追加: レイヤー2以降の場合、親ピンクノードに反映 ★★★
+    if (leftVisibleLayer >= 2) {
+        console.log(`[レイヤー化] レイヤー${leftVisibleLayer}なので親ピンクノードに反映します`);
+        await updateParentPinkNode([newNode]);
+    }
+
     // 左右パネルの表示を更新
     updateDualPanelDisplay();
 
