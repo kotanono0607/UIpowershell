@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.205';  // アプリバージョン
+const APP_VERSION = '1.0.206';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -2532,6 +2532,18 @@ function showContextMenu(e, node) {
     menu.classList.add('show');
 
     contextMenuTarget = node;
+
+    // レイヤー化ボタンの表示/非表示を制御
+    const layerizeMenuItem = document.getElementById('layerize-menu-item');
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    const redBorderNodes = currentLayerNodes.filter(n => n.redBorder);
+
+    // 赤枠ノードが2個以上ある場合のみレイヤー化ボタンを表示
+    if (redBorderNodes.length >= 2) {
+        layerizeMenuItem.style.display = 'block';
+    } else {
+        layerizeMenuItem.style.display = 'none';
+    }
 
     // メニュー外クリックで閉じる
     setTimeout(() => {
