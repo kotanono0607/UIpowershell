@@ -120,9 +120,9 @@ function 実行イベント_v2 {
                 }
 
                 # エントリの内容のみを$outputに追加（空行を追加）
-                Write-Host "[出力追加] $outputに追加中: 長さ=$($取得したエントリ.Length) 文字" -ForegroundColor Cyan
+                Write-Host "[出力追加] outputに追加中: 長さ=$($取得したエントリ.Length) 文字" -ForegroundColor Cyan
                 $output += "$取得したエントリ`n`n"
-                Write-Host "[出力追加] 追加後の$output長: $($output.Length) 文字" -ForegroundColor Cyan
+                Write-Host "[出力追加] 追加後のoutput長: $($output.Length) 文字" -ForegroundColor Cyan
             } else {
                 Write-Host "[WARNING] エントリが見つかりません: ノードID=$buttonName, ベースID=$id" -ForegroundColor Yellow
                 Write-Host "[WARNING] このノードはスキップされます" -ForegroundColor Yellow
