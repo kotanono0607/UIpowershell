@@ -3019,35 +3019,58 @@ function findLoopSet(layerNodes, targetNode) {
 
 // 全削除（現在のレイヤーのノードをすべて削除）
 async function deleteAllNodes() {
-    console.log('[全削除] 開始 - currentLayer:', currentLayer);
-    console.log('[全削除] 現在のノード数:', layerStructure[currentLayer].nodes.length);
+    console.log('[全削除] 開始');
 
-    if (layerStructure[currentLayer].nodes.length === 0) {
+    // 全レイヤーのノード数を計算
+    let totalNodeCount = 0;
+    const layerCounts = {};
+    for (let i = 1; i <= 6; i++) {
+        const count = layerStructure[i].nodes.length;
+        layerCounts[i] = count;
+        totalNodeCount += count;
+        console.log(`[全削除] レイヤー${i}: ${count}個のノード`);
+    }
+
+    if (totalNodeCount === 0) {
         alert('削除するノードがありません。');
         return;
     }
 
-    const confirmed = confirm(`レイヤー${currentLayer}のすべてのノード（${layerStructure[currentLayer].nodes.length}個）を削除しますか？`);
-    if (!confirmed) return;
+    // 確認ダイアログ（全レイヤーの合計ノード数を表示）
+    const confirmed = confirm(
+        `⚠️ すべてのレイヤーのノード（合計${totalNodeCount}個）とコード.jsonを削除します。\n\n` +
+        `この操作は取り消せません。本当に削除しますか？\n\n` +
+        `削除されるノード:\n` +
+        Object.keys(layerCounts)
+            .filter(layer => layerCounts[layer] > 0)
+            .map(layer => `  レイヤー${layer}: ${layerCounts[layer]}個`)
+            .join('\n')
+    );
+    if (!confirmed) {
+        console.log('[全削除] ユーザーがキャンセルしました');
+        return;
+    }
 
     try {
-        console.log('[全削除] APIを呼び出します...');
+        console.log('[全削除] 全レイヤーのノードを収集します...');
 
-        // 現在のレイヤーのノードを取得
-        const currentLayerNodes = layerStructure[currentLayer].nodes;
-
-        // 🔍 デバッグ: 送信するデータを詳細に確認
-        console.log('[全削除] 🔍 送信するノード数:', currentLayerNodes.length);
-        if (currentLayerNodes.length > 0) {
-            console.log('[全削除] 🔍 最初のノードの構造:', currentLayerNodes[0]);
-            console.log('[全削除] 🔍 最初のノードのid:', currentLayerNodes[0].id);
-            console.log('[全削除] 🔍 最初のノードのname:', currentLayerNodes[0].name);
+        // 全レイヤーのノードを収集
+        const allNodes = [];
+        for (let i = 1; i <= 6; i++) {
+            allNodes.push(...layerStructure[i].nodes);
         }
-        const requestBody = { nodes: currentLayerNodes };
+
+        console.log('[全削除] 🔍 送信するノード総数:', allNodes.length);
+        if (allNodes.length > 0) {
+            console.log('[全削除] 🔍 最初のノードの構造:', allNodes[0]);
+            console.log('[全削除] 🔍 最初のノードのid:', allNodes[0].id);
+        }
+        const requestBody = { nodes: allNodes };
         console.log('[全削除] 🔍 送信するJSON (最初の500文字):', JSON.stringify(requestBody).substring(0, 500));
         console.log('[全削除] 🔍 送信先URL:', `${API_BASE}/nodes/all`);
 
-        // APIエンドポイント呼び出し
+        // ステップ1: ノードの削除
+        console.log('[全削除] ステップ1: ノード削除APIを呼び出します...');
         const response = await fetch(`${API_BASE}/nodes/all`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
@@ -3059,28 +3082,61 @@ async function deleteAllNodes() {
 
         const result = await response.json();
 
-        if (result.success) {
-            console.log('[全削除] API成功:', result.message);
-            console.log('[全削除] 削除されたノード数:', result.deleteCount);
-
-            // ローカルのノード配列を更新
-            layerStructure[currentLayer].nodes = [];
-            nodes = nodes.filter(n => n.layer !== currentLayer);
-
-            // 画面を再描画
-            renderNodesInLayer(currentLayer);
-
-            // memory.json自動保存
-            await saveMemoryJson();
-
-            alert(`${result.deleteCount}個のノードを削除しました。`);
-            console.log('[全削除] 完了');
-        } else {
-            console.error('[全削除] API失敗:', result.error);
-            alert(`削除に失敗しました: ${result.error}`);
+        if (!result.success) {
+            console.error('[全削除] ノード削除API失敗:', result.error);
+            alert(`ノード削除に失敗しました: ${result.error}`);
+            return;
         }
+
+        console.log('[全削除] ✅ ノード削除成功:', result.message);
+        console.log('[全削除] 削除されたノード数:', result.deleteCount);
+
+        // ステップ2: コード.jsonの初期化
+        console.log('[全削除] ステップ2: コード.json初期化APIを呼び出します...');
+        const emptyCodeData = {
+            "エントリ": {},
+            "最後のID": 0
+        };
+
+        const codeResponse = await fetch(`${API_BASE}/folders/${currentFolder}/code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ codeData: emptyCodeData })
+        });
+
+        const codeResult = await codeResponse.json();
+
+        if (!codeResult.success) {
+            console.error('[全削除] コード.json初期化失敗:', codeResult.error);
+            alert(`コード.json初期化に失敗しました: ${codeResult.error}`);
+            return;
+        }
+
+        console.log('[全削除] ✅ コード.json初期化成功');
+
+        // ステップ3: ローカルのノード配列を更新（全レイヤー）
+        console.log('[全削除] ステップ3: ローカルデータを更新します...');
+        for (let i = 1; i <= 6; i++) {
+            layerStructure[i].nodes = [];
+            console.log(`[全削除]   レイヤー${i}をクリア`);
+        }
+        nodes = [];  // グローバルnodesも空に
+        codeData = emptyCodeData;  // codeDataも空に
+
+        // ステップ4: 画面を再描画
+        console.log('[全削除] ステップ4: 画面を再描画します...');
+        renderNodesInLayer(leftVisibleLayer, 'left');
+        renderNodesInLayer(rightVisibleLayer, 'right');
+
+        // ステップ5: memory.json自動保存
+        console.log('[全削除] ステップ5: memory.jsonを保存します...');
+        await saveMemoryJson();
+
+        console.log('[全削除] ✅ すべての処理が完了しました');
+        alert(`✅ ${totalNodeCount}個のノードとコード.jsonを削除しました。`);
     } catch (error) {
-        console.error('[全削除] エラー:', error);
+        console.error('[全削除] ❌ エラー:', error);
+        console.error('[全削除] スタックトレース:', error.stack);
         alert(`削除中にエラーが発生しました: ${error.message}`);
     }
 }
