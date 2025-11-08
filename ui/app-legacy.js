@@ -2461,7 +2461,7 @@ async function executeScript() {
 }
 
 // レイヤー化（赤枠ノードをまとめて1つのピンクノードにする）
-function layerizeNode() {
+async function layerizeNode() {
     if (!contextMenuTarget) {
         alert('ノードが選択されていません。');
         return;
@@ -2557,6 +2557,25 @@ function layerizeNode() {
     // Pink選択配列を更新（PowerShell互換）
     pinkSelectionArray[currentLayer].initialY = minY;
     pinkSelectionArray[currentLayer].value = 1;
+
+    // ★★★ 追加: コード.jsonにピンクノードの内容を保存 ★★★
+    console.log(`[レイヤー化] コード.jsonに保存します - ノードID: ${newNodeId}`);
+    console.log(`[レイヤー化] entryString: ${entryString}`);
+
+    // entryStringを "AAAA" プレフィックス付き、改行区切りに変換
+    // 現在: "30-1;Pink;スクリプト;_31-1;White;処理A;_32-1;White;処理B;"
+    // 変換後: "AAAA\n30-1;Pink;スクリプト;\n31-1;White;処理A;\n32-1;White;処理B;"
+    const formattedEntryString = 'AAAA\n' + entryString.replace(/_/g, '\n');
+    console.log(`[レイヤー化] フォーマット後: ${formattedEntryString}`);
+
+    // コード.jsonに保存（setCodeEntry関数を使用）
+    try {
+        await setCodeEntry(newNodeId, formattedEntryString);
+        console.log(`[レイヤー化] ✅ コード.json保存成功 - ノードID: ${newNodeId}`);
+    } catch (error) {
+        console.error(`[レイヤー化] ❌ コード.json保存エラー:`, error);
+        alert('ピンクノードの保存に失敗しました。コンソールを確認してください。');
+    }
 
     // 左右パネルの表示を更新
     updateDualPanelDisplay();
