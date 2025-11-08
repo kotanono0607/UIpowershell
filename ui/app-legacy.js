@@ -6,6 +6,28 @@
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
+// デバッグ設定
+// ============================================
+
+// ログフィルター設定（true = 表示, false = 非表示）
+const DEBUG_FLAGS = {
+    layerize: true,          // レイヤー化処理のログ
+    parentPinkNode: true,    // 親ピンクノード更新のログ
+    nodeOperation: false,    // ノード操作のログ（追加・削除など）
+    arrow: false,            // 矢印描画のログ
+    rendering: false,        // レンダリング処理のログ
+    memory: false,           // memory.json保存のログ
+    other: false             // その他のログ
+};
+
+// フィルター付きログ関数
+function debugLog(category, ...args) {
+    if (DEBUG_FLAGS[category]) {
+        console.log(...args);
+    }
+}
+
+// ============================================
 // ブラウザコンソールログキャプチャ
 // ============================================
 
@@ -43,10 +65,35 @@ async function sendLogsToServer(logs) {
     }
 }
 
-// コンソールメソッドをラップ
+// コンソールメソッドをラップ（ログフィルター付き）
 function wrapConsoleMethod(method, level) {
     console[method] = function(...args) {
-        // オリジナルのconsoleを実行
+        // console.logのみフィルターを適用
+        if (method === 'log') {
+            // ログメッセージを文字列化
+            const message = args.map(arg => String(arg)).join(' ');
+
+            // 重要なログのみを通過させる
+            const importantPrefixes = [
+                '[レイヤー化]',
+                '[親ピンクノード更新]',
+                '❌', '✅', '⚠'  // エラー・成功・警告マーカー
+            ];
+
+            // 重要なログ以外は抑制
+            if (!importantPrefixes.some(prefix => message.includes(prefix))) {
+                // サーバーにはログを送るが、ブラウザコンソールには表示しない
+                const logEntry = {
+                    level: level,
+                    timestamp: new Date().toISOString(),
+                    message: message
+                };
+                consoleLogBuffer.push(logEntry);
+                return; // ブラウザコンソールへの出力をスキップ
+            }
+        }
+
+        // オリジナルのconsoleを実行（重要なログとerror/warn/info/debugは全て表示）
         originalConsole[method].apply(console, args);
 
         // ログをバッファに追加
