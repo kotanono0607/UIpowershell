@@ -1,6 +1,9 @@
 {
     "エントリ":  {
-
+                 "1-1":  "Write-Host \"OK\"",
+                 "2-1":  "Write-Host \"OK\"",
+                 "3-1":  "AAAA\n1-1;White;順次;\n2-1;White;順次;\n6;Pink;スクリプト;4;White;順次;\n5;White;順次;",
+                 "6-1":  "AAAA\n4;White;順次;\n5;White;順次;"
              },
-    "最後のID":  0
+    "最後のID":  6
 }
