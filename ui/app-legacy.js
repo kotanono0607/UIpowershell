@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.201';  // アプリバージョン
+const APP_VERSION = '1.0.202';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -12,8 +12,8 @@ const API_BASE = 'http://localhost:8080/api';
 
 // ログフィルター設定（true = 表示, false = 非表示）
 const DEBUG_FLAGS = {
-    layerize: true,          // レイヤー化処理のログ
-    parentPinkNode: true,    // 親ピンクノード更新のログ
+    layerize: false,         // レイヤー化処理のログ
+    parentPinkNode: false,   // 親ピンクノード更新のログ
     nodeOperation: false,    // ノード操作のログ（追加・削除など）
     arrow: false,            // 矢印描画のログ
     rendering: false,        // レンダリング処理のログ
@@ -76,9 +76,7 @@ function wrapConsoleMethod(method, level) {
 
             // 重要なログのみを通過させる
             const importantPrefixes = [
-                '[レイヤー化]',
-                '[親ピンクノード更新]',
-                '❌', '✅', '⚠'  // エラー・成功・警告マーカー
+                '❌', '✅', '⚠'  // エラー・成功・警告マーカーのみ
             ];
 
             // 重要なログ以外は抑制
