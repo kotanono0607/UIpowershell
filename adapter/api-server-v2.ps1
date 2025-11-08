@@ -929,7 +929,7 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
                     処理番号 = if ($node.処理番号) { $node.処理番号 } else { "未設定" }
                     高さ = if ($node.height) { $node.height } else { 40 }
                     幅 = if ($node.width) { $node.width } else { 280 }
-                    script = if ($node.script) { $node.script } else { "未設定" }
+                    script = if ($null -ne $node.script) { $node.script } else { "未設定" }
                     GroupID = if ($node.groupId -ne $null -and $node.groupId -ne "") { $node.groupId } else { "" }
                 }
                 $totalNodes++
