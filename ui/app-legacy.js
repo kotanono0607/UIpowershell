@@ -2632,11 +2632,16 @@ async function layerizeNode() {
     const entryString = deletedNodeInfo.join('_');
 
     // 赤枠ノードをグローバル配列とレイヤーから削除
-    console.log(`[レイヤー化] 削除前のレイヤーノード数: ${layerNodes.length}`);
+    console.log(`[レイヤー化] ========== 削除処理開始 ==========`);
+    console.log(`[レイヤー化] 対象レイヤー: ${leftVisibleLayer}`);
+    console.log(`[レイヤー化] layerNodes === layerStructure[${leftVisibleLayer}].nodes: ${layerNodes === layerStructure[leftVisibleLayer].nodes}`);
+    console.log(`[レイヤー化] 削除前: layerNodes.length = ${layerNodes.length}`);
+    console.log(`[レイヤー化] 削除前: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
     console.log(`[レイヤー化] 削除前のグローバルノード数: ${nodes.length}`);
+    console.log(`[レイヤー化] 削除予定ノード数: ${sortedRedNodes.length}`);
 
-    sortedRedNodes.forEach(node => {
-        console.log(`[レイヤー化] ノード削除中: ID=${node.id}, text="${node.text}"`);
+    sortedRedNodes.forEach((node, index) => {
+        console.log(`[レイヤー化] [${index + 1}/${sortedRedNodes.length}] ノード削除中: ID=${node.id}, text="${node.text}"`);
 
         const globalIndex = nodes.findIndex(n => n.id === node.id);
         if (globalIndex !== -1) {
@@ -2650,12 +2655,16 @@ async function layerizeNode() {
         if (layerIndex !== -1) {
             layerNodes.splice(layerIndex, 1);
             console.log(`  ✓ レイヤー配列から削除 (インデックス: ${layerIndex})`);
+            console.log(`  → layerNodes.length = ${layerNodes.length}, layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
         } else {
             console.warn(`  ⚠ レイヤー配列に見つかりません`);
+            console.log(`  → 現在のlayerNodes内のノードID: [${layerNodes.map(n => n.id).join(', ')}]`);
         }
     });
 
-    console.log(`[レイヤー化] 削除後のレイヤーノード数: ${layerNodes.length}`);
+    console.log(`[レイヤー化] ========== 削除処理完了 ==========`);
+    console.log(`[レイヤー化] 削除後: layerNodes.length = ${layerNodes.length}`);
+    console.log(`[レイヤー化] 削除後: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
     console.log(`[レイヤー化] 削除後のグローバルノード数: ${nodes.length}`);
 
     // 新しいピンクノードを作成
@@ -2677,6 +2686,7 @@ async function layerizeNode() {
     // グローバル配列とレイヤーに追加
     nodes.push(newNode);
     layerNodes.push(newNode);
+    console.log(`[レイヤー化] ピンクノード追加後: layerNodes.length = ${layerNodes.length}, layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
 
     // Pink選択配列を更新（PowerShell互換）
     pinkSelectionArray[leftVisibleLayer].initialY = minY;
@@ -2706,18 +2716,24 @@ async function layerizeNode() {
         console.log(`[レイヤー化] レイヤー${leftVisibleLayer}なので親ピンクノードに反映します`);
         console.log(`[レイヤー化] 削除されたノード: ${sortedRedNodes.map(n => `ID=${n.id}(${n.text})`).join(', ')}`);
         console.log(`[レイヤー化] 追加するノード: ID=${newNode.id}(${newNode.text})`);
+        console.log(`[レイヤー化] updateParentPinkNode前: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
         await updateParentPinkNode([newNode], sortedRedNodes);
+        console.log(`[レイヤー化] updateParentPinkNode後: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
     }
 
     // 左右パネルの表示を更新
     updateDualPanelDisplay();
 
     // 画面を再描画（左右両パネル）
+    console.log(`[レイヤー化] renderNodesInLayer前: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
+    console.log(`[レイヤー化] renderNodesInLayer前のノードID一覧: [${layerStructure[leftVisibleLayer].nodes.map(n => `${n.id}(${n.text})`).join(', ')}]`);
     renderNodesInLayer(leftVisibleLayer, 'left');
     renderNodesInLayer(rightVisibleLayer, 'right');
 
     // memory.json自動保存
+    console.log(`[レイヤー化] saveMemoryJson前: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
     saveMemoryJson();
+    console.log(`[レイヤー化] saveMemoryJson後: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
 
     // 矢印を再描画
     refreshAllArrows();
