@@ -388,7 +388,7 @@ body::after {
 }
 
 .layer-label {
-    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    background: linear-gradient(135deg, #6b7280, #9ca3af);  /* 落ち着いたグレー系グラデーション */
     padding: 10px;
     text-align: center;
     font-weight: bold;
