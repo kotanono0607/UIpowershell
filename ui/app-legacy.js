@@ -2710,9 +2710,10 @@ async function layerizeNode() {
     // 最小Y位置を取得
     const minY = sortedRedNodes[0].y;
 
-    // 削除したノード情報を配列に追加（名前;色;テキスト;スクリプト）
+    // 削除したノード情報を配列に追加（ID;色;テキスト）
+    // 注意: scriptフィールドは含めない（Pink→Pinkのネスト時に子ノード情報が重複するため）
     const deletedNodeInfo = sortedRedNodes.map(node => {
-        return `${node.id};${node.color};${node.text};${node.script || ''}`;
+        return `${node.id};${node.color};${node.text};`;
     });
 
     const entryString = deletedNodeInfo.join('_');
