@@ -3076,14 +3076,29 @@ async function handlePinkNodeClick(node) {
 
         console.log(`[展開処理] ノード作成: ID=${newNodeId}, テキスト=${text}, 色=${color}, Y=${nodeY}`);
 
-        // ピンクノードの場合、コード.jsonに新しいIDで保存
+        // ノードのエントリを新しいIDでコード.jsonに保存
         if (color === 'Pink' && savedScriptForCodeJson) {
+            // Pinkノードの場合、savedScriptForCodeJsonを使用
             console.log(`[展開処理] ピンクノードを新しいID(${newNodeId})でコード.jsonに保存します`);
             setCodeEntry(newNodeId, savedScriptForCodeJson).then(() => {
                 console.log(`[展開処理] ✅ コード.json保存成功 - 新しいID: ${newNodeId}`);
             }).catch(error => {
                 console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
             });
+        } else {
+            // その他のノード（White, LemonChiffon, SpringGreen, Salmonなど）の場合、
+            // 元のIDのエントリを新しいIDでコピー
+            const originalEntry = getCodeEntry(originalId);
+            if (originalEntry) {
+                console.log(`[展開処理] ノード(${color})を元のID(${originalId})から新しいID(${newNodeId})にコピーします`);
+                setCodeEntry(newNodeId, originalEntry).then(() => {
+                    console.log(`[展開処理] ✅ コード.json保存成功 - 新しいID: ${newNodeId}`);
+                }).catch(error => {
+                    console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
+                });
+            } else {
+                console.warn(`[展開処理] ⚠ 元のID(${originalId})のエントリが見つかりません`);
+            }
         }
 
         // IDマッピングを記録
