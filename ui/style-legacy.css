@@ -577,6 +577,29 @@ body::after {
     background-clip: text;
 }
 
+/* 説明パネル（左下固定） */
+#description-panel {
+    position: fixed;
+    bottom: 42px;
+    left: 16px;
+    width: 420px;
+    max-height: 200px;
+    background: var(--bg-color);
+    border-radius: 16px;
+    padding: 16px;
+    z-index: 50;
+    box-shadow:
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
+    overflow-y: auto;
+}
+
+#description-text {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
 /* フッター */
 #hierarchy-path {
     height: 36px;

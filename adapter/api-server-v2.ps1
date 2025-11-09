@@ -1788,10 +1788,10 @@ try {
         $edgeFound = $false
         foreach ($edgePath in $edgePaths) {
             if (Test-Path $edgePath) {
-                Write-Host "[ブラウザ] Microsoft Edge（UIpowershell専用）をアプリモードで起動します" -ForegroundColor Green
+                Write-Host "[ブラウザ] Microsoft Edge（UIpowershell専用）を最大化アプリモードで起動します" -ForegroundColor Green
                 Write-Host "           URL: $url" -ForegroundColor Cyan
-                # --app モードで起動（タブなし、独立ウインドウ）
-                Start-Process $edgePath -ArgumentList "--app=$url"
+                # --app モードで起動（タブなし、独立ウインドウ、最大化）
+                Start-Process $edgePath -ArgumentList "--app=$url --start-maximized"
                 $edgeFound = $true
                 break
             }
