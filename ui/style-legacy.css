@@ -260,7 +260,7 @@ body::after {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    background: linear-gradient(135deg, #6b7280, #9ca3af);  /* 落ち着いたグレー系グラデーション */
     border-radius: 10px;
 }
 
