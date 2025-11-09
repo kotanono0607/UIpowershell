@@ -295,6 +295,7 @@ body::after {
     width: 396px;  /* 300px → 360px → 396px に変更（1.1倍） */
     flex-shrink: 0;
     overflow-y: auto;
+    overflow-x: hidden;  /* 横スクロールバーを非表示 */
     padding: 12px;
     border-radius: 12px;
     background: var(--bg-color);
