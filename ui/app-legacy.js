@@ -5818,6 +5818,12 @@ let drilldownState = {
     targetLayer: null
 };
 
+// 編集モード状態
+let editModeState = {
+    active: false,
+    currentLayer: 1
+};
+
 // パンくずリストを描画
 function renderBreadcrumb() {
     const breadcrumb = document.getElementById('breadcrumb');
@@ -6303,6 +6309,13 @@ function enterEditMode(targetLayer) {
     drilldownState.currentPinkNode = null;
     drilldownState.targetLayer = null;
 
+    // 編集モード状態を有効化（renderNodesInLayerより前に設定）
+    editModeState.active = true;
+    editModeState.currentLayer = targetLayer;
+
+    // leftVisibleLayerを編集対象レイヤーに設定（renderNodesInLayerより前に設定）
+    leftVisibleLayer = targetLayer;
+
     // 左パネルの全レイヤーを非表示
     for (let i = 0; i <= 6; i++) {
         const layerPanel = document.getElementById(`layer-${i}`);
@@ -6337,6 +6350,10 @@ function enterEditMode(targetLayer) {
         editModeIndicator.className = 'edit-mode-indicator';
         editModeIndicator.innerHTML = '✏️ 編集モード <button class="exit-edit-btn" onclick="exitEditMode()">完了</button>';
         breadcrumb.appendChild(editModeIndicator);
+    }
+
+    if (LOG_CONFIG.breadcrumb) {
+        console.log(`[編集モード] 編集モード有効化 - currentLayer: ${targetLayer}, leftVisibleLayer: ${leftVisibleLayer}`);
     }
 }
 
@@ -6375,8 +6392,15 @@ function exitEditMode() {
     breadcrumbStack = [{ name: 'メインフロー', layer: 1 }];
     renderBreadcrumb();
 
+    // 編集モード状態を無効化
+    editModeState.active = false;
+    editModeState.currentLayer = 1;
+
+    // leftVisibleLayerをレイヤー1に戻す
+    leftVisibleLayer = 1;
+
     if (LOG_CONFIG.breadcrumb) {
-        console.log('[編集モード] メインフローに戻りました');
+        console.log('[編集モード] メインフローに戻りました - leftVisibleLayer: 1');
     }
 }
 
