@@ -294,6 +294,7 @@ body::after {
 #node-buttons-container {
     width: 407px;  /* 370px → 407px に変更（1.1倍） */
     flex-shrink: 0;
+    margin-left: auto;  /* 右詰めにする */
     overflow: hidden auto;  /* 横hidden、縦auto */
     padding: 12px;
     border-radius: 12px;
