@@ -1,34 +1,7 @@
 {
     "エントリ":  {
-                 "15-1":  "Write-Host \"OK\"",
-                 "16-1":  "Write-Host \"OK\"",
-                 "17-1":  "Write-Host \"OK\"",
-                 "17-2":  "}",
-                 "18-1":  "for ($i = 0; $i -lt 10; $i += 1) {",
-                 "19-1":  "Write-Host \"OK\"",
-                 "20-1":  "}",
-                 "21-1":  "Write-Host \"OK\"",
-                 "22-1":  "Write-Host \"OK\"",
-                 "23-1":  "Write-Host \"OK\"",
-                 "24-1":  "Write-Host \"OK\"",
-                 "25-1":  "for ($i = 0; $i -lt 10; $i += 1) {",
-                 "26-1":  "Write-Host \"OK\"",
-                 "27-1":  "}",
-                 "28-1":  "Write-Host \"OK\"",
-                 "29-1":  "Write-Host \"OK\"",
-                 "30-1":  "for ($i = 0; $i -lt 10; $i += 1) {",
-                 "31-1":  "Write-Host \"OK\"",
-                 "9-1":  "Write-Host \"OK\"",
-                 "10-1":  "Write-Host \"OK\"",
-                 "11-1":  "for ($i = 0; $i -lt 10; $i += 1) {",
-                 "12-1":  "Write-Host \"OK\"",
-                 "13-1":  "}",
-                 "node-5-1":  "AAAA\n28;White;順次;\n29;White;順次;\n30;LemonChiffon;ループ 開始;\n31;White;順次;\n32;LemonChiffon;ループ 終了;",
-                 "14-1":  "Write-Host \"OK\"",
-                 "node-6-1":  "AAAA\n21;White;順次;\n22;White;順次;",
-                 "24-2":  "}",
-                 "29-2":  "}",
-                 "32-1":  "}"
+                 "16-1":  "キー操作 -キーコマンド \"Ctrl+V\"",
+                 "17-1":  "キー操作 -キーコマンド \"Ctrl+F\""
              },
-    "最後のID":  32
+    "最後のID":  17
 }
