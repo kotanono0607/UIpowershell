@@ -1453,18 +1453,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const overflow = totalChildWidth - availableWidth;
 
-            console.log('🔍 [横スクロール診断]');
-            console.log(`  左パネル幅: ${leftPanelWidth}px`);
-            console.log(`  左パネルpadding: ${leftPanelPadding}px (左右合計)`);
-            console.log(`  利用可能幅: ${availableWidth}px`);
-            console.log(`  カテゴリーエリア: ${categoryWidth}px`);
-            console.log(`  gap: ${leftPanelGap}px`);
-            console.log(`  ノードコンテナ: ${containerWidth}px`);
-            console.log(`  子要素合計: ${totalChildWidth}px`);
-            console.log(`  ${overflow > 0 ? '❌ はみ出し' : '✅ 問題なし'}: ${overflow > 0 ? '+' : ''}${overflow}px`);
-
             if (overflow > 0) {
-                console.log(`  💡 推奨: ノードコンテナを ${containerWidth - overflow - 5}px 以下にする`);
+                console.warn(`[横スクロール] はみ出し +${overflow}px（推奨: コンテナ ${containerWidth - overflow - 5}px以下）`);
             }
         }
     }, 500);
@@ -2089,7 +2079,6 @@ function renderNodesInLayer(layer, panelSide = 'left') {
             child.remove();
         }
     });
-    console.log(`[デバッグ] renderNodesInLayer(${layer}): Canvas要素を保持してノードをクリア`);
 
     // Y座標でソート
     const layerNodes = layerStructure[layer].nodes.sort((a, b) => a.y - b.y);
@@ -2200,32 +2189,24 @@ function renderNodesInLayer(layer, panelSide = 'left') {
 // グローエフェクトを適用
 // ============================================
 function applyGlowEffects() {
-    console.log('═══════════════════════════════════════════════════');
-    console.log('[グローエフェクト] applyGlowEffects() 開始');
-    console.log('═══════════════════════════════════════════════════');
+    console.log('[グロー矢印] applyGlowEffects() 開始');
 
     if (!glowState.sourceNode || glowState.targetLayer === null) {
-        console.log('[グローエフェクト] ⚠️ グローステートが無効なため、適用をスキップ');
-        console.log('  - sourceNode:', glowState.sourceNode);
-        console.log('  - targetLayer:', glowState.targetLayer);
+        console.log('[グロー矢印] ⚠️ グローステート無効 - スキップ');
         return;
     }
 
-    console.log(`[グローエフェクト] ✅ ソース: レイヤー${glowState.sourceLayer}, ノードID: ${glowState.sourceNode.id}, テキスト: "${glowState.sourceNode.text}"`);
-    console.log(`[グローエフェクト] ✅ ターゲット: レイヤー${glowState.targetLayer}`);
+    console.log(`[グロー矢印] ソース: L${glowState.sourceLayer} ノードID="${glowState.sourceNode.id}" テキスト="${glowState.sourceNode.text}"`);
 
     // 1. すべてのノードからglow-sourceクラスとインラインスタイルを削除
     const existingGlowSources = document.querySelectorAll('.node-button.glow-source');
-    console.log(`[グローエフェクト] 既存のglow-sourceクラスを削除: ${existingGlowSources.length}個`);
     existingGlowSources.forEach(el => {
         el.classList.remove('glow-source');
-        // インラインスタイルもクリア
         el.style.border = '';
         el.style.borderRadius = '';
         el.style.transform = '';
         el.style.transformOrigin = '';
         el.style.zIndex = '';
-        // el.style.position = ''; // ← 削除：既存のpositionを保持
         el.style.transition = '';
         el.style.boxShadow = '';
         el.style.animation = '';
@@ -2234,31 +2215,17 @@ function applyGlowEffects() {
     });
 
     // 2. グローソースノード（ピンクノード）を探してglow-sourceを適用
-    const allNodeButtons = document.querySelectorAll('.node-button');
-    console.log(`[グローエフェクト] 全ノードボタン数: ${allNodeButtons.length}`);
-    console.log(`[グローエフェクト] 検索対象のノードID: "${glowState.sourceNode.id}" (型: ${typeof glowState.sourceNode.id})`);
-
     let foundSourceNode = false;
-    allNodeButtons.forEach(btn => {
-        const nodeId = btn.dataset.nodeId;  // 文字列として取得
-        const nodeText = btn.querySelector('.node-text')?.textContent || 'N/A';
+    const allNodeButtons = document.querySelectorAll('.node-button');
 
-        // 文字列として比較（"node-11" === "node-11"）
+    allNodeButtons.forEach(btn => {
+        const nodeId = btn.dataset.nodeId;
         if (nodeId === String(glowState.sourceNode.id)) {
             btn.classList.add('glow-source');
-
-            // モダンなグロー＆シャドウ効果を直接スタイルで設定
-            // 注: transform: scaleやborderの変更はレイアウトに影響するため、使用しない
-            // 注: position変更もレイアウトに影響するため、既存のpositionを維持
-            btn.style.zIndex = '100';  // 最前面
-            // btn.style.position = 'relative'; // ← 削除：これが右下移動の原因
+            btn.style.zIndex = '100';
             btn.style.transition = 'all 0.3s ease';
-
-            // outlineを使用（レイアウトに影響しない）
             btn.style.outline = '3px solid rgba(255, 20, 147, 0.8)';
-            btn.style.outlineOffset = '-3px'; // 内側に表示
-
-            // 3重の光の輪を表現するbox-shadow（アニメーション用のキーフレームを使用）
+            btn.style.outlineOffset = '-3px';
             btn.style.boxShadow = `
                 0 0 20px rgba(255, 20, 147, 0.6),
                 0 0 40px rgba(255, 105, 180, 0.4),
@@ -2266,45 +2233,50 @@ function applyGlowEffects() {
                 0 4px 12px rgba(0, 0, 0, 0.2)
             `;
             btn.style.animation = 'glowPulse 2s ease-in-out infinite';
-
             foundSourceNode = true;
-            console.log(`[グローエフェクト] ✨ ノードID: ${nodeId}, テキスト: "${nodeText}" にモダンなグローエフェクトを適用しました！`);
         }
     });
 
     if (!foundSourceNode) {
-        console.warn(`[グローエフェクト] ⚠️ ソースノード（ID: ${glowState.sourceNode.id}）が見つかりませんでした！`);
-        console.warn(`[グローエフェクト] デバッグ: 利用可能なノードID一覧:`);
-        document.querySelectorAll('.node-button').forEach(btn => {
-            console.warn(`  - ${btn.dataset.nodeId} (型: ${typeof btn.dataset.nodeId})`);
-        });
+        console.warn(`[グロー矢印] ❌ ソースノード未発見 ID="${glowState.sourceNode.id}"`);
+        return;
     }
 
     // 3. すべての既存のグロー矢印を削除
     const existingArrows = document.querySelectorAll('.glow-arrow-indicator');
-    console.log(`[グローエフェクト] 既存のグロー矢印を削除: ${existingArrows.length}個`);
-    existingArrows.forEach(el => {
-        el.remove();
-    });
+    existingArrows.forEach(el => el.remove());
 
-    // 4. ソースノードが見つかっている場合、グロー矢印を追加
-    if (foundSourceNode) {
-        const sourceNodeElement = document.querySelector(`.node-button[data-node-id="${glowState.sourceNode.id}"]`);
-        if (sourceNodeElement) {
-            // グロー矢印要素を作成
-            const arrowIndicator = document.createElement('div');
-            arrowIndicator.className = 'glow-arrow-indicator';
-            arrowIndicator.textContent = '▶';  // 右向き矢印
+    // 4. ソースノードにグロー矢印を追加
+    const sourceNodeElement = document.querySelector(`.node-button[data-node-id="${glowState.sourceNode.id}"]`);
 
-            // ノードに追加
-            sourceNodeElement.appendChild(arrowIndicator);
-            console.log(`[グローエフェクト] ✨ ノードID: ${glowState.sourceNode.id} にグロー矢印を追加しました！`);
+    console.log(`[グロー矢印] sourceNodeElement検索結果:`, sourceNodeElement ? '✅ 発見' : '❌ 未発見');
+
+    if (sourceNodeElement) {
+        // ノードをrelative配置にする（absolute配置の矢印のため）
+        const currentPosition = window.getComputedStyle(sourceNodeElement).position;
+        console.log(`[グロー矢印] ノードの現在のposition: "${currentPosition}"`);
+
+        if (currentPosition === 'static' || currentPosition === '') {
+            sourceNodeElement.style.position = 'relative';
+            console.log(`[グロー矢印] ノードのpositionをrelativeに設定`);
         }
+
+        // グロー矢印要素を作成
+        const arrowIndicator = document.createElement('div');
+        arrowIndicator.className = 'glow-arrow-indicator';
+        arrowIndicator.textContent = '▶';
+
+        // ノードに追加
+        sourceNodeElement.appendChild(arrowIndicator);
+
+        console.log(`[グロー矢印] ✅ 矢印追加完了 ノードID="${glowState.sourceNode.id}"`);
+        console.log(`[グロー矢印] 矢印要素:`, arrowIndicator);
+        console.log(`[グロー矢印] 親ノードの子要素数:`, sourceNodeElement.children.length);
+    } else {
+        console.error(`[グロー矢印] ❌ ノード要素が見つかりません ID="${glowState.sourceNode.id}"`);
     }
 
-    console.log('═══════════════════════════════════════════════════');
-    console.log('[グローエフェクト] ✅ applyGlowEffects() 完了');
-    console.log('═══════════════════════════════════════════════════');
+    console.log('[グロー矢印] applyGlowEffects() 完了');
 }
 
 // ============================================
@@ -2981,13 +2953,9 @@ function handleShiftClick(node) {
 
 // ピンクノードクリックで展開処理（PowerShell互換）
 async function handlePinkNodeClick(node) {
-    console.log(`[ピンクノードクリック] ノード「${node.text}」(ID: ${node.id}) がクリックされました`);
+    console.log(`[ピンク展開] 「${node.text}」(ID:${node.id}) L${node.layer}→L${node.layer + 1}`);
 
-    // 親レイヤー番号を取得
     const parentLayer = node.layer;
-    console.log(`[展開処理] 親レイヤー: ${parentLayer}`);
-
-    // 次レイヤー番号を計算
     const nextLayer = parentLayer + 1;
 
     // レイヤー上限チェック
@@ -2996,14 +2964,10 @@ async function handlePinkNodeClick(node) {
         return;
     }
 
-    console.log(`[展開処理] 次レイヤー: ${nextLayer}`);
-
     // Pink選択配列に展開状態を記録
     pinkSelectionArray[parentLayer].yCoord = node.y + 15;
     pinkSelectionArray[parentLayer].value = 1;
     pinkSelectionArray[parentLayer].expandedNode = node.id;
-
-    console.log(`[展開処理] Pink選択配列[${parentLayer}] を更新:`, pinkSelectionArray[parentLayer]);
 
     // arrowStateも更新
     arrowState.pinkSelected = true;
@@ -3013,24 +2977,20 @@ async function handlePinkNodeClick(node) {
     glowState.sourceNode = node;
     glowState.sourceLayer = parentLayer;
     glowState.targetLayer = nextLayer;
-    console.log(`[グローエフェクト] 設定 - ソース: レイヤー${parentLayer}, ターゲット: レイヤー${nextLayer}`);
 
     // 次レイヤーをクリア
-    console.log(`[展開処理] レイヤー${nextLayer}をクリア中...`);
     layerStructure[nextLayer].nodes = [];
 
     // scriptプロパティを解析してノードを展開
     if (!node.script || node.script.trim() === '') {
-        console.warn(`[展開処理] ピンクノード「${node.text}」にscriptデータがありません`);
+        console.warn(`[ピンク展開] scriptデータなし`);
         alert('このスクリプト化ノードは空です。展開するノードがありません。');
         return;
     }
 
-    console.log(`[展開処理] scriptデータ: ${node.script}`);
-
     // scriptデータを解析（形式: ID;色;テキスト;スクリプト）
     const entries = node.script.split('_').filter(e => e.trim() !== '');
-    console.log(`[展開処理] ${entries.length}個のノードを展開します`);
+    console.log(`[ピンク展開] ${entries.length}個のノードを展開`);
 
     let baseY = 10; // 初期Y座標
     const idMapping = []; // 元のID -> 新しいIDのマッピング
@@ -3052,27 +3012,15 @@ async function handlePinkNodeClick(node) {
         if (color === 'Pink' && !script) {
             const savedScript = getCodeEntry(originalId);
             if (savedScript) {
-                // コード.json保存用に保持（元のフォーマット）
                 savedScriptForCodeJson = savedScript;
-
-                // コード.json形式（"AAAA\n"プレフィックス + 改行区切り）をscript形式（アンダースコア区切り）に変換
-                // 例: "AAAA\n4;White;順次;\n---\n5;White;順次;" → "4;White;順次;_5;White;順次;"
                 script = savedScript
-                    .replace(/^AAAA\n/, '')  // "AAAA\n" プレフィックスを除去
-                    .replace(/\n---\n/g, '_')  // "\n---\n" を "_" に変換
-                    .replace(/\n/g, '_')  // 改行を "_" に変換
-                    .replace(/_+/g, '_')  // 連続するアンダースコアを1つに
+                    .replace(/^AAAA\n/, '')
+                    .replace(/\n---\n/g, '_')
+                    .replace(/\n/g, '_')
+                    .replace(/_+/g, '_')
                     .trim();
-
-                console.log(`[展開処理] ✅ ピンクノードのscriptをコード.jsonから復元: ID=${originalId}`);
-                console.log(`[展開処理]    元のデータ: ${savedScript.substring(0, 100)}${savedScript.length > 100 ? '...' : ''}`);
-                console.log(`[展開処理]    変換後: ${script}`);
-            } else {
-                console.warn(`[展開処理] ⚠ ピンクノードのscriptが見つかりません: ID=${originalId}`);
             }
         }
-
-        console.log(`[展開処理] エントリ${index}: ID=${originalId}, 色=${color}, テキスト=${text}`);
 
         // 条件分岐の中間ノードは高さ1px、幅20px、座標計算も特殊
         const isMiddleNode = (text === '条件分岐 中間' || color === 'Gray');
