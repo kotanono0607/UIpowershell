@@ -6161,11 +6161,17 @@ function showLayerInDrilldownPanel(parentNodeData) {
             border-radius: 20px 20px 0 0;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            padding: 0 15px;
             color: white;
             font-weight: bold;
             font-size: 14px;
-        ">レイヤー${targetLayer} - ${layerName}</div>
+        ">
+            <span>レイヤー${targetLayer} - ${layerName}</span>
+            <button class="drilldown-edit-btn" onclick="enterEditMode(${targetLayer})" title="このレイヤーを編集">
+                ✏️ 編集
+            </button>
+        </div>
         <div class="layer-indicator">L${targetLayer}</div>
         <div class="node-list-container" id="drilldown-nodes" style="position: relative; min-height: 400px;">
             <!-- ノードがここに表示される -->
