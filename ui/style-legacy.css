@@ -222,8 +222,8 @@ body::after {
 
 /* 左パネル: Neumorphism */
 #left-panel {
-    width: 450px;
-    max-height: calc(100vh - 78px - 280px);  /* ヘッダー・フッター・説明パネル用のスペースを確保 */
+    width: 550px;  /* 450px → 550px に拡大してノードが収まるように */
+    max-height: calc(100vh - 78px - 630px);  /* ヘッダー・フッター・説明パネル用のスペースを確保 */
     background: var(--bg-color);
     border-radius: 20px;
     padding: 16px;
@@ -563,8 +563,8 @@ body::after {
     position: fixed;
     bottom: 42px;
     left: 16px;
-    width: 420px;
-    max-height: 450px;  /* 200px → 450px に拡大 */
+    width: 550px;  /* 420px → 550px に拡大 */
+    max-height: 600px;  /* 200px → 600px に拡大（3倍） */
     background: var(--bg-color);
     border-radius: 16px;
     padding: 16px;
