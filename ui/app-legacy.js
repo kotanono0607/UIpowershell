@@ -1863,7 +1863,7 @@ function addSingleNode(setting, customText = null, customY = null, customGroupId
         layer: leftVisibleLayer,
         x: 90,                              // X座標（中央寄せ）
         y: customY || getNextAvailableY(leftVisibleLayer),
-        width: 280,                         // ボタン幅
+        width: 200,                         // ボタン幅（280px → 200px に変更）
         height: customHeight,               // ボタン高さ（中間ラインは1px）
         groupId: customGroupId,
         処理番号: setting.処理番号,
@@ -2764,7 +2764,7 @@ async function layerizeNode() {
         layer: leftVisibleLayer,
         y: minY,
         x: 90,
-        width: 280,
+        width: 200,  // 280 → 200 に変更
         height: 40,
         script: entryString,  // 削除したノードの情報を保存
         redBorder: false
@@ -3068,7 +3068,7 @@ async function handlePinkNodeClick(node) {
             layer: nextLayer,
             y: nodeY,
             x: 90,
-            width: 280,
+            width: 200,  // 280 → 200 に変更
             height: nodeHeight,
             script: script,
             redBorder: false
@@ -4170,7 +4170,7 @@ async function loadExistingNodes() {
                     layer: layerNum,
                     y: nodeData.Y座標 || 10,
                     x: nodeData.X座標 || 10,
-                    width: nodeData.幅 || 280,
+                    width: nodeData.幅 || 200,  // 280 → 200 に変更
                     height: nodeData.高さ || 40,
                     groupId: nodeData.GroupID || null,
                     処理番号: nodeData.処理番号 || '',
@@ -4470,7 +4470,7 @@ function openNodeSettings(node) {
 
     // 外観設定を設定
     document.getElementById('settings-node-color').value = actualNode.color || 'White';
-    document.getElementById('settings-node-width').value = actualNode.width || 280;
+    document.getElementById('settings-node-width').value = actualNode.width || 200;  // 280 → 200 に変更
     document.getElementById('settings-node-height').value = actualNode.height || 40;
     document.getElementById('settings-node-x').value = actualNode.x || 10;
     document.getElementById('settings-node-y').value = actualNode.y || 10;
