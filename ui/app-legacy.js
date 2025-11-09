@@ -2252,13 +2252,20 @@ function applyGlowEffects() {
     console.log(`[グロー矢印] sourceNodeElement検索結果:`, sourceNodeElement ? '✅ 発見' : '❌ 未発見');
 
     if (sourceNodeElement) {
-        // ノードをrelative配置にする（absolute配置の矢印のため）
+        // ノードの現在のposition状態を確認
         const currentPosition = window.getComputedStyle(sourceNodeElement).position;
-        console.log(`[グロー矢印] ノードの現在のposition: "${currentPosition}"`);
+        console.log(`[グロー矢印] ノード現在position="${currentPosition}"`);
 
-        if (currentPosition === 'static' || currentPosition === '') {
+        // absoluteの場合も強制的にrelativeに変更（矢印の位置基準のため）
+        if (currentPosition !== 'relative') {
+            const originalPosition = currentPosition;
             sourceNodeElement.style.position = 'relative';
-            console.log(`[グロー矢印] ノードのpositionをrelativeに設定`);
+            console.log(`[グロー矢印] position "${originalPosition}" → "relative" に変更`);
+
+            // absoluteからrelativeに変更した場合、top/leftが維持されるか確認
+            const computedTop = window.getComputedStyle(sourceNodeElement).top;
+            const computedLeft = window.getComputedStyle(sourceNodeElement).left;
+            console.log(`[グロー矢印] 変更後の位置 top="${computedTop}" left="${computedLeft}"`);
         }
 
         // グロー矢印要素を作成
@@ -2270,8 +2277,16 @@ function applyGlowEffects() {
         sourceNodeElement.appendChild(arrowIndicator);
 
         console.log(`[グロー矢印] ✅ 矢印追加完了 ノードID="${glowState.sourceNode.id}"`);
-        console.log(`[グロー矢印] 矢印要素:`, arrowIndicator);
-        console.log(`[グロー矢印] 親ノードの子要素数:`, sourceNodeElement.children.length);
+        console.log(`[グロー矢印] 矢印の計算位置 right=-40px top=50%`);
+
+        // 矢印が実際に表示されているか確認
+        setTimeout(() => {
+            const arrowRect = arrowIndicator.getBoundingClientRect();
+            const nodeRect = sourceNodeElement.getBoundingClientRect();
+            console.log(`[グロー矢印検証] ノード位置 x=${nodeRect.left.toFixed(0)} y=${nodeRect.top.toFixed(0)} w=${nodeRect.width.toFixed(0)} h=${nodeRect.height.toFixed(0)}`);
+            console.log(`[グロー矢印検証] 矢印位置 x=${arrowRect.left.toFixed(0)} y=${arrowRect.top.toFixed(0)} w=${arrowRect.width.toFixed(0)} h=${arrowRect.height.toFixed(0)}`);
+            console.log(`[グロー矢印検証] 矢印は${arrowRect.width > 0 && arrowRect.height > 0 ? '✅ 表示中' : '❌ 非表示'}`);
+        }, 100);
     } else {
         console.error(`[グロー矢印] ❌ ノード要素が見つかりません ID="${glowState.sourceNode.id}"`);
     }
