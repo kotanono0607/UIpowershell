@@ -1,48 +1,27 @@
 /* ============================================
-   UIpowershell - Glassmorphism UI Style
-   モダンなグラスモーフィズムデザイン
+   UIpowershell - Neumorphism + Aurora Design (Style Only)
+   既存機能はそのまま、デザインのみ変更
    ============================================ */
 
 :root {
-    /* Light Mode Colors */
-    --bg-gradient-start: #667eea;
-    --bg-gradient-end: #764ba2;
-    --glass-bg: rgba(255, 255, 255, 0.15);
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --glass-shadow: rgba(0, 0, 0, 0.1);
-    --text-primary: #1a1a1a;
-    --text-secondary: #4a4a4a;
-    --text-on-glass: #2d2d2d;
-    --header-bg: rgba(45, 45, 45, 0.8);
-    --header-text: #ffffff;
-    --panel-bg: rgba(255, 255, 255, 0.12);
-    --panel-border: rgba(255, 255, 255, 0.25);
-    --button-bg: rgba(255, 255, 255, 0.2);
-    --button-hover: rgba(255, 255, 255, 0.35);
-    --accent-color: #667eea;
-    --danger-color: #ff6b6b;
-    --success-color: #51cf66;
-}
-
-body.dark-mode {
-    /* Dark Mode Colors */
-    --bg-gradient-start: #1a1a2e;
-    --bg-gradient-end: #16213e;
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-shadow: rgba(0, 0, 0, 0.3);
-    --text-primary: #e4e4e4;
-    --text-secondary: #b4b4b4;
-    --text-on-glass: #e4e4e4;
-    --header-bg: rgba(20, 20, 30, 0.9);
-    --header-text: #ffffff;
-    --panel-bg: rgba(255, 255, 255, 0.03);
-    --panel-border: rgba(255, 255, 255, 0.08);
-    --button-bg: rgba(255, 255, 255, 0.08);
-    --button-hover: rgba(255, 255, 255, 0.15);
-    --accent-color: #748ffc;
-    --danger-color: #ff8787;
-    --success-color: #69db7c;
+    /* Neumorphism Base Colors */
+    --bg-color: #e0e5ec;
+    --shadow-light: #ffffff;
+    --shadow-dark: #a3b1c6;
+    
+    /* Aurora Gradient Colors for accents */
+    --aurora-purple: #667eea;
+    --aurora-pink: #f472b6;
+    --aurora-cyan: #06b6d4;
+    --aurora-green: #10b981;
+    --aurora-yellow: #fbbf24;
+    --aurora-orange: #f59e0b;
+    --aurora-red: #ef4444;
+    --aurora-blue: #3b82f6;
+    
+    /* Text Colors */
+    --text-primary: #2d3748;
+    --text-secondary: #4a5568;
 }
 
 * {
@@ -58,40 +37,96 @@ html {
 }
 
 body {
-    font-family: 'Segoe UI', 'Yu Gothic UI', 'MS UI Gothic', sans-serif;
-    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-    background-attachment: fixed;
+    font-family: 'Segoe UI', 'MS UI Gothic', sans-serif;
+    background: var(--bg-color);
     color: var(--text-primary);
     overflow: hidden;
     width: 100%;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    transition: all 0.3s ease;
 }
 
-/* ============================================
-   ヘッダー: グラスモーフィズム
-   ============================================ */
+/* Aurora Background Orbs (subtle) */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: -1;
+}
+
+body::before {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--aurora-purple), transparent);
+    top: -100px;
+    left: -100px;
+    animation: float 20s ease-in-out infinite;
+}
+
+body::after {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, var(--aurora-pink), transparent);
+    bottom: -50px;
+    right: -50px;
+    animation: float 15s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -30px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+/* ヘッダー: Neumorphism Style */
 #header {
     height: 50px;
-    background: var(--header-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    color: var(--header-text);
+    background: var(--bg-color);
+    color: var(--text-primary);
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--glass-border);
-    box-shadow: 0 4px 30px var(--glass-shadow);
     flex-shrink: 0;
     z-index: 100;
+    box-shadow: 
+        0 6px 12px var(--shadow-dark),
+        0 -3px 6px var(--shadow-light);
+    position: relative;
+}
+
+/* Aurora Accent Line */
+#header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        var(--aurora-purple) 0%, 
+        var(--aurora-pink) 25%, 
+        var(--aurora-cyan) 50%, 
+        var(--aurora-green) 75%, 
+        var(--aurora-purple) 100%);
+    background-size: 200% 100%;
+    animation: auroraShimmer 5s linear infinite;
+}
+
+@keyframes auroraShimmer {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
 }
 
 #menubar {
     display: flex;
     height: 50px;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
+    padding: 0 10px;
 }
 
 .menu-item {
@@ -102,40 +137,20 @@ body {
     display: flex;
     align-items: center;
     font-size: 13px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin: 0 2px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    box-shadow: 
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light);
 }
 
 .menu-item:hover {
-    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
     transform: translateY(-1px);
-}
-
-.menu-item:active {
-    transform: translateY(0);
-}
-
-/* ダークモード切り替えボタン */
-#dark-mode-toggle {
-    margin-left: auto;
-    margin-right: 16px;
-    padding: 8px 16px;
-    background: var(--button-bg);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 12px;
-    color: var(--header-text);
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-#dark-mode-toggle:hover {
-    background: var(--button-hover);
-    transform: scale(1.05);
 }
 
 #toolbar {
@@ -148,68 +163,54 @@ body {
 
 #toolbar button {
     padding: 0 16px;
-    border: 1px solid var(--glass-border);
+    border: none;
     cursor: pointer;
     font-size: 12px;
     height: 32px;
-    background: var(--button-bg);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    color: var(--text-on-glass);
+    background: var(--bg-color);
+    color: var(--text-primary);
     border-radius: 10px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px var(--glass-shadow);
+    box-shadow: 
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
 }
 
 #toolbar button:hover {
-    background: var(--button-hover);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--glass-shadow);
+    box-shadow: 
+        5px 5px 10px var(--shadow-dark),
+        -5px -5px 10px var(--shadow-light);
 }
 
 #toolbar button:active {
     transform: translateY(0);
-}
-
-.btn-white {
-    background: var(--button-bg);
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
 }
 
 .btn-danger {
-    background: rgba(255, 107, 107, 0.3);
-    border-color: rgba(255, 107, 107, 0.5);
-    color: var(--danger-color);
-}
-
-.btn-danger:hover {
-    background: rgba(255, 107, 107, 0.4);
-}
-
-.btn-nav {
-    background: var(--button-bg);
-    font-size: 16px;
-    width: 36px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border: 2px solid transparent;
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-red), var(--aurora-orange)) border-box;
 }
 
 #current-layer-label {
     font-size: 13px;
     font-weight: bold;
-    color: var(--header-text);
+    color: var(--text-primary);
     margin: 0 8px;
     padding: 6px 16px;
-    background: var(--button-bg);
-    backdrop-filter: blur(10px);
+    background: var(--bg-color);
     border-radius: 16px;
-    border: 1px solid var(--glass-border);
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
 }
 
-/* ============================================
-   メインコンテナ
-   ============================================ */
+/* メインコンテナ */
 #main-container {
     display: flex;
     height: calc(100vh - 78px);
@@ -219,15 +220,10 @@ body {
     gap: 12px;
 }
 
-/* ============================================
-   左ペイン: グラスモーフィズム
-   ============================================ */
+/* 左パネル: Neumorphism */
 #left-panel {
     width: 450px;
-    background: var(--panel-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid var(--panel-border);
+    background: var(--bg-color);
     border-radius: 20px;
     padding: 16px;
     display: flex;
@@ -235,7 +231,9 @@ body {
     gap: 12px;
     overflow: hidden;
     flex-shrink: 0;
-    box-shadow: 0 8px 32px var(--glass-shadow);
+    box-shadow: 
+        9px 9px 18px var(--shadow-dark),
+        -9px -9px 18px var(--shadow-light);
 }
 
 #category-buttons {
@@ -249,58 +247,47 @@ body {
 }
 
 /* カスタムスクロールバー */
-#category-buttons::-webkit-scrollbar,
-#node-buttons-container::-webkit-scrollbar,
-.node-list-container::-webkit-scrollbar {
-    width: 6px;
+::-webkit-scrollbar {
+    width: 8px;
 }
 
-#category-buttons::-webkit-scrollbar-track,
-#node-buttons-container::-webkit-scrollbar-track,
-.node-list-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
     border-radius: 10px;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
 }
 
-#category-buttons::-webkit-scrollbar-thumb,
-#node-buttons-container::-webkit-scrollbar-thumb,
-.node-list-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
     border-radius: 10px;
-}
-
-#category-buttons::-webkit-scrollbar-thumb:hover,
-#node-buttons-container::-webkit-scrollbar-thumb:hover,
-.node-list-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
 }
 
 .category-btn {
     width: 140px;
     height: 32px;
-    border: 1px solid var(--glass-border);
+    border: none;
     cursor: pointer;
     font-size: 11px;
     text-align: left;
     padding-left: 12px;
     border-radius: 10px;
-    background: var(--button-bg);
-    backdrop-filter: blur(10px);
+    background: var(--bg-color);
     transition: all 0.3s ease;
-    color: var(--text-on-glass);
+    color: var(--text-primary);
     display: flex;
     align-items: center;
-    box-shadow: 0 2px 8px var(--glass-shadow);
+    box-shadow: 
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
 }
 
 .category-btn:hover {
-    background: var(--button-hover);
     transform: translateX(4px);
-    box-shadow: 0 4px 12px var(--glass-shadow);
-}
-
-.category-btn:active {
-    transform: translateX(2px);
+    box-shadow: 
+        5px 5px 10px var(--shadow-dark),
+        -5px -5px 10px var(--shadow-light);
 }
 
 #node-buttons-container {
@@ -309,7 +296,10 @@ body {
     overflow-y: auto;
     padding: 12px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-color);
+    box-shadow: 
+        inset 4px 4px 8px var(--shadow-dark),
+        inset -4px -4px 8px var(--shadow-light);
 }
 
 .category-panel {
@@ -325,7 +315,7 @@ body {
 
 .add-node-btn {
     height: 36px;
-    border: 1px solid var(--glass-border);
+    border: none;
     border-radius: 12px;
     cursor: pointer;
     font-size: 11px;
@@ -336,27 +326,22 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    background: var(--button-bg);
-    backdrop-filter: blur(10px);
+    background: var(--bg-color);
     transition: all 0.3s ease;
-    color: var(--text-on-glass);
-    box-shadow: 0 2px 8px var(--glass-shadow);
+    color: var(--text-primary);
+    box-shadow: 
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
 }
 
 .add-node-btn:hover {
-    background: var(--button-hover);
     transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 6px 16px var(--glass-shadow);
-    border-width: 2px;
+    box-shadow: 
+        5px 5px 10px var(--shadow-dark),
+        -5px -5px 10px var(--shadow-light);
 }
 
-.add-node-btn:active {
-    transform: translateY(-1px) scale(1.0);
-}
-
-/* ============================================
-   中央ペイン: グラスモーフィズム
-   ============================================ */
+/* 中央コンテナ: Neumorphism */
 #center-container {
     flex: 1;
     min-width: 640px;
@@ -365,17 +350,15 @@ body {
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
-    background: var(--panel-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid var(--panel-border);
+    background: var(--bg-color);
     border-radius: 20px;
     gap: 12px;
     padding: 16px;
-    box-shadow: 0 8px 32px var(--glass-shadow);
+    box-shadow: 
+        inset 6px 6px 12px var(--shadow-dark),
+        inset -6px -6px 12px var(--shadow-light);
 }
 
-/* 左右のパネルコンテナ */
 .dual-layer-panel {
     width: 300px;
     flex-shrink: 0;
@@ -383,13 +366,9 @@ body {
     height: fit-content;
 }
 
-/* 各レイヤーパネル */
 .layer-panel {
     width: 300px;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border);
+    background: var(--bg-color);
     border-radius: 16px;
     display: none;
     flex-direction: column;
@@ -398,28 +377,29 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    box-shadow: 0 4px 24px var(--glass-shadow);
+    box-shadow: 
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
 }
 
-/* 表示中のレイヤーパネル */
 .layer-panel[style*="display: block"] {
     display: flex;
     position: relative;
 }
 
 .layer-label {
-    background: linear-gradient(135deg, var(--accent-color) 0%, #9775fa 100%);
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
     padding: 10px;
     text-align: center;
     font-weight: bold;
     font-size: 12px;
     color: white;
-    border-bottom: 1px solid var(--glass-border);
     height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 16px 16px 0 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .node-list-container {
@@ -428,15 +408,18 @@ body {
     padding: 16px;
     position: relative;
     min-height: 700px;
+    background: var(--bg-color);
+    box-shadow: 
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
 }
 
-/* ============================================
-   ノードボタン: グラスモーフィズム
-   ============================================ */
+/* ノードボタン: Neumorphism + Aurora Border */
 .node-button {
     width: 280px;
     height: 40px;
-    border: 2px solid rgba(0, 0, 0, 0.2);
+    border: 2px solid transparent;
+    background: var(--bg-color);
     border-radius: 12px;
     cursor: move;
     font-size: 11px;
@@ -450,149 +433,129 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light);
+}
+
+/* Aurora Border based on background color - 既存の色判定を維持 */
+.node-button[style*="rgb(255, 255, 255)"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, #e0e0e0, #f0f0f0) border-box;
+}
+
+.node-button[style*="rgb(0, 255, 127)"],
+.node-button[style*="SpringGreen"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-green), var(--aurora-cyan)) border-box;
+}
+
+.node-button[style*="rgb(255, 250, 205)"],
+.node-button[style*="LemonChiffon"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-yellow), var(--aurora-orange)) border-box;
+}
+
+.node-button[style*="rgb(252, 160, 158)"],
+.node-button[style*="Pink"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-pink), #ec4899) border-box;
+    animation: pinkGlow 2s ease-in-out infinite;
+}
+
+@keyframes pinkGlow {
+    0%, 100% {
+        box-shadow: 
+            4px 4px 8px var(--shadow-dark),
+            -4px -4px 8px var(--shadow-light),
+            0 0 20px rgba(236, 72, 153, 0.3);
+    }
+    50% {
+        box-shadow: 
+            4px 4px 8px var(--shadow-dark),
+            -4px -4px 8px var(--shadow-light),
+            0 0 40px rgba(236, 72, 153, 0.5);
+    }
+}
+
+.node-button[style*="rgb(250, 128, 114)"],
+.node-button[style*="Salmon"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-red), #ef4444) border-box;
+}
+
+.node-button[style*="rgb(200, 220, 255)"],
+.node-button[style*="LightBlue"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-blue), #60a5fa) border-box;
+}
+
+.node-button[style*="rgb(128, 128, 128)"],
+.node-button[style*="Gray"] {
+    height: 1px !important;
+    min-height: 1px !important;
+    background: linear-gradient(90deg, var(--aurora-purple), var(--aurora-pink));
+    box-shadow: none;
+    border: none;
 }
 
 .node-button:hover {
-    border-color: var(--accent-color);
-    border-width: 3px;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     transform: translateY(-2px);
+    box-shadow: 
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
 }
 
 .node-button.dragging {
     opacity: 0.7;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     transform: scale(1.05) rotate(2deg);
     cursor: grabbing;
+    box-shadow: 
+        8px 8px 16px var(--shadow-dark),
+        -8px -8px 16px var(--shadow-light);
 }
 
 .node-button.drag-over {
-    border-top: 4px solid var(--accent-color);
-    background-color: rgba(102, 126, 234, 0.15) !important;
+    border-top: 4px solid var(--aurora-purple);
+    background-color: rgba(102, 126, 234, 0.1);
 }
 
 .node-button.red-border {
-    border: 3px solid var(--danger-color) !important;
-    box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+    border: 3px solid var(--aurora-red) !important;
+    box-shadow: 
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light),
+        0 0 20px rgba(239, 68, 68, 0.3);
 }
 
-/* 矢印Canvas */
+/* 矢印Canvas - Aurora Style (既存の機能を保持しつつグロー効果追加) */
 .arrow-canvas {
     position: absolute;
     top: 0;
     left: 0;
     pointer-events: none;
     z-index: 1;
+    filter: drop-shadow(0 0 3px rgba(102, 126, 234, 0.3));
 }
 
-#main-arrow-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 10;
-}
-
-/* ノードの色分類 */
-.node-white {
-    background: rgba(255, 255, 255, 0.9);
-}
-
-body.dark-mode .node-white {
-    background: rgba(255, 255, 255, 0.15);
-    color: #e4e4e4;
-}
-
-.node-springgreen {
-    background: rgba(0, 255, 127, 0.8);
-}
-
-body.dark-mode .node-springgreen {
-    background: rgba(0, 255, 127, 0.3);
-}
-
-.node-lemonchiffon {
-    background: rgba(255, 250, 205, 0.9);
-}
-
-body.dark-mode .node-lemonchiffon {
-    background: rgba(255, 250, 205, 0.2);
-    color: #e4e4e4;
-}
-
-.node-pink {
-    background: rgba(252, 160, 158, 0.9);
-}
-
-body.dark-mode .node-pink {
-    background: rgba(252, 160, 158, 0.3);
-}
-
-.node-salmon {
-    background: rgba(250, 128, 114, 0.9);
-}
-
-body.dark-mode .node-salmon {
-    background: rgba(250, 128, 114, 0.3);
-}
-
-.node-gray {
-    background: rgba(128, 128, 128, 0.6);
-}
-
-body.dark-mode .node-gray {
-    background: rgba(128, 128, 128, 0.3);
-}
-
-/* ============================================
-   右ペイン折りたたみボタン
-   ============================================ */
-#right-panel-toggle {
-    position: absolute;
-    top: 60px;
-    right: 12px;
-    width: 32px;
-    height: 56px;
-    background: var(--header-bg);
-    backdrop-filter: blur(20px);
-    color: var(--header-text);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 18px;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px var(--glass-shadow);
-}
-
-#right-panel-toggle:hover {
-    background: var(--button-hover);
-    transform: scale(1.1);
-}
-
-/* ============================================
-   右ペイン
-   ============================================ */
+/* 右パネル */
 #right-panel {
     width: 320px;
-    background: var(--panel-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid var(--panel-border);
+    background: var(--bg-color);
     border-radius: 20px;
     padding: 16px;
     overflow-y: auto;
     flex-shrink: 0;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 32px var(--glass-shadow);
+    box-shadow: 
+        9px 9px 18px var(--shadow-dark),
+        -9px -9px 18px var(--shadow-light);
 }
 
 #right-panel.collapsed {
@@ -608,61 +571,57 @@ body.dark-mode .node-gray {
     font-weight: bold;
     margin-bottom: 12px;
     color: var(--text-primary);
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-#description-panel {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 16px var(--glass-shadow);
-}
-
-#description-text {
-    font-size: 12px;
-    line-height: 1.6;
-    color: var(--text-secondary);
-}
-
-/* ============================================
-   フッター
-   ============================================ */
+/* フッター */
 #hierarchy-path {
     height: 36px;
-    background: var(--header-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid var(--glass-border);
+    background: var(--bg-color);
     padding: 0 16px;
     display: flex;
     align-items: center;
     font-size: 12px;
     font-weight: 500;
-    color: var(--header-text);
+    color: var(--text-primary);
     flex-shrink: 0;
-    box-shadow: 0 -4px 30px var(--glass-shadow);
+    box-shadow: 
+        0 -6px 12px var(--shadow-dark),
+        0 3px 6px var(--shadow-light);
+    position: relative;
 }
 
-#path-text {
-    margin-left: 8px;
+#hierarchy-path::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        var(--aurora-green) 0%, 
+        var(--aurora-cyan) 25%, 
+        var(--aurora-purple) 50%, 
+        var(--aurora-pink) 75%, 
+        var(--aurora-green) 100%);
+    background-size: 200% 100%;
+    animation: auroraShimmer 5s linear infinite reverse;
 }
 
-/* ============================================
-   右クリックメニュー: グラスモーフィズム
-   ============================================ */
+/* 右クリックメニュー: Neumorphism */
 .context-menu {
     position: fixed;
     display: none;
-    background: var(--panel-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
+    background: var(--bg-color);
     border-radius: 12px;
-    box-shadow: 0 8px 32px var(--glass-shadow);
     z-index: 10000;
     overflow: hidden;
+    box-shadow: 
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
 }
 
 .context-menu.show {
@@ -673,17 +632,108 @@ body.dark-mode .node-gray {
     padding: 12px 24px;
     cursor: pointer;
     font-size: 13px;
-    color: var(--text-on-glass);
+    color: var(--text-primary);
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .context-menu-item:hover {
-    background: var(--button-hover);
+    background: var(--bg-color);
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
 }
 
-/* ============================================
-   モーダル: グラスモーフィズム
-   ============================================ */
+.context-menu-item:hover::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    border-radius: 0 3px 3px 0;
+}
+
+/* レイヤー化ボタン特別スタイル - 既存の機能を保持 */
+#layerize-menu-item {
+    background: linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+                linear-gradient(135deg, var(--aurora-pink), #ec4899) border-box;
+    border: 2px solid transparent;
+    font-weight: bold;
+}
+
+/* スクリプト展開 - Aurora Glow効果（既存の機能を保持） */
+.node-button.glow-source {
+    animation: sourceGlowPulse 2s ease-in-out infinite;
+}
+
+@keyframes sourceGlowPulse {
+    0%, 100% {
+        box-shadow: 
+            4px 4px 8px var(--shadow-dark),
+            -4px -4px 8px var(--shadow-light),
+            0 0 30px rgba(236, 72, 153, 0.6),
+            0 0 60px rgba(102, 126, 234, 0.4);
+    }
+    50% {
+        box-shadow: 
+            4px 4px 8px var(--shadow-dark),
+            -4px -4px 8px var(--shadow-light),
+            0 0 40px rgba(236, 72, 153, 0.8),
+            0 0 80px rgba(102, 126, 234, 0.6);
+    }
+}
+
+.node-list-container.glow-target-container {
+    position: relative !important;
+    padding: 20px !important;
+    border-radius: 12px !important;
+    background: 
+        linear-gradient(135deg, 
+            rgba(236, 72, 153, 0.05),
+            rgba(102, 126, 234, 0.05)
+        ),
+        var(--bg-color) !important;
+    border: 2px solid transparent !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    animation: targetContainerGlow 2s ease-in-out infinite !important;
+}
+
+@keyframes targetContainerGlow {
+    0%, 100% {
+        border-color: rgba(236, 72, 153, 0.4);
+        box-shadow: 
+            inset 3px 3px 6px var(--shadow-dark),
+            inset -3px -3px 6px var(--shadow-light),
+            0 0 20px rgba(236, 72, 153, 0.3),
+            0 0 40px rgba(102, 126, 234, 0.2);
+    }
+    50% {
+        border-color: rgba(236, 72, 153, 0.6);
+        box-shadow: 
+            inset 3px 3px 6px var(--shadow-dark),
+            inset -3px -3px 6px var(--shadow-light),
+            0 0 30px rgba(236, 72, 153, 0.4),
+            0 0 60px rgba(102, 126, 234, 0.3);
+    }
+}
+
+#current-layer-label.layer-is-glow-target {
+    background: linear-gradient(135deg, var(--aurora-pink), var(--aurora-purple));
+    color: white;
+    padding: 6px 18px;
+    border-radius: 20px;
+    animation: labelPulse 2s ease-in-out infinite;
+    box-shadow: 
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light),
+        0 0 20px rgba(236, 72, 153, 0.4);
+}
+
+/* モーダル: Neumorphism */
 .modal {
     display: none;
     position: fixed;
@@ -692,9 +742,8 @@ body.dark-mode .node-gray {
     top: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
     justify-content: center;
     align-items: center;
 }
@@ -704,24 +753,23 @@ body.dark-mode .node-gray {
 }
 
 .modal-content {
-    background: var(--panel-bg);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border: 1px solid var(--glass-border);
+    background: var(--bg-color);
     padding: 24px;
     border-radius: 20px;
     width: 600px;
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 12px 48px var(--glass-shadow);
+    box-shadow: 
+        12px 12px 24px var(--shadow-dark),
+        -12px -12px 24px var(--shadow-light);
 }
 
 .modal-close {
     position: absolute;
     top: 12px;
     right: 12px;
-    background: var(--danger-color);
+    background: linear-gradient(135deg, var(--aurora-red), var(--aurora-orange));
     color: #fff;
     border: none;
     width: 32px;
@@ -730,32 +778,27 @@ body.dark-mode .node-gray {
     cursor: pointer;
     font-size: 18px;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
 }
 
 .modal-close:hover {
     transform: scale(1.1) rotate(90deg);
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
 }
 
-.modal-body {
-    margin-top: 20px;
-}
-
-/* ============================================
-   テーブル
-   ============================================ */
+/* テーブル */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 12px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-color);
     border-radius: 12px;
     overflow: hidden;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
 }
 
 th, td {
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--shadow-dark);
     padding: 10px;
     text-align: left;
     font-size: 12px;
@@ -763,117 +806,81 @@ th, td {
 }
 
 th {
-    background: var(--button-bg);
-    backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    color: white;
     font-weight: bold;
 }
 
-tr:hover {
-    background: var(--button-hover);
-}
-
-/* ============================================
-   フォルダ選択
-   ============================================ */
-#folder-select {
+/* フォーム要素 */
+input[type="text"],
+input[type="number"],
+textarea,
+select {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
+    background: var(--bg-color);
+    border: none;
+    border-radius: 8px;
+    color: var(--text-primary);
     font-size: 14px;
-    background: var(--button-bg);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    color: var(--text-on-glass);
     transition: all 0.3s ease;
+    box-shadow: 
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
 }
 
-#folder-select:focus {
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
     outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    box-shadow: 
+        inset 4px 4px 8px var(--shadow-dark),
+        inset -4px -4px 8px var(--shadow-light);
 }
 
-/* ============================================
-   ユーティリティ
-   ============================================ */
+button, .button {
+    padding: 10px 20px;
+    background: var(--bg-color);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light);
+}
+
+button:hover, .button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
+}
+
+button:active, .button:active {
+    transform: translateY(0);
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+/* Primary button with aurora gradient */
+.btn-primary, #btn-condition-save, #btn-loop-save {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink)) border-box;
+}
+
+/* 既存のクラスを保持 */
 .hidden {
     display: none !important;
 }
 
-/* ============================================
-   スクリプト展開 - グロー＆シャドウ効果
-   ============================================ */
-.node-button.glow-source {
-    /* スタイルはJavaScriptで直接適用 */
-}
-
-@keyframes glowPulse {
-    0%, 100% {
-        box-shadow:
-            0 0 20px rgba(255, 20, 147, 0.6),
-            0 0 40px rgba(255, 105, 180, 0.4),
-            0 0 60px rgba(255, 182, 193, 0.3),
-            0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-    50% {
-        box-shadow:
-            0 0 30px rgba(255, 20, 147, 0.8),
-            0 0 60px rgba(255, 105, 180, 0.6),
-            0 0 90px rgba(255, 182, 193, 0.4),
-            0 6px 16px rgba(0, 0, 0, 0.3);
-    }
-}
-
-.node-list-container.glow-target-container {
-    position: relative !important;
-    padding: 20px !important;
-    border-radius: 12px !important;
-    background: linear-gradient(135deg,
-        rgba(255, 105, 180, 0.08),
-        rgba(255, 182, 193, 0.05)
-    ) !important;
-    border: 2px solid rgba(255, 105, 180, 0.4) !important;
-    animation: targetGlow 2s ease-in-out infinite !important;
-    box-sizing: border-box !important;
-}
-
-@keyframes targetGlow {
-    0%, 100% {
-        box-shadow:
-            inset 0 0 30px rgba(255, 105, 180, 0.15),
-            0 0 20px rgba(255, 105, 180, 0.3),
-            0 0 40px rgba(255, 182, 193, 0.2);
-        border-color: rgba(255, 105, 180, 0.4);
-    }
-    50% {
-        box-shadow:
-            inset 0 0 40px rgba(255, 105, 180, 0.2),
-            0 0 30px rgba(255, 105, 180, 0.4),
-            0 0 60px rgba(255, 182, 193, 0.3);
-        border-color: rgba(255, 105, 180, 0.6);
-    }
-}
-
-#current-layer-label.layer-is-glow-target {
-    background: linear-gradient(135deg, #FF69B4, #FFB6C1);
-    color: white;
-    padding: 6px 18px;
-    border-radius: 20px;
-    animation: labelPulse 2s ease-in-out infinite;
-}
-
-@keyframes labelPulse {
-    0%, 100% {
-        box-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
-    }
-    50% {
-        box-shadow: 0 0 20px rgba(255, 105, 180, 0.8);
-    }
-}
-
-/* ============================================
-   レスポンシブ対応
-   ============================================ */
+/* レスポンシブ対応 - 既存の設定を維持 */
 @media (max-width: 1599px) {
     #right-panel {
         width: 0;
@@ -885,22 +892,4 @@ tr:hover {
     #right-panel-toggle::before {
         content: '▶';
     }
-}
-
-/* ============================================
-   アニメーション
-   ============================================ */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.modal-content {
-    animation: fadeIn 0.3s ease;
 }
