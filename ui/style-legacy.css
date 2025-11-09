@@ -313,6 +313,7 @@ body::after {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     justify-content: center;
+    overflow-x: hidden;  /* 横スクロールバーを非表示 */
 }
 
 .add-node-btn {
@@ -328,6 +329,7 @@ body::after {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;  /* グリッドアイテムがコンテナ幅を超えないようにする */
     background: var(--bg-color);
     transition: all 0.3s ease;
     color: var(--text-primary);
