@@ -5835,37 +5835,16 @@ function renderBreadcrumb() {
         const breadcrumbItem = document.createElement('div');
         breadcrumbItem.className = 'breadcrumb-item';
         breadcrumbItem.dataset.layer = item.layer;
-
-        // テキスト部分を作成
-        const textSpan = document.createElement('span');
-        textSpan.className = 'breadcrumb-text';
-        textSpan.textContent = index === 0 ? '📍 ' + item.name : item.name;
-        breadcrumbItem.appendChild(textSpan);
-
-        // 編集アイコンを追加（メインフロー以外）
-        if (item.layer > 1) {
-            const editIcon = document.createElement('span');
-            editIcon.className = 'breadcrumb-edit-icon';
-            editIcon.textContent = '✏️';
-            editIcon.title = 'このレイヤーを編集';
-
-            // 編集アイコンのクリックイベント
-            editIcon.addEventListener('click', (e) => {
-                e.stopPropagation(); // パンくずアイテムのクリックイベントを防ぐ
-                enterEditMode(item.layer);
-            });
-
-            breadcrumbItem.appendChild(editIcon);
-        }
+        breadcrumbItem.textContent = index === 0 ? '📍 ' + item.name : item.name;
 
         if (index === breadcrumbStack.length - 1) {
             breadcrumbItem.classList.add('current');
         }
 
-        // クリックイベント（パンくずテキスト部分）
+        // クリックイベント
         if (index < breadcrumbStack.length - 1) {
-            textSpan.style.cursor = 'pointer';
-            textSpan.addEventListener('click', () => {
+            breadcrumbItem.style.cursor = 'pointer';
+            breadcrumbItem.addEventListener('click', () => {
                 navigateToBreadcrumbLayer(item.layer, index);
             });
         }
@@ -6161,7 +6140,8 @@ function showLayerInDrilldownPanel(parentNodeData) {
             border-radius: 20px 20px 0 0;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            gap: 15px;
             padding: 0 15px;
             color: white;
             font-weight: bold;
@@ -6357,16 +6337,6 @@ function enterEditMode(targetLayer) {
         }
     }
 
-    // 編集モード状態を表示（パンくずリストに表示）
-    const breadcrumb = document.getElementById('breadcrumb');
-    if (breadcrumb) {
-        // 編集モード表示を追加
-        const editModeIndicator = document.createElement('div');
-        editModeIndicator.className = 'edit-mode-indicator';
-        editModeIndicator.innerHTML = '✏️ 編集モード <button class="exit-edit-btn" onclick="exitEditMode()">完了</button>';
-        breadcrumb.appendChild(editModeIndicator);
-    }
-
     if (LOG_CONFIG.breadcrumb) {
         console.log(`[編集モード] 編集モード有効化 - currentLayer: ${targetLayer}, leftVisibleLayer: ${leftVisibleLayer}`);
     }
@@ -6376,12 +6346,6 @@ function enterEditMode(targetLayer) {
 function exitEditMode() {
     if (LOG_CONFIG.breadcrumb) {
         console.log('[編集モード] 編集モードを終了します');
-    }
-
-    // 編集モード表示を削除
-    const editModeIndicator = document.querySelector('.edit-mode-indicator');
-    if (editModeIndicator) {
-        editModeIndicator.remove();
     }
 
     // 左パネルの全レイヤーを非表示
