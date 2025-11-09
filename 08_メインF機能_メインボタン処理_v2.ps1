@@ -97,10 +97,26 @@ function 実行イベント_v2 {
             $id = $buttonName
             Write-Host "[DEBUG] ノードIDをそのまま使用: $id" -ForegroundColor Cyan
 
-            # エントリを取得
+            # エントリを取得（まずノードIDそのままで検索）
             try {
                 $取得したエントリ = IDでエントリを取得 -ID $id
-                Write-Host "取得したエントリ: $取得したエントリ"
+                Write-Host "[DEBUG] ノードID '$id' で検索結果: $(if ($取得したエントリ) { '見つかりました' } else { '見つかりません' })" -ForegroundColor Cyan
+
+                # 見つからない場合は "-1" を追加して再検索
+                if ([string]::IsNullOrWhiteSpace($取得したエントリ)) {
+                    $idWithSuffix = "$id-1"
+                    Write-Host "[DEBUG] ノードID '$id' で見つからないため、'$idWithSuffix' で再検索..." -ForegroundColor Yellow
+                    $取得したエントリ = IDでエントリを取得 -ID $idWithSuffix
+                    Write-Host "[DEBUG] ノードID '$idWithSuffix' で検索結果: $(if ($取得したエントリ) { '見つかりました' } else { '見つかりません' })" -ForegroundColor Cyan
+                    if ($取得したエントリ) {
+                        $id = $idWithSuffix
+                        Write-Host "[DEBUG] 使用するID: $id" -ForegroundColor Green
+                    }
+                }
+
+                if ($取得したエントリ) {
+                    Write-Host "取得したエントリ: $取得したエントリ"
+                }
             } catch {
                 Write-Host "[ERROR] IDでエントリを取得に失敗: $($_.Exception.Message)" -ForegroundColor Red
                 $取得したエントリ = $null
@@ -560,8 +576,19 @@ function ノードリストを展開 {
             $nodeId = $parts[0].Trim()
             Write-Host "処理中のノードID: $nodeId"
 
-            # このノードのエントリを取得
+            # このノードのエントリを取得（まずノードIDそのままで検索）
             $entry = IDでエントリを取得 -ID $nodeId
+
+            # 見つからない場合は "-1" を追加して再検索
+            if ([string]::IsNullOrWhiteSpace($entry)) {
+                $nodeIdWithSuffix = "$nodeId-1"
+                Write-Host "[DEBUG] ノードID '$nodeId' で見つからないため、'$nodeIdWithSuffix' で再検索..." -ForegroundColor Yellow
+                $entry = IDでエントリを取得 -ID $nodeIdWithSuffix
+                if ($entry) {
+                    $nodeId = $nodeIdWithSuffix
+                    Write-Host "[DEBUG] 使用するID: $nodeId" -ForegroundColor Green
+                }
+            }
 
             if ($entry -ne $null) {
                 Write-Host "取得したエントリ: $entry"
