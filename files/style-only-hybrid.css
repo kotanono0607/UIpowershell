@@ -1,0 +1,895 @@
+/* ============================================
+   UIpowershell - Neumorphism + Aurora Design (Style Only)
+   既存機能はそのまま、デザインのみ変更
+   ============================================ */
+
+:root {
+    /* Neumorphism Base Colors */
+    --bg-color: #e0e5ec;
+    --shadow-light: #ffffff;
+    --shadow-dark: #a3b1c6;
+    
+    /* Aurora Gradient Colors for accents */
+    --aurora-purple: #667eea;
+    --aurora-pink: #f472b6;
+    --aurora-cyan: #06b6d4;
+    --aurora-green: #10b981;
+    --aurora-yellow: #fbbf24;
+    --aurora-orange: #f59e0b;
+    --aurora-red: #ef4444;
+    --aurora-blue: #3b82f6;
+    
+    /* Text Colors */
+    --text-primary: #2d3748;
+    --text-secondary: #4a5568;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'Segoe UI', 'MS UI Gothic', sans-serif;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    overflow: hidden;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Aurora Background Orbs (subtle) */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: -1;
+}
+
+body::before {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--aurora-purple), transparent);
+    top: -100px;
+    left: -100px;
+    animation: float 20s ease-in-out infinite;
+}
+
+body::after {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, var(--aurora-pink), transparent);
+    bottom: -50px;
+    right: -50px;
+    animation: float 15s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -30px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+/* ヘッダー: Neumorphism Style */
+#header {
+    height: 50px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    z-index: 100;
+    box-shadow: 
+        0 6px 12px var(--shadow-dark),
+        0 -3px 6px var(--shadow-light);
+    position: relative;
+}
+
+/* Aurora Accent Line */
+#header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        var(--aurora-purple) 0%, 
+        var(--aurora-pink) 25%, 
+        var(--aurora-cyan) 50%, 
+        var(--aurora-green) 75%, 
+        var(--aurora-purple) 100%);
+    background-size: 200% 100%;
+    animation: auroraShimmer 5s linear infinite;
+}
+
+@keyframes auroraShimmer {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+#menubar {
+    display: flex;
+    height: 50px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+}
+
+.menu-item {
+    padding: 0 18px;
+    height: 36px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    border-radius: 12px;
+    margin: 0 2px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    box-shadow: 
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light);
+}
+
+.menu-item:hover {
+    box-shadow: 
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
+    transform: translateY(-1px);
+}
+
+#toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-left: 20px;
+    height: 50px;
+}
+
+#toolbar button {
+    padding: 0 16px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    height: 32px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+}
+
+#toolbar button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        5px 5px 10px var(--shadow-dark),
+        -5px -5px 10px var(--shadow-light);
+}
+
+#toolbar button:active {
+    transform: translateY(0);
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+.btn-danger {
+    border: 2px solid transparent;
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-red), var(--aurora-orange)) border-box;
+}
+
+#current-layer-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin: 0 8px;
+    padding: 6px 16px;
+    background: var(--bg-color);
+    border-radius: 16px;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+/* メインコンテナ */
+#main-container {
+    display: flex;
+    height: calc(100vh - 78px);
+    overflow: hidden;
+    flex-shrink: 0;
+    padding: 12px;
+    gap: 12px;
+}
+
+/* 左パネル: Neumorphism */
+#left-panel {
+    width: 450px;
+    background: var(--bg-color);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 
+        9px 9px 18px var(--shadow-dark),
+        -9px -9px 18px var(--shadow-light);
+}
+
+#category-buttons {
+    width: 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* カスタムスクロールバー */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+    border-radius: 10px;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    border-radius: 10px;
+}
+
+.category-btn {
+    width: 140px;
+    height: 32px;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    text-align: left;
+    padding-left: 12px;
+    border-radius: 10px;
+    background: var(--bg-color);
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    box-shadow: 
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+}
+
+.category-btn:hover {
+    transform: translateX(4px);
+    box-shadow: 
+        5px 5px 10px var(--shadow-dark),
+        -5px -5px 10px var(--shadow-light);
+}
+
+#node-buttons-container {
+    width: 300px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--bg-color);
+    box-shadow: 
+        inset 4px 4px 8px var(--shadow-dark),
+        inset -4px -4px 8px var(--shadow-light);
+}
+
+.category-panel {
+    display: none;
+}
+
+.category-panel.active {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    justify-content: center;
+}
+
+.add-node-btn {
+    height: 36px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 11px;
+    text-align: left;
+    padding-left: 12px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--bg-color);
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    box-shadow: 
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+}
+
+.add-node-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+        5px 5px 10px var(--shadow-dark),
+        -5px -5px 10px var(--shadow-light);
+}
+
+/* 中央コンテナ: Neumorphism */
+#center-container {
+    flex: 1;
+    min-width: 640px;
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--bg-color);
+    border-radius: 20px;
+    gap: 12px;
+    padding: 16px;
+    box-shadow: 
+        inset 6px 6px 12px var(--shadow-dark),
+        inset -6px -6px 12px var(--shadow-light);
+}
+
+.dual-layer-panel {
+    width: 300px;
+    flex-shrink: 0;
+    position: relative;
+    height: fit-content;
+}
+
+.layer-panel {
+    width: 300px;
+    background: var(--bg-color);
+    border-radius: 16px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-shadow: 
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
+}
+
+.layer-panel[style*="display: block"] {
+    display: flex;
+    position: relative;
+}
+
+.layer-label {
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 12px;
+    color: white;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.node-list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    position: relative;
+    min-height: 700px;
+    background: var(--bg-color);
+    box-shadow: 
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
+}
+
+/* ノードボタン: Neumorphism + Aurora Border */
+.node-button {
+    width: 280px;
+    height: 40px;
+    border: 2px solid transparent;
+    background: var(--bg-color);
+    border-radius: 12px;
+    cursor: move;
+    font-size: 11px;
+    text-align: left;
+    padding-left: 12px;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    user-select: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light);
+}
+
+/* Aurora Border based on background color - 既存の色判定を維持 */
+.node-button[style*="rgb(255, 255, 255)"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, #e0e0e0, #f0f0f0) border-box;
+}
+
+.node-button[style*="rgb(0, 255, 127)"],
+.node-button[style*="SpringGreen"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-green), var(--aurora-cyan)) border-box;
+}
+
+.node-button[style*="rgb(255, 250, 205)"],
+.node-button[style*="LemonChiffon"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-yellow), var(--aurora-orange)) border-box;
+}
+
+.node-button[style*="rgb(252, 160, 158)"],
+.node-button[style*="Pink"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-pink), #ec4899) border-box;
+    animation: pinkGlow 2s ease-in-out infinite;
+}
+
+@keyframes pinkGlow {
+    0%, 100% {
+        box-shadow: 
+            4px 4px 8px var(--shadow-dark),
+            -4px -4px 8px var(--shadow-light),
+            0 0 20px rgba(236, 72, 153, 0.3);
+    }
+    50% {
+        box-shadow: 
+            4px 4px 8px var(--shadow-dark),
+            -4px -4px 8px var(--shadow-light),
+            0 0 40px rgba(236, 72, 153, 0.5);
+    }
+}
+
+.node-button[style*="rgb(250, 128, 114)"],
+.node-button[style*="Salmon"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-red), #ef4444) border-box;
+}
+
+.node-button[style*="rgb(200, 220, 255)"],
+.node-button[style*="LightBlue"] {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-blue), #60a5fa) border-box;
+}
+
+.node-button[style*="rgb(128, 128, 128)"],
+.node-button[style*="Gray"] {
+    height: 1px !important;
+    min-height: 1px !important;
+    background: linear-gradient(90deg, var(--aurora-purple), var(--aurora-pink));
+    box-shadow: none;
+    border: none;
+}
+
+.node-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
+}
+
+.node-button.dragging {
+    opacity: 0.7;
+    transform: scale(1.05) rotate(2deg);
+    cursor: grabbing;
+    box-shadow: 
+        8px 8px 16px var(--shadow-dark),
+        -8px -8px 16px var(--shadow-light);
+}
+
+.node-button.drag-over {
+    border-top: 4px solid var(--aurora-purple);
+    background-color: rgba(102, 126, 234, 0.1);
+}
+
+.node-button.red-border {
+    border: 3px solid var(--aurora-red) !important;
+    box-shadow: 
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light),
+        0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+/* 矢印Canvas - Aurora Style (既存の機能を保持しつつグロー効果追加) */
+.arrow-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 1;
+    filter: drop-shadow(0 0 3px rgba(102, 126, 234, 0.3));
+}
+
+/* 右パネル */
+#right-panel {
+    width: 320px;
+    background: var(--bg-color);
+    border-radius: 20px;
+    padding: 16px;
+    overflow-y: auto;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    box-shadow: 
+        9px 9px 18px var(--shadow-dark),
+        -9px -9px 18px var(--shadow-light);
+}
+
+#right-panel.collapsed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+    margin-right: 0;
+    border: none;
+}
+
+.panel-label {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* フッター */
+#hierarchy-path {
+    height: 36px;
+    background: var(--bg-color);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    flex-shrink: 0;
+    box-shadow: 
+        0 -6px 12px var(--shadow-dark),
+        0 3px 6px var(--shadow-light);
+    position: relative;
+}
+
+#hierarchy-path::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        var(--aurora-green) 0%, 
+        var(--aurora-cyan) 25%, 
+        var(--aurora-purple) 50%, 
+        var(--aurora-pink) 75%, 
+        var(--aurora-green) 100%);
+    background-size: 200% 100%;
+    animation: auroraShimmer 5s linear infinite reverse;
+}
+
+/* 右クリックメニュー: Neumorphism */
+.context-menu {
+    position: fixed;
+    display: none;
+    background: var(--bg-color);
+    border-radius: 12px;
+    z-index: 10000;
+    overflow: hidden;
+    box-shadow: 
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
+}
+
+.context-menu.show {
+    display: block;
+}
+
+.context-menu-item {
+    padding: 12px 24px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.context-menu-item:hover {
+    background: var(--bg-color);
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+.context-menu-item:hover::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    border-radius: 0 3px 3px 0;
+}
+
+/* レイヤー化ボタン特別スタイル - 既存の機能を保持 */
+#layerize-menu-item {
+    background: linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+                linear-gradient(135deg, var(--aurora-pink), #ec4899) border-box;
+    border: 2px solid transparent;
+    font-weight: bold;
+}
+
+/* スクリプト展開 - Aurora Glow効果（既存の機能を保持） */
+.node-button.glow-source {
+    animation: sourceGlowPulse 2s ease-in-out infinite;
+}
+
+@keyframes sourceGlowPulse {
+    0%, 100% {
+        box-shadow: 
+            4px 4px 8px var(--shadow-dark),
+            -4px -4px 8px var(--shadow-light),
+            0 0 30px rgba(236, 72, 153, 0.6),
+            0 0 60px rgba(102, 126, 234, 0.4);
+    }
+    50% {
+        box-shadow: 
+            4px 4px 8px var(--shadow-dark),
+            -4px -4px 8px var(--shadow-light),
+            0 0 40px rgba(236, 72, 153, 0.8),
+            0 0 80px rgba(102, 126, 234, 0.6);
+    }
+}
+
+.node-list-container.glow-target-container {
+    position: relative !important;
+    padding: 20px !important;
+    border-radius: 12px !important;
+    background: 
+        linear-gradient(135deg, 
+            rgba(236, 72, 153, 0.05),
+            rgba(102, 126, 234, 0.05)
+        ),
+        var(--bg-color) !important;
+    border: 2px solid transparent !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    animation: targetContainerGlow 2s ease-in-out infinite !important;
+}
+
+@keyframes targetContainerGlow {
+    0%, 100% {
+        border-color: rgba(236, 72, 153, 0.4);
+        box-shadow: 
+            inset 3px 3px 6px var(--shadow-dark),
+            inset -3px -3px 6px var(--shadow-light),
+            0 0 20px rgba(236, 72, 153, 0.3),
+            0 0 40px rgba(102, 126, 234, 0.2);
+    }
+    50% {
+        border-color: rgba(236, 72, 153, 0.6);
+        box-shadow: 
+            inset 3px 3px 6px var(--shadow-dark),
+            inset -3px -3px 6px var(--shadow-light),
+            0 0 30px rgba(236, 72, 153, 0.4),
+            0 0 60px rgba(102, 126, 234, 0.3);
+    }
+}
+
+#current-layer-label.layer-is-glow-target {
+    background: linear-gradient(135deg, var(--aurora-pink), var(--aurora-purple));
+    color: white;
+    padding: 6px 18px;
+    border-radius: 20px;
+    animation: labelPulse 2s ease-in-out infinite;
+    box-shadow: 
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light),
+        0 0 20px rgba(236, 72, 153, 0.4);
+}
+
+/* モーダル: Neumorphism */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--bg-color);
+    padding: 24px;
+    border-radius: 20px;
+    width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 
+        12px 12px 24px var(--shadow-dark),
+        -12px -12px 24px var(--shadow-light);
+}
+
+.modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, var(--aurora-red), var(--aurora-orange));
+    color: #fff;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
+/* テーブル */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    background: var(--bg-color);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+th, td {
+    border: 1px solid var(--shadow-dark);
+    padding: 10px;
+    text-align: left;
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+th {
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    color: white;
+    font-weight: bold;
+}
+
+/* フォーム要素 */
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg-color);
+    border: none;
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    box-shadow: 
+        inset 4px 4px 8px var(--shadow-dark),
+        inset -4px -4px 8px var(--shadow-light);
+}
+
+button, .button {
+    padding: 10px 20px;
+    background: var(--bg-color);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light);
+}
+
+button:hover, .button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
+}
+
+button:active, .button:active {
+    transform: translateY(0);
+    box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+/* Primary button with aurora gradient */
+.btn-primary, #btn-condition-save, #btn-loop-save {
+    background: 
+        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
+        linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink)) border-box;
+}
+
+/* 既存のクラスを保持 */
+.hidden {
+    display: none !important;
+}
+
+/* レスポンシブ対応 - 既存の設定を維持 */
+@media (max-width: 1599px) {
+    #right-panel {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        margin-right: 0;
+    }
+
+    #right-panel-toggle::before {
+        content: '▶';
+    }
+}
