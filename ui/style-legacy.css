@@ -292,7 +292,7 @@ body::after {
 }
 
 #node-buttons-container {
-    width: 396px;  /* 300px → 360px → 396px に変更（1.1倍） */
+    width: 386px;  /* 518px(内部幅) - 120px(カテゴリー) - 12px(gap) = 386px */
     flex-shrink: 0;
     overflow-y: auto;
     overflow-x: hidden;  /* 横スクロールバーを非表示 */
