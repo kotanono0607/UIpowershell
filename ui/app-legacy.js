@@ -5829,15 +5829,37 @@ function renderBreadcrumb() {
         const breadcrumbItem = document.createElement('div');
         breadcrumbItem.className = 'breadcrumb-item';
         breadcrumbItem.dataset.layer = item.layer;
-        breadcrumbItem.textContent = index === 0 ? '📍 ' + item.name : item.name;
+
+        // テキスト部分を作成
+        const textSpan = document.createElement('span');
+        textSpan.className = 'breadcrumb-text';
+        textSpan.textContent = index === 0 ? '📍 ' + item.name : item.name;
+        breadcrumbItem.appendChild(textSpan);
+
+        // 編集アイコンを追加（メインフロー以外）
+        if (item.layer > 1) {
+            const editIcon = document.createElement('span');
+            editIcon.className = 'breadcrumb-edit-icon';
+            editIcon.textContent = '✏️';
+            editIcon.title = 'このレイヤーを編集';
+
+            // 編集アイコンのクリックイベント
+            editIcon.addEventListener('click', (e) => {
+                e.stopPropagation(); // パンくずアイテムのクリックイベントを防ぐ
+                enterEditMode(item.layer);
+            });
+
+            breadcrumbItem.appendChild(editIcon);
+        }
 
         if (index === breadcrumbStack.length - 1) {
             breadcrumbItem.classList.add('current');
         }
 
-        // クリックイベント
+        // クリックイベント（パンくずテキスト部分）
         if (index < breadcrumbStack.length - 1) {
-            breadcrumbItem.addEventListener('click', () => {
+            textSpan.style.cursor = 'pointer';
+            textSpan.addEventListener('click', () => {
                 navigateToBreadcrumbLayer(item.layer, index);
             });
         }
@@ -6239,6 +6261,122 @@ function closeDrilldownPanel() {
 
     if (LOG_CONFIG.pink) {
         console.log('[ドリルダウン] パネルを閉じました');
+    }
+}
+
+// 編集モードに入る（指定したレイヤーを左パネルで編集）
+function enterEditMode(targetLayer) {
+    if (LOG_CONFIG.breadcrumb) {
+        console.log(`[編集モード] レイヤー${targetLayer}の編集モードに入ります`);
+    }
+
+    // ドリルダウンパネルを閉じる（パンくずリストは維持）
+    const rightPanel = document.getElementById('right-layer-panel');
+    const leftPanel = document.getElementById('left-layer-panel');
+    const escHint = document.getElementById('escHint');
+
+    if (rightPanel) {
+        rightPanel.classList.add('slide-out');
+        setTimeout(() => {
+            rightPanel.classList.remove('slide-out');
+            rightPanel.classList.add('empty');
+            rightPanel.innerHTML = `
+                <div class="empty-message">
+                    <span>🟣 ピンクノードをクリックすると詳細が表示されます</span>
+                </div>
+            `;
+        }, 400);
+    }
+
+    // 左パネルのdimmedを解除
+    if (leftPanel) {
+        leftPanel.classList.remove('dimmed');
+    }
+
+    // ESCヒントを非表示
+    if (escHint) {
+        escHint.classList.remove('show');
+    }
+
+    // ドリルダウン状態をクリア
+    drilldownState.active = false;
+    drilldownState.currentPinkNode = null;
+    drilldownState.targetLayer = null;
+
+    // 左パネルの全レイヤーを非表示
+    for (let i = 0; i <= 6; i++) {
+        const layerPanel = document.getElementById(`layer-${i}`);
+        if (layerPanel) {
+            layerPanel.style.display = 'none';
+        }
+    }
+
+    // 指定されたレイヤーのみ表示
+    const targetLayerPanel = document.getElementById(`layer-${targetLayer}`);
+    if (targetLayerPanel) {
+        targetLayerPanel.style.display = 'block';
+
+        // レイヤーのノードを再描画
+        renderNodesInLayer(targetLayer, 'left');
+
+        // 矢印を再描画
+        setTimeout(() => {
+            drawPanelArrows(`layer-${targetLayer}`);
+        }, 100);
+
+        if (LOG_CONFIG.breadcrumb) {
+            console.log(`[編集モード] レイヤー${targetLayer}を表示しました`);
+        }
+    }
+
+    // 編集モード状態を表示（パンくずリストに表示）
+    const breadcrumb = document.getElementById('breadcrumb');
+    if (breadcrumb) {
+        // 編集モード表示を追加
+        const editModeIndicator = document.createElement('div');
+        editModeIndicator.className = 'edit-mode-indicator';
+        editModeIndicator.innerHTML = '✏️ 編集モード <button class="exit-edit-btn" onclick="exitEditMode()">完了</button>';
+        breadcrumb.appendChild(editModeIndicator);
+    }
+}
+
+// 編集モードを終了してメインフローに戻る
+function exitEditMode() {
+    if (LOG_CONFIG.breadcrumb) {
+        console.log('[編集モード] 編集モードを終了します');
+    }
+
+    // 編集モード表示を削除
+    const editModeIndicator = document.querySelector('.edit-mode-indicator');
+    if (editModeIndicator) {
+        editModeIndicator.remove();
+    }
+
+    // 左パネルの全レイヤーを非表示
+    for (let i = 0; i <= 6; i++) {
+        const layerPanel = document.getElementById(`layer-${i}`);
+        if (layerPanel) {
+            layerPanel.style.display = 'none';
+        }
+    }
+
+    // レイヤー1（メインフロー）を表示
+    const layer1Panel = document.getElementById('layer-1');
+    if (layer1Panel) {
+        layer1Panel.style.display = 'block';
+        renderNodesInLayer(1, 'left');
+
+        setTimeout(() => {
+            drawPanelArrows('layer-1');
+        }, 100);
+    }
+
+    // パンくずリストをリセット
+    breadcrumbStack = [{ name: 'メインフロー', layer: 1 }];
+    renderBreadcrumb();
+
+    if (LOG_CONFIG.breadcrumb) {
+        console.log('[編集モード] メインフローに戻りました');
     }
 }
 
