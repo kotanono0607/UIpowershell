@@ -544,27 +544,7 @@ body::after {
     filter: drop-shadow(0 0 3px rgba(102, 126, 234, 0.3));
 }
 
-/* 右パネル */
-#right-panel {
-    width: 320px;
-    background: var(--bg-color);
-    border-radius: 20px;
-    padding: 16px;
-    overflow-y: auto;
-    flex-shrink: 0;
-    transition: all 0.3s ease;
-    box-shadow: 
-        9px 9px 18px var(--shadow-dark),
-        -9px -9px 18px var(--shadow-light);
-}
-
-#right-panel.collapsed {
-    width: 0;
-    padding: 0;
-    overflow: hidden;
-    margin-right: 0;
-    border: none;
-}
+/* 右パネル削除済み - 2025-11-09 */
 
 .panel-label {
     font-size: 13px;
@@ -903,16 +883,4 @@ button:active, .button:active {
     display: none !important;
 }
 
-/* レスポンシブ対応 - 既存の設定を維持 */
-@media (max-width: 1599px) {
-    #right-panel {
-        width: 0;
-        padding: 0;
-        overflow: hidden;
-        margin-right: 0;
-    }
-
-    #right-panel-toggle::before {
-        content: '▶';
-    }
-}
+/* レスポンシブ対応 - 右パネル削除により不要 */
