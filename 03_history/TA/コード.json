@@ -1,10 +1,8 @@
 {
     "エントリ":  {
-                 "24-1":  "Write-Host \"OK\"",
-                 "25-1":  "Write-Host \"OK\"",
-                 "26-1":  "Write-Host \"OK\"",
-                 "27-1":  "AAAA\n31;Pink;スクリプト;28;White;順次;\n29;White;順次;\n30;White;順次;",
-                 "31-1":  "AAAA\n32;White;順次;\n33;White;順次;\n34;White;順次;"
+                 "11-1":  "Write-Host \"OK\"",
+                 "12-1":  "Write-Host \"OK\"",
+                 "13-1":  "AAAA\n14;White;順次;\n15;White;順次;"
              },
-    "最後のID":  31
+    "最後のID":  13
 }
