@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UIpowershell - Visual RPA Platform (3ペイン構成)</title>
-    <link rel="stylesheet" href="style-legacy.css?v=1.0.199">
+    <title>UIpowershell - Visual RPA Platform (レイヤーナビゲーション)</title>
+    <link rel="stylesheet" href="style-legacy.css?v=1.0.200">
 </head>
 <body>
     <!-- ヘッダー: 40px -->
@@ -37,7 +37,14 @@
         </div>
     </div>
 
-    <!-- メインコンテナ: 2ペイン構成（右パネル削除済み） -->
+    <!-- パンくずリスト -->
+    <div class="breadcrumb-bar" id="breadcrumb">
+        <div class="breadcrumb-item current" data-layer="1">
+            📍 メインフロー
+        </div>
+    </div>
+
+    <!-- メインコンテナ: 2ペイン構成（レイヤーナビゲーション） -->
     <div id="main-container">
         <!-- 左側：操作パネル（10カテゴリー切り替え） -->
         <div id="left-panel">
@@ -77,10 +84,10 @@
             </div>
         </div>
 
-        <!-- 中央：左右2パネル表示（PowerShell互換） -->
+        <!-- 中央：左右2パネル表示（レイヤーナビゲーション） -->
         <div id="center-container">
-            <!-- 左パネル -->
-            <div id="left-layer-panel" class="dual-layer-panel">
+            <!-- メインレイヤーパネル -->
+            <div id="left-layer-panel" class="main-layer-panel">
                 <div id="layer-0" class="layer-panel" style="display: none;">
                     <div class="layer-label">レイヤー0</div>
                     <div class="node-list-container">
@@ -117,38 +124,12 @@
                 </div>
             </div>
 
-            <!-- 右パネル -->
-            <div id="right-layer-panel" class="dual-layer-panel">
-                <div id="layer-0-right" class="layer-panel" style="display: none;">
-                    <div class="layer-label">レイヤー0</div>
-                    <div class="node-list-container"></div>
+            <!-- ドリルダウンパネル（ピンクノードクリック時に表示） -->
+            <div id="right-layer-panel" class="drilldown-panel empty">
+                <div class="empty-message">
+                    <span>🟣 ピンクノードをクリックすると詳細が表示されます</span>
                 </div>
-                <div id="layer-1-right" class="layer-panel" style="display: none;">
-                    <div class="layer-label">レイヤー1</div>
-                    <div class="node-list-container"></div>
-                </div>
-                <div id="layer-2-right" class="layer-panel" style="display: block;">
-                    <div class="layer-label">レイヤー2</div>
-                    <div class="node-list-container">
-                        <!-- ノードが縦に並ぶ -->
-                    </div>
-                </div>
-                <div id="layer-3-right" class="layer-panel" style="display: none;">
-                    <div class="layer-label">レイヤー3</div>
-                    <div class="node-list-container"></div>
-                </div>
-                <div id="layer-4-right" class="layer-panel" style="display: none;">
-                    <div class="layer-label">レイヤー4</div>
-                    <div class="node-list-container"></div>
-                </div>
-                <div id="layer-5-right" class="layer-panel" style="display: none;">
-                    <div class="layer-label">レイヤー5</div>
-                    <div class="node-list-container"></div>
-                </div>
-                <div id="layer-6-right" class="layer-panel" style="display: none;">
-                    <div class="layer-label">レイヤー6</div>
-                    <div class="node-list-container"></div>
-                </div>
+                <!-- レイヤーコンテンツはここに動的に生成 -->
             </div>
         </div>
     </div>
@@ -162,6 +143,22 @@
     <!-- フッター: 28px -->
     <div id="hierarchy-path">
         📍 階層パス: <span id="path-text">レイヤー1</span>
+    </div>
+
+    <!-- ホバープレビュー -->
+    <div class="hover-preview" id="hoverPreview">
+        <div class="hover-preview-header">
+            <span>🔍</span>
+            <span id="previewTitle">プレビュー</span>
+        </div>
+        <div class="hover-preview-content" id="previewContent">
+            <!-- 動的に生成 -->
+        </div>
+    </div>
+
+    <!-- ESCキーヒント -->
+    <div class="esc-hint" id="escHint">
+        ESCキーで戻る
     </div>
 
     <!-- 右クリックメニュー -->
