@@ -292,10 +292,9 @@ body::after {
 }
 
 #node-buttons-container {
-    width: 386px;  /* 518px(内部幅) - 120px(カテゴリー) - 12px(gap) = 386px */
+    width: 378px;  /* 518px(内部幅) - 120px(カテゴリー) - 12px(gap) - 8px(余裕) = 378px */
     flex-shrink: 0;
-    overflow-y: auto;
-    overflow-x: hidden;  /* 横スクロールバーを非表示 */
+    overflow: hidden auto;  /* 横hidden、縦auto */
     padding: 12px;
     border-radius: 12px;
     background: var(--bg-color);
@@ -330,6 +329,7 @@ body::after {
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;  /* グリッドアイテムがコンテナ幅を超えないようにする */
+    max-width: 100%;  /* 親要素の幅を超えないようにする */
     background: var(--bg-color);
     transition: all 0.3s ease;
     color: var(--text-primary);
