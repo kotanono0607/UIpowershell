@@ -598,7 +598,7 @@ function drawRightPanelPinkArrows() {
 }
 
 function drawPanelArrows(layerId) {
-    console.log(`[デバッグ] drawPanelArrows() 呼び出し: layerId=${layerId}`);
+    // console.log(`[デバッグ] drawPanelArrows() 呼び出し: layerId=${layerId}`);
 
     const canvas = arrowState.canvasMap.get(layerId);
     if (!canvas) {
@@ -645,7 +645,7 @@ function drawPanelArrows(layerId) {
     ctx.imageSmoothingEnabled = true;
 
     const nodes = Array.from(layerPanel.querySelectorAll('.node-button'));
-    console.log(`[デバッグ] 取得したノード数: ${nodes.length}`);
+    // console.log(`[デバッグ] 取得したノード数: ${nodes.length}`);
 
     // ノードをY座標でソート
     nodes.sort((a, b) => {
@@ -656,7 +656,7 @@ function drawPanelArrows(layerId) {
 
     // 条件分岐グループを特定
     const conditionGroups = findConditionGroups(nodes);
-    console.log(`[デバッグ] 条件分岐グループ数: ${conditionGroups.length}`);
+    // console.log(`[デバッグ] 条件分岐グループ数: ${conditionGroups.length}`);
 
     // 隣接ノード間に矢印を描画
     let arrowCount = 0;
@@ -692,7 +692,7 @@ function drawPanelArrows(layerId) {
         }
         // 注: 赤→赤と青→青はdrawConditionalBranchArrows内で処理されるため、ここでは削除
     }
-    console.log(`[デバッグ] 描画した通常矢印数: ${arrowCount}`);
+    // console.log(`[デバッグ] 描画した通常矢印数: ${arrowCount}`);
 
     // コンテナの矩形を取得（条件分岐とループで共通使用）
     const containerRect = nodeListContainer.getBoundingClientRect();
@@ -704,12 +704,12 @@ function drawPanelArrows(layerId) {
 
     // ループの矢印を描画
     const loopGroups = findLoopGroups(nodes);
-    console.log(`[デバッグ] ループグループ数: ${loopGroups.length}`);
+    // console.log(`[デバッグ] ループグループ数: ${loopGroups.length}`);
     loopGroups.forEach(group => {
         drawLoopArrows(ctx, group.startNode, group.endNode, containerRect);
     });
 
-    console.log(`[デバッグ] drawPanelArrows() 完了: ${layerId}`);
+    // console.log(`[デバッグ] drawPanelArrows() 完了: ${layerId}`);
 
     // 描画完了後のCanvas最終状態を確認
     console.log(`[描画完了] Canvas最終状態:`, {
@@ -1390,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     refreshAllArrows();
     window.arrowDrawing.initialized = true;
     console.log('[矢印] Arrow drawing initialized successfully');
-    console.log(`[デバッグ] Canvas数: ${window.arrowDrawing.state.canvasMap.size}`);
+    // console.log(`[デバッグ] Canvas数: ${window.arrowDrawing.state.canvasMap.size}`);
 
     // ウィンドウリサイズ時に矢印を再描画
     window.addEventListener('resize', resizeCanvases);
@@ -1434,6 +1434,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('═══════════════════════════════════════════════');
     console.log(`✅ UIpowershell 初期化完了 [Version: ${APP_VERSION}]`);
     console.log('═══════════════════════════════════════════════');
+
+    // 横スクロールバー問題のデバッグ
+    setTimeout(() => {
+        const leftPanel = document.getElementById('left-panel');
+        const categoryButtons = document.getElementById('category-buttons');
+        const nodeContainer = document.getElementById('node-buttons-container');
+
+        if (leftPanel && categoryButtons && nodeContainer) {
+            const leftPanelWidth = leftPanel.offsetWidth;
+            const leftPanelPadding = parseInt(getComputedStyle(leftPanel).paddingLeft) + parseInt(getComputedStyle(leftPanel).paddingRight);
+            const leftPanelGap = parseInt(getComputedStyle(leftPanel).gap);
+            const availableWidth = leftPanelWidth - leftPanelPadding;
+
+            const categoryWidth = categoryButtons.offsetWidth;
+            const containerWidth = nodeContainer.offsetWidth;
+            const totalChildWidth = categoryWidth + leftPanelGap + containerWidth;
+
+            const overflow = totalChildWidth - availableWidth;
+
+            console.log('🔍 [横スクロール診断]');
+            console.log(`  左パネル幅: ${leftPanelWidth}px`);
+            console.log(`  左パネルpadding: ${leftPanelPadding}px (左右合計)`);
+            console.log(`  利用可能幅: ${availableWidth}px`);
+            console.log(`  カテゴリーエリア: ${categoryWidth}px`);
+            console.log(`  gap: ${leftPanelGap}px`);
+            console.log(`  ノードコンテナ: ${containerWidth}px`);
+            console.log(`  子要素合計: ${totalChildWidth}px`);
+            console.log(`  ${overflow > 0 ? '❌ はみ出し' : '✅ 問題なし'}: ${overflow > 0 ? '+' : ''}${overflow}px`);
+
+            if (overflow > 0) {
+                console.log(`  💡 推奨: ノードコンテナを ${containerWidth - overflow - 5}px 以下にする`);
+            }
+        }
+    }, 500);
 });
 
 // リサイズ時のチェック
@@ -3845,31 +3879,20 @@ async function executeCode() {
     if (!confirmed) return;
 
     const startTime = performance.now();
-    console.log('');
-    console.log('═══════════════════════════════════════════════');
-    console.log('✅ [実行] PowerShellコード生成を開始');
-    console.log('═══════════════════════════════════════════════');
-    console.log(`✅ [実行] 開始時刻: ${new Date().toLocaleString('ja-JP')}`);
-    console.log(`✅ [実行] 対象レイヤー: レイヤー${leftVisibleLayer}`);
+    console.log(`[実行] レイヤー${leftVisibleLayer} のコード生成を開始...`);
 
     try {
         // 現在のレイヤーのノードを取得
         const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
 
-        console.log(`✅ [実行] 現在のレイヤーのノード数: ${currentLayerNodes.length}個`);
-
         // ノードが存在しない場合の検証
         if (currentLayerNodes.length === 0) {
-            console.log('❌ [実行] エラー: 現在のレイヤーにノードがありません');
+            console.log('❌ [実行] ノードがありません');
             alert('現在のレイヤーにノードがありません。ノードを追加してから実行してください。');
             return;
         }
 
-        // ノードの詳細情報をログ出力
-        console.log('✅ [実行] ノード一覧:');
-        currentLayerNodes.forEach((node, index) => {
-            console.log(`✅ [実行]   ${index + 1}. ID=${node.id}, テキスト="${node.text}", 色=${node.color}, 処理番号=${node.処理番号}`);
-        });
+        console.log(`[実行] ノード数: ${currentLayerNodes.length}個`);
 
         // 送信データを準備
         const requestData = {
@@ -3884,36 +3907,13 @@ async function executeCode() {
             openFile: false
         };
 
-        console.log('✅ [実行] APIリクエスト送信中...');
-        console.log(`✅ [実行] エンドポイント: /execute/generate`);
-        console.log(`✅ [実行] メソッド: POST`);
-        console.log(`✅ [実行] リクエストデータ:`, JSON.stringify(requestData, null, 2));
+        // console.log('[実行] API送信:', requestData);
 
         // 現在のレイヤーのノードを送信
         const apiStartTime = performance.now();
         const result = await callApi('/execute/generate', 'POST', requestData);
-        const apiEndTime = performance.now();
-        const apiDuration = (apiEndTime - apiStartTime).toFixed(2);
-
-        console.log(`✅ [実行] APIレスポンス受信完了 (所要時間: ${apiDuration}ms)`);
-        console.log(`✅ [実行] レスポンス:`, result);
-
         if (result.success) {
-            console.log('✅ [実行] コード生成成功');
-            console.log(`✅ [実行] 生成されたノード数: ${result.nodeCount}個`);
-            console.log(`✅ [実行] 出力先: ${result.outputPath || '（メモリ内のみ）'}`);
-
-            // result.code の詳細情報をログ出力
-            console.log(`✅ [実行] result.code の型: ${typeof result.code}`);
-            console.log(`✅ [実行] result.code が存在: ${result.code !== undefined && result.code !== null}`);
-            if (result.code) {
-                console.log(`✅ [実行] 生成されたコード長: ${result.code.length}文字`);
-                console.log(`✅ [実行] コードプレビュー（先頭200文字）:`);
-                console.log(result.code.substring(0, 200));
-            } else {
-                console.log(`⚠ [実行] result.code が空です: null or undefined`);
-                console.log(`⚠ [実行] レスポンス全体:`, JSON.stringify(result, null, 2));
-            }
+            console.log(`✅ [実行] 成功 - ノード数: ${result.nodeCount}個, コード長: ${result.code?.length || 0}文字`);
 
             // 結果モーダルに情報を表示
             const infoDiv = document.getElementById('code-result-info');
@@ -3929,10 +3929,9 @@ async function executeCode() {
             const codePreview = document.getElementById('code-result-preview');
             if (result.code) {
                 codePreview.value = result.code;
-                console.log('✅ [実行] コードプレビューに設定しました');
             } else {
                 codePreview.value = '（コードプレビューは利用できません）';
-                console.log('⚠ [実行] コードプレビューが利用できません - result.code が空');
+                console.warn('⚠ [実行] result.code が空です');
             }
 
             // グローバル変数に保存（コピー/ファイルオープン用）
@@ -3943,19 +3942,8 @@ async function executeCode() {
 
             // モーダルを表示
             document.getElementById('code-result-modal').classList.add('show');
-
-            const endTime = performance.now();
-            const totalDuration = (endTime - startTime).toFixed(2);
-            console.log(`✅ [実行] 総処理時間: ${totalDuration}ms`);
-            console.log('═══════════════════════════════════════════════');
-            console.log('✅ [実行] PowerShellコード生成が完了しました');
-            console.log('═══════════════════════════════════════════════');
-            console.log('');
         } else {
-            console.log('❌ [実行] コード生成失敗');
-            console.log(`❌ [実行] エラーメッセージ: ${result.error}`);
-            console.log('═══════════════════════════════════════════════');
-            console.log('');
+            console.error(`❌ [実行] 失敗: ${result.error}`);
             alert(`コード生成失敗: ${result.error}`);
         }
     } catch (error) {
