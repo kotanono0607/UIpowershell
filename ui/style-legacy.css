@@ -886,4 +886,255 @@ button:active, .button:active {
     display: none !important;
 }
 
+/* ============================================
+   レイヤーナビゲーションUI (layer-navigation-test.html統合)
+   ============================================ */
+
+/* パンくずリスト */
+.breadcrumb-bar {
+    height: 40px;
+    background: var(--bg-color);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 10px;
+    box-shadow:
+        0 3px 6px var(--shadow-dark),
+        0 -2px 4px var(--shadow-light);
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: var(--bg-color);
+    box-shadow:
+        2px 2px 4px var(--shadow-dark),
+        -2px -2px 4px var(--shadow-light);
+    font-size: 13px;
+}
+
+.breadcrumb-item:hover {
+    box-shadow:
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+    transform: translateY(-1px);
+}
+
+.breadcrumb-separator {
+    color: var(--text-secondary);
+    user-select: none;
+}
+
+.breadcrumb-item.current {
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    color: white;
+    font-weight: bold;
+    box-shadow:
+        2px 2px 4px var(--shadow-dark),
+        -2px -2px 4px var(--shadow-light),
+        0 0 15px rgba(102, 126, 234, 0.3);
+}
+
+/* メインレイヤーパネル（旧left-layer-panel） */
+.main-layer-panel {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    transition: all 0.4s ease;
+}
+
+.main-layer-panel.dimmed {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* ドリルダウンパネル（旧right-layer-panel） */
+.drilldown-panel {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    background: var(--bg-color);
+    border-radius: 20px;
+    padding: 20px;
+    margin-left: 20px;
+    transition: all 0.4s ease;
+    box-shadow:
+        9px 9px 18px var(--shadow-dark),
+        -9px -9px 18px var(--shadow-light);
+}
+
+.drilldown-panel.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-message {
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: center;
+}
+
+/* ホバープレビュー */
+.hover-preview {
+    position: absolute;
+    background: var(--bg-color);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow:
+        8px 8px 16px var(--shadow-dark),
+        -8px -8px 16px var(--shadow-light);
+    z-index: 1000;
+    display: none;
+    min-width: 250px;
+    max-width: 350px;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+}
+
+.hover-preview.show {
+    display: block;
+    opacity: 0.95;
+    transform: scale(1);
+}
+
+.hover-preview-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--shadow-dark);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hover-preview-content {
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.hover-preview-item {
+    padding: 4px 0;
+    padding-left: 20px;
+    position: relative;
+}
+
+.hover-preview-item::before {
+    content: '├─';
+    position: absolute;
+    left: 0;
+    color: var(--text-secondary);
+}
+
+.hover-preview-item:last-child::before {
+    content: '└─';
+}
+
+/* ESCキーヒント */
+.esc-hint {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg-color);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    box-shadow:
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light);
+    display: none;
+    z-index: 100;
+}
+
+.esc-hint.show {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* レイヤーインジケーター */
+.layer-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+/* アニメーション */
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutToRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes pinkGlow {
+    0%, 100% {
+        box-shadow:
+            4px 4px 8px var(--shadow-dark),
+            -4px -4px 8px var(--shadow-light),
+            0 0 20px rgba(236, 72, 153, 0.3);
+    }
+    50% {
+        box-shadow:
+            4px 4px 8px var(--shadow-dark),
+            -4px -4px 8px var(--shadow-light),
+            0 0 40px rgba(236, 72, 153, 0.5);
+    }
+}
+
+.slide-in {
+    animation: slideInFromRight 0.4s ease-out;
+}
+
+.slide-out {
+    animation: slideOutToRight 0.4s ease-out;
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* ピンクノードのグロー効果強化 */
+.node-button[style*="Pink"],
+.node-button[style*="pink"] {
+    animation: pinkGlow 2s ease-in-out infinite;
+}
+
 /* レスポンシブ対応 - 右パネル削除により不要 */

@@ -3161,6 +3161,31 @@ async function handlePinkNodeClick(node) {
 
     console.log(`[展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${entries.length}個のノード展開、レイヤー移動なし)`);
     console.log(`[パネル表示] 左: レイヤー${leftVisibleLayer}, 右: レイヤー${rightVisibleLayer}`);
+
+    // レイヤー1の場合、ドリルダウンパネルも更新
+    if (parentLayer === 1 && leftVisibleLayer === 1) {
+        setTimeout(() => {
+            const leftPanel = document.getElementById('left-layer-panel');
+            if (leftPanel) {
+                leftPanel.classList.add('dimmed');
+            }
+
+            showLayerInDrilldownPanel(node);
+
+            const layerName = node.text || `スクリプト${node.layer}`;
+            breadcrumbStack.push({ name: layerName, layer: nextLayer });
+            renderBreadcrumb();
+
+            const escHint = document.getElementById('escHint');
+            if (escHint) {
+                escHint.classList.add('show');
+            }
+
+            drilldownState.active = true;
+            drilldownState.currentPinkNode = node;
+            drilldownState.targetLayer = nextLayer;
+        }, 100);
+    }
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
@@ -3460,6 +3485,11 @@ async function deleteAllNodes() {
 // ============================================
 
 function navigateLayer(direction) {
+    // ドリルダウンパネルがアクティブな場合はクリア
+    if (drilldownState && drilldownState.active) {
+        closeDrilldownPanel();
+    }
+
     if (direction === 'right') {
         // 右矢印: レイヤーを進む（PowerShellの「左矢印」= 画面が左にスライド）
 
@@ -5844,4 +5874,400 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initDarkMode);
 } else {
     initDarkMode();
+}
+
+// ============================================
+// レイヤーナビゲーション機能 (layer-navigation-test.html統合)
+// ============================================
+
+// パンくずリスト状態管理
+let breadcrumbStack = [
+    { name: 'メインフロー', layer: 1 }
+];
+
+// ホバープレビュー用タイマー
+let hoverTimer = null;
+
+// ドリルダウン状態
+let drilldownState = {
+    active: false,
+    currentPinkNode: null,
+    targetLayer: null
+};
+
+// パンくずリストを描画
+function renderBreadcrumb() {
+    const breadcrumb = document.getElementById('breadcrumb');
+    if (!breadcrumb) return;
+
+    breadcrumb.innerHTML = '';
+
+    breadcrumbStack.forEach((item, index) => {
+        const breadcrumbItem = document.createElement('div');
+        breadcrumbItem.className = 'breadcrumb-item';
+        breadcrumbItem.dataset.layer = item.layer;
+        breadcrumbItem.textContent = index === 0 ? '📍 ' + item.name : item.name;
+
+        if (index === breadcrumbStack.length - 1) {
+            breadcrumbItem.classList.add('current');
+        }
+
+        // クリックイベント
+        if (index < breadcrumbStack.length - 1) {
+            breadcrumbItem.addEventListener('click', () => {
+                navigateToBreadcrumbLayer(item.layer, index);
+            });
+        }
+
+        breadcrumb.appendChild(breadcrumbItem);
+
+        // セパレータ追加
+        if (index < breadcrumbStack.length - 1) {
+            const separator = document.createElement('span');
+            separator.className = 'breadcrumb-separator';
+            separator.textContent = '→';
+            breadcrumb.appendChild(separator);
+        }
+    });
+
+    if (LOG_CONFIG.breadcrumb) {
+        console.log('[パンくずリスト] 描画完了:', breadcrumbStack.map(b => b.name).join(' → '));
+    }
+}
+
+// パンくずリストからレイヤーに移動
+function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
+    if (LOG_CONFIG.breadcrumb) {
+        console.log(`[パンくずナビゲーション] レイヤー${targetLayer}に移動`);
+    }
+
+    // スタックを切り詰め
+    breadcrumbStack = breadcrumbStack.slice(0, targetIndex + 1);
+
+    // ドリルダウン状態をクリア
+    if (targetLayer === 1) {
+        closeDrilldownPanel();
+    } else {
+        // 中間レイヤーの場合は、そのレイヤーを再表示
+        const targetItem = breadcrumbStack[targetIndex];
+        if (targetItem) {
+            renderBreadcrumb();
+            // ここで右パネルの内容を復元する処理が必要
+        }
+    }
+}
+
+// ホバープレビューのセットアップ
+function setupHoverPreview() {
+    // 全てのピンクノードにホバーイベントを設定
+    document.addEventListener('mouseenter', (e) => {
+        if (e.target.classList.contains('node-button')) {
+            const bgColor = window.getComputedStyle(e.target).backgroundColor;
+            if (isPinkColor(bgColor)) {
+                handlePinkNodeHover(e.target, e);
+            }
+        }
+    }, true);
+
+    document.addEventListener('mouseleave', (e) => {
+        if (e.target.classList.contains('node-button')) {
+            clearTimeout(hoverTimer);
+            hidePreview();
+        }
+    }, true);
+}
+
+// ピンクノードのホバー処理
+function handlePinkNodeHover(node, event) {
+    const nodeData = getNodeDataFromElement(node);
+    if (!nodeData) return;
+
+    // 0.8秒後にプレビュー表示
+    hoverTimer = setTimeout(() => {
+        showPreview(event, nodeData);
+    }, 800);
+}
+
+// プレビュー表示
+function showPreview(event, nodeData) {
+    const preview = document.getElementById('hoverPreview');
+    const previewTitle = document.getElementById('previewTitle');
+    const previewContent = document.getElementById('previewContent');
+
+    if (!preview || !previewTitle || !previewContent) return;
+
+    // タイトル設定
+    const nodeName = nodeData.ボタン名 || 'スクリプト';
+    previewTitle.textContent = `プレビュー: ${nodeName}`;
+
+    // コンテンツ生成（このレイヤーに含まれるノードを表示）
+    previewContent.innerHTML = '';
+
+    // ダミーデータ（実際はこのピンクノードが展開する次のレイヤーのノードを取得）
+    const layerNodes = getNodesForPreview(nodeData);
+
+    if (layerNodes && layerNodes.length > 0) {
+        layerNodes.slice(0, 5).forEach((childNode, index) => {
+            const item = document.createElement('div');
+            item.className = 'hover-preview-item';
+            item.textContent = childNode.ボタン名 || `ノード${index + 1}`;
+
+            // ピンクノードの場合
+            const childBgColor = childNode.ボタン色 || childNode['ボタン色'];
+            if (childBgColor === 'Pink') {
+                item.innerHTML = '🟣 ' + item.textContent;
+            }
+
+            previewContent.appendChild(item);
+        });
+
+        if (layerNodes.length > 5) {
+            const more = document.createElement('div');
+            more.className = 'hover-preview-item';
+            more.textContent = `... 他${layerNodes.length - 5}件`;
+            more.style.color = 'var(--text-secondary)';
+            previewContent.appendChild(more);
+        }
+    } else {
+        const emptyItem = document.createElement('div');
+        emptyItem.className = 'hover-preview-item';
+        emptyItem.textContent = 'ノードがありません';
+        emptyItem.style.color = 'var(--text-secondary)';
+        previewContent.appendChild(emptyItem);
+    }
+
+    // 位置調整
+    const rect = event.target.getBoundingClientRect();
+    preview.style.left = (rect.right + 10) + 'px';
+    preview.style.top = rect.top + 'px';
+
+    // 表示
+    preview.classList.add('show');
+}
+
+// プレビュー非表示
+function hidePreview() {
+    const preview = document.getElementById('hoverPreview');
+    if (preview) {
+        preview.classList.remove('show');
+    }
+}
+
+// プレビュー用のノードデータ取得
+function getNodesForPreview(parentNodeData) {
+    // 親ノードのレイヤーの次のレイヤーからノードを取得
+    const parentLayer = parentNodeData.layer || 1;
+    const nextLayer = parentLayer + 1;
+
+    if (nextLayer > 6) return [];
+
+    // 次のレイヤーのノードを取得
+    const nextLayerNodes = nodes.filter(n => n.layer === nextLayer);
+
+    return nextLayerNodes;
+}
+
+// ノード要素からデータを取得
+function getNodeDataFromElement(nodeElement) {
+    const nodeId = nodeElement.dataset.nodeId;
+    if (!nodeId) return null;
+
+    return nodes.find(n => n.ボタン名 === nodeId);
+}
+
+// ピンクノードドリルダウン処理（新UI用）
+function handlePinkNodeDrilldown(nodeElement) {
+    const nodeData = getNodeDataFromElement(nodeElement);
+    if (!nodeData) return;
+
+    if (LOG_CONFIG.pink) {
+        console.log('[ピンクノードドリルダウン]', nodeData.ボタン名);
+    }
+
+    // 左パネルをdimmed状態に
+    const leftPanel = document.getElementById('left-layer-panel');
+    if (leftPanel) {
+        leftPanel.classList.add('dimmed');
+    }
+
+    // 右パネルにレイヤーを表示
+    showLayerInDrilldownPanel(nodeData);
+
+    // パンくずリストを更新
+    const layerName = nodeData.ボタン名 || `スクリプト${nodeData.layer}`;
+    breadcrumbStack.push({ name: layerName, layer: nodeData.layer + 1 });
+    renderBreadcrumb();
+
+    // ESCヒントを表示
+    const escHint = document.getElementById('escHint');
+    if (escHint) {
+        escHint.classList.add('show');
+    }
+
+    // ドリルダウン状態を更新
+    drilldownState.active = true;
+    drilldownState.currentPinkNode = nodeElement;
+    drilldownState.targetLayer = nodeData.layer + 1;
+}
+
+// ドリルダウンパネルにレイヤーを表示
+function showLayerInDrilldownPanel(parentNodeData) {
+    const rightPanel = document.getElementById('right-layer-panel');
+    if (!rightPanel) return;
+
+    const targetLayer = parentNodeData.layer + 1;
+    const layerNodes = nodes.filter(n => n.layer === targetLayer);
+
+    // 空状態を解除
+    rightPanel.classList.remove('empty');
+
+    // アニメーションクラス追加
+    rightPanel.classList.add('slide-in');
+
+    // コンテンツ生成
+    const layerName = parentNodeData.ボタン名 || `スクリプト${parentNodeData.layer}`;
+    rightPanel.innerHTML = `
+        <div class="layer-label" style="
+            height: 40px;
+            background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+            margin: -20px -20px 20px -20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        ">レイヤー${targetLayer} - ${layerName}</div>
+        <div class="layer-indicator">L${targetLayer}</div>
+        <div class="node-list-container" id="drilldown-nodes">
+            <!-- ノードがここに表示される -->
+        </div>
+    `;
+
+    // ノードを描画
+    const nodeContainer = rightPanel.querySelector('#drilldown-nodes');
+    if (nodeContainer && layerNodes.length > 0) {
+        layerNodes.forEach(node => {
+            const nodeButton = createNodeButton(node);
+            nodeContainer.appendChild(nodeButton);
+        });
+    } else if (nodeContainer) {
+        nodeContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">ノードがありません</div>';
+    }
+
+    // アニメーション完了後にクラスを削除
+    setTimeout(() => {
+        rightPanel.classList.remove('slide-in');
+        // 新しいピンクノードにイベントを設定
+        setupDrilldownPinkNodes();
+    }, 400);
+}
+
+// ドリルダウンパネル内のピンクノードにイベント設定
+function setupDrilldownPinkNodes() {
+    const rightPanel = document.getElementById('right-layer-panel');
+    if (!rightPanel) return;
+
+    const pinkNodes = rightPanel.querySelectorAll('.node-button');
+    pinkNodes.forEach(node => {
+        const bgColor = window.getComputedStyle(node).backgroundColor;
+        if (isPinkColor(bgColor)) {
+            node.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handlePinkNodeDrilldown(node);
+            });
+        }
+    });
+}
+
+// ドリルダウンパネルを閉じる
+function closeDrilldownPanel() {
+    const rightPanel = document.getElementById('right-layer-panel');
+    const leftPanel = document.getElementById('left-layer-panel');
+    const escHint = document.getElementById('escHint');
+
+    if (!rightPanel) return;
+
+    // スライドアウトアニメーション
+    rightPanel.classList.add('slide-out');
+
+    setTimeout(() => {
+        rightPanel.classList.remove('slide-out');
+        rightPanel.classList.add('empty');
+        rightPanel.innerHTML = `
+            <div class="empty-message">
+                <span>🟣 ピンクノードをクリックすると詳細が表示されます</span>
+            </div>
+        `;
+    }, 400);
+
+    // 左パネルのdimmedを解除
+    if (leftPanel) {
+        leftPanel.classList.remove('dimmed');
+    }
+
+    // ESCヒントを非表示
+    if (escHint) {
+        escHint.classList.remove('show');
+    }
+
+    // パンくずリストをリセット
+    breadcrumbStack = [{ name: 'メインフロー', layer: 1 }];
+    renderBreadcrumb();
+
+    // ドリルダウン状態をクリア
+    drilldownState.active = false;
+    drilldownState.currentPinkNode = null;
+    drilldownState.targetLayer = null;
+
+    if (LOG_CONFIG.pink) {
+        console.log('[ドリルダウン] パネルを閉じました');
+    }
+}
+
+// ESCキー処理
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && breadcrumbStack.length > 1) {
+        e.preventDefault();
+        closeDrilldownPanel();
+    }
+});
+
+// ノードボタンを作成（ヘルパー関数）
+function createNodeButton(nodeData) {
+    const button = document.createElement('div');
+    button.className = 'node-button';
+    button.dataset.nodeId = nodeData.ボタン名;
+    button.textContent = nodeData.テキスト || nodeData.ボタン名 || 'ノード';
+    button.style.backgroundColor = nodeData.ボタン色 || nodeData['ボタン色'] || 'White';
+    button.style.width = (nodeData.width || nodeData.幅 || 180) + 'px';
+    button.style.height = (nodeData.height || nodeData.高さ || 50) + 'px';
+    button.style.marginBottom = '10px';
+
+    return button;
+}
+
+// 初期化処理
+function initLayerNavigation() {
+    if (LOG_CONFIG.initialization) {
+        console.log('[レイヤーナビゲーション] 初期化開始');
+    }
+
+    // パンくずリストを初期化
+    renderBreadcrumb();
+
+    // ホバープレビューを設定
+    setupHoverPreview();
+
+    if (LOG_CONFIG.initialization) {
+        console.log('[レイヤーナビゲーション] 初期化完了');
+    }
+}
+
+// DOMContentLoaded時に初期化
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLayerNavigation);
+} else {
+    initLayerNavigation();
 }
