@@ -566,6 +566,29 @@ body::after {
     background-clip: text;
 }
 
+/* 説明パネル（左パネルの真下に固定） */
+#description-panel {
+    position: fixed;
+    top: calc(100vh - 296px);  /* 左パネルの真下から設置（ヘッダー50px + padding12px + max-height(100vh-358px) = 100vh-296px） */
+    left: 16px;
+    width: 605px;  /* 左パネルと同じ幅（550px → 605px） */
+    max-height: 500px;  /* 600px → 500px に変更 */
+    background: var(--bg-color);
+    border-radius: 16px;
+    padding: 16px;
+    z-index: 50;
+    box-shadow:
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
+    overflow-y: auto;
+}
+
+#description-text {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
 /* フッター */
 #hierarchy-path {
     height: 36px;

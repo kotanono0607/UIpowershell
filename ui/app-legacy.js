@@ -1613,10 +1613,10 @@ function generateAddNodeButtons() {
             }
         };
 
-        // マウスオーバーで説明を表示（削除済み）
-        // btn.onmouseenter = () => {
-        //     document.getElementById('description-text').textContent = setting.説明 || 'ここに説明が表示されます。';
-        // };
+        // マウスオーバーで説明を表示
+        btn.onmouseenter = () => {
+            document.getElementById('description-text').textContent = setting.説明 || 'ここに説明が表示されます。';
+        };
 
         panel.appendChild(btn);
         generatedCount++;
@@ -2154,12 +2154,11 @@ function renderNodesInLayer(layer, panelSide = 'left') {
             // マウスオーバーで説明表示（該当する設定を検索）
             const setting = buttonSettings.find(s => s.処理番号 === node.処理番号);
             if (setting) {
-                // 説明パネル削除済み
-                // btn.onmouseenter = () => {
-                //     const description = setting.説明 || '';
-                //     const fullText = `${node.text}\n\n${description}`;
-                //     document.getElementById('description-text').textContent = fullText;
-                // };
+                btn.onmouseenter = () => {
+                    const description = setting.説明 || '';
+                    const fullText = `${node.text}\n\n${description}`;
+                    document.getElementById('description-text').textContent = fullText;
+                };
             }
         }
 
