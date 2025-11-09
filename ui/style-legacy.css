@@ -222,7 +222,7 @@ body::after {
 
 /* 左パネル: Neumorphism */
 #left-panel {
-    width: 500px;  /* 550px → 500px に変更 */
+    width: 550px;  /* 500px → 550px に変更（1.1倍） */
     max-height: calc(100vh - 78px - 280px);  /* ヘッダー・フッター分を確保（元の値に戻す） */
     background: var(--bg-color);
     border-radius: 20px;
@@ -292,7 +292,7 @@ body::after {
 }
 
 #node-buttons-container {
-    width: 360px;  /* 300px → 360px に変更（1.2倍） */
+    width: 396px;  /* 300px → 360px → 396px に変更（1.1倍） */
     flex-shrink: 0;
     overflow-y: auto;
     padding: 12px;
@@ -563,7 +563,7 @@ body::after {
     position: fixed;
     top: calc(100vh - 296px);  /* 左パネルの真下から設置（ヘッダー50px + padding12px + max-height(100vh-358px) = 100vh-296px） */
     left: 16px;
-    width: 500px;  /* 左パネルと同じ幅 */
+    width: 550px;  /* 左パネルと同じ幅（500px → 550px） */
     max-height: 500px;  /* 600px → 500px に変更 */
     background: var(--bg-color);
     border-radius: 16px;
