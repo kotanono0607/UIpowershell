@@ -222,7 +222,7 @@ body::after {
 
 /* 左パネル: Neumorphism */
 #left-panel {
-    width: 550px;  /* 500px → 550px に変更（1.1倍） */
+    width: 605px;  /* 550px → 605px に変更（1.1倍） */
     max-height: calc(100vh - 78px - 280px);  /* ヘッダー・フッター分を確保（元の値に戻す） */
     background: var(--bg-color);
     border-radius: 20px;
@@ -238,7 +238,7 @@ body::after {
 }
 
 #category-buttons {
-    width: 120px;  /* 140px → 120px に変更 */
+    width: 132px;  /* 120px → 132px に変更（1.1倍） */
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -266,7 +266,7 @@ body::after {
 }
 
 .category-btn {
-    width: 120px;  /* 140px → 120px に変更 */
+    width: 132px;  /* 120px → 132px に変更（1.1倍） */
     height: 32px;
     border: none;
     cursor: pointer;
@@ -292,7 +292,7 @@ body::after {
 }
 
 #node-buttons-container {
-    width: 370px;  /* さらに余裕を持たせる（スクロールバー分も考慮） */
+    width: 407px;  /* 370px → 407px に変更（1.1倍） */
     flex-shrink: 0;
     overflow: hidden auto;  /* 横hidden、縦auto */
     padding: 12px;
@@ -570,7 +570,7 @@ body::after {
     position: fixed;
     top: calc(100vh - 296px);  /* 左パネルの真下から設置（ヘッダー50px + padding12px + max-height(100vh-358px) = 100vh-296px） */
     left: 16px;
-    width: 550px;  /* 左パネルと同じ幅（500px → 550px） */
+    width: 605px;  /* 左パネルと同じ幅（550px → 605px） */
     max-height: 500px;  /* 600px → 500px に変更 */
     background: var(--bg-color);
     border-radius: 16px;
