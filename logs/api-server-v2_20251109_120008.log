@@ -1,0 +1,567 @@
+﻿**********************
+Windows PowerShell トランスクリプト開始
+開始時刻: 20251109120008
+ユーザー名: A-01\hello
+RunAs ユーザー: A-01\hello
+構成名: 
+コンピューター: A-01 (Microsoft Windows NT 10.0.26100.0)
+ホスト アプリケーション: powershell -NoExit -ExecutionPolicy Bypass -File .\adapter\api-server-v2.ps1 -AutoOpenBrowser
+プロセス ID: 32168
+PSVersion: 5.1.26100.6899
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.6899
+BuildVersion: 10.0.26100.6899
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+トランスクリプトが開始されました。出力ファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251109_120008.log
+[ログ] ログファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251109_120008.log
+
+==================================
+UIpowershell - Polaris API Server V2
+Version: 1.0.179 (UTF-8エンコーディング修正版)
+==================================
+
+[OK] Polarisモジュールを読み込みます: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\Modules\Polaris
+[OK] Polarisモジュールを読み込みました (Version: Polaris.Version)
+
+既存のPowerShell関数を読み込みます...
+[OK] JSON操作ユーティリティ
+
+[OK] コードID管理JSON
+
+Phase 2 v2ファイルを読み込みます...
+[OK] コードメイン_コード本文_v2
+[OK] 変数機能_変数管理UI_v2
+[OK] メインF機能_ツールバー作成_v2
+[OK] メインF機能_メインボタン処理_v2
+[OK] 削除処理_v2
+[OK] ネスト規制バリデーション_v2
+
+Phase 3 Adapterファイルを読み込みます...
+[OK] UIpowershell状態を初期化しました (SessionId: 15b965d7-bfee-4b22-b6b5-7083de2a8735)
+[OK] state-manager
+[OK] node-operations
+
+==================================
+
+静的ファイル提供を設定します...
+[OK] 静的ファイル提供を設定しました
+
+Polarisサーバーを起動します...
+  ポート: 8080
+  URL: http://localhost:8080
+  フロントエンド: http://localhost:8080/index-legacy.html
+
+==================================
+✓ サーバー起動成功！
+==================================
+
+アクセス先: http://localhost:8080
+
+APIエンドポイント（Phase 3対応）:
+
+【基本】
+  GET  /api/health                    - ヘルスチェック
+  GET  /api/session                   - セッション情報
+  GET  /api/debug                     - デバッグ情報
+
+【ノード管理】
+  GET  /api/nodes                     - 全ノード取得
+  PUT  /api/nodes                     - ノード配列を一括設定
+  POST /api/nodes                     - ノード追加
+  DELETE /api/nodes/:id               - ノード削除
+  DELETE /api/nodes/all               - 全ノード削除
+
+【変数管理】
+  GET  /api/variables                 - 変数一覧取得
+  GET  /api/variables/:name           - 変数取得
+  POST /api/variables                 - 変数追加
+  PUT  /api/variables/:name           - 変数更新
+  DELETE /api/variables/:name         - 変数削除
+
+【メニュー操作】
+  GET  /api/menu/structure            - メニュー構造取得
+  POST /api/menu/action/:actionId     - メニューアクション実行
+
+【実行・フォルダ】
+  POST /api/execute/generate          - PowerShellコード生成
+  GET  /api/folders                   - フォルダ一覧取得
+  POST /api/folders                   - フォルダ作成
+  PUT  /api/folders/:name             - フォルダ切り替え
+
+【バリデーション】
+  POST /api/validate/drop             - ドロップ可否チェック
+
+【コードID管理】
+  POST /api/id/generate               - 新規ID生成
+  POST /api/entry/add                 - エントリ追加
+  GET  /api/entry/:id                 - エントリ取得
+  GET  /api/entries/all               - 全エントリ取得
+
+【ブラウザログ】
+  POST /api/browser-logs              - ブラウザコンソールログ受信
+
+停止するには Ctrl+C を押してください
+
+[ブラウザ] Microsoft Edge（UIpowershell専用）をアプリモードで起動します
+           URL: http://localhost:8080/index-legacy.html
+[ノード関数実行] 関数名: 1_1
+[ノード関数実行] スクリプトパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\1-1.ps1
+[ノード関数実行] 📂 ファイルを読み込み中...
+[ノード関数実行] 📄 ファイルパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\1-1.ps1
+[ノード関数実行] ⏰ ファイル更新日時: 11/02/2025 02:44:55
+[ノード関数実行] 📝 ファイルプレビュー (先頭200文字):
+
+function 1_1 {
+@"
+Write-Host "OK"
+"@
+}
+[ノード関数実行] ✅ 汎用関数を読み込みました
+[ノード関数実行] ✅ スクリプト読み込み完了
+[ノード関数実行] 🚀 関数 '1_1' を実行中...
+[ノード関数実行] ✅ 関数実行完了
+[ノード関数実行] 📤 生成されたコード (先頭200文字):
+Write-Host "OK"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\""},"最後のID":1}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\""},"最後のID":1}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 59
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"1-1":"Write-Host \"OK\""},"最後のID":1}}]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\""},"最後のID":1}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"1-1":"Write-Host \"OK\""},"最後のID":1}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 100 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "1-1":  "Write-Host \"OK\""
+             },
+    "最後のID":  1
+}
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 114 バイト
+[API]    最終更新時刻: 11/09/2025 12:00:43
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 408 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 1個のノード
+[API] 合計ノード数: 1
+[API] JSON生成完了 (長さ: 998 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1076 バイト
+[API]    最終更新時刻: 11/09/2025 12:00:44
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[ノード関数実行] 関数名: 1_1
+[ノード関数実行] スクリプトパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\1-1.ps1
+[ノード関数実行] 📂 ファイルを読み込み中...
+[ノード関数実行] 📄 ファイルパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\1-1.ps1
+[ノード関数実行] ⏰ ファイル更新日時: 11/02/2025 02:44:55
+[ノード関数実行] 📝 ファイルプレビュー (先頭200文字):
+
+function 1_1 {
+@"
+Write-Host "OK"
+"@
+}
+[ノード関数実行] ✅ 汎用関数を読み込みました
+[ノード関数実行] ✅ スクリプト読み込み完了
+[ノード関数実行] 🚀 関数 '1_1' を実行中...
+[ノード関数実行] ✅ 関数実行完了
+[ノード関数実行] 📤 生成されたコード (先頭200文字):
+Write-Host "OK"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\""},"最後のID":2}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\""},"最後のID":2}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 85
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\""},"最後のID":2}}]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\""},"最後のID":2}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\""},"最後のID":2}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 147 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "1-1":  "Write-Host \"OK\"",
+                 "2-1":  "Write-Host \"OK\""
+             },
+    "最後のID":  2
+}
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 161 バイト
+[API]    最終更新時刻: 11/09/2025 12:00:47
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 567 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 2個のノード
+[API] 合計ノード数: 2
+[API] JSON生成完了 (長さ: 1534 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1666 バイト
+[API]    最終更新時刻: 11/09/2025 12:00:48
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 584 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 2個のノード
+[API] 合計ノード数: 2
+[API] JSON生成完了 (長さ: 1534 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1666 バイト
+[API]    最終更新時刻: 11/09/2025 12:00:49
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 601 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 2個のノード
+[API] 合計ノード数: 2
+[API] JSON生成完了 (長さ: 1534 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1666 バイト
+[API]    最終更新時刻: 11/09/2025 12:00:49
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\"","3-1":"AAAA\n1-1;White;順次;\n2-1;White;順次;"},"最後のID":3}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\"","3-1":"AAAA\n1-1;White;順次;\n2-1;White;順次;"},"最後のID":3}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 128
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\"","3-1":"AAAA\n1-1;White;順次;\n2-1;White;順次;"},"最後のID":3}}]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\"","3-1":"AAAA\n1-1;White;順次;\n2-1;White;順次;"},"最後のID":3}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\"","3-1":"AAAA\n1-1;White;順次;\n2-1;White;順次;"},"最後のID":3}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 211 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "1-1":  "Write-Host \"OK\"",
+                 "2-1":  "Write-Host \"OK\"",
+                 "3-1":  "AAAA\n1-1;White;順次;\n2-1;White;順次;"
+             },
+    "最後
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 233 バイト
+[API]    最終更新時刻: 11/09/2025 12:00:51
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 414 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 1個のノード
+[API] 合計ノード数: 1
+[API] JSON生成完了 (長さ: 1029 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1121 バイト
+[API]    最終更新時刻: 11/09/2025 12:00:52
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\"","3-1":"AAAA\n4;White;順次;\n5;White;順次;"},"最後のID":3}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\"","3-1":"AAAA\n4;White;順次;\n5;White;順次;"},"最後のID":3}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 124
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\"","3-1":"AAAA\n4;White;順次;\n5;White;順次;"},"最後のID":3}}]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\"","3-1":"AAAA\n4;White;順次;\n5;White;順次;"},"最後のID":3}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"1-1":"Write-Host \"OK\"","2-1":"Write-Host \"OK\"","3-1":"AAAA\n4;White;順次;\n5;White;順次;"},"最後のID":3}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 207 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "1-1":  "Write-Host \"OK\"",
+                 "2-1":  "Write-Host \"OK\"",
+                 "3-1":  "AAAA\n4;White;順次;\n5;White;順次;"
+             },
+    "最後のID"
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 229 バイト
+[API]    最終更新時刻: 11/09/2025 12:00:53
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 681 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 1個のノード
+[API] レイヤー2 : 2個のノード
+[API] 合計ノード数: 3
+[API] JSON生成完了 (長さ: 2098 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 2298 バイト
+[API]    最終更新時刻: 11/09/2025 12:00:53
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[/api/execute/generate] リクエスト受信
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[DEBUG] bodyRaw 長: 106 文字
+[DEBUG] Received body: {"nodes":[{"id":3,"text":"スクリプト","color":"Pink","y":30,"処理番号":"99-1"}],"outputPath":null,"openFile":false}
+[DEBUG] nodes プロパティ存在: True
+[DEBUG] nodes type: Object[]
+[DEBUG] nodes count: 1
+[DEBUG] 最初のノード: {"id":3,"text":"スクリプト","color":"Pink","y":30,"処理番号":"99-1"}
+[DEBUG] Calling 実行イベント_v2 with nodeArray count: 1
+[DEBUG] OutputPath:
+[DEBUG] OpenFile: False
+ノードカウント: 1
+ノード名: 3, テキスト: スクリプト, 色: Pink
+[DEBUG] ノードIDをそのまま使用: 3
+[DEBUG] IDでエントリを取得 - 検索ID: 3
+[DEBUG] jsonパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[DEBUG] ファイル存在確認: OK
+[DEBUG] JSON読み込み: OK
+[DEBUG] JSONの第1レベルプロパティ: エントリ, 最後のID
+[DEBUG] 利用可能なエントリキー数: 3
+[DEBUG] 全てのキー: 1-1, 2-1, 3-1
+警告: 指定されたID (3) のエントリは存在しません。
+[DEBUG] 検索したID '3' に似たキー: 3-1
+[DEBUG] ノードID '3' で検索結果: 見つかりません
+[DEBUG] ノードID '3' で見つからないため、'3-1' で再検索...
+[DEBUG] IDでエントリを取得 - 検索ID: 3-1
+[DEBUG] jsonパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[DEBUG] ファイル存在確認: OK
+[DEBUG] JSON読み込み: OK
+[DEBUG] JSONの第1レベルプロパティ: エントリ, 最後のID
+[DEBUG] 利用可能なエントリキー数: 3
+[DEBUG] 全てのキー: 1-1, 2-1, 3-1
+[DEBUG] エントリ発見: 3-1
+[DEBUG] ノードID '3-1' で検索結果: 見つかりました
+[DEBUG] 使用するID: 3-1
+取得したエントリ: AAAA
+4;White;順次;
+5;White;順次;
+エントリID: 3-1
+内容:
+AAAA
+4;White;順次;
+5;White;順次;
+[Pinkノード展開] Pinkノード（スクリプト化されたノード）を展開します
+[Pinkノード展開] 展開前の内容: AAAA
+4;White;順次;
+5;White;順次;
+=== ノードリスト展開開始 ===
+入力: AAAA
+4;White;順次;
+5;White;順次;
+ノード数: 2
+処理中のノードID: 4
+[DEBUG] IDでエントリを取得 - 検索ID: 4
+[DEBUG] jsonパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[DEBUG] ファイル存在確認: OK
+[DEBUG] JSON読み込み: OK
+[DEBUG] JSONの第1レベルプロパティ: エントリ, 最後のID
+[DEBUG] 利用可能なエントリキー数: 3
+[DEBUG] 全てのキー: 1-1, 2-1, 3-1
+警告: 指定されたID (4) のエントリは存在しません。
+[DEBUG] 検索したID '4' に似たキー:
+[DEBUG] ノードID '4' で見つからないため、'4-1' で再検索...
+[DEBUG] IDでエントリを取得 - 検索ID: 4-1
+[DEBUG] jsonパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[DEBUG] ファイル存在確認: OK
+[DEBUG] JSON読み込み: OK
+[DEBUG] JSONの第1レベルプロパティ: エントリ, 最後のID
+[DEBUG] 利用可能なエントリキー数: 3
+[DEBUG] 全てのキー: 1-1, 2-1, 3-1
+警告: 指定されたID (4-1) のエントリは存在しません。
+[DEBUG] 検索したID '4-1' に似たキー:
+エントリが見つかりません: 4
+処理中のノードID: 5
+[DEBUG] IDでエントリを取得 - 検索ID: 5
+[DEBUG] jsonパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[DEBUG] ファイル存在確認: OK
+[DEBUG] JSON読み込み: OK
+[DEBUG] JSONの第1レベルプロパティ: エントリ, 最後のID
+[DEBUG] 利用可能なエントリキー数: 3
+[DEBUG] 全てのキー: 1-1, 2-1, 3-1
+警告: 指定されたID (5) のエントリは存在しません。
+[DEBUG] 検索したID '5' に似たキー:
+[DEBUG] ノードID '5' で見つからないため、'5-1' で再検索...
+[DEBUG] IDでエントリを取得 - 検索ID: 5-1
+[DEBUG] jsonパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[DEBUG] ファイル存在確認: OK
+[DEBUG] JSON読み込み: OK
+[DEBUG] JSONの第1レベルプロパティ: エントリ, 最後のID
+[DEBUG] 利用可能なエントリキー数: 3
+[DEBUG] 全てのキー: 1-1, 2-1, 3-1
+警告: 指定されたID (5-1) のエントリは存在しません。
+[DEBUG] 検索したID '5-1' に似たキー:
+エントリが見つかりません: 5
+=== ノードリスト展開完了 ===
+[Pinkノード展開] 展開後の内容:
+[Pinkノード展開] 展開後の長さ: 0 文字
+[出力追加] outputに追加中: 長さ=0 文字
+[出力追加] 追加後のoutput長: 2 文字
+出力をファイルに書き込みました: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\output.ps1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[実行イベント完了] レスポンス情報:
+  success: True
+  nodeCount: 1
+  outputPath: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\output.ps1
+  output長: 2 文字
+  outputが空: True
+  output先頭200文字:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[DEBUG] 実行イベント_v2 completed successfully
+[DEBUG] Result type: Hashtable
+[DEBUG] Result keys: outputPath, message, code, nodeCount, success, codeLength
+[DEBUG] Result.success: True
+[DEBUG] Result.code length: 2 文字
+[DEBUG] Result.code (最初の200文字):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[/api/execute/generate] ✅ 成功
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
