@@ -1855,6 +1855,9 @@ function addSingleNode(setting, customText = null, customY = null, customGroupId
         nodeCounter++;
     }
 
+    // 中間ノード（Gray色）の場合は幅を20pxに設定
+    const nodeWidth = (setting.背景色 === 'Gray') ? 20 : 200;
+
     const node = {
         id: nodeId,
         name: setting.ボタン名,
@@ -1863,7 +1866,7 @@ function addSingleNode(setting, customText = null, customY = null, customGroupId
         layer: leftVisibleLayer,
         x: 90,                              // X座標（中央寄せ）
         y: customY || getNextAvailableY(leftVisibleLayer),
-        width: 200,                         // ボタン幅（280px → 200px に変更）
+        width: nodeWidth,                   // ボタン幅（通常200px、中間ノード20px）
         height: customHeight,               // ボタン高さ（中間ラインは1px）
         groupId: customGroupId,
         処理番号: setting.処理番号,
@@ -3047,9 +3050,10 @@ async function handlePinkNodeClick(node) {
 
         console.log(`[展開処理] エントリ${index}: ID=${originalId}, 色=${color}, テキスト=${text}`);
 
-        // 条件分岐の中間ノードは高さ1px、座標計算も特殊
+        // 条件分岐の中間ノードは高さ1px、幅20px、座標計算も特殊
         const isMiddleNode = (text === '条件分岐 中間' || color === 'Gray');
         const nodeHeight = isMiddleNode ? 1 : 40;
+        const nodeWidth = isMiddleNode ? 20 : 200;
 
         // ボタン間隔と高さの調整（"条件分岐 中間"の場合は特殊）
         const interval = isMiddleNode ? 10 : 20;  // 通常20のところ10
@@ -3068,7 +3072,7 @@ async function handlePinkNodeClick(node) {
             layer: nextLayer,
             y: nodeY,
             x: 90,
-            width: 200,  // 280 → 200 に変更
+            width: nodeWidth,  // 通常200px、中間ノード20px
             height: nodeHeight,
             script: script,
             redBorder: false
