@@ -2091,9 +2091,6 @@ function renderNodesInLayer(layer, panelSide = 'left') {
     });
     console.log(`[デバッグ] renderNodesInLayer(${layer}): Canvas要素を保持してノードをクリア`);
 
-    // グローエフェクトのクラスをクリア（再適用のため）
-    container.classList.remove('glow-target-container');
-
     // Y座標でソート
     const layerNodes = layerStructure[layer].nodes.sort((a, b) => a.y - b.y);
 
@@ -2283,38 +2280,26 @@ function applyGlowEffects() {
         });
     }
 
-    // 3. すべてのコンテナからglow-target-containerクラスを削除
-    const existingGlowContainers = document.querySelectorAll('.node-list-container.glow-target-container');
-    console.log(`[グローエフェクト] 既存のglow-target-containerクラスを削除: ${existingGlowContainers.length}個`);
-    existingGlowContainers.forEach(el => {
-        el.classList.remove('glow-target-container');
+    // 3. すべての既存のグロー矢印を削除
+    const existingArrows = document.querySelectorAll('.glow-arrow-indicator');
+    console.log(`[グローエフェクト] 既存のグロー矢印を削除: ${existingArrows.length}個`);
+    existingArrows.forEach(el => {
+        el.remove();
     });
 
-    // 4. ターゲットレイヤーのコンテナ（leftとright）にglow-target-containerを適用
-    const targetLayerId = `layer-${glowState.targetLayer}`;
-    const targetLayerIdRight = `layer-${glowState.targetLayer}-right`;
+    // 4. ソースノードが見つかっている場合、グロー矢印を追加
+    if (foundSourceNode) {
+        const sourceNodeElement = document.querySelector(`.node-button[data-node-id="${glowState.sourceNode.id}"]`);
+        if (sourceNodeElement) {
+            // グロー矢印要素を作成
+            const arrowIndicator = document.createElement('div');
+            arrowIndicator.className = 'glow-arrow-indicator';
+            arrowIndicator.textContent = '▶';  // 右向き矢印
 
-    console.log(`[グローエフェクト] ターゲットコンテナを検索中...`);
-    console.log(`  - 左パネルID: ${targetLayerId}`);
-    console.log(`  - 右パネルID: ${targetLayerIdRight}`);
-
-    const targetContainerLeft = document.querySelector(`#${targetLayerId} .node-list-container`);
-    const targetContainerRight = document.querySelector(`#${targetLayerIdRight} .node-list-container`);
-
-    if (targetContainerLeft) {
-        targetContainerLeft.classList.add('glow-target-container');
-        console.log(`[グローエフェクト] ✨ 左パネル ${targetLayerId} にglow-target-containerクラスを適用しました！`);
-        console.log(`[グローエフェクト] ✨ 適用されたクラス: ${targetContainerLeft.className}`);
-    } else {
-        console.warn(`[グローエフェクト] ⚠️ 左パネル ${targetLayerId} のコンテナが見つかりませんでした`);
-    }
-
-    if (targetContainerRight) {
-        targetContainerRight.classList.add('glow-target-container');
-        console.log(`[グローエフェクト] ✨ 右パネル ${targetLayerIdRight} にglow-target-containerクラスを適用しました！`);
-        console.log(`[グローエフェクト] ✨ 適用されたクラス: ${targetContainerRight.className}`);
-    } else {
-        console.warn(`[グローエフェクト] ⚠️ 右パネル ${targetLayerIdRight} のコンテナが見つかりませんでした`);
+            // ノードに追加
+            sourceNodeElement.appendChild(arrowIndicator);
+            console.log(`[グローエフェクト] ✨ ノードID: ${glowState.sourceNode.id} にグロー矢印を追加しました！`);
+        }
     }
 
     console.log('═══════════════════════════════════════════════════');

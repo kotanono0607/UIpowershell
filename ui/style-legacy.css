@@ -698,40 +698,35 @@ body::after {
     }
 }
 
-.node-list-container.glow-target-container {
-    position: relative !important;
-    padding: 16px !important;  /* 20px → 16px に変更（基本paddingと同じに） */
-    border-radius: 12px !important;
-    max-width: 100% !important;  /* 親要素を超えないようにする */
-    box-sizing: border-box !important;  /* paddingとborderを幅に含める */
-    background:
-        linear-gradient(135deg,
-            rgba(236, 72, 153, 0.05),
-            rgba(102, 126, 234, 0.05)
-        ),
-        var(--bg-color) !important;
-    border: 2px solid transparent !important;
-    background-origin: border-box !important;
-    background-clip: padding-box, border-box !important;
-    animation: targetContainerGlow 2s ease-in-out infinite !important;
+/* グロー矢印（ピンクノードの右横に表示） */
+.glow-arrow-indicator {
+    position: absolute;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: rgba(255, 20, 147, 0.9);
+    pointer-events: none;
+    z-index: 200;
+    animation: glowArrowPulse 2s ease-in-out infinite;
 }
 
-@keyframes targetContainerGlow {
+@keyframes glowArrowPulse {
     0%, 100% {
-        border-color: rgba(236, 72, 153, 0.4);
-        box-shadow:
-            inset 3px 3px 6px var(--shadow-dark),
-            inset -3px -3px 6px var(--shadow-light),
-            0 0 15px rgba(236, 72, 153, 0.3),
-            0 0 30px rgba(102, 126, 234, 0.2);
+        opacity: 0.8;
+        text-shadow:
+            0 0 10px rgba(255, 20, 147, 0.8),
+            0 0 20px rgba(255, 105, 180, 0.6),
+            0 0 30px rgba(255, 182, 193, 0.4);
+        transform: translateY(-50%) translateX(0px);
     }
     50% {
-        border-color: rgba(236, 72, 153, 0.6);
-        box-shadow:
-            inset 3px 3px 6px var(--shadow-dark),
-            inset -3px -3px 6px var(--shadow-light),
-            0 0 20px rgba(236, 72, 153, 0.4),
-            0 0 40px rgba(102, 126, 234, 0.3);
+        opacity: 1;
+        text-shadow:
+            0 0 15px rgba(255, 20, 147, 1),
+            0 0 30px rgba(255, 105, 180, 0.8),
+            0 0 45px rgba(255, 182, 193, 0.6);
+        transform: translateY(-50%) translateX(5px);
     }
 }
 
