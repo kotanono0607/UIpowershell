@@ -21,6 +21,13 @@ const DEBUG_FLAGS = {
     other: false             // その他のログ
 };
 
+// レイヤーナビゲーション用ログ設定
+const LOG_CONFIG = {
+    breadcrumb: false,       // パンくずリストのログ
+    pink: true,              // ピンクノード処理のログ（デバッグ用に有効化）
+    initialization: false    // 初期化処理のログ
+};
+
 // フィルター付きログ関数
 function debugLog(category, ...args) {
     if (DEBUG_FLAGS[category]) {
@@ -292,42 +299,8 @@ function initializeArrowCanvas() {
         }
     }
 
-    // 右パネルの各レイヤーにcanvas要素を追加
-    for (let i = 0; i <= 6; i++) {
-        const layerPanel = document.getElementById(`layer-${i}-right`);
-        if (layerPanel) {
-            const nodeList = layerPanel.querySelector('.node-list-container');
-            if (nodeList) {
-                // Canvas要素を作成
-                const canvas = document.createElement('canvas');
-                canvas.className = 'arrow-canvas';
-                canvas.style.position = 'absolute';
-                canvas.style.top = '0';
-                canvas.style.left = '0';
-                canvas.style.pointerEvents = 'none';
-                canvas.style.zIndex = '1';
-
-                nodeList.style.position = 'relative';
-
-                const parentWidth = nodeList.clientWidth || nodeList.offsetWidth || 299;
-                const parentHeight = nodeList.clientHeight || nodeList.offsetHeight || 700;
-                canvas.width = parentWidth;
-                canvas.height = parentHeight;
-                canvas.style.width = parentWidth + 'px';
-                canvas.style.height = parentHeight + 'px';
-
-                nodeList.appendChild(canvas);
-
-                arrowState.canvasMap.set(`layer-${i}-right`, canvas);
-                createdCanvasCount++;
-                console.log(`[矢印] Canvas作成: layer-${i}-right (${canvas.width}x${canvas.height})`);
-            } else {
-                console.warn(`[矢印] .node-list-containerが見つかりません: layer-${i}-right`);
-            }
-        } else {
-            console.warn(`[矢印] レイヤーパネルが見つかりません: layer-${i}-right`);
-        }
-    }
+    // 右パネルはドリルダウンパネルに変更されたため、Canvas初期化は不要
+    // ドリルダウンパネルのCanvasは動的に生成される
 
     // メインコンテナにもcanvas追加（パネル間矢印用）
     const mainContainer = document.getElementById('main-container');
@@ -520,95 +493,34 @@ function drawCrossPanelPinkArrows() {
 }
 
 // 右パネル内のピンク矢印を描画
+// 注: 右パネルがドリルダウンパネルに変更されたため、この関数は無効化
 function drawRightPanelPinkArrows() {
-    const rightCanvas = arrowState.canvasMap.get(`layer-${rightVisibleLayer}-right`);
-    if (!rightCanvas) {
-        console.warn(`[パネル間矢印] 右パネルのcanvasが見つかりません: layer-${rightVisibleLayer}-right`);
-        return;
-    }
-
-    const rightContainer = document.querySelector(`#layer-${rightVisibleLayer}-right .node-list-container`);
-    if (!rightContainer) {
-        console.warn(`[パネル間矢印] 右パネルのコンテナが見つかりません`);
-        return;
-    }
-
-    const rightNodes = Array.from(rightContainer.querySelectorAll('.node-button'));
-    if (rightNodes.length === 0) {
-        console.log('[パネル間矢印] 右パネルにノードがないため、矢印をスキップ');
-        return;
-    }
-
-    const ctx = rightCanvas.getContext('2d', { willReadFrequently: true });
-    const containerRect = rightContainer.getBoundingClientRect();
-
-    // 最初のノード
-    const firstNode = rightNodes[0];
-    const firstRect = firstNode.getBoundingClientRect();
-
-    // パネル左端 → 最初のノードの右端
-    const startX = 0;
-    const startY = firstRect.top + firstRect.height / 2 - containerRect.top;
-    const endX = firstRect.right - containerRect.left;
-    const endY = startY;
-
-    ctx.strokeStyle = 'rgb(255, 105, 180)'; // HotPink
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
-    ctx.stroke();
-
-    // 矢印ヘッド（右向き）
-    const arrowSize = 10;
-    ctx.fillStyle = 'rgb(255, 105, 180)';
-    ctx.beginPath();
-    ctx.moveTo(endX, endY);
-    ctx.lineTo(endX - arrowSize, endY - arrowSize / 2);
-    ctx.lineTo(endX - arrowSize, endY + arrowSize / 2);
-    ctx.closePath();
-    ctx.fill();
-
-    console.log(`[パネル間矢印] 右パネル入口矢印描画完了`);
-
-    // 最後のノードからの戻り矢印
-    if (rightNodes.length > 1) {
-        const lastNode = rightNodes[rightNodes.length - 1];
-        const lastRect = lastNode.getBoundingClientRect();
-
-        // 最後のノードの左端 → パネル左端（横線）
-        const returnStartX = lastRect.left - containerRect.left;
-        const returnStartY = lastRect.top + lastRect.height / 2 - containerRect.top;
-        const returnEndX = 0;
-        const returnEndY = returnStartY;
-
-        ctx.beginPath();
-        ctx.moveTo(returnStartX, returnStartY);
-        ctx.lineTo(returnEndX, returnEndY);
-        ctx.stroke();
-
-        // パネル左端で縦線（最後のノード → 最初のノード）
-        ctx.beginPath();
-        ctx.moveTo(0, returnEndY);
-        ctx.lineTo(0, startY);
-        ctx.stroke();
-
-        console.log(`[パネル間矢印] 右パネル戻り矢印描画完了`);
-    }
+    // ドリルダウンパネルでは矢印は描画しない
+    return;
 }
 
 function drawPanelArrows(layerId) {
+    // 右パネル（*-right）はスキップ
+    if (layerId.includes('-right')) {
+        return;
+    }
+
     // console.log(`[デバッグ] drawPanelArrows() 呼び出し: layerId=${layerId}`);
 
     const canvas = arrowState.canvasMap.get(layerId);
     if (!canvas) {
-        console.error(`[デバッグ] Canvas が見つかりません: ${layerId}`);
+        // 右パネルのCanvasが見つからない場合は警告を出さない
+        if (!layerId.includes('-right')) {
+            console.error(`[デバッグ] Canvas が見つかりません: ${layerId}`);
+        }
         return;
     }
 
     const layerPanel = document.getElementById(layerId);
     if (!layerPanel) {
-        console.error(`[デバッグ] レイヤーパネルが見つかりません: ${layerId}`);
+        if (!layerId.includes('-right')) {
+            console.error(`[デバッグ] レイヤーパネルが見つかりません: ${layerId}`);
+        }
         return;
     }
 
@@ -1066,9 +978,14 @@ function isPinkColor(colorString) {
         const g = parseInt(match[2]);
         const b = parseInt(match[3]);
         // Pink, ピンク青色 (227, 206, 229), ピンク赤色 (252, 160, 158)
-        return (r === 255 && g === 192 && b === 203) || // Standard Pink
+        const isPink = (r === 255 && g === 192 && b === 203) || // Standard Pink
                (r === 227 && g === 206 && b === 229) || // ピンク青色
                (r === 252 && g === 160 && b === 158);   // ピンク赤色
+
+        if (LOG_CONFIG.pink) {
+            console.log(`[ピンク検出] 色: ${colorString}, RGB: (${r},${g},${b}), ピンク判定: ${isPink}`);
+        }
+        return isPink;
     }
     return false;
 }
@@ -2065,8 +1982,14 @@ function updateDualPanelDisplay() {
 // ============================================
 
 function renderNodesInLayer(layer, panelSide = 'left') {
-    // 左右パネル対応: panelSideに応じてコンテナを取得
-    const layerId = panelSide === 'right' ? `layer-${layer}-right` : `layer-${layer}`;
+    // 右パネルはドリルダウンパネルに変更されたため、スキップ
+    if (panelSide === 'right') {
+        // ドリルダウンパネルは別の関数で管理
+        return;
+    }
+
+    // 左パネル対応: コンテナを取得
+    const layerId = `layer-${layer}`;
     const container = document.querySelector(`#${layerId} .node-list-container`);
     if (!container) {
         console.warn(`[レンダリング] コンテナが見つかりません: ${layerId}`);
@@ -5961,10 +5884,17 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
 
 // ホバープレビューのセットアップ
 function setupHoverPreview() {
+    if (LOG_CONFIG.pink) {
+        console.log('[ホバープレビュー] setupHoverPreview初期化開始');
+    }
+
     // 全てのピンクノードにホバーイベントを設定
     document.addEventListener('mouseenter', (e) => {
         if (e.target.classList.contains('node-button')) {
             const bgColor = window.getComputedStyle(e.target).backgroundColor;
+            if (LOG_CONFIG.pink) {
+                console.log(`[ホバープレビュー] ノードにマウスエンター: ${e.target.dataset.nodeId}, 色: ${bgColor}`);
+            }
             if (isPinkColor(bgColor)) {
                 handlePinkNodeHover(e.target, e);
             }
@@ -5973,30 +5903,59 @@ function setupHoverPreview() {
 
     document.addEventListener('mouseleave', (e) => {
         if (e.target.classList.contains('node-button')) {
+            if (LOG_CONFIG.pink) {
+                console.log(`[ホバープレビュー] ノードからマウスリーブ: ${e.target.dataset.nodeId}`);
+            }
             clearTimeout(hoverTimer);
             hidePreview();
         }
     }, true);
+
+    if (LOG_CONFIG.pink) {
+        console.log('[ホバープレビュー] setupHoverPreview初期化完了');
+    }
 }
 
 // ピンクノードのホバー処理
 function handlePinkNodeHover(node, event) {
     const nodeData = getNodeDataFromElement(node);
+    if (LOG_CONFIG.pink) {
+        console.log(`[ホバープレビュー] handlePinkNodeHover呼び出し - ノードID: ${node.dataset.nodeId}, nodeData: ${nodeData ? 'あり' : 'なし'}`);
+        if (nodeData) {
+            console.log(`[ホバープレビュー] ノードデータ - text: ${nodeData.text}, layer: ${nodeData.layer}`);
+        }
+    }
     if (!nodeData) return;
 
     // 0.8秒後にプレビュー表示
     hoverTimer = setTimeout(() => {
+        if (LOG_CONFIG.pink) {
+            console.log(`[ホバープレビュー] 0.8秒経過、showPreview呼び出し`);
+        }
         showPreview(event, nodeData);
     }, 800);
 }
 
 // プレビュー表示
 function showPreview(event, nodeData) {
+    if (LOG_CONFIG.pink) {
+        console.log(`[ホバープレビュー] showPreview開始 - nodeData.text: ${nodeData.text}, layer: ${nodeData.layer}`);
+    }
+
     const preview = document.getElementById('hoverPreview');
     const previewTitle = document.getElementById('previewTitle');
     const previewContent = document.getElementById('previewContent');
 
-    if (!preview || !previewTitle || !previewContent) return;
+    if (LOG_CONFIG.pink) {
+        console.log(`[ホバープレビュー] DOM要素チェック - preview: ${preview ? 'あり' : 'なし'}, previewTitle: ${previewTitle ? 'あり' : 'なし'}, previewContent: ${previewContent ? 'あり' : 'なし'}`);
+    }
+
+    if (!preview || !previewTitle || !previewContent) {
+        if (LOG_CONFIG.pink) {
+            console.error('[ホバープレビュー] プレビュー用のDOM要素が見つかりません');
+        }
+        return;
+    }
 
     // タイトル設定
     const nodeName = nodeData.text || 'スクリプト';
@@ -6007,6 +5966,10 @@ function showPreview(event, nodeData) {
 
     // このピンクノードが展開する次のレイヤーのノードを取得
     const layerNodes = getNodesForPreview(nodeData);
+
+    if (LOG_CONFIG.pink) {
+        console.log(`[ホバープレビュー] レイヤーノード数: ${layerNodes ? layerNodes.length : 0}`);
+    }
 
     if (layerNodes && layerNodes.length > 0) {
         layerNodes.slice(0, 5).forEach((childNode, index) => {
@@ -6044,6 +6007,10 @@ function showPreview(event, nodeData) {
 
     // 表示
     preview.classList.add('show');
+
+    if (LOG_CONFIG.pink) {
+        console.log(`[ホバープレビュー] プレビュー表示完了 - 位置: (${preview.style.left}, ${preview.style.top})`);
+    }
 }
 
 // プレビュー非表示
