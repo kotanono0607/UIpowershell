@@ -5845,3 +5845,54 @@ function updateLoopPreview() {
 }
 
 // 🔧 修正: イベントリスナーは setupDialogEventListeners() で設定される（DOM ready後）
+
+// ============================================
+// ダークモード切り替え機能
+// ============================================
+
+// ダークモード切り替え
+function toggleDarkMode() {
+    const body = document.body;
+    const icon = document.getElementById('dark-mode-icon');
+    const text = document.getElementById('dark-mode-text');
+
+    if (body.classList.contains('dark-mode')) {
+        // ライトモードに切り替え
+        body.classList.remove('dark-mode');
+        icon.textContent = '🌙';
+        text.textContent = 'ダーク';
+        localStorage.setItem('darkMode', 'false');
+        console.log('[ダークモード] ライトモードに切り替え');
+    } else {
+        // ダークモードに切り替え
+        body.classList.add('dark-mode');
+        icon.textContent = '☀️';
+        text.textContent = 'ライト';
+        localStorage.setItem('darkMode', 'true');
+        console.log('[ダークモード] ダークモードに切り替え');
+    }
+}
+
+// ページ読み込み時にダークモード設定を復元
+function initDarkMode() {
+    const darkMode = localStorage.getItem('darkMode');
+    const body = document.body;
+    const icon = document.getElementById('dark-mode-icon');
+    const text = document.getElementById('dark-mode-text');
+
+    if (darkMode === 'true') {
+        body.classList.add('dark-mode');
+        if (icon) icon.textContent = '☀️';
+        if (text) text.textContent = 'ライト';
+        console.log('[ダークモード] ダークモードで起動');
+    } else {
+        console.log('[ダークモード] ライトモードで起動');
+    }
+}
+
+// DOM読み込み完了時にダークモード設定を初期化
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDarkMode);
+} else {
+    initDarkMode();
+}
