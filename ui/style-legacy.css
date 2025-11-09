@@ -238,7 +238,7 @@ body::after {
 }
 
 #category-buttons {
-    width: 132px;  /* 120px → 132px に変更（1.1倍） */
+    width: 100px;  /* 132px → 100px に変更 */
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -266,7 +266,7 @@ body::after {
 }
 
 .category-btn {
-    width: 132px;  /* 120px → 132px に変更（1.1倍） */
+    width: 100px;  /* 132px → 100px に変更 */
     height: 32px;
     border: none;
     cursor: pointer;
@@ -279,7 +279,7 @@ body::after {
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    box-shadow: 
+    box-shadow:
         3px 3px 6px var(--shadow-dark),
         -3px -3px 6px var(--shadow-light);
 }
@@ -699,10 +699,12 @@ body::after {
 
 .node-list-container.glow-target-container {
     position: relative !important;
-    padding: 20px !important;
+    padding: 16px !important;  /* 20px → 16px に変更（基本paddingと同じに） */
     border-radius: 12px !important;
-    background: 
-        linear-gradient(135deg, 
+    max-width: 100% !important;  /* 親要素を超えないようにする */
+    box-sizing: border-box !important;  /* paddingとborderを幅に含める */
+    background:
+        linear-gradient(135deg,
             rgba(236, 72, 153, 0.05),
             rgba(102, 126, 234, 0.05)
         ),
@@ -716,19 +718,19 @@ body::after {
 @keyframes targetContainerGlow {
     0%, 100% {
         border-color: rgba(236, 72, 153, 0.4);
-        box-shadow: 
+        box-shadow:
             inset 3px 3px 6px var(--shadow-dark),
             inset -3px -3px 6px var(--shadow-light),
-            0 0 20px rgba(236, 72, 153, 0.3),
-            0 0 40px rgba(102, 126, 234, 0.2);
+            0 0 15px rgba(236, 72, 153, 0.3),
+            0 0 30px rgba(102, 126, 234, 0.2);
     }
     50% {
         border-color: rgba(236, 72, 153, 0.6);
-        box-shadow: 
+        box-shadow:
             inset 3px 3px 6px var(--shadow-dark),
             inset -3px -3px 6px var(--shadow-light),
-            0 0 30px rgba(236, 72, 153, 0.4),
-            0 0 60px rgba(102, 126, 234, 0.3);
+            0 0 20px rgba(236, 72, 153, 0.4),
+            0 0 40px rgba(102, 126, 234, 0.3);
     }
 }
 
