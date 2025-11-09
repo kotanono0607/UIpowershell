@@ -292,7 +292,7 @@ body::after {
 }
 
 #node-buttons-container {
-    width: 378px;  /* 518px(内部幅) - 120px(カテゴリー) - 12px(gap) - 8px(余裕) = 378px */
+    width: 370px;  /* さらに余裕を持たせる（スクロールバー分も考慮） */
     flex-shrink: 0;
     overflow: hidden auto;  /* 横hidden、縦auto */
     padding: 12px;
@@ -309,10 +309,14 @@ body::after {
 
 .category-panel.active {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));  /* minmax(0, 1fr)でグリッドアイテムが縮小可能に */
     gap: 10px;
     justify-content: center;
     overflow-x: hidden;  /* 横スクロールバーを非表示 */
+    overflow-y: visible;  /* 縦方向は通常通り */
+    width: 100%;  /* 親要素の幅に制約 */
+    max-width: 100%;  /* 親要素を超えないようにする */
+    box-sizing: border-box;  /* paddingとborderを幅に含める */
 }
 
 .add-node-btn {
