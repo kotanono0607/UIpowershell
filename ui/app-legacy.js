@@ -5894,7 +5894,16 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
 
     // メインフローに戻る場合
     if (targetLayer === 1) {
-        closeDrilldownPanel();
+        // 編集モード中の場合は編集モードを終了
+        if (editModeState.active) {
+            if (LOG_CONFIG.breadcrumb) {
+                console.log('[パンくずナビゲーション] 編集モード中のため、exitEditMode()を呼び出します');
+            }
+            exitEditMode();
+        } else {
+            // ドリルダウンパネルを閉じる
+            closeDrilldownPanel();
+        }
         return;
     }
 
@@ -6406,9 +6415,17 @@ function exitEditMode() {
 
 // ESCキー処理
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && breadcrumbStack.length > 1) {
-        e.preventDefault();
-        closeDrilldownPanel();
+    if (e.key === 'Escape') {
+        // 編集モード中の場合
+        if (editModeState.active) {
+            e.preventDefault();
+            exitEditMode();
+        }
+        // ドリルダウン中の場合
+        else if (breadcrumbStack.length > 1) {
+            e.preventDefault();
+            closeDrilldownPanel();
+        }
     }
 });
 
