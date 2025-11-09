@@ -238,7 +238,7 @@ body::after {
 }
 
 #category-buttons {
-    width: 100px;  /* 132px → 100px に変更 */
+    width: 150px;  /* 100px → 150px に変更 */
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -266,7 +266,7 @@ body::after {
 }
 
 .category-btn {
-    width: 100px;  /* 132px → 100px に変更 */
+    width: 150px;  /* 100px → 150px に変更 */
     height: 32px;
     border: none;
     cursor: pointer;
