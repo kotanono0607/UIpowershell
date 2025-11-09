@@ -223,7 +223,7 @@ body::after {
 /* 左パネル: Neumorphism */
 #left-panel {
     width: 550px;  /* 450px → 550px に拡大してノードが収まるように */
-    max-height: calc(100vh - 78px - 630px);  /* ヘッダー・フッター・説明パネル用のスペースを確保 */
+    max-height: calc(100vh - 78px - 280px);  /* ヘッダー・フッター分を確保（元の値に戻す） */
     background: var(--bg-color);
     border-radius: 20px;
     padding: 16px;
