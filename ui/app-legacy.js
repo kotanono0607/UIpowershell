@@ -496,7 +496,7 @@ function drawCrossPanelPinkArrows() {
         return;
     }
 
-    const ctx = leftCanvas.getContext('2d');
+    const ctx = leftCanvas.getContext('2d', { willReadFrequently: true });
     const containerRect = leftContainer.getBoundingClientRect();
     const pinkRect = pinkNode.getBoundingClientRect();
 
@@ -539,7 +539,7 @@ function drawRightPanelPinkArrows() {
         return;
     }
 
-    const ctx = rightCanvas.getContext('2d');
+    const ctx = rightCanvas.getContext('2d', { willReadFrequently: true });
     const containerRect = rightContainer.getBoundingClientRect();
 
     // 最初のノード
@@ -638,7 +638,7 @@ function drawPanelArrows(layerId) {
     console.log(`[Canvas デバッグ] Canvas style.opacity:`, canvas.style.opacity);
     console.log(`[Canvas デバッグ] Canvas dimensions: ${canvas.width}x${canvas.height}, offset: ${canvas.offsetWidth}x${canvas.offsetHeight}`);
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     console.log(`[Canvas デバッグ] Context:`, ctx);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     console.log(`[Canvas デバッグ] clearRect完了: (0, 0, ${canvas.width}, ${canvas.height})`);
@@ -1078,7 +1078,7 @@ function drawCrossPanelArrows() {
     const mainCanvas = arrowState.canvasMap.get('main');
     if (!mainCanvas) return;
 
-    const ctx = mainCanvas.getContext('2d');
+    const ctx = mainCanvas.getContext('2d', { willReadFrequently: true });
     ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
 
     // ピンク選択中でない場合は何も描画しない
@@ -1304,7 +1304,7 @@ function debugCanvasInfo(layerId = 'layer-1') {
     console.log('In DOM:', document.body.contains(canvas));
 
     // テスト描画
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     ctx.strokeStyle = 'red';
     ctx.lineWidth = 5;
     ctx.beginPath();
