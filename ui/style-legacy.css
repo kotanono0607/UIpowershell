@@ -417,7 +417,7 @@ body::after {
 
 /* ノードボタン: Neumorphism + Aurora Border */
 .node-button {
-    width: 280px;
+    width: 120px;  /* 280px → 120px に変更（コンパクト） */
     height: 40px;
     border: 2px solid transparent;
     background: var(--bg-color);
