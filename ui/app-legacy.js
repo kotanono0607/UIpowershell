@@ -1355,6 +1355,11 @@ function checkScreenWidth() {
     const rightPanel = document.getElementById('right-panel');
     const toggleBtn = document.getElementById('right-panel-toggle');
 
+    // 右パネルが存在しない場合は処理をスキップ（右パネルは削除済み）
+    if (!rightPanel || !toggleBtn) {
+        return;
+    }
+
     if (window.innerWidth < 1600) {
         if (!rightPanelCollapsed) {
             rightPanel.classList.add('collapsed');
