@@ -5889,13 +5889,35 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
     // 中間レイヤーの場合は、そのレイヤーを再表示
     // スタックを切り詰め
     breadcrumbStack = breadcrumbStack.slice(0, targetIndex + 1);
-    renderBreadcrumb();
 
-    // TODO: 中間レイヤーへの復元機能は今後実装
-    // 現在は、ESCまたはメインフローのみサポート
-    if (LOG_CONFIG.breadcrumb) {
-        console.log('[パンくずナビゲーション] 中間レイヤー復元は未実装');
+    // 中間レイヤーを表示
+    const targetBreadcrumb = breadcrumbStack[targetIndex];
+    if (targetBreadcrumb.parentNodeData) {
+        // 親ノードデータがある場合、ドリルダウンパネルを再表示
+        showLayerInDrilldownPanel(targetBreadcrumb.parentNodeData);
+
+        // 左パネルをdimmed状態に
+        const leftPanel = document.getElementById('left-layer-panel');
+        if (leftPanel) {
+            leftPanel.classList.add('dimmed');
+        }
+
+        // ESCヒントを表示
+        const escHint = document.getElementById('escHint');
+        if (escHint) {
+            escHint.classList.add('show');
+        }
+
+        // ドリルダウン状態を更新
+        drilldownState.active = true;
+        drilldownState.targetLayer = targetLayer;
+
+        if (LOG_CONFIG.breadcrumb) {
+            console.log(`[パンくずナビゲーション] レイヤー${targetLayer}に復元しました`);
+        }
     }
+
+    renderBreadcrumb();
 }
 
 // ホバープレビューのセットアップ
@@ -6088,9 +6110,13 @@ function handlePinkNodeDrilldown(nodeElement) {
     // 右パネルにレイヤーを表示
     showLayerInDrilldownPanel(nodeData);
 
-    // パンくずリストを更新
+    // パンくずリストを更新（親ノードデータも保存）
     const layerName = nodeData.text || `スクリプト${nodeData.layer}`;
-    breadcrumbStack.push({ name: layerName, layer: nodeData.layer + 1 });
+    breadcrumbStack.push({
+        name: layerName,
+        layer: nodeData.layer + 1,
+        parentNodeData: nodeData  // 親ノードデータを保存
+    });
     renderBreadcrumb();
 
     // ESCヒントを表示
