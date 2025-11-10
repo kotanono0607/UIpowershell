@@ -2253,11 +2253,13 @@ function handleDragOver(e) {
     e.dataTransfer.dropEffect = 'move';
 
     const target = e.target;
-    if (target.classList.contains('node-button') && target !== draggedNode) {
-        target.classList.add('drag-over');
-    } else if (target.classList.contains('node-list-container')) {
-        // レイヤーパネルへのドロップも許可
-        target.classList.add('drag-over-container');
+    if (target && target.classList) {
+        if (target.classList.contains('node-button') && target !== draggedNode) {
+            target.classList.add('drag-over');
+        } else if (target.classList.contains('node-list-container')) {
+            // レイヤーパネルへのドロップも許可
+            target.classList.add('drag-over-container');
+        }
     }
 
     return false;
@@ -2269,8 +2271,10 @@ function handleDrop(e) {
     }
 
     const target = e.target;
-    target.classList.remove('drag-over');
-    target.classList.remove('drag-over-container');
+    if (target && target.classList) {
+        target.classList.remove('drag-over');
+        target.classList.remove('drag-over-container');
+    }
 
     if (!draggedNode) {
         return false;
@@ -2286,7 +2290,7 @@ function handleDrop(e) {
     let newY;
 
     // ケース1: ノードボタンへのドロップ（位置を入れ替え）
-    if (target.classList.contains('node-button') && target !== draggedNode) {
+    if (target && target.classList && target.classList.contains('node-button') && target !== draggedNode) {
         const targetNodeId = target.dataset.nodeId;
         const targetNodeData = layerStructure[leftVisibleLayer].nodes.find(n => n.id === targetNodeId);
 
@@ -2297,7 +2301,7 @@ function handleDrop(e) {
         newY = targetNodeData.y;
     }
     // ケース2: レイヤーパネルの空きスペースへのドロップ
-    else if (target.classList.contains('node-list-container')) {
+    else if (target && target.classList && target.classList.contains('node-list-container')) {
         // ドロップ位置のY座標を計算（PowerShellの実装に準拠）
         const rect = target.getBoundingClientRect();
         const dropY = e.clientY - rect.top;  // コンテナ内の相対Y座標
@@ -6056,7 +6060,7 @@ function setupHoverPreview() {
     }, true);
 
     document.addEventListener('mouseleave', (e) => {
-        if (e.target.classList.contains('node-button')) {
+        if (e.target && e.target.classList && e.target.classList.contains('node-button')) {
             if (LOG_CONFIG.pink) {
                 console.log(`[ホバープレビュー] ノードからマウスリーブ: ${e.target.dataset.nodeId}`);
             }
