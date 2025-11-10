@@ -67,6 +67,9 @@ function 実行イベント_v2 {
             }
         }
 
+        # デバッグモード（環境変数で制御）
+        $DebugMode = $env:UIPOWERSHELL_DEBUG -eq "1"
+
         # Y座標でソート（配列として強制）
         $buttons = @($ノード配列 | Sort-Object { $_.y })
 
@@ -75,7 +78,9 @@ function 実行イベント_v2 {
 
         # ボタンの総数を取得
         $buttonCount = $buttons.Count
-        Write-Host "ノードカウント: $buttonCount"
+        if ($DebugMode) {
+            Write-Host "ノードカウント: $buttonCount"
+        }
 
         # 最後に見つかったGreenボタンの親IDを格納
         $lastGreenParentId = $null
@@ -88,33 +93,45 @@ function 実行イベント_v2 {
             $buttonText = if ($button.text) { $button.text } elseif ($button.Text) { $button.Text } else { "" }
             $colorName = if ($button.color) { $button.color } elseif ($button.BackColor) { $button.BackColor } else { "White" }
 
-            # ボタン情報をコンソールに出力
-            $buttonInfo = "ノード名: $buttonName, テキスト: $buttonText, 色: $colorName"
-            Write-Host $buttonInfo
+            # ボタン情報をコンソールに出力（デバッグモードのみ）
+            if ($DebugMode) {
+                $buttonInfo = "ノード名: $buttonName, テキスト: $buttonText, 色: $colorName"
+                Write-Host $buttonInfo
+            }
 
             # ノードIDをそのまま使用（例: "5-1", "6-1"）
             # コード.jsonのキーは "1-1", "6-1" などのノードID形式で保存されている
             $id = $buttonName
-            Write-Host "[DEBUG] ノードIDをそのまま使用: $id" -ForegroundColor Cyan
+            if ($DebugMode) {
+                Write-Host "[DEBUG] ノードIDをそのまま使用: $id" -ForegroundColor Cyan
+            }
 
             # エントリを取得（まずノードIDそのままで検索）
             try {
                 $取得したエントリ = IDでエントリを取得 -ID $id
-                Write-Host "[DEBUG] ノードID '$id' で検索結果: $(if ($取得したエントリ) { '見つかりました' } else { '見つかりません' })" -ForegroundColor Cyan
+                if ($DebugMode) {
+                    Write-Host "[DEBUG] ノードID '$id' で検索結果: $(if ($取得したエントリ) { '見つかりました' } else { '見つかりません' })" -ForegroundColor Cyan
+                }
 
                 # 見つからない場合は "-1" を追加して再検索
                 if ([string]::IsNullOrWhiteSpace($取得したエントリ)) {
                     $idWithSuffix = "$id-1"
-                    Write-Host "[DEBUG] ノードID '$id' で見つからないため、'$idWithSuffix' で再検索..." -ForegroundColor Yellow
+                    if ($DebugMode) {
+                        Write-Host "[DEBUG] ノードID '$id' で見つからないため、'$idWithSuffix' で再検索..." -ForegroundColor Yellow
+                    }
                     $取得したエントリ = IDでエントリを取得 -ID $idWithSuffix
-                    Write-Host "[DEBUG] ノードID '$idWithSuffix' で検索結果: $(if ($取得したエントリ) { '見つかりました' } else { '見つかりません' })" -ForegroundColor Cyan
+                    if ($DebugMode) {
+                        Write-Host "[DEBUG] ノードID '$idWithSuffix' で検索結果: $(if ($取得したエントリ) { '見つかりました' } else { '見つかりません' })" -ForegroundColor Cyan
+                    }
                     if ($取得したエントリ) {
                         $id = $idWithSuffix
-                        Write-Host "[DEBUG] 使用するID: $id" -ForegroundColor Green
+                        if ($DebugMode) {
+                            Write-Host "[DEBUG] 使用するID: $id" -ForegroundColor Green
+                        }
                     }
                 }
 
-                if ($取得したエントリ) {
+                if ($取得したエントリ -and $DebugMode) {
                     Write-Host "取得したエントリ: $取得したエントリ"
                 }
             } catch {
@@ -123,25 +140,37 @@ function 実行イベント_v2 {
             }
 
             if ($取得したエントリ -ne $null -and $取得したエントリ -ne "") {
-                # エントリの内容をコンソールに出力
-                Write-Host "エントリID: $id`n内容:`n$取得したエントリ`n"
+                # エントリの内容をコンソールに出力（デバッグモードのみ）
+                if ($DebugMode) {
+                    Write-Host "エントリID: $id`n内容:`n$取得したエントリ`n"
+                }
 
                 # エントリが "AAAA" で始まる場合は展開（Pinkノード）
                 if ($取得したエントリ -match "^AAAA") {
-                    Write-Host "[Pinkノード展開] Pinkノード（スクリプト化されたノード）を展開します" -ForegroundColor Magenta
-                    Write-Host "[Pinkノード展開] 展開前の内容: $取得したエントリ" -ForegroundColor Magenta
+                    if ($DebugMode) {
+                        Write-Host "[Pinkノード展開] Pinkノード（スクリプト化されたノード）を展開します" -ForegroundColor Magenta
+                        Write-Host "[Pinkノード展開] 展開前の内容: $取得したエントリ" -ForegroundColor Magenta
+                    }
                     $取得したエントリ = ノードリストを展開 -ノードリスト文字列 $取得したエントリ
-                    Write-Host "[Pinkノード展開] 展開後の内容: $取得したエントリ" -ForegroundColor Magenta
-                    Write-Host "[Pinkノード展開] 展開後の長さ: $($取得したエントリ.Length) 文字" -ForegroundColor Magenta
+                    if ($DebugMode) {
+                        Write-Host "[Pinkノード展開] 展開後の内容: $取得したエントリ" -ForegroundColor Magenta
+                        Write-Host "[Pinkノード展開] 展開後の長さ: $($取得したエントリ.Length) 文字" -ForegroundColor Magenta
+                    }
                 }
 
                 # エントリの内容のみを$outputに追加（空行を追加）
-                Write-Host "[出力追加] outputに追加中: 長さ=$($取得したエントリ.Length) 文字" -ForegroundColor Cyan
+                if ($DebugMode) {
+                    Write-Host "[出力追加] outputに追加中: 長さ=$($取得したエントリ.Length) 文字" -ForegroundColor Cyan
+                }
                 $output += "$取得したエントリ`n`n"
-                Write-Host "[出力追加] 追加後のoutput長: $($output.Length) 文字" -ForegroundColor Cyan
+                if ($DebugMode) {
+                    Write-Host "[出力追加] 追加後のoutput長: $($output.Length) 文字" -ForegroundColor Cyan
+                }
             } else {
-                Write-Host "[WARNING] エントリが見つかりません: ノードID=$buttonName, ベースID=$id" -ForegroundColor Yellow
-                Write-Host "[WARNING] このノードはスキップされます" -ForegroundColor Yellow
+                if ($DebugMode) {
+                    Write-Host "[WARNING] エントリが見つかりません: ノードID=$buttonName, ベースID=$id" -ForegroundColor Yellow
+                    Write-Host "[WARNING] このノードはスキップされます" -ForegroundColor Yellow
+                }
             }
 
             # 現在のノードがGreenの場合、lastGreenParentIdを更新
@@ -556,8 +585,13 @@ function ノードリストを展開 {
         [string]$ノードリスト文字列
     )
 
-    Write-Host "=== ノードリスト展開開始 ==="
-    Write-Host "入力: $ノードリスト文字列"
+    # デバッグモード（環境変数で制御）
+    $DebugMode = $env:UIPOWERSHELL_DEBUG -eq "1"
+
+    if ($DebugMode) {
+        Write-Host "=== ノードリスト展開開始 ===" -ForegroundColor Magenta
+        Write-Host "入力: $ノードリスト文字列" -ForegroundColor Gray
+    }
 
     # "AAAA" を除去
     $ノードリスト文字列 = $ノードリスト文字列 -replace "^AAAA\s*", ""
@@ -565,7 +599,9 @@ function ノードリストを展開 {
     # 行ごとに分割
     $lines = $ノードリスト文字列 -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
 
-    Write-Host "ノード数: $($lines.Count)"
+    if ($DebugMode) {
+        Write-Host "ノード数: $($lines.Count)" -ForegroundColor Gray
+    }
 
     $output = ""
 
@@ -574,7 +610,9 @@ function ノードリストを展開 {
         $parts = $line -split ";"
         if ($parts.Count -ge 1) {
             $nodeId = $parts[0].Trim()
-            Write-Host "処理中のノードID: $nodeId"
+            if ($DebugMode) {
+                Write-Host "処理中のノードID: $nodeId" -ForegroundColor Gray
+            }
 
             # このノードのエントリを取得（まずノードIDそのままで検索）
             $entry = IDでエントリを取得 -ID $nodeId
@@ -582,31 +620,43 @@ function ノードリストを展開 {
             # 見つからない場合は "-1" を追加して再検索
             if ([string]::IsNullOrWhiteSpace($entry)) {
                 $nodeIdWithSuffix = "$nodeId-1"
-                Write-Host "[DEBUG] ノードID '$nodeId' で見つからないため、'$nodeIdWithSuffix' で再検索..." -ForegroundColor Yellow
+                if ($DebugMode) {
+                    Write-Host "[DEBUG] ノードID '$nodeId' で見つからないため、'$nodeIdWithSuffix' で再検索..." -ForegroundColor Yellow
+                }
                 $entry = IDでエントリを取得 -ID $nodeIdWithSuffix
                 if ($entry) {
                     $nodeId = $nodeIdWithSuffix
-                    Write-Host "[DEBUG] 使用するID: $nodeId" -ForegroundColor Green
+                    if ($DebugMode) {
+                        Write-Host "[DEBUG] 使用するID: $nodeId" -ForegroundColor Green
+                    }
                 }
             }
 
             if ($entry -ne $null) {
-                Write-Host "取得したエントリ: $entry"
+                if ($DebugMode) {
+                    Write-Host "取得したエントリ: $entry" -ForegroundColor Gray
+                }
 
                 # エントリが "AAAA" で始まる場合は再帰的に展開
                 if ($entry -match "^AAAA") {
-                    Write-Host "再帰的に展開します"
+                    if ($DebugMode) {
+                        Write-Host "再帰的に展開します" -ForegroundColor Magenta
+                    }
                     $entry = ノードリストを展開 -ノードリスト文字列 $entry
                 }
 
                 $output += "$entry`n"
             } else {
-                Write-Host "エントリが見つかりません: $nodeId"
+                if ($DebugMode) {
+                    Write-Host "エントリが見つかりません: $nodeId" -ForegroundColor Yellow
+                }
             }
         }
     }
 
-    Write-Host "=== ノードリスト展開完了 ==="
+    if ($DebugMode) {
+        Write-Host "=== ノードリスト展開完了 ===" -ForegroundColor Magenta
+    }
     return $output
 }
 

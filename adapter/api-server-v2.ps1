@@ -557,45 +557,31 @@ New-PolarisRoute -Path "/api/menu/action/:actionId" -Method POST -ScriptBlock {
 New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
     Set-CorsHeaders -Response $Response
     try {
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-        Write-Host "[/api/execute/generate] リクエスト受信" -ForegroundColor Cyan
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        # デバッグモード（環境変数で制御）
+        $DebugMode = $env:UIPOWERSHELL_DEBUG -eq "1"
+
+        if ($DebugMode) {
+            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+            Write-Host "[/api/execute/generate] リクエスト受信" -ForegroundColor Cyan
+            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        }
 
         # Request.Body は null の可能性があるため、Request.BodyString を使用
         $bodyRaw = $null
         if ($null -eq $Request.Body) {
-            Write-Host "[API] Request.Body が null です。Request.BodyString を確認..." -ForegroundColor Yellow
             if ($Request.PSObject.Properties['BodyString']) {
                 $bodyRaw = $Request.BodyString
-                Write-Host "[API] ✅ Request.BodyString を取得しました" -ForegroundColor Green
             } else {
                 throw "Request.Body と Request.BodyString の両方が null です"
             }
         } else {
             $bodyRaw = $Request.Body
-            Write-Host "[API] ✅ Request.Body を取得しました" -ForegroundColor Green
         }
 
-        Write-Host "[DEBUG] bodyRaw 長: $($bodyRaw.Length) 文字" -ForegroundColor Yellow
         $body = $bodyRaw | ConvertFrom-Json
-
-        # デバッグ: 受信データを確認
-        Write-Host "[DEBUG] Received body: $($body | ConvertTo-Json -Depth 3 -Compress)" -ForegroundColor Yellow
-        Write-Host "[DEBUG] nodes プロパティ存在: $($null -ne $body.nodes)" -ForegroundColor Yellow
-
-        if ($null -ne $body.nodes) {
-            Write-Host "[DEBUG] nodes type: $($body.nodes.GetType().Name)" -ForegroundColor Yellow
-            Write-Host "[DEBUG] nodes count: $($body.nodes.Count)" -ForegroundColor Yellow
-            if ($body.nodes.Count -gt 0) {
-                Write-Host "[DEBUG] 最初のノード: $($body.nodes[0] | ConvertTo-Json -Compress)" -ForegroundColor Yellow
-            }
-        } else {
-            Write-Host "[ERROR] body.nodes が NULL です" -ForegroundColor Red
-        }
 
         # ノード配列の検証
         if ($null -eq $body.nodes -or $body.nodes.Count -eq 0) {
-            Write-Host "[ERROR] ノード配列が空またはNULLです" -ForegroundColor Red
             $Response.SetStatusCode(400)
             $errorResult = @{
                 success = $false
@@ -614,40 +600,40 @@ New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
         $outputPath = if ($body.outputPath) { $body.outputPath } else { $null }
         $openFile = if ($body.PSObject.Properties.Name -contains 'openFile') { [bool]$body.openFile } else { $false }
 
-        Write-Host "[DEBUG] Calling 実行イベント_v2 with nodeArray count: $($nodeArray.Count)" -ForegroundColor Green
-        Write-Host "[DEBUG] OutputPath: $outputPath" -ForegroundColor Green
-        Write-Host "[DEBUG] OpenFile: $openFile" -ForegroundColor Green
+        if ($DebugMode) {
+            Write-Host "[DEBUG] ノード数: $($nodeArray.Count)" -ForegroundColor Green
+        }
 
         $result = 実行イベント_v2 `
             -ノード配列 $nodeArray `
             -OutputPath $outputPath `
             -OpenFile $openFile
 
-        Write-Host "[DEBUG] 実行イベント_v2 completed successfully" -ForegroundColor Green
-        Write-Host "[DEBUG] Result type: $($result.GetType().Name)" -ForegroundColor Green
-        Write-Host "[DEBUG] Result keys: $($result.Keys -join ', ')" -ForegroundColor Green
-        Write-Host "[DEBUG] Result.success: $($result.success)" -ForegroundColor Green
-        if ($result.code) {
-            Write-Host "[DEBUG] Result.code length: $($result.code.Length) 文字" -ForegroundColor Green
-            Write-Host "[DEBUG] Result.code (最初の200文字): $($result.code.Substring(0, [Math]::Min(200, $result.code.Length)))" -ForegroundColor Green
+        if ($DebugMode) {
+            Write-Host "[DEBUG] 実行イベント_v2 completed - success: $($result.success)" -ForegroundColor Green
+            if ($result.code) {
+                Write-Host "[DEBUG] コード長: $($result.code.Length) 文字" -ForegroundColor Green
+            }
         } else {
-            Write-Host "[DEBUG] Result.code が存在しません" -ForegroundColor Yellow
+            # 通常モード: 簡潔なログのみ
+            Write-Host "[実行] ノード数: $($nodeArray.Count), 成功: $($result.success)" -ForegroundColor $(if ($result.success) { "Green" } else { "Red" })
         }
 
         $json = $result | ConvertTo-Json -Compress
         $Response.SetContentType('application/json; charset=utf-8')
         $Response.Send($json)
 
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
-        Write-Host "[/api/execute/generate] ✅ 成功" -ForegroundColor Green
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
+        if ($DebugMode) {
+            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
+            Write-Host "[/api/execute/generate] ✅ 成功" -ForegroundColor Green
+            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
+        }
     } catch {
         Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Red
         Write-Host "[/api/execute/generate] ❌ エラー発生" -ForegroundColor Red
         Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Red
         Write-Host "[ERROR] Exception: $($_.Exception.Message)" -ForegroundColor Red
         Write-Host "[ERROR] Stack trace: $($_.ScriptStackTrace)" -ForegroundColor Red
-        Write-Host "[ERROR] Full error: $($_ | Out-String)" -ForegroundColor Red
 
         $Response.SetStatusCode(500)
         $errorResult = @{
