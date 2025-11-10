@@ -107,10 +107,14 @@ function renderPopupNodes() {
     });
 
     // Canvas初期化と矢印描画（レイアウト計算後に実行）
-    setTimeout(() => {
-        initializePopupCanvas();
-        drawPopupArrows();
-    }, 100);
+    // requestAnimationFrameを2回使用して確実にレンダリングを待つ
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            console.log('[LayerDetail] レイアウト完了後に初期化開始');
+            initializePopupCanvas();
+            drawPopupArrows();
+        });
+    });
 }
 
 // ============================================
@@ -169,9 +173,13 @@ function initializePopupCanvas() {
         return;
     }
 
+    // デバッグ：containerの実際のサイズを確認
+    console.log(`[LayerDetail] Container実サイズ: ${container.clientWidth}x${container.clientHeight}`);
+    console.log(`[LayerDetail] Container計算サイズ: ${container.offsetWidth}x${container.offsetHeight}`);
+
     // Canvasサイズを調整（containerのサイズが0の場合はフォールバック）
-    const width = container.clientWidth || 600;
-    const height = container.clientHeight || 800;
+    const width = container.clientWidth || container.offsetWidth || 600;
+    const height = container.clientHeight || container.offsetHeight || 800;
 
     canvas.width = width;
     canvas.height = height;
