@@ -106,11 +106,9 @@ function renderPopupNodes() {
         container.appendChild(nodeEl);
     });
 
-    // Canvas初期化
-    initializePopupCanvas();
-
-    // 矢印を描画
+    // Canvas初期化と矢印描画（レイアウト計算後に実行）
     setTimeout(() => {
+        initializePopupCanvas();
         drawPopupArrows();
     }, 100);
 }
@@ -171,9 +169,12 @@ function initializePopupCanvas() {
         return;
     }
 
-    // Canvasサイズを調整
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    // Canvasサイズを調整（containerのサイズが0の場合はフォールバック）
+    const width = container.clientWidth || 600;
+    const height = container.clientHeight || 800;
+
+    canvas.width = width;
+    canvas.height = height;
 
     console.log(`[LayerDetail] Canvas初期化: ${canvas.width}x${canvas.height}`);
 }
@@ -255,10 +256,14 @@ function requestRefresh() {
 // ============================================
 // ウィンドウリサイズ時の処理
 // ============================================
+let resizeTimeout;
 window.addEventListener('resize', () => {
     console.log('[LayerDetail] ウィンドウリサイズ検出');
-    initializePopupCanvas();
-    drawPopupArrows();
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        initializePopupCanvas();
+        drawPopupArrows();
+    }, 100);
 });
 
 // ============================================
