@@ -1655,6 +1655,36 @@ New-PolarisRoute -Path "/app-legacy.js" -Method GET -ScriptBlock {
     }
 }
 
+# layer-detail.html（ポップアップウィンドウ用）
+New-PolarisRoute -Path "/layer-detail.html" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $uiPath = $global:UiPathForPolaris
+    $htmlPath = Join-Path $uiPath "layer-detail.html"
+    if (Test-Path $htmlPath) {
+        $content = Get-Content $htmlPath -Raw -Encoding UTF8
+        $Response.SetContentType('text/html; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("layer-detail.html not found")
+    }
+}
+
+# layer-detail.js（ポップアップウィンドウ用）
+New-PolarisRoute -Path "/layer-detail.js" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $uiPath = $global:UiPathForPolaris
+    $jsPath = Join-Path $uiPath "layer-detail.js"
+    if (Test-Path $jsPath) {
+        $content = Get-Content $jsPath -Raw -Encoding UTF8
+        $Response.SetContentType('application/javascript; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("layer-detail.js not found")
+    }
+}
+
 # ボタン設定.json (英語エイリアス: /button-settings.json)
 # 注: ブラウザが日本語URLを自動エンコードするため、英語パスを使用
 New-PolarisRoute -Path "/button-settings.json" -Method GET -ScriptBlock {
