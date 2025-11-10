@@ -191,6 +191,9 @@ let nodeCounter = 1;
 let loopGroupCounter = 1000;      // ループ用（1000番台）
 let conditionGroupCounter = 2000; // 条件分岐用（2000番台）
 
+// ポップアップウィンドウ管理（レイヤー詳細）
+let layerPopups = new Map();      // レイヤー番号 -> Windowオブジェクト
+
 // 右ペイン状態
 let rightPanelCollapsed = false;
 
@@ -2906,6 +2909,12 @@ async function handlePinkNodeClick(node) {
         return;
     }
 
+    // ★★★ レイヤー2以降はポップアップウィンドウで表示 ★★★
+    if (nextLayer >= 2) {
+        await handlePinkNodeClickPopup(node);
+        return;
+    }
+
     // Pink選択配列に展開状態を記録
     pinkSelectionArray[parentLayer].yCoord = node.y + 15;
     pinkSelectionArray[parentLayer].value = 1;
@@ -3109,6 +3118,165 @@ async function handlePinkNodeClick(node) {
             drilldownState.targetLayer = nextLayer;
         }, 100);
     }
+}
+
+// ============================================
+// ピンクノード展開（ポップアップウィンドウ版）
+// ============================================
+async function handlePinkNodeClickPopup(node) {
+    console.log(`[ピンク展開ポップアップ] 「${node.text}」(ID:${node.id}) L${node.layer}→L${node.layer + 1}`);
+
+    const parentLayer = node.layer;
+    const nextLayer = parentLayer + 1;
+
+    // scriptプロパティを解析してノードを展開
+    if (!node.script || node.script.trim() === '') {
+        console.warn(`[ピンク展開ポップアップ] scriptデータなし`);
+        alert('このスクリプト化ノードは空です。展開するノードがありません。');
+        return;
+    }
+
+    // Pink選択配列に展開状態を記録
+    pinkSelectionArray[parentLayer].yCoord = node.y + 15;
+    pinkSelectionArray[parentLayer].value = 1;
+    pinkSelectionArray[parentLayer].expandedNode = node.id;
+
+    // 次レイヤーをクリア
+    layerStructure[nextLayer].nodes = [];
+
+    // scriptデータを解析（形式: ID;色;テキスト;スクリプト）
+    const entries = node.script.split('_').filter(e => e.trim() !== '');
+    console.log(`[ピンク展開ポップアップ] ${entries.length}個のノードを展開`);
+
+    let baseY = 10; // 初期Y座標
+    const expandedNodes = []; // 展開されたノード配列
+
+    entries.forEach((entry, index) => {
+        const parts = entry.split(';');
+        if (parts.length < 3) {
+            console.warn(`[展開処理] エントリ${index}のフォーマットが不正: ${entry}`);
+            return;
+        }
+
+        const originalId = parts[0];
+        const color = parts[1];
+        const text = parts[2];
+        let script = parts[3] || '';
+
+        // ピンクノードの場合、コード.jsonからscriptデータを復元
+        if (color === 'Pink' && !script) {
+            const savedScript = getCodeEntry(originalId);
+            if (savedScript) {
+                script = savedScript
+                    .replace(/^AAAA\n/, '')
+                    .replace(/\n---\n/g, '_')
+                    .replace(/\n/g, '_')
+                    .replace(/_+/g, '_')
+                    .trim();
+            }
+        }
+
+        // 条件分岐の中間ノードは高さ1px、幅20px
+        const isMiddleNode = (text === '条件分岐 中間' || color === 'Gray');
+        const nodeHeight = isMiddleNode ? 1 : 40;
+        const nodeWidth = isMiddleNode ? 20 : 120;
+        const interval = isMiddleNode ? 10 : 20;
+        const heightForNext = isMiddleNode ? 0 : 40;
+
+        // Y座標を設定
+        const nodeY = baseY + interval;
+
+        // 新しいノードを作成
+        const newNodeId = nodeCounter++;
+        const newNode = {
+            id: newNodeId,
+            text: text,
+            color: color,
+            処理番号: '99-1',
+            layer: nextLayer,
+            y: nodeY,
+            x: 90,
+            width: nodeWidth,
+            height: nodeHeight,
+            script: script,
+            redBorder: false
+        };
+
+        console.log(`[展開処理] ノード作成: ID=${newNodeId}, テキスト=${text}, 色=${color}, Y=${nodeY}`);
+
+        // グローバル配列とレイヤーに追加
+        nodes.push(newNode);
+        layerStructure[nextLayer].nodes.push(newNode);
+        expandedNodes.push(newNode);
+
+        // 次のノードのbaseY計算
+        baseY = nodeY + heightForNext;
+    });
+
+    // memory.json自動保存
+    await saveMemoryJson();
+
+    // 既存のポップアップがあれば閉じる
+    if (layerPopups.has(nextLayer)) {
+        const existingPopup = layerPopups.get(nextLayer);
+        if (existingPopup && !existingPopup.closed) {
+            console.log(`[ポップアップ] 既存のレイヤー${nextLayer}ウィンドウを閉じます`);
+            existingPopup.close();
+        }
+        layerPopups.delete(nextLayer);
+    }
+
+    // 新しいポップアップウィンドウを開く
+    const popupWidth = 650;
+    const popupHeight = 850;
+    const popupLeft = 100 + (nextLayer - 2) * 50; // 少しずつずらす
+    const popupTop = 100 + (nextLayer - 2) * 50;
+
+    const popupFeatures = `width=${popupWidth},height=${popupHeight},left=${popupLeft},top=${popupTop},resizable=yes,scrollbars=yes`;
+
+    console.log(`[ポップアップ] レイヤー${nextLayer}の詳細ウィンドウを開きます`);
+    const popup = window.open('layer-detail.html', `layer-${nextLayer}`, popupFeatures);
+
+    if (!popup) {
+        alert('ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。');
+        return;
+    }
+
+    // ポップアップを管理Mapに追加
+    layerPopups.set(nextLayer, popup);
+
+    // ポップアップが準備完了したらデータを送信
+    const sendDataToPopup = () => {
+        if (popup.closed) {
+            console.warn(`[ポップアップ] レイヤー${nextLayer}ウィンドウが既に閉じられています`);
+            layerPopups.delete(nextLayer);
+            return;
+        }
+
+        console.log(`[ポップアップ] レイヤー${nextLayer}にデータを送信:`, expandedNodes.length, 'ノード');
+        popup.postMessage({
+            type: 'SHOW_LAYER_DETAIL',
+            layer: nextLayer,
+            nodes: expandedNodes,
+            parentNode: {
+                id: node.id,
+                text: node.text,
+                layer: node.layer
+            }
+        }, window.location.origin);
+    };
+
+    // ポップアップのloadイベントを待つ
+    popup.addEventListener('load', sendDataToPopup);
+
+    // タイムアウト対策（2秒後にも送信を試みる）
+    setTimeout(() => {
+        if (!popup.closed) {
+            sendDataToPopup();
+        }
+    }, 2000);
+
+    console.log(`[ポップアップ展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${expandedNodes.length}個のノード展開)`);
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
@@ -6422,6 +6590,50 @@ document.addEventListener('keydown', (e) => {
             e.preventDefault();
             closeDrilldownPanel();
         }
+    }
+});
+
+// ============================================
+// ポップアップウィンドウからのメッセージ受信
+// ============================================
+window.addEventListener('message', (event) => {
+    // セキュリティチェック（同一オリジンのみ許可）
+    if (event.origin !== window.location.origin) {
+        console.warn('[postMessage] 不正なオリジンからのメッセージを無視:', event.origin);
+        return;
+    }
+
+    console.log('[postMessage] メッセージ受信:', event.data);
+
+    if (event.data.type === 'POPUP_READY') {
+        // ポップアップが準備完了
+        console.log('[postMessage] ポップアップが準備完了しました');
+    } else if (event.data.type === 'POPUP_CLOSED') {
+        // ポップアップが閉じられた
+        const layer = event.data.layer;
+        console.log(`[postMessage] ポップアップ（レイヤー${layer}）が閉じられました`);
+        if (layerPopups.has(layer)) {
+            layerPopups.delete(layer);
+        }
+    } else if (event.data.type === 'REQUEST_LAYER_DATA') {
+        // ポップアップからレイヤーデータ更新をリクエスト
+        const layer = event.data.layer;
+        console.log(`[postMessage] レイヤー${layer}のデータ更新リクエストを受信`);
+
+        const layerNodes = layerStructure[layer].nodes || [];
+        const popup = layerPopups.get(layer);
+
+        if (popup && !popup.closed) {
+            popup.postMessage({
+                type: 'UPDATE_NODES',
+                nodes: layerNodes
+            }, window.location.origin);
+            console.log(`[postMessage] レイヤー${layer}にデータを送信: ${layerNodes.length}ノード`);
+        }
+    } else if (event.data.type === 'NODE_CLICKED_IN_POPUP') {
+        // ポップアップ内でノードがクリックされた
+        console.log(`[postMessage] ポップアップ内でノードクリック: ${event.data.nodeId}`);
+        // 必要に応じて処理を追加
     }
 });
 
