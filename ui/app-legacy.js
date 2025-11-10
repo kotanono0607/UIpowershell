@@ -3217,79 +3217,14 @@ async function handlePinkNodeClickPopup(node) {
     // memory.json自動保存
     await saveMemoryJson();
 
-    // 既存のポップアップがあれば閉じる
-    if (layerPopups.has(nextLayer)) {
-        const existingPopup = layerPopups.get(nextLayer);
-        if (existingPopup && !existingPopup.closed) {
-            console.log(`[ポップアップ] 既存のレイヤー${nextLayer}ウィンドウを閉じます`);
-            existingPopup.close();
-        }
-        layerPopups.delete(nextLayer);
-        layerPopupData.delete(nextLayer);
-    }
+    // モーダルでレイヤー詳細を表示
+    console.log(`[モーダル展開] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${expandedNodes.length}個のノード展開)`);
 
-    // 新しいポップアップウィンドウを開く
-    const popupWidth = 650;
-    const popupHeight = 850;
-    const popupLeft = 100 + (nextLayer - 2) * 50; // 少しずつずらす
-    const popupTop = 100 + (nextLayer - 2) * 50;
-
-    const popupFeatures = `width=${popupWidth},height=${popupHeight},left=${popupLeft},top=${popupTop},resizable=yes,scrollbars=yes`;
-
-    console.log(`[ポップアップ] レイヤー${nextLayer}の詳細ウィンドウを開きます`);
-    const popup = window.open('layer-detail.html', `layer-${nextLayer}`, popupFeatures);
-
-    if (!popup) {
-        alert('ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。');
-        return;
-    }
-
-    // ポップアップを管理Mapに追加
-    layerPopups.set(nextLayer, popup);
-
-    // ポップアップデータを保存（POPUP_READY受信時に送信）
-    layerPopupData.set(nextLayer, {
-        layer: nextLayer,
-        nodes: expandedNodes,
-        parentNode: {
-            id: node.id,
-            text: node.text,
-            layer: node.layer
-        }
+    showLayerDetailModal(nextLayer, expandedNodes, {
+        id: node.id,
+        text: node.text,
+        layer: node.layer
     });
-
-    // ポップアップが準備完了したらデータを送信
-    const sendDataToPopup = () => {
-        if (popup.closed) {
-            console.warn(`[ポップアップ] レイヤー${nextLayer}ウィンドウが既に閉じられています`);
-            layerPopups.delete(nextLayer);
-            return;
-        }
-
-        console.log(`[ポップアップ] レイヤー${nextLayer}にデータを送信:`, expandedNodes.length, 'ノード');
-        popup.postMessage({
-            type: 'SHOW_LAYER_DETAIL',
-            layer: nextLayer,
-            nodes: expandedNodes,
-            parentNode: {
-                id: node.id,
-                text: node.text,
-                layer: node.layer
-            }
-        }, window.location.origin);
-    };
-
-    // ポップアップのloadイベントを待つ
-    popup.addEventListener('load', sendDataToPopup);
-
-    // タイムアウト対策（2秒後にも送信を試みる）
-    setTimeout(() => {
-        if (!popup.closed) {
-            sendDataToPopup();
-        }
-    }, 2000);
-
-    console.log(`[ポップアップ展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${expandedNodes.length}個のノード展開)`);
 }
 
 // 赤枠に挟まれたボタンスタイルを適用

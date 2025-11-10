@@ -1670,7 +1670,7 @@ New-PolarisRoute -Path "/layer-detail.html" -Method GET -ScriptBlock {
     }
 }
 
-# layer-detail.js（ポップアップウィンドウ用）
+# layer-detail.js（ポップアップウィンドウ用 - 非推奨、モーダル方式に移行）
 New-PolarisRoute -Path "/layer-detail.js" -Method GET -ScriptBlock {
     Set-CorsHeaders -Response $Response
     $uiPath = $global:UiPathForPolaris
@@ -1682,6 +1682,21 @@ New-PolarisRoute -Path "/layer-detail.js" -Method GET -ScriptBlock {
     } else {
         $Response.SetStatusCode(404)
         $Response.Send("layer-detail.js not found")
+    }
+}
+
+# modal-functions.js（モーダルウィンドウ用）
+New-PolarisRoute -Path "/modal-functions.js" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $uiPath = $global:UiPathForPolaris
+    $jsPath = Join-Path $uiPath "modal-functions.js"
+    if (Test-Path $jsPath) {
+        $content = Get-Content $jsPath -Raw -Encoding UTF8
+        $Response.SetContentType('application/javascript; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("modal-functions.js not found")
     }
 }
 
