@@ -1700,6 +1700,21 @@ New-PolarisRoute -Path "/modal-functions.js" -Method GET -ScriptBlock {
     }
 }
 
+# arrow-patch-hybrid.js（矢印描画パッチ用）
+New-PolarisRoute -Path "/arrow-patch-hybrid.js" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $uiPath = $global:UiPathForPolaris
+    $jsPath = Join-Path $uiPath "arrow-patch-hybrid.js"
+    if (Test-Path $jsPath) {
+        $content = Get-Content $jsPath -Raw -Encoding UTF8
+        $Response.SetContentType('application/javascript; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("arrow-patch-hybrid.js not found")
+    }
+}
+
 # ボタン設定.json (英語エイリアス: /button-settings.json)
 # 注: ブラウザが日本語URLを自動エンコードするため、英語パスを使用
 New-PolarisRoute -Path "/button-settings.json" -Method GET -ScriptBlock {
