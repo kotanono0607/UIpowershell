@@ -6044,7 +6044,7 @@ function setupHoverPreview() {
 
     // 全てのピンクノードにホバーイベントを設定
     document.addEventListener('mouseenter', (e) => {
-        if (e.target.classList.contains('node-button')) {
+        if (e.target && e.target.classList && e.target.classList.contains('node-button')) {
             const bgColor = window.getComputedStyle(e.target).backgroundColor;
             if (LOG_CONFIG.pink) {
                 console.log(`[ホバープレビュー] ノードにマウスエンター: ${e.target.dataset.nodeId}, 色: ${bgColor}`);

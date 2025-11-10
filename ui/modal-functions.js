@@ -46,15 +46,35 @@ function showLayerDetailModal(layer, nodes, parentNode) {
 
         // ノードを描画
         nodes.forEach(node => {
-            const nodeEl = createNodeElement(node, false);
+            const btn = document.createElement('div');
+            btn.className = 'node-button';
+
+            // テキストの省略表示（20文字以上は省略）
+            const displayText = node.text.length > 20 ? node.text.substring(0, 20) + '...' : node.text;
+            btn.textContent = displayText;
+
+            // 位置とサイズ設定
+            btn.style.position = 'absolute';
+            btn.style.left = `${node.x || 90}px`;
+            btn.style.top = `${node.y || 10}px`;
+            btn.style.width = `${node.width || 120}px`;
+            btn.style.height = `${node.height || 40}px`;
+            btn.style.backgroundColor = node.color || 'white';
+
+            // 赤枠
+            if (node.redBorder) {
+                btn.style.border = '3px solid red';
+            }
+
             // モーダル内のノードはクリック不可にする
-            nodeEl.style.cursor = 'default';
-            nodeEl.onclick = (e) => {
+            btn.style.cursor = 'default';
+            btn.onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 console.log(`[モーダル] ノードクリック（読み取り専用）: ${node.text}`);
             };
-            container.appendChild(nodeEl);
+
+            container.appendChild(btn);
         });
 
         // Canvas初期化と矢印描画
