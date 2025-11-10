@@ -2058,6 +2058,7 @@ function renderNodesInLayer(layer, panelSide = 'left') {
 
             // クリックイベント（Shift+クリックで赤枠トグル、通常クリックでピンクノード展開）
             btn.addEventListener('click', (e) => {
+                console.log(`[クリック検出] ノード「${node.text}」(color:${node.color}) がクリックされました。Shift:${e.shiftKey}`);
                 if (e.shiftKey) {
                     // Shift+クリック: 赤枠トグル
                     e.preventDefault();
@@ -2065,9 +2066,11 @@ function renderNodesInLayer(layer, panelSide = 'left') {
                     handleShiftClick(node);
                 } else {
                     // 通常クリック: ピンクノードの場合は展開処理
+                    console.log(`[クリック判定] node.color === 'Pink' ? ${node.color === 'Pink'}`);
                     if (node.color === 'Pink') {
                         e.preventDefault();
                         e.stopPropagation();
+                        console.log(`[ピンクノード検出] handlePinkNodeClick を呼び出します`);
                         handlePinkNodeClick(node);
                     }
                 }
@@ -2903,20 +2906,27 @@ function handleShiftClick(node) {
 
 // ピンクノードクリックで展開処理（PowerShell互換）
 async function handlePinkNodeClick(node) {
+    console.log(`[ピンク展開] === handlePinkNodeClick 開始 ===`);
     console.log(`[ピンク展開] 「${node.text}」(ID:${node.id}) L${node.layer}→L${node.layer + 1}`);
 
     const parentLayer = node.layer;
     const nextLayer = parentLayer + 1;
 
+    console.log(`[ピンク展開] parentLayer=${parentLayer}, nextLayer=${nextLayer}`);
+
     // レイヤー上限チェック
     if (nextLayer > 6) {
+        console.log(`[ピンク展開] レイヤー上限エラー（nextLayer=${nextLayer}）`);
         alert('これ以上レイヤーを展開できません（最大レイヤー6）。');
         return;
     }
 
     // ★★★ レイヤー2以降はポップアップウィンドウで表示 ★★★
+    console.log(`[ピンク展開] nextLayer >= 2 ? ${nextLayer >= 2}`);
     if (nextLayer >= 2) {
+        console.log(`[ピンク展開] handlePinkNodeClickPopup を呼び出します`);
         await handlePinkNodeClickPopup(node);
+        console.log(`[ピンク展開] handlePinkNodeClickPopup から戻りました`);
         return;
     }
 
