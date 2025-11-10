@@ -193,6 +193,7 @@ let conditionGroupCounter = 2000; // 条件分岐用（2000番台）
 
 // ポップアップウィンドウ管理（レイヤー詳細）
 let layerPopups = new Map();      // レイヤー番号 -> Windowオブジェクト
+let layerPopupData = new Map();   // レイヤー番号 -> { layer, nodes, parentNode }
 
 // 右ペイン状態
 let rightPanelCollapsed = false;
@@ -3224,6 +3225,7 @@ async function handlePinkNodeClickPopup(node) {
             existingPopup.close();
         }
         layerPopups.delete(nextLayer);
+        layerPopupData.delete(nextLayer);
     }
 
     // 新しいポップアップウィンドウを開く
@@ -3244,6 +3246,17 @@ async function handlePinkNodeClickPopup(node) {
 
     // ポップアップを管理Mapに追加
     layerPopups.set(nextLayer, popup);
+
+    // ポップアップデータを保存（POPUP_READY受信時に送信）
+    layerPopupData.set(nextLayer, {
+        layer: nextLayer,
+        nodes: expandedNodes,
+        parentNode: {
+            id: node.id,
+            text: node.text,
+            layer: node.layer
+        }
+    });
 
     // ポップアップが準備完了したらデータを送信
     const sendDataToPopup = () => {
@@ -6606,14 +6619,31 @@ window.addEventListener('message', (event) => {
     console.log('[postMessage] メッセージ受信:', event.data);
 
     if (event.data.type === 'POPUP_READY') {
-        // ポップアップが準備完了
+        // ポップアップが準備完了 - データを送信
         console.log('[postMessage] ポップアップが準備完了しました');
+
+        // すべてのポップアップにデータを送信（どのレイヤーか特定できないため）
+        layerPopupData.forEach((data, layer) => {
+            const popup = layerPopups.get(layer);
+            if (popup && !popup.closed) {
+                console.log(`[postMessage] レイヤー${layer}にデータを送信: ${data.nodes.length}ノード`);
+                popup.postMessage({
+                    type: 'SHOW_LAYER_DETAIL',
+                    layer: data.layer,
+                    nodes: data.nodes,
+                    parentNode: data.parentNode
+                }, window.location.origin);
+            }
+        });
     } else if (event.data.type === 'POPUP_CLOSED') {
         // ポップアップが閉じられた
         const layer = event.data.layer;
         console.log(`[postMessage] ポップアップ（レイヤー${layer}）が閉じられました`);
         if (layerPopups.has(layer)) {
             layerPopups.delete(layer);
+        }
+        if (layerPopupData.has(layer)) {
+            layerPopupData.delete(layer);
         }
     } else if (event.data.type === 'REQUEST_LAYER_DATA') {
         // ポップアップからレイヤーデータ更新をリクエスト
