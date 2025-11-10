@@ -7,7 +7,9 @@ let modalCurrentLayer = null;
 let modalCurrentNodes = [];
 
 function showLayerDetailModal(layer, nodes, parentNode) {
-    console.log(`[モーダル] レイヤー${layer}の詳細を表示: ${nodes.length}ノード`);
+    console.log(`[モーダル] === showLayerDetailModal 呼び出し ===`);
+    console.log(`[モーダル] レイヤー: ${layer}, ノード数: ${nodes.length}`);
+    console.log(`[モーダル] ノードデータ:`, nodes);
 
     modalCurrentLayer = layer;
     modalCurrentNodes = nodes;
@@ -18,6 +20,11 @@ function showLayerDetailModal(layer, nodes, parentNode) {
     const layerLabel = document.getElementById('modal-layer-label');
     const parentInfo = document.getElementById('modal-parent-info');
     const container = document.getElementById('modal-node-container');
+
+    console.log(`[モーダル] DOM要素チェック:`);
+    console.log(`[モーダル]   - modal: ${modal ? '✓' : '✗'}`);
+    console.log(`[モーダル]   - layerTitle: ${layerTitle ? '✓' : '✗'}`);
+    console.log(`[モーダル]   - container: ${container ? '✓' : '✗'}`);
 
     // タイトル設定
     if (layerTitle) {
@@ -38,6 +45,7 @@ function showLayerDetailModal(layer, nodes, parentNode) {
 
     // コンテナをクリア（Canvasは残す）
     if (container) {
+        console.log(`[モーダル] コンテナをクリアしてノードを描画開始`);
         const canvas = document.getElementById('modal-arrow-canvas');
         container.innerHTML = '';
         if (canvas) {
@@ -45,7 +53,9 @@ function showLayerDetailModal(layer, nodes, parentNode) {
         }
 
         // ノードを描画
-        nodes.forEach(node => {
+        console.log(`[モーダル] ${nodes.length}個のノードを描画中...`);
+        nodes.forEach((node, index) => {
+            console.log(`[モーダル] ノード${index + 1}: text="${node.text}", x=${node.x}, y=${node.y}, color=${node.color}`);
             const btn = document.createElement('div');
             btn.className = 'node-button';
 
@@ -75,13 +85,19 @@ function showLayerDetailModal(layer, nodes, parentNode) {
             };
 
             container.appendChild(btn);
+            console.log(`[モーダル] ノード${index + 1}をコンテナに追加: ${btn.textContent}`);
         });
+
+        console.log(`[モーダル] コンテナの子要素数: ${container.children.length}`);
 
         // Canvas初期化と矢印描画
         setTimeout(() => {
+            console.log(`[モーダル] Canvas初期化と矢印描画を開始`);
             initializeModalCanvas();
             drawModalArrows(nodes);
         }, 100);
+    } else {
+        console.error(`[モーダル] エラー: containerが見つかりません！`);
     }
 
     // モーダル表示
