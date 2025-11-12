@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.217';  // アプリバージョン
+const APP_VERSION = '1.0.218';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3109,34 +3109,8 @@ async function handlePinkNodeClick(node) {
     console.log(`[展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${entries.length}個のノード展開、レイヤー移動なし)`);
     console.log(`[パネル表示] 左: レイヤー${leftVisibleLayer}, 右: レイヤー${rightVisibleLayer}`);
 
-    // レイヤー1の場合、ドリルダウンパネルも更新
-    if (parentLayer === 1 && leftVisibleLayer === 1) {
-        setTimeout(() => {
-            const leftPanel = document.getElementById('left-layer-panel');
-            if (leftPanel) {
-                leftPanel.classList.add('dimmed');
-            }
-
-            showLayerInDrilldownPanel(node);
-
-            const layerName = node.text || `スクリプト${node.layer}`;
-            breadcrumbStack.push({
-                name: layerName,
-                layer: nextLayer,
-                parentNodeData: node  // 親ノードデータを保存（パンくずナビゲーションで使用）
-            });
-            renderBreadcrumb();
-
-            const escHint = document.getElementById('escHint');
-            if (escHint) {
-                escHint.classList.add('show');
-            }
-
-            drilldownState.active = true;
-            drilldownState.currentPinkNode = node;
-            drilldownState.targetLayer = nextLayer;
-        }, 100);
-    }
+    // メインパネル直接表示（オーバーレイ版は使用しない）
+    // レイヤー展開後、通常の2パネル表示を維持
 }
 
 // ============================================
