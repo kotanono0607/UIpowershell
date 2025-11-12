@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.216';  // アプリバージョン
+const APP_VERSION = '1.0.217';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -6020,38 +6020,62 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
         return;
     }
 
-    // 中間レイヤーの場合は、そのレイヤーを再表示
+    // 中間レイヤーの場合は、メインパネル直接表示に切り替え
     // スタックを切り詰め
     breadcrumbStack = breadcrumbStack.slice(0, targetIndex + 1);
 
-    // 中間レイヤーを表示
-    const targetBreadcrumb = breadcrumbStack[targetIndex];
-    if (targetBreadcrumb.parentNodeData) {
-        // 親ノードデータがある場合、ドリルダウンパネルを再表示
-        showLayerInDrilldownPanel(targetBreadcrumb.parentNodeData);
-
-        // 左パネルをdimmed状態に
+    // ドリルダウンパネルを閉じる（オーバーレイ版を終了）
+    if (drilldownState.active) {
+        const rightPanel = document.getElementById('right-layer-panel');
         const leftPanel = document.getElementById('left-layer-panel');
-        if (leftPanel) {
-            leftPanel.classList.add('dimmed');
-        }
-
-        // ESCヒントを表示
         const escHint = document.getElementById('escHint');
+
+        // 右パネルをクリア（アニメーションなし）
+        if (rightPanel) {
+            rightPanel.classList.add('empty');
+            rightPanel.innerHTML = `
+                <div class="empty-message">
+                    <span>🟣 ピンクノードをクリックすると詳細が表示されます</span>
+                </div>
+            `;
+        }
+
+        // 左パネルのdimmedを解除
+        if (leftPanel) {
+            leftPanel.classList.remove('dimmed');
+        }
+
+        // ESCヒントを非表示
         if (escHint) {
-            escHint.classList.add('show');
+            escHint.classList.remove('show');
         }
 
-        // ドリルダウン状態を更新
-        drilldownState.active = true;
-        drilldownState.targetLayer = targetLayer;
-
-        if (LOG_CONFIG.breadcrumb) {
-            console.log(`[パンくずナビゲーション] レイヤー${targetLayer}に復元しました`);
-        }
+        // ドリルダウン状態をクリア
+        drilldownState.active = false;
+        drilldownState.currentPinkNode = null;
+        drilldownState.targetLayer = null;
     }
 
+    // メインパネル表示に切り替え（2パネル表示）
+    leftVisibleLayer = targetLayer;
+    rightVisibleLayer = targetLayer + 1;
+
+    if (LOG_CONFIG.breadcrumb) {
+        console.log(`[パンくずナビゲーション] メインパネル表示に切り替え - 左: L${leftVisibleLayer}, 右: L${rightVisibleLayer}`);
+    }
+
+    // パンくずリストを更新
     renderBreadcrumb();
+
+    // デュアルパネル表示を更新
+    updateDualPanelDisplay();
+
+    // 画面を再描画
+    renderNodesInLayer(leftVisibleLayer, 'left');
+    renderNodesInLayer(rightVisibleLayer, 'right');
+
+    // 矢印を再描画
+    refreshAllArrows();
 }
 
 // ホバープレビューのセットアップ
