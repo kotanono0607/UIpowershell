@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.219';  // アプリバージョン
+const APP_VERSION = '1.0.220';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3209,14 +3209,26 @@ async function handlePinkNodeClickPopup(node) {
     // memory.json自動保存
     await saveMemoryJson();
 
-    // モーダルでレイヤー詳細を表示
-    console.log(`[モーダル展開] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${expandedNodes.length}個のノード展開)`);
+    // メインパネル直接表示に切り替え（モーダルは使わない）
+    console.log(`[メインパネル展開] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${expandedNodes.length}個のノード展開)`);
 
-    showLayerDetailModal(nextLayer, expandedNodes, {
-        id: node.id,
-        text: node.text,
-        layer: node.layer
+    // 左パネル = 次のレイヤー、右パネル = その次のレイヤー
+    leftVisibleLayer = nextLayer;
+    rightVisibleLayer = nextLayer + 1;
+
+    // パンくずリストを更新
+    const layerName = node.text || `スクリプト${node.layer}`;
+    breadcrumbStack.push({
+        name: layerName,
+        layer: nextLayer,
+        parentNodeData: node
     });
+    renderBreadcrumb();
+
+    // デュアルパネル表示を更新
+    updateDualPanelDisplay();
+    renderNodesInLayer(leftVisibleLayer, 'left');
+    renderNodesInLayer(rightVisibleLayer, 'right');
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
