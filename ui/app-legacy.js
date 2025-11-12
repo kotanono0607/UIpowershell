@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.221';  // アプリバージョン
+const APP_VERSION = '1.0.222';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -6008,22 +6008,6 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
         console.log(`[パンくずナビゲーション] レイヤー${targetLayer}に移動、インデックス${targetIndex}`);
     }
 
-    // メインフローに戻る場合
-    if (targetLayer === 1) {
-        // 編集モード中の場合は編集モードを終了
-        if (editModeState.active) {
-            if (LOG_CONFIG.breadcrumb) {
-                console.log('[パンくずナビゲーション] 編集モード中のため、exitEditMode()を呼び出します');
-            }
-            exitEditMode();
-        } else {
-            // ドリルダウンパネルを閉じる
-            closeDrilldownPanel();
-        }
-        return;
-    }
-
-    // 中間レイヤーの場合は、メインパネル直接表示に切り替え
     // スタックを切り詰め
     breadcrumbStack = breadcrumbStack.slice(0, targetIndex + 1);
 
