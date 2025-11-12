@@ -326,22 +326,42 @@ function IDでエントリを取得 {
 
     # エントリが存在するか確認
     if ($json内容.PSObject.Properties['エントリ']) {
+        # 1. まず、そのままのIDで検索
         if ($json内容."エントリ".PSObject.Properties.Name -contains $ID) {
-            # エントリを返す
             if ($DebugMode) {
-                Write-Host "[DEBUG] エントリ発見: $ID" -ForegroundColor Green
+                Write-Host "[DEBUG] ✅ 直接ヒット: $ID" -ForegroundColor Green
             }
             return $json内容."エントリ".$ID
         }
-        else {
-            # エラーは警告レベルのみ出力（デバッグログは出力しない）
+
+        # 2. サブID形式 (ID-1, ID-2, ...) で検索してすべて結合
+        $allKeys = $json内容."エントリ".PSObject.Properties.Name
+        $subIdPattern = "^" + [regex]::Escape($ID) + "-\d+$"
+        $matchingKeys = $allKeys | Where-Object { $_ -match $subIdPattern } | Sort-Object
+
+        if ($matchingKeys.Count -gt 0) {
             if ($DebugMode) {
-                $利用可能なキー = $json内容."エントリ".PSObject.Properties.Name
-                Write-Warning "指定されたID ($ID) のエントリは存在しません。"
-                Write-Host "[DEBUG] 利用可能なキー数: $($利用可能なキー.Count)" -ForegroundColor Yellow
+                Write-Host "[DEBUG] ✅ サブID検索ヒット: $($matchingKeys.Count)個のエントリを結合" -ForegroundColor Green
+                Write-Host "[DEBUG] マッチしたキー: $($matchingKeys -join ', ')" -ForegroundColor Cyan
             }
-            return $null
+
+            # すべてのサブIDエントリを取得して結合
+            $entries = @()
+            foreach ($key in $matchingKeys) {
+                $entries += $json内容."エントリ".$key
+            }
+
+            # "`n---`n" で結合して返す（UI側と同じ形式）
+            return ($entries -join "`n---`n")
         }
+
+        # 3. どちらも見つからない場合
+        if ($DebugMode) {
+            $利用可能なキー = $json内容."エントリ".PSObject.Properties.Name
+            Write-Warning "指定されたID ($ID) のエントリは存在しません。"
+            Write-Host "[DEBUG] 利用可能なキー数: $($利用可能なキー.Count)" -ForegroundColor Yellow
+        }
+        return $null
     } else {
         if ($DebugMode) {
             Write-Host "[DEBUG] 'エントリ' プロパティが存在しません" -ForegroundColor Red
