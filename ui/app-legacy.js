@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.220';  // アプリバージョン
+const APP_VERSION = '1.0.221';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -1986,18 +1986,35 @@ function updateDualPanelDisplay() {
 // ============================================
 
 function renderNodesInLayer(layer, panelSide = 'left') {
-    // 右パネルはドリルダウンパネルに変更されたため、スキップ
-    if (panelSide === 'right') {
-        // ドリルダウンパネルは別の関数で管理
-        return;
-    }
+    // 左パネルまたは右パネルのコンテナを取得
+    let container;
 
-    // 左パネル対応: コンテナを取得
-    const layerId = `layer-${layer}`;
-    const container = document.querySelector(`#${layerId} .node-list-container`);
-    if (!container) {
-        console.warn(`[レンダリング] コンテナが見つかりません: ${layerId}`);
-        return;
+    if (panelSide === 'right') {
+        // 右パネル（ドリルダウンパネル）
+        const rightPanel = document.getElementById('right-layer-panel');
+        if (!rightPanel) {
+            console.warn(`[レンダリング] 右パネルが見つかりません`);
+            return;
+        }
+
+        // emptyクラスを削除
+        rightPanel.classList.remove('empty');
+
+        // コンテンツをクリアしてコンテナを作成
+        rightPanel.innerHTML = `
+            <div class="layer-label">レイヤー${layer}</div>
+            <div class="node-list-container"></div>
+        `;
+
+        container = rightPanel.querySelector('.node-list-container');
+    } else {
+        // 左パネル対応: コンテナを取得
+        const layerId = `layer-${layer}`;
+        container = document.querySelector(`#${layerId} .node-list-container`);
+        if (!container) {
+            console.warn(`[レンダリング] コンテナが見つかりません: ${layerId}`);
+            return;
+        }
     }
 
     // Canvas要素を保持しながら、ノードボタンのみを削除
