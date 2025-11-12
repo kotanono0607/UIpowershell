@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.206';  // アプリバージョン
+const APP_VERSION = '1.0.216';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3120,7 +3120,11 @@ async function handlePinkNodeClick(node) {
             showLayerInDrilldownPanel(node);
 
             const layerName = node.text || `スクリプト${node.layer}`;
-            breadcrumbStack.push({ name: layerName, layer: nextLayer });
+            breadcrumbStack.push({
+                name: layerName,
+                layer: nextLayer,
+                parentNodeData: node  // 親ノードデータを保存（パンくずナビゲーションで使用）
+            });
             renderBreadcrumb();
 
             const escHint = document.getElementById('escHint');
