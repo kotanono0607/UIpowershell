@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.218';  // アプリバージョン
+const APP_VERSION = '1.0.219';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -6233,34 +6233,31 @@ function handlePinkNodeDrilldown(nodeElement) {
         console.log('[ピンクノードドリルダウン]', nodeData.text, 'レイヤー', nodeData.layer);
     }
 
-    // 左パネルをdimmed状態に
-    const leftPanel = document.getElementById('left-layer-panel');
-    if (leftPanel) {
-        leftPanel.classList.add('dimmed');
-    }
+    // メインパネル直接表示方式を使用（オーバーレイ版は使わない）
+    const currentLayer = nodeData.layer;
+    const nextLayer = currentLayer + 1;
 
-    // 右パネルにレイヤーを表示
-    showLayerInDrilldownPanel(nodeData);
+    // 左パネル = 現在のレイヤー、右パネル = 次のレイヤー
+    leftVisibleLayer = nextLayer;
+    rightVisibleLayer = nextLayer + 1;
 
     // パンくずリストを更新（親ノードデータも保存）
     const layerName = nodeData.text || `スクリプト${nodeData.layer}`;
     breadcrumbStack.push({
         name: layerName,
-        layer: nodeData.layer + 1,
+        layer: nextLayer,
         parentNodeData: nodeData  // 親ノードデータを保存
     });
     renderBreadcrumb();
 
-    // ESCヒントを表示
-    const escHint = document.getElementById('escHint');
-    if (escHint) {
-        escHint.classList.add('show');
-    }
+    // デュアルパネル表示を更新
+    updateDualPanelDisplay();
+    renderNodesInLayer(leftVisibleLayer, 'left');
+    renderNodesInLayer(rightVisibleLayer, 'right');
 
-    // ドリルダウン状態を更新
-    drilldownState.active = true;
-    drilldownState.currentPinkNode = nodeElement;
-    drilldownState.targetLayer = nodeData.layer + 1;
+    if (LOG_CONFIG.pink) {
+        console.log(`[ピンクノードドリルダウン] メインパネル直接表示: 左=${leftVisibleLayer}, 右=${rightVisibleLayer}`);
+    }
 }
 
 // ドリルダウンパネルにレイヤーを表示
