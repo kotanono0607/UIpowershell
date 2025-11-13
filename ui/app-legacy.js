@@ -1597,14 +1597,10 @@ function switchCategory(categoryNum) {
 // ノード追加
 // ============================================
 
-// 親ピンクノードのスクリプトを更新する関数
+// 親ピンクノードのスクリプトを更新する関数（完全再構築方式）
 async function updateParentPinkNode(addedNodes, deletedNodes = []) {
-    console.log('[親ピンクノード更新] ========== 開始 ==========');
+    console.log('[親ピンクノード更新] ========== 開始（完全再構築方式） ==========');
     console.log('[親ピンクノード更新] 現在のレイヤー:', leftVisibleLayer);
-    console.log('[親ピンクノード更新] 追加ノード数:', addedNodes.length);
-    console.log('[親ピンクノード更新] 削除ノード数:', deletedNodes.length);
-    console.log('[親ピンクノード更新] 追加ノード:', addedNodes.map(n => `${n.id}(${n.text})`));
-    console.log('[親ピンクノード更新] 削除ノード:', deletedNodes.map(n => `${n.id}(${n.text})`));
 
     // レイヤー1の場合は親がいないのでスキップ
     if (leftVisibleLayer < 2) {
@@ -1614,99 +1610,43 @@ async function updateParentPinkNode(addedNodes, deletedNodes = []) {
 
     const parentLayer = leftVisibleLayer - 1;
     console.log('[親ピンクノード更新] 親レイヤー:', parentLayer);
-    console.log('[親ピンクノード更新] pinkSelectionArray[親レイヤー]:', pinkSelectionArray[parentLayer]);
 
     const parentPinkNodeId = pinkSelectionArray[parentLayer].expandedNode;
     console.log('[親ピンクノード更新] 親ピンクノードID:', parentPinkNodeId);
 
     if (!parentPinkNodeId) {
         console.warn('[親ピンクノード更新] ⚠ 親ピンクノードIDが見つかりません');
-        console.warn('[親ピンクノード更新] pinkSelectionArray全体:', JSON.stringify(pinkSelectionArray, null, 2));
         return;
     }
 
     // 親ピンクノードを取得
-    console.log('[親ピンクノード更新] 親レイヤーのノード一覧:', layerStructure[parentLayer].nodes.map(n => `${n.id}(${n.text}, color=${n.color})`));
     const parentPinkNode = layerStructure[parentLayer].nodes.find(n => n.id === parentPinkNodeId);
 
     if (!parentPinkNode) {
         console.error('[親ピンクノード更新] ❌ 親ピンクノードが見つかりません: ID=', parentPinkNodeId);
-        console.error('[親ピンクノード更新] layerStructure[親レイヤー]のノード:', layerStructure[parentLayer].nodes);
         return;
     }
 
     console.log('[親ピンクノード更新] ✅ 親ピンクノード取得成功:', `${parentPinkNode.id}(${parentPinkNode.text})`);
     console.log('[親ピンクノード更新] 親ピンクノードの現在のscript:', parentPinkNode.script);
 
-    // ★★★ 追加: 削除されたノードを親ピンクノードのscriptから除去 ★★★
-    let insertionIndex = -1;  // 新しいノードを挿入する位置
-    if (deletedNodes.length > 0) {
-        console.log('[親ピンクノード更新] 削除ノードを親scriptから除去します');
+    // ★★★ 新方式: 現在のレイヤーから完全再構築 ★★★
+    console.log('[親ピンクノード更新] 現在のレイヤーから完全再構築します');
 
-        // 削除対象のノードIDセット
-        const deletedNodeIds = new Set(deletedNodes.map(n => n.id));
+    // 現在のレイヤーのすべてのノードをY座標でソート
+    const currentLayerNodes = [...layerStructure[leftVisibleLayer].nodes].sort((a, b) => a.y - b.y);
+    console.log('[親ピンクノード更新] 現在のレイヤーのノード数:', currentLayerNodes.length);
+    console.log('[親ピンクノード更新] ノード一覧:', currentLayerNodes.map(n => `${n.id}(${n.text})`).join(', '));
 
-        // 削除されたノードの中で最小Y座標のノードを取得（挿入位置の基準）
-        const sortedDeletedNodes = [...deletedNodes].sort((a, b) => a.y - b.y);
-        const firstDeletedNodeId = sortedDeletedNodes[0].id;
-        console.log(`[親ピンクノード更新] 最初の削除ノードID: ${firstDeletedNodeId}`);
-
-        // 親ピンクノードのscriptをエントリごとに分割
-        const entries = parentPinkNode.script ? parentPinkNode.script.split('_').filter(e => e.trim() !== '') : [];
-        console.log(`[親ピンクノード更新] 元のエントリ数: ${entries.length}`);
-
-        // 削除されていないエントリのみ保持し、挿入位置を記録
-        const remainingEntries = [];
-        entries.forEach((entry, index) => {
-            const parts = entry.split(';');
-            const nodeId = parseInt(parts[0]);
-            const isDeleted = deletedNodeIds.has(nodeId);
-
-            if (isDeleted) {
-                // 最初に削除されるエントリの位置を記録
-                if (insertionIndex === -1 && nodeId === firstDeletedNodeId) {
-                    insertionIndex = remainingEntries.length;
-                    console.log(`[親ピンクノード更新] 挿入位置を記録: インデックス=${insertionIndex}`);
-                }
-                console.log(`[親ピンクノード更新] エントリ削除: ID=${nodeId}, entry="${entry}"`);
-            } else {
-                remainingEntries.push(entry);
-            }
-        });
-
-        console.log(`[親ピンクノード更新] 残りのエントリ数: ${remainingEntries.length}`);
-        console.log(`[親ピンクノード更新] 挿入位置: ${insertionIndex}`);
-        parentPinkNode.script = remainingEntries.join('_');
-    }
-
-    // 追加されたノードの情報を生成（形式: "ノードID;色;テキスト"）
-    // 注意: Pinkノードのscriptは含めない（子ノードの情報が重複してしまうため）
-    const newEntries = addedNodes.map(node =>
+    // 全ノードからscriptを再構築（Pinkノードのscriptは含めない）
+    const newScript = currentLayerNodes.map(node =>
         `${node.id};${node.color};${node.text};`
     ).join('_');
 
-    console.log('[親ピンクノード更新] 新しいエントリ:', newEntries);
+    console.log('[親ピンクノード更新] 再構築後のscript:', newScript);
 
-    // 親ピンクノードのscriptに追加（削除された位置に挿入）
-    if (parentPinkNode.script && parentPinkNode.script.trim() !== '') {
-        const entries = parentPinkNode.script.split('_').filter(e => e.trim() !== '');
-
-        // 挿入位置が有効な場合、その位置に挿入
-        if (insertionIndex >= 0 && insertionIndex <= entries.length) {
-            entries.splice(insertionIndex, 0, ...newEntries.split('_').filter(e => e.trim() !== ''));
-            parentPinkNode.script = entries.join('_');
-            console.log(`[親ピンクノード更新] インデックス${insertionIndex}に挿入しました`);
-        } else {
-            // 挿入位置が無効な場合、最後に追加（フォールバック）
-            parentPinkNode.script = parentPinkNode.script + '_' + newEntries;
-            console.log('[親ピンクノード更新] 最後に追加しました（フォールバック）');
-        }
-    } else {
-        parentPinkNode.script = newEntries;
-        console.log('[親ピンクノード更新] 新規作成しました');
-    }
-
-    console.log('[親ピンクノード更新] 更新後のscript:', parentPinkNode.script);
+    // 親ピンクノードのscriptを更新
+    parentPinkNode.script = newScript;
 
     // グローバルnodesも更新
     const globalNode = nodes.find(n => n.id === parentPinkNodeId);
