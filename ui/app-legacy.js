@@ -3151,6 +3151,15 @@ async function handlePinkNodeClickPopup(node) {
     pinkSelectionArray[parentLayer].value = 1;
     pinkSelectionArray[parentLayer].expandedNode = node.id;
 
+    // arrowStateも更新
+    arrowState.pinkSelected = true;
+    arrowState.selectedPinkButton = node;
+
+    // グローエフェクトの設定
+    glowState.sourceNode = node;
+    glowState.sourceLayer = parentLayer;
+    glowState.targetLayer = nextLayer;
+
     // 次レイヤーをクリア
     console.log(`[ピンク展開ポップアップ] レイヤー${nextLayer}をクリアします`);
     layerStructure[nextLayer].nodes = [];
@@ -3292,6 +3301,14 @@ async function handlePinkNodeClickPopup(node) {
 
     // 右パネルにプレビュー表示（編集ボタン付き）
     showLayerInDrilldownPanel(node, expandedNodes);
+
+    // グローエフェクトを再適用（レンダリング後に実行）
+    setTimeout(() => {
+        applyGlowEffects();
+    }, 50);
+
+    // 矢印を再描画
+    refreshAllArrows();
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
