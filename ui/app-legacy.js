@@ -83,7 +83,7 @@ function wrapConsoleMethod(method, level) {
 
             // 重要なログのみを通過させる
             const importantPrefixes = [
-                '❌', '✅', '⚠', '🔍'  // エラー・成功・警告・デバッグマーカー
+                '❌', '✅', '⚠'  // エラー・成功・警告マーカーのみ
             ];
 
             // 重要なログ以外は抑制
