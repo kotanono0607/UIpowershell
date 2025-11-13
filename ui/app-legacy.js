@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.226';  // アプリバージョン
+const APP_VERSION = '1.0.227';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -1599,10 +1599,12 @@ function switchCategory(categoryNum) {
 
 // 親ピンクノードのスクリプトを更新する関数
 async function updateParentPinkNode(addedNodes, deletedNodes = []) {
-    console.log('[親ピンクノード更新] 開始');
+    console.log('[親ピンクノード更新] ========== 開始 ==========');
     console.log('[親ピンクノード更新] 現在のレイヤー:', leftVisibleLayer);
     console.log('[親ピンクノード更新] 追加ノード数:', addedNodes.length);
     console.log('[親ピンクノード更新] 削除ノード数:', deletedNodes.length);
+    console.log('[親ピンクノード更新] 追加ノード:', addedNodes.map(n => `${n.id}(${n.text})`));
+    console.log('[親ピンクノード更新] 削除ノード:', deletedNodes.map(n => `${n.id}(${n.text})`));
 
     // レイヤー1の場合は親がいないのでスキップ
     if (leftVisibleLayer < 2) {
@@ -1611,25 +1613,30 @@ async function updateParentPinkNode(addedNodes, deletedNodes = []) {
     }
 
     const parentLayer = leftVisibleLayer - 1;
-    const parentPinkNodeId = pinkSelectionArray[parentLayer].expandedNode;
-
     console.log('[親ピンクノード更新] 親レイヤー:', parentLayer);
+    console.log('[親ピンクノード更新] pinkSelectionArray[親レイヤー]:', pinkSelectionArray[parentLayer]);
+
+    const parentPinkNodeId = pinkSelectionArray[parentLayer].expandedNode;
     console.log('[親ピンクノード更新] 親ピンクノードID:', parentPinkNodeId);
 
     if (!parentPinkNodeId) {
-        console.warn('[親ピンクノード更新] 親ピンクノードIDが見つかりません');
+        console.warn('[親ピンクノード更新] ⚠ 親ピンクノードIDが見つかりません');
+        console.warn('[親ピンクノード更新] pinkSelectionArray全体:', JSON.stringify(pinkSelectionArray, null, 2));
         return;
     }
 
     // 親ピンクノードを取得
+    console.log('[親ピンクノード更新] 親レイヤーのノード一覧:', layerStructure[parentLayer].nodes.map(n => `${n.id}(${n.text}, color=${n.color})`));
     const parentPinkNode = layerStructure[parentLayer].nodes.find(n => n.id === parentPinkNodeId);
 
     if (!parentPinkNode) {
-        console.error('[親ピンクノード更新] 親ピンクノードが見つかりません:', parentPinkNodeId);
+        console.error('[親ピンクノード更新] ❌ 親ピンクノードが見つかりません: ID=', parentPinkNodeId);
+        console.error('[親ピンクノード更新] layerStructure[親レイヤー]のノード:', layerStructure[parentLayer].nodes);
         return;
     }
 
-    console.log('[親ピンクノード更新] 親ピンクノード取得成功:', parentPinkNode);
+    console.log('[親ピンクノード更新] ✅ 親ピンクノード取得成功:', `${parentPinkNode.id}(${parentPinkNode.text})`);
+    console.log('[親ピンクノード更新] 親ピンクノードの現在のscript:', parentPinkNode.script);
 
     // ★★★ 追加: 削除されたノードを親ピンクノードのscriptから除去 ★★★
     let insertionIndex = -1;  // 新しいノードを挿入する位置
@@ -2635,6 +2642,12 @@ async function layerizeNode() {
         return;
     }
 
+    console.log(`[レイヤー化] ========== レイヤー化開始 ==========`);
+    console.log(`[レイヤー化] 現在のleftVisibleLayer: ${leftVisibleLayer}`);
+    console.log(`[レイヤー化] 現在のrightVisibleLayer: ${rightVisibleLayer}`);
+    console.log(`[レイヤー化] パンくずリスト:`, breadcrumbStack);
+    console.log(`[レイヤー化] pinkSelectionArray:`, JSON.stringify(pinkSelectionArray, null, 2));
+
     const layerNodes = layerStructure[leftVisibleLayer].nodes;
 
     // 赤枠ノードを収集
@@ -2772,12 +2785,16 @@ async function layerizeNode() {
 
     // ★★★ 追加: レイヤー2以降の場合、親ピンクノードに反映 ★★★
     if (leftVisibleLayer >= 2) {
+        console.log(`[レイヤー化] ========== 親ピンクノード更新処理開始 ==========`);
         console.log(`[レイヤー化] レイヤー${leftVisibleLayer}なので親ピンクノードに反映します`);
         console.log(`[レイヤー化] 削除されたノード: ${sortedRedNodes.map(n => `ID=${n.id}(${n.text})`).join(', ')}`);
         console.log(`[レイヤー化] 追加するノード: ID=${newNode.id}(${newNode.text})`);
         console.log(`[レイヤー化] updateParentPinkNode前: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
+        console.log(`[レイヤー化] 現在のlayerStructure[${leftVisibleLayer}].nodes:`, layerStructure[leftVisibleLayer].nodes.map(n => `${n.id}(${n.text})`));
         await updateParentPinkNode([newNode], sortedRedNodes);
         console.log(`[レイヤー化] updateParentPinkNode後: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
+        console.log(`[レイヤー化] 更新後のlayerStructure[${leftVisibleLayer}].nodes:`, layerStructure[leftVisibleLayer].nodes.map(n => `${n.id}(${n.text})`));
+        console.log(`[レイヤー化] ========== 親ピンクノード更新処理完了 ==========`);
     }
 
     // 左右パネルの表示を更新
