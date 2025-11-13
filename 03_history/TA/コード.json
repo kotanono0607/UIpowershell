@@ -1,6 +1,22 @@
 {
     "エントリ":  {
-
+                 "1-1":  "Write-Host \"OK\"",
+                 "2-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+                 "3-1":  "AAAA\n6;Pink;スクリプト;\n9;Pink;スクリプト;",
+                 "4-1":  "Write-Host \"OK\"",
+                 "5-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+                 "6-1":  "AAAA\n4;White;順次;\n5;White;Aメッセージボックス表示;",
+                 "7-1":  "Write-Host \"OK\"",
+                 "8-1":  "Write-Host \"OK\"",
+                 "9-1":  "AAAA\n7-1;White;順次;\n8-1;White;順次;",
+                 "10-1":  "Write-Host \"OK\"",
+                 "11-1":  "Write-Host \"OK\"",
+                 "12-1":  "Write-Host \"OK\"",
+                 "13-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+                 "14-1":  "Write-Host \"OK\"",
+                 "15-1":  "Write-Host \"OK\"",
+                 "16-1":  "AAAA\n4;White;順次;\n5;White;Aメッセージボックス表示;",
+                 "17-1":  "AAAA\n7-1;White;順次;\n8-1;White;順次;"
              },
-    "最後のID":  0
+    "最後のID":  17
 }
