@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.222';  // アプリバージョン
+const APP_VERSION = '1.0.223';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3226,12 +3226,8 @@ async function handlePinkNodeClickPopup(node) {
     // memory.json自動保存
     await saveMemoryJson();
 
-    // メインパネル直接表示に切り替え（モーダルは使わない）
-    console.log(`[メインパネル展開] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${expandedNodes.length}個のノード展開)`);
-
-    // 左パネル = 次のレイヤー、右パネル = その次のレイヤー
-    leftVisibleLayer = nextLayer;
-    rightVisibleLayer = nextLayer + 1;
+    // 右パネルにプレビュー表示
+    console.log(`[プレビュー表示] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${expandedNodes.length}個のノード展開)`);
 
     // パンくずリストを更新
     const layerName = node.text || `スクリプト${node.layer}`;
@@ -3242,10 +3238,8 @@ async function handlePinkNodeClickPopup(node) {
     });
     renderBreadcrumb();
 
-    // デュアルパネル表示を更新
-    updateDualPanelDisplay();
-    renderNodesInLayer(leftVisibleLayer, 'left');
-    renderNodesInLayer(rightVisibleLayer, 'right');
+    // 右パネルにプレビュー表示（編集ボタン付き）
+    showLayerInDrilldownPanel(node, expandedNodes);
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
@@ -6246,30 +6240,24 @@ function handlePinkNodeDrilldown(nodeElement) {
         console.log('[ピンクノードドリルダウン]', nodeData.text, 'レイヤー', nodeData.layer);
     }
 
-    // メインパネル直接表示方式を使用（オーバーレイ版は使わない）
-    const currentLayer = nodeData.layer;
-    const nextLayer = currentLayer + 1;
-
-    // 左パネル = 現在のレイヤー、右パネル = 次のレイヤー
-    leftVisibleLayer = nextLayer;
-    rightVisibleLayer = nextLayer + 1;
+    // 右パネルにプレビュー表示
+    const nextLayer = nodeData.layer + 1;
 
     // パンくずリストを更新（親ノードデータも保存）
     const layerName = nodeData.text || `スクリプト${nodeData.layer}`;
     breadcrumbStack.push({
         name: layerName,
         layer: nextLayer,
-        parentNodeData: nodeData  // 親ノードデータを保存
+        parentNodeData: nodeData
     });
     renderBreadcrumb();
 
-    // デュアルパネル表示を更新
-    updateDualPanelDisplay();
-    renderNodesInLayer(leftVisibleLayer, 'left');
-    renderNodesInLayer(rightVisibleLayer, 'right');
+    // 右パネルにプレビュー表示（編集ボタン付き）
+    const expandedNodes = layerStructure[nextLayer]?.nodes || [];
+    showLayerInDrilldownPanel(nodeData, expandedNodes);
 
     if (LOG_CONFIG.pink) {
-        console.log(`[ピンクノードドリルダウン] メインパネル直接表示: 左=${leftVisibleLayer}, 右=${rightVisibleLayer}`);
+        console.log(`[ピンクノードドリルダウン] 右パネルプレビュー表示: レイヤー${nextLayer}`);
     }
 }
 
