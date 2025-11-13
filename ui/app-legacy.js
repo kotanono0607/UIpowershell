@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.225';  // アプリバージョン
+const APP_VERSION = '1.0.226';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -1974,10 +1974,13 @@ function updateDualPanelDisplay() {
         rightPanel.style.display = 'block';
     }
 
-    // レイヤーラベルを更新
-    document.getElementById('current-layer-label').textContent = `レイヤー${leftVisibleLayer} / レイヤー${rightVisibleLayer}`;
+    // レイヤーラベルを更新（ツールバーが存在する場合のみ）
+    const layerLabel = document.getElementById('current-layer-label');
+    if (layerLabel) {
+        layerLabel.textContent = `レイヤー${leftVisibleLayer} / レイヤー${rightVisibleLayer}`;
+    }
 
-    // ナビゲーションボタンの状態を更新
+    // ナビゲーションボタンの状態を更新（ボタンが存在する場合のみ）
     updateNavigationButtons();
 }
 
