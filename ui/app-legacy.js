@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.223';  // アプリバージョン
+const APP_VERSION = '1.0.224';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3231,11 +3231,25 @@ async function handlePinkNodeClickPopup(node) {
 
     // パンくずリストを更新
     const layerName = node.text || `スクリプト${node.layer}`;
-    breadcrumbStack.push({
-        name: layerName,
-        layer: nextLayer,
-        parentNodeData: node
-    });
+
+    // 同じレイヤーの場合は置き換え、新しいレイヤーの場合は追加
+    if (breadcrumbStack.length > 0 && breadcrumbStack[breadcrumbStack.length - 1].layer === nextLayer) {
+        // 最後のエントリを置き換え（同じレイヤーの別のピンクノード）
+        breadcrumbStack[breadcrumbStack.length - 1] = {
+            name: layerName,
+            layer: nextLayer,
+            parentNodeData: node
+        };
+        console.log(`[パンくずリスト] 同じレイヤー${nextLayer}なので置き換え: ${layerName}`);
+    } else {
+        // 新しいレイヤーなので追加
+        breadcrumbStack.push({
+            name: layerName,
+            layer: nextLayer,
+            parentNodeData: node
+        });
+        console.log(`[パンくずリスト] 新しいレイヤー${nextLayer}なので追加: ${layerName}`);
+    }
     renderBreadcrumb();
 
     // 右パネルにプレビュー表示（編集ボタン付き）
@@ -6245,11 +6259,29 @@ function handlePinkNodeDrilldown(nodeElement) {
 
     // パンくずリストを更新（親ノードデータも保存）
     const layerName = nodeData.text || `スクリプト${nodeData.layer}`;
-    breadcrumbStack.push({
-        name: layerName,
-        layer: nextLayer,
-        parentNodeData: nodeData
-    });
+
+    // 同じレイヤーの場合は置き換え、新しいレイヤーの場合は追加
+    if (breadcrumbStack.length > 0 && breadcrumbStack[breadcrumbStack.length - 1].layer === nextLayer) {
+        // 最後のエントリを置き換え（同じレイヤーの別のピンクノード）
+        breadcrumbStack[breadcrumbStack.length - 1] = {
+            name: layerName,
+            layer: nextLayer,
+            parentNodeData: nodeData
+        };
+        if (LOG_CONFIG.pink) {
+            console.log(`[パンくずリスト] 同じレイヤー${nextLayer}なので置き換え: ${layerName}`);
+        }
+    } else {
+        // 新しいレイヤーなので追加
+        breadcrumbStack.push({
+            name: layerName,
+            layer: nextLayer,
+            parentNodeData: nodeData
+        });
+        if (LOG_CONFIG.pink) {
+            console.log(`[パンくずリスト] 新しいレイヤー${nextLayer}なので追加: ${layerName}`);
+        }
+    }
     renderBreadcrumb();
 
     // 右パネルにプレビュー表示（編集ボタン付き）
