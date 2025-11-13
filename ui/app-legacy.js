@@ -3220,6 +3220,36 @@ async function handlePinkNodeClickPopup(node) {
         layerStructure[nextLayer].nodes.push(newNode);
         expandedNodes.push(newNode);
 
+        // ノードのエントリを新しいIDでコード.jsonに保存
+        if (color === 'Pink') {
+            // Pinkノードの場合、コード.jsonから復元したエントリを新しいIDで保存
+            const savedScriptForCodeJson = getCodeEntry(originalId);
+            if (savedScriptForCodeJson) {
+                console.log(`[展開処理] ピンクノードを元のID(${originalId})から新しいID(${newNodeId})にコピーします`);
+                setCodeEntry(newNodeId, savedScriptForCodeJson).then(() => {
+                    console.log(`[展開処理] ✅ コード.json保存成功 - 新しいID: ${newNodeId}`);
+                }).catch(error => {
+                    console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
+                });
+            } else {
+                console.warn(`[展開処理] ⚠ 元のID(${originalId})のピンクノードエントリが見つかりません`);
+            }
+        } else {
+            // その他のノード（White, LemonChiffon, SpringGreen, Salmonなど）の場合、
+            // 元のIDのエントリを新しいIDでコピー
+            const originalEntry = getCodeEntry(originalId);
+            if (originalEntry) {
+                console.log(`[展開処理] ノード(${color})を元のID(${originalId})から新しいID(${newNodeId})にコピーします`);
+                setCodeEntry(newNodeId, originalEntry).then(() => {
+                    console.log(`[展開処理] ✅ コード.json保存成功 - 新しいID: ${newNodeId}`);
+                }).catch(error => {
+                    console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
+                });
+            } else {
+                console.warn(`[展開処理] ⚠ 元のID(${originalId})のエントリが見つかりません`);
+            }
+        }
+
         // 次のノードのbaseY計算
         baseY = nodeY + heightForNext;
     });
