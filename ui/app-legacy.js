@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.224';  // アプリバージョン
+const APP_VERSION = '1.0.225';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3530,13 +3530,32 @@ async function deleteAllNodes() {
         nodes = [];  // グローバルnodesも空に
         codeData = emptyCodeData;  // codeDataも空に
 
-        // ステップ4: 画面を再描画
-        console.log('[全削除] ステップ4: 画面を再描画します...');
+        // ステップ4: レイヤー1に戻る
+        console.log('[全削除] ステップ4: レイヤー1に戻ります...');
+        leftVisibleLayer = 1;
+        rightVisibleLayer = 2;
+        breadcrumbStack = [{ name: 'メインフロー', layer: 1 }];
+        renderBreadcrumb();
+        updateDualPanelDisplay();
+
+        // 右パネルを空状態に戻す
+        const rightPanel = document.getElementById('right-layer-panel');
+        if (rightPanel) {
+            rightPanel.classList.add('empty');
+            rightPanel.innerHTML = `
+                <div class="empty-message">
+                    <span>🟣 ピンクノードをクリックすると詳細が表示されます</span>
+                </div>
+            `;
+        }
+
+        // ステップ5: 画面を再描画
+        console.log('[全削除] ステップ5: 画面を再描画します...');
         renderNodesInLayer(leftVisibleLayer, 'left');
         renderNodesInLayer(rightVisibleLayer, 'right');
 
-        // ステップ5: memory.json自動保存
-        console.log('[全削除] ステップ5: memory.jsonを保存します...');
+        // ステップ6: memory.json自動保存
+        console.log('[全削除] ステップ6: memory.jsonを保存します...');
         await saveMemoryJson();
 
         console.log('[全削除] ✅ すべての処理が完了しました');
