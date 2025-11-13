@@ -2716,11 +2716,11 @@ async function layerizeNode() {
     console.log(`[レイヤー化] 🔍 削除前のlayerStructure全体:`);
     for (let i = 0; i <= 6; i++) {
         const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`  L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
+        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
     }
     console.log(`[レイヤー化] 🔍 削除前のlayerStructure[${leftVisibleLayer}].nodes詳細:`);
     layerStructure[leftVisibleLayer].nodes.forEach((n, idx) => {
-        console.log(`  [${idx}] ID=${n.id}, text="${n.text}", color=${n.color}, layer=${n.layer}`);
+        console.log(`🔍   [${idx}] ID=${n.id}, text="${n.text}", color=${n.color}, layer=${n.layer}`);
     });
 
     sortedRedNodes.forEach((node, index) => {
@@ -2754,11 +2754,11 @@ async function layerizeNode() {
     console.log(`[レイヤー化] 🔍 削除後のlayerStructure全体:`);
     for (let i = 0; i <= 6; i++) {
         const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`  L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
+        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
     }
     console.log(`[レイヤー化] 🔍 削除後のlayerStructure[${leftVisibleLayer}].nodes詳細:`);
     layerStructure[leftVisibleLayer].nodes.forEach((n, idx) => {
-        console.log(`  [${idx}] ID=${n.id}, text="${n.text}", color=${n.color}, layer=${n.layer}`);
+        console.log(`🔍   [${idx}] ID=${n.id}, text="${n.text}", color=${n.color}, layer=${n.layer}`);
     });
 
     // 新しいピンクノードを作成
@@ -2786,11 +2786,11 @@ async function layerizeNode() {
     console.log(`[レイヤー化] 🔍 ピンクノード追加後のlayerStructure全体:`);
     for (let i = 0; i <= 6; i++) {
         const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`  L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
+        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
     }
     console.log(`[レイヤー化] 🔍 ピンクノード追加後のlayerStructure[${leftVisibleLayer}].nodes詳細:`);
     layerStructure[leftVisibleLayer].nodes.forEach((n, idx) => {
-        console.log(`  [${idx}] ID=${n.id}, text="${n.text}", color=${n.color}, layer=${n.layer}`);
+        console.log(`🔍   [${idx}] ID=${n.id}, text="${n.text}", color=${n.color}, layer=${n.layer}`);
     });
 
     // Pink選択配列を更新（PowerShell互換）
@@ -3196,7 +3196,7 @@ async function handlePinkNodeClickPopup(node) {
     console.log(`[ピンク展開ポップアップ] 🔍 展開前のlayerStructure全体:`);
     for (let i = 0; i <= 6; i++) {
         const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`  L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
+        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
     }
 
     // scriptプロパティを解析してノードを展開
@@ -3288,7 +3288,7 @@ async function handlePinkNodeClickPopup(node) {
     console.log(`[ピンク展開ポップアップ] 🔍 展開後のlayerStructure全体:`);
     for (let i = 0; i <= 6; i++) {
         const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`  L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
+        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
     }
 
     // memory.json自動保存
@@ -6107,7 +6107,7 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
     console.log(`[パンくずナビゲーション] 🔍 ナビゲーション前のlayerStructure全体:`);
     for (let i = 0; i <= 6; i++) {
         const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`  L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
+        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
     }
 
     // スタックを切り詰め
