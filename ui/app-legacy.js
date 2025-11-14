@@ -182,7 +182,7 @@ console.log('[ブラウザログ] コンソールログキャプチャ機能を�
 // ============================================
 
 let leftVisibleLayer = 1;       // 左パネルに表示中のレイヤー
-let rightVisibleLayer = 2;      // 右パネルに表示中のレイヤー
+let rightVisibleLayer = 1;      // 右パネルに表示中のレイヤー（起動時は非表示、スクリプト展開時のみ表示）
 let currentCategory = 1;        // 現在選択中のカテゴリー (1-10)
 let nodes = [];                 // 全ノード配列（全レイヤー）
 let buttonSettings = [];        // ボタン設定.jsonのデータ
@@ -4357,11 +4357,16 @@ async function loadExistingNodes() {
         });
         console.log(`[memory.json読み込み] nodeCounter を ${nodeCounter} に更新しました`);
 
-        // 左右両方のパネルを再描画
+        // 左パネルのみを再描画（起動時は右パネルを非表示）
         renderNodesInLayer(leftVisibleLayer, 'left');
-        renderNodesInLayer(rightVisibleLayer, 'right');
+        // 右パネル（ドリルダウンパネル）は起動時は非表示（スクリプト展開時のみ表示）
+        const rightPanel = document.getElementById('right-layer-panel');
+        if (rightPanel) {
+            rightPanel.classList.add('empty');
+            rightPanel.innerHTML = '';
+        }
         console.log(`memory.jsonから${nodes.length}個のノードを復元しました`);
-        console.log(`[表示] 左パネル: レイヤー${leftVisibleLayer}, 右パネル: レイヤー${rightVisibleLayer}`);
+        console.log(`[表示] 左パネル: レイヤー${leftVisibleLayer}, 右パネル: 非表示（起動時）`);
     } catch (error) {
         console.error('既存ノード読み込み失敗:', error);
     }
