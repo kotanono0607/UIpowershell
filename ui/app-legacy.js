@@ -3116,6 +3116,10 @@ async function handlePinkNodeClick(node) {
     // 矢印を再描画
     refreshAllArrows();
 
+    // プレビューパネルをクリア
+    clearTimeout(hoverTimer);
+    hidePreview();
+
     console.log(`[展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${entries.length}個のノード展開、レイヤー移動なし)`);
     console.log(`[パネル表示] 左: レイヤー${leftVisibleLayer}, 右: レイヤー${rightVisibleLayer}`);
 
@@ -3317,6 +3321,10 @@ async function handlePinkNodeClickPopup(node) {
 
     // 矢印を再描画
     refreshAllArrows();
+
+    // プレビューパネルをクリア
+    clearTimeout(hoverTimer);
+    hidePreview();
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
