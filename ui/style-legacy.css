@@ -232,6 +232,7 @@ body::after {
     gap: 12px;
     overflow: hidden;
     flex-shrink: 0;
+    margin-left: 100px;  /* 100ピクセル右に移動 */
     box-shadow:
         9px 9px 18px var(--shadow-dark),
         -9px -9px 18px var(--shadow-light);
@@ -570,7 +571,7 @@ body::after {
 #description-panel {
     position: fixed;
     top: calc(100vh - 296px);  /* 左パネルの真下から設置（ヘッダー50px + padding12px + max-height(100vh-358px) = 100vh-296px） */
-    left: 16px;
+    left: 116px;  /* 16px + 100px = 116px（左パネルと同じく100ピクセル右に移動） */
     width: 605px;  /* 左パネルと同じ幅（550px → 605px） */
     max-height: 500px;  /* 600px → 500px に変更 */
     background: var(--bg-color);
