@@ -990,6 +990,8 @@ button:active, .button:active {
     display: flex;
     align-items: center;
     justify-content: center;
+    background: transparent;
+    box-shadow: none;
 }
 
 /* ドリルダウンパネルの編集ボタン */
