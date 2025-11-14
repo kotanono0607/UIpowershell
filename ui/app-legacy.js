@@ -6174,12 +6174,18 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
         drilldownState.targetLayer = null;
     }
 
-    // メインパネル表示に切り替え（2パネル表示）
+    // メインパネル表示に切り替え（左パネルのみ）
     leftVisibleLayer = targetLayer;
-    rightVisibleLayer = targetLayer + 1;
+
+    // 右パネルをリセット（スクリプト展開が解除されるため）
+    const rightPanel = document.getElementById('right-layer-panel');
+    if (rightPanel) {
+        rightPanel.classList.add('empty');
+        rightPanel.innerHTML = '';
+    }
 
     if (LOG_CONFIG.breadcrumb) {
-        console.log(`[パンくずナビゲーション] メインパネル表示に切り替え - 左: L${leftVisibleLayer}, 右: L${rightVisibleLayer}`);
+        console.log(`[パンくずナビゲーション] メインパネル表示に切り替え - 左: L${leftVisibleLayer}, 右パネル: リセット`);
     }
 
     // パンくずリストを更新
@@ -6188,9 +6194,8 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
     // デュアルパネル表示を更新
     updateDualPanelDisplay();
 
-    // 画面を再描画
+    // 画面を再描画（左パネルのみ）
     renderNodesInLayer(leftVisibleLayer, 'left');
-    renderNodesInLayer(rightVisibleLayer, 'right');
 
     // 矢印を再描画
     refreshAllArrows();
