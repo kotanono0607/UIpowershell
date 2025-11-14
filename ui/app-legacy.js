@@ -3279,23 +3279,31 @@ async function handlePinkNodeClickPopup(node) {
     // パンくずリストを更新
     const layerName = node.text || `スクリプト${node.layer}`;
 
-    // 同じレイヤーの場合は置き換え、新しいレイヤーの場合は追加
-    if (breadcrumbStack.length > 0 && breadcrumbStack[breadcrumbStack.length - 1].layer === nextLayer) {
-        // 最後のエントリを置き換え（同じレイヤーの別のピンクノード）
-        breadcrumbStack[breadcrumbStack.length - 1] = {
-            name: layerName,
-            layer: nextLayer,
-            parentNodeData: node
-        };
-        console.log(`[パンくずリスト] 同じレイヤー${nextLayer}なので置き換え: ${layerName}`);
+    // 重複チェック: 同じノード（ID）を複数回クリックした場合は何もしない
+    const isDuplicate = breadcrumbStack.length > 0 &&
+        breadcrumbStack[breadcrumbStack.length - 1].parentNodeData?.id === node.id;
+
+    if (isDuplicate) {
+        console.log(`[パンくずリスト] 同じノード「${layerName}」のため、breadcrumbStack更新をスキップ`);
     } else {
-        // 新しいレイヤーなので追加
-        breadcrumbStack.push({
-            name: layerName,
-            layer: nextLayer,
-            parentNodeData: node
-        });
-        console.log(`[パンくずリスト] 新しいレイヤー${nextLayer}なので追加: ${layerName}`);
+        // 同じレイヤーの場合は置き換え、新しいレイヤーの場合は追加
+        if (breadcrumbStack.length > 0 && breadcrumbStack[breadcrumbStack.length - 1].layer === nextLayer) {
+            // 最後のエントリを置き換え（同じレイヤーの別のピンクノード）
+            breadcrumbStack[breadcrumbStack.length - 1] = {
+                name: layerName,
+                layer: nextLayer,
+                parentNodeData: node
+            };
+            console.log(`[パンくずリスト] 同じレイヤー${nextLayer}なので置き換え: ${layerName}`);
+        } else {
+            // 新しいレイヤーなので追加
+            breadcrumbStack.push({
+                name: layerName,
+                layer: nextLayer,
+                parentNodeData: node
+            });
+            console.log(`[パンくずリスト] 新しいレイヤー${nextLayer}なので追加: ${layerName}`);
+        }
     }
     renderBreadcrumb();
 
@@ -6341,26 +6349,36 @@ function handlePinkNodeDrilldown(nodeElement) {
     // パンくずリストを更新（親ノードデータも保存）
     const layerName = nodeData.text || `スクリプト${nodeData.layer}`;
 
-    // 同じレイヤーの場合は置き換え、新しいレイヤーの場合は追加
-    if (breadcrumbStack.length > 0 && breadcrumbStack[breadcrumbStack.length - 1].layer === nextLayer) {
-        // 最後のエントリを置き換え（同じレイヤーの別のピンクノード）
-        breadcrumbStack[breadcrumbStack.length - 1] = {
-            name: layerName,
-            layer: nextLayer,
-            parentNodeData: nodeData
-        };
+    // 重複チェック: 同じノード（ID）を複数回クリックした場合は何もしない
+    const isDuplicate = breadcrumbStack.length > 0 &&
+        breadcrumbStack[breadcrumbStack.length - 1].parentNodeData?.id === nodeData.id;
+
+    if (isDuplicate) {
         if (LOG_CONFIG.pink) {
-            console.log(`[パンくずリスト] 同じレイヤー${nextLayer}なので置き換え: ${layerName}`);
+            console.log(`[パンくずリスト] 同じノード「${layerName}」のため、breadcrumbStack更新をスキップ`);
         }
     } else {
-        // 新しいレイヤーなので追加
-        breadcrumbStack.push({
-            name: layerName,
-            layer: nextLayer,
-            parentNodeData: nodeData
-        });
-        if (LOG_CONFIG.pink) {
-            console.log(`[パンくずリスト] 新しいレイヤー${nextLayer}なので追加: ${layerName}`);
+        // 同じレイヤーの場合は置き換え、新しいレイヤーの場合は追加
+        if (breadcrumbStack.length > 0 && breadcrumbStack[breadcrumbStack.length - 1].layer === nextLayer) {
+            // 最後のエントリを置き換え（同じレイヤーの別のピンクノード）
+            breadcrumbStack[breadcrumbStack.length - 1] = {
+                name: layerName,
+                layer: nextLayer,
+                parentNodeData: nodeData
+            };
+            if (LOG_CONFIG.pink) {
+                console.log(`[パンくずリスト] 同じレイヤー${nextLayer}なので置き換え: ${layerName}`);
+            }
+        } else {
+            // 新しいレイヤーなので追加
+            breadcrumbStack.push({
+                name: layerName,
+                layer: nextLayer,
+                parentNodeData: nodeData
+            });
+            if (LOG_CONFIG.pink) {
+                console.log(`[パンくずリスト] 新しいレイヤー${nextLayer}なので追加: ${layerName}`);
+            }
         }
     }
     renderBreadcrumb();
