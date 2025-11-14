@@ -898,7 +898,7 @@ button:active, .button:active {
     top: 50px;    /* header(50px) */
     width: 180px;
     max-height: calc(100vh - 50px - 36px - 20px);  /* 上下余白確保 */
-    background: var(--bg-color);
+    background: transparent;  /* 🆕 背景を透明に */
     display: flex;
     flex-direction: column;  /* 縦展開 */
     align-items: flex-start;
@@ -906,9 +906,7 @@ button:active, .button:active {
     gap: 8px;
     overflow-y: auto;
     border-radius: 16px;
-    box-shadow:
-        6px 6px 12px var(--shadow-dark),
-        -6px -6px 12px var(--shadow-light);
+    box-shadow: none;  /* 🆕 影を削除 */
     z-index: 100;
 }
 
@@ -927,9 +925,11 @@ button:active, .button:active {
         2px 2px 4px var(--shadow-dark),
         -2px -2px 4px var(--shadow-light);
     font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;  /* 🆕 複数行許可 */
+    overflow: visible;  /* 🆕 overflow解除 */
+    word-break: break-word;  /* 🆕 長い単語を折り返し */
+    height: auto;  /* 🆕 高さ自動調整 */
+    min-height: 28px;  /* 🆕 最小高さを確保 */
 }
 
 .breadcrumb-item:hover {
