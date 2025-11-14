@@ -201,3 +201,117 @@
 5. ✅ saveCodeJson が成功する (200 OK)
 6. ✅ ファイルタイムスタンプが更新される
 7. ✅ キャンバスに新しいノードが表示される
+
+---
+
+## コンソールログフィルター仕様
+
+### 概要
+
+`app-legacy.js` では、ブラウザコンソールへの出力を制御するログフィルター機能が実装されています（76-117行目）。この機能により、重要なログのみをブラウザコンソールに表示し、それ以外はサーバーへの送信のみ行います。
+
+### ログ表示ルール
+
+#### 1. 基本ルール（console.log）
+
+**「❌」「✅」「⚠」が含まれていないログは全てブラウザコンソールに表示されません。**
+
+```javascript
+// 重要なログのみを通過させる
+const importantPrefixes = [
+    '❌', '✅', '⚠'  // エラー・成功・警告マーカーのみ
+];
+```
+
+#### 2. LOG_CONFIG による例外
+
+`LOG_CONFIG.pink = true` の場合、以下のプレフィックスを持つログは絵文字なしでも表示されます：
+
+- `[ホバープレビュー]`
+- `[ピンク展開]`
+- `[ピンク展開ポップアップ]`
+- `[ピンク検出]`
+- `[ピンクノード`
+
+```javascript
+// LOG_CONFIGの設定 (25-29行目)
+const LOG_CONFIG = {
+    breadcrumb: false,       // パンくずリストのログ
+    pink: true,              // ピンクノード処理のログ（デバッグ用に有効化）
+    initialization: false    // 初期化処理のログ
+};
+```
+
+#### 3. console.error/warn/info/debug
+
+`console.log` 以外のメソッドはフィルター対象外で、すべて表示されます。
+
+### ログ表示例
+
+#### 表示される例
+
+```javascript
+console.log('✅ 成功しました');           // ✅ あり → 表示
+console.log('❌ エラーが発生しました');   // ❌ あり → 表示
+console.log('⚠ 警告: データがありません'); // ⚠ あり → 表示
+console.error('エラー詳細');             // error → 表示
+console.warn('警告メッセージ');          // warn → 表示
+
+// LOG_CONFIG.pink = true の場合
+console.log('[ホバープレビュー] タイマー設定完了'); // 表示
+console.log('[ピンク展開] 処理開始');              // 表示
+```
+
+#### 表示されない例
+
+```javascript
+console.log('処理を開始します');          // 絵文字なし → 非表示
+console.log('[デバッグ] データ確認');     // 絵文字なし → 非表示
+console.log('ノードを追加しました');      // 絵文字なし → 非表示
+
+// LOG_CONFIG.pink = false の場合
+console.log('[ホバープレビュー] タイマー設定完了'); // 非表示
+```
+
+### デバッグ時の注意事項
+
+#### デバッグログを表示させる方法
+
+**方法1**: 絵文字プレフィックスを使用
+```javascript
+console.log('✅ デバッグ: 変数の値 = ' + value);
+```
+
+**方法2**: LOG_CONFIGを有効化（ピンク関連のみ）
+```javascript
+// app-legacy.js の 25-29行目を編集
+const LOG_CONFIG = {
+    pink: true,  // ピンク関連ログを表示
+};
+```
+
+**方法3**: console.error/warn を使用
+```javascript
+console.error('デバッグ: 重要な情報');  // 常に表示
+```
+
+**方法4**: フィルターを一時的に無効化
+```javascript
+// app-legacy.js の 107-115行目をコメントアウト
+// if (!importantPrefixes.some(prefix => message.includes(prefix))) {
+//     ...
+//     return; // この return をコメントアウト
+// }
+```
+
+### ログバッファ
+
+表示されないログも `consoleLogBuffer` に保存され、サーバーに送信されます。
+- バッファサイズ: 最大1000件
+- 送信タイミング: 100件ごと、またはページ離脱時
+
+### 実装箇所
+
+- ログフィルター: `ui/app-legacy.js` 76-117行目
+- LOG_CONFIG定義: `ui/app-legacy.js` 25-29行目
+- ピンク関連ログ例外: `ui/app-legacy.js` 84-99行目
