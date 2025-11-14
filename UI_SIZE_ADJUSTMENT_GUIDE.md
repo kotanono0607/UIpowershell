@@ -37,9 +37,10 @@ UIpowershell のUIサイズを調整する際の参照資料です。
 | `#current-layer-label` | `font-size` | `13px` | `style-legacy.css` | 202 | レイヤーラベル文字サイズ |
 | `#current-layer-label` | `padding` | `6px 16px` | `style-legacy.css` | 205 | レイヤーラベル余白 |
 
-### 2️⃣ パンくずリスト（縦展開・固定配置）
+### 2️⃣ パンくずリスト（縦展開・固定配置・透明化）
 
 **🆕 2025-11-14更新**: パンくずリストが縦展開でレイヤー1左側に固定配置されるように変更されました。
+**🆕 2025-11-14更新**: パンくずリストパネルを透明化し、複数行表示に対応しました。
 
 | UI要素 | プロパティ | 現在値 | ファイル | 行番号 | 説明 |
 |--------|------------|--------|----------|--------|------|
@@ -48,22 +49,34 @@ UIpowershell のUIサイズを調整する際の参照資料です。
 | `.breadcrumb-bar` | `top` | `50px` | `style-legacy.css` | 897 | 上端位置（ヘッダー直下） |
 | `.breadcrumb-bar` | `width` | `180px` | `style-legacy.css` | 898 | パンくずリスト幅 |
 | `.breadcrumb-bar` | `max-height` | `calc(100vh - 50px - 36px - 20px)` | `style-legacy.css` | 899 | 最大高さ（上下余白確保） |
+| `.breadcrumb-bar` | `background` | `transparent` | `style-legacy.css` | 900 | **背景透明** ⭐視覚的に目立たなくする |
 | `.breadcrumb-bar` | `flex-direction` | `column` | `style-legacy.css` | 902 | **縦展開** ⭐重要 |
 | `.breadcrumb-bar` | `padding` | `16px 10px` | `style-legacy.css` | 904 | 上下・左右余白 |
 | `.breadcrumb-bar` | `gap` | `8px` | `style-legacy.css` | 905 | 項目間の縦間隔 |
 | `.breadcrumb-bar` | `border-radius` | `16px` | `style-legacy.css` | 907 | 角丸 |
-| `.breadcrumb-item` | `width` | `100%` | `style-legacy.css` | 915 | **幅いっぱい** |
-| `.breadcrumb-item` | `padding` | `8px 12px` | `style-legacy.css` | 921 | パンくず項目の余白 |
-| `.breadcrumb-item` | `font-size` | `12px` | `style-legacy.css` | 928 | パンくず項目の文字サイズ |
-| `.breadcrumb-item` | `border-radius` | `8px` | `style-legacy.css` | 922 | パンくず項目の角丸 |
-| `.breadcrumb-separator` | `width` | `100%` | `style-legacy.css` | 942 | セパレーター幅 |
-| `.breadcrumb-separator` | `text-align` | `center` | `style-legacy.css` | 943 | セパレーター中央揃え |
-| `.breadcrumb-separator` | `font-size` | `14px` | `style-legacy.css` | 946 | セパレーター文字サイズ（↓） |
-| `.breadcrumb-separator` | `margin` | `-4px 0` | `style-legacy.css` | 947 | セパレーター間隔調整 |
+| `.breadcrumb-bar` | `box-shadow` | `none` | `style-legacy.css` | 908 | **影なし** ⭐視覚的に目立たなくする |
+| `.breadcrumb-item` | `width` | `100%` | `style-legacy.css` | 913 | **幅いっぱい** |
+| `.breadcrumb-item` | `padding` | `8px 12px` | `style-legacy.css` | 919 | パンくず項目の余白 |
+| `.breadcrumb-item` | `font-size` | `12px` | `style-legacy.css` | 926 | パンくず項目の文字サイズ |
+| `.breadcrumb-item` | `border-radius` | `8px` | `style-legacy.css` | 920 | パンくず項目の角丸 |
+| `.breadcrumb-item` | `white-space` | `normal` | `style-legacy.css` | 927 | **複数行表示** ⭐テキスト折り返し許可 |
+| `.breadcrumb-item` | `overflow` | `visible` | `style-legacy.css` | 928 | オーバーフロー表示 |
+| `.breadcrumb-item` | `word-break` | `break-word` | `style-legacy.css` | 929 | **長い単語を折り返し** |
+| `.breadcrumb-item` | `height` | `auto` | `style-legacy.css` | 930 | **高さ自動調整** |
+| `.breadcrumb-item` | `min-height` | `28px` | `style-legacy.css` | 931 | 最小高さ確保 |
+| `.breadcrumb-separator` | `width` | `100%` | `style-legacy.css` | 940 | セパレーター幅 |
+| `.breadcrumb-separator` | `text-align` | `center` | `style-legacy.css` | 941 | セパレーター中央揃え |
+| `.breadcrumb-separator` | `font-size` | `14px` | `style-legacy.css` | 944 | セパレーター文字サイズ（↓） |
+| `.breadcrumb-separator` | `margin` | `-4px 0` | `style-legacy.css` | 945 | セパレーター間隔調整 |
 
 **計算式の意味**:
 - `left: 640px` = main-container(12px) + left-panel(605px) + gap(12px) + 余白(11px)
 - `max-height: calc(100vh - 106px)` = 画面高さ - ヘッダー(50px) - フッター(36px) - 上下余白(20px)
+
+**デザイン意図**:
+- パンくずリストパネル自体を透明化（background: transparent, box-shadow: none）して視覚的に目立たなくする
+- 個別のパンくず項目（.breadcrumb-item）はニューモーフィズムスタイルを維持して視認性を確保
+- 長いテキストは複数行で表示され、省略記号（...）は表示されない
 
 ### 3️⃣ メインコンテナ（全体レイアウト）
 
@@ -567,6 +580,9 @@ CSSファイルを変更した後は、**必ずブラウザキャッシュをク
 
 | 日付 | 変更内容 | 理由 |
 |------|----------|------|
+| 2025-11-14 | **パンくずリストパネルを透明化、複数行表示対応** | 視覚的に目立たなくしつつ、長いテキストを表示可能に |
+| 2025-11-14 | `.breadcrumb-bar` を background: transparent、box-shadow: none に変更 | パンくずリストパネルを視覚的に隠す |
+| 2025-11-14 | `.breadcrumb-item` を white-space: normal、height: auto に変更 | 複数行表示対応、省略記号（...）を排除 |
 | 2025-11-14 | **パンくずリストを縦展開で固定配置に変更** | レイヤー1左側の200pxスペースに配置、視認性向上 |
 | 2025-11-14 | **レイヤー1パネルを200px右に移動** | パンくずリスト配置スペース確保 |
 | 2025-11-14 | `#center-container` padding-leftを216pxに変更 | レイヤー1パネル移動に伴う調整 |
