@@ -6223,6 +6223,24 @@ function setupHoverPreview() {
         }
     }, true);
 
+    // プレビューパネルのDOM変更を監視
+    const previewElement = document.getElementById('hoverPreview');
+    if (previewElement && LOG_CONFIG.pink) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    const classList = previewElement.classList;
+                    const hasShow = classList.contains('show');
+                    console.log(`[ホバープレビュー] 🔶 DOM変更検出: showクラス=${hasShow}, 全クラス=[${previewElement.className}]`);
+                    console.log(`[ホバープレビュー] 🔶 変更時スタックトレース:`);
+                    console.trace();
+                }
+            });
+        });
+        observer.observe(previewElement, { attributes: true, attributeFilter: ['class'] });
+        console.log('[ホバープレビュー] 🔶 DOM変更監視を開始しました');
+    }
+
     if (LOG_CONFIG.pink) {
         console.log('[ホバープレビュー] setupHoverPreview初期化完了');
     }
@@ -6254,7 +6272,9 @@ function handlePinkNodeHover(node, event) {
 // プレビュー表示
 function showPreview(event, nodeData) {
     if (LOG_CONFIG.pink) {
-        console.log(`[ホバープレビュー] showPreview開始 - nodeData.text: ${nodeData.text}, layer: ${nodeData.layer}`);
+        console.log(`[ホバープレビュー] 🔴 showPreview開始 - nodeData.text: ${nodeData.text}, layer: ${nodeData.layer}`);
+        console.log(`[ホバープレビュー] 🔴 呼び出し元スタックトレース:`);
+        console.trace();
     }
 
     const preview = document.getElementById('hoverPreview');
@@ -6321,9 +6341,12 @@ function showPreview(event, nodeData) {
     preview.style.top = rect.top + 'px';
 
     // 表示
-    preview.classList.add('show');
-
     if (LOG_CONFIG.pink) {
+        console.log(`[ホバープレビュー] 🟢 showクラスを追加します - 現在のクラス: ${preview.className}`);
+    }
+    preview.classList.add('show');
+    if (LOG_CONFIG.pink) {
+        console.log(`[ホバープレビュー] 🟢 showクラス追加完了 - 新しいクラス: ${preview.className}`);
         console.log(`[ホバープレビュー] プレビュー表示完了 - 位置: (${preview.style.left}, ${preview.style.top})`);
     }
 }
@@ -6331,7 +6354,9 @@ function showPreview(event, nodeData) {
 // プレビュー非表示
 function hidePreview() {
     if (LOG_CONFIG.pink) {
-        console.log('[ホバープレビュー] hidePreview呼び出し');
+        console.log('[ホバープレビュー] 🔵 hidePreview呼び出し');
+        console.log('[ホバープレビュー] 🔵 呼び出し元スタックトレース:');
+        console.trace();
     }
     const preview = document.getElementById('hoverPreview');
     if (preview) {
