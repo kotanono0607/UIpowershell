@@ -6070,17 +6070,17 @@ function renderBreadcrumb() {
 
         breadcrumb.appendChild(breadcrumbItem);
 
-        // セパレータ追加
+        // セパレータ追加（縦展開用）
         if (index < breadcrumbStack.length - 1) {
-            const separator = document.createElement('span');
+            const separator = document.createElement('div');
             separator.className = 'breadcrumb-separator';
-            separator.textContent = '→';
+            separator.textContent = '↓';
             breadcrumb.appendChild(separator);
         }
     });
 
     if (LOG_CONFIG.breadcrumb) {
-        console.log('[パンくずリスト] 描画完了:', breadcrumbStack.map(b => b.name).join(' → '));
+        console.log('[パンくずリスト] 描画完了:', breadcrumbStack.map(b => b.name).join(' ↓ '));
     }
 }
 

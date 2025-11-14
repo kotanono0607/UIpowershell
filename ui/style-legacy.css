@@ -213,11 +213,12 @@ body::after {
 /* メインコンテナ */
 #main-container {
     display: flex;
-    height: calc(100vh - 78px);
+    height: calc(100vh - 78px + 40px);  /* breadcrumb-barの高さ(40px)を戻す */
     overflow: hidden;
     flex-shrink: 0;
     padding: 12px;
     gap: 12px;
+    margin-top: -40px;  /* breadcrumb-barの元のスペースを埋める */
 }
 
 /* 左パネル: Neumorphism */
@@ -892,32 +893,43 @@ button:active, .button:active {
 
 /* パンくずリスト */
 .breadcrumb-bar {
-    height: 40px;
+    position: fixed;
+    left: 640px;  /* main-container(12px) + left-panel(605px) + gap(12px) + 余白(11px) */
+    top: 50px;    /* header(50px) */
+    width: 180px;
+    max-height: calc(100vh - 50px - 36px - 20px);  /* 上下余白確保 */
     background: var(--bg-color);
     display: flex;
-    align-items: center;
-    padding: 0 20px;
-    gap: 10px;
+    flex-direction: column;  /* 縦展開 */
+    align-items: flex-start;
+    padding: 16px 10px;
+    gap: 8px;
+    overflow-y: auto;
+    border-radius: 16px;
     box-shadow:
-        0 3px 6px var(--shadow-dark),
-        0 -2px 4px var(--shadow-light);
+        6px 6px 12px var(--shadow-dark),
+        -6px -6px 12px var(--shadow-light);
     z-index: 100;
-    flex-shrink: 0;
 }
 
 .breadcrumb-item {
+    width: 100%;  /* 幅いっぱいに */
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 10px;
     cursor: pointer;
-    padding: 5px 12px;
+    padding: 8px 12px;
     border-radius: 8px;
     transition: all 0.3s ease;
     background: var(--bg-color);
     box-shadow:
         2px 2px 4px var(--shadow-dark),
         -2px -2px 4px var(--shadow-light);
-    font-size: 13px;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .breadcrumb-item:hover {
@@ -928,8 +940,12 @@ button:active, .button:active {
 }
 
 .breadcrumb-separator {
+    width: 100%;
+    text-align: center;
     color: var(--text-secondary);
     user-select: none;
+    font-size: 14px;
+    margin: -4px 0;  /* セパレーター間隔を詰める */
 }
 
 .breadcrumb-item.current {
