@@ -3117,8 +3117,14 @@ async function handlePinkNodeClick(node) {
     refreshAllArrows();
 
     // プレビューパネルをクリア
+    if (LOG_CONFIG.pink) {
+        console.log(`[ピンク展開] ⏹️ プレビュークリア開始 - タイマーID: ${hoverTimer}`);
+    }
     clearTimeout(hoverTimer);
     hidePreview();
+    if (LOG_CONFIG.pink) {
+        console.log(`[ピンク展開] ⏹️ プレビュークリア完了 (handlePinkNodeClick)`);
+    }
 
     console.log(`[展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${entries.length}個のノード展開、レイヤー移動なし)`);
     console.log(`[パネル表示] 左: レイヤー${leftVisibleLayer}, 右: レイヤー${rightVisibleLayer}`);
@@ -3323,8 +3329,14 @@ async function handlePinkNodeClickPopup(node) {
     refreshAllArrows();
 
     // プレビューパネルをクリア
+    if (LOG_CONFIG.pink) {
+        console.log(`[ピンク展開ポップアップ] ⏹️ プレビュークリア開始 - タイマーID: ${hoverTimer}`);
+    }
     clearTimeout(hoverTimer);
     hidePreview();
+    if (LOG_CONFIG.pink) {
+        console.log(`[ピンク展開ポップアップ] ⏹️ プレビュークリア完了 (handlePinkNodeClickPopup)`);
+    }
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
@@ -6184,9 +6196,12 @@ function setupHoverPreview() {
     document.addEventListener('mouseleave', (e) => {
         if (e.target && e.target.classList && e.target.classList.contains('node-button')) {
             if (LOG_CONFIG.pink) {
-                console.log(`[ホバープレビュー] ノードからマウスリーブ: ${e.target.dataset.nodeId}`);
+                console.log(`[ホバープレビュー] ノードからマウスリーブ: ${e.target.dataset.nodeId}, タイマーID: ${hoverTimer}`);
             }
             clearTimeout(hoverTimer);
+            if (LOG_CONFIG.pink) {
+                console.log(`[ホバープレビュー] ⏹️ タイマークリア実行 (mouseleave)`);
+            }
             hidePreview();
         }
     }, true);
@@ -6210,10 +6225,13 @@ function handlePinkNodeHover(node, event) {
     // 0.8秒後にプレビュー表示
     hoverTimer = setTimeout(() => {
         if (LOG_CONFIG.pink) {
-            console.log(`[ホバープレビュー] 0.8秒経過、showPreview呼び出し`);
+            console.log(`[ホバープレビュー] ⏰ タイマー発火 - 0.8秒経過、showPreview呼び出し (タイマーID: ${hoverTimer})`);
         }
         showPreview(event, nodeData);
     }, 800);
+    if (LOG_CONFIG.pink) {
+        console.log(`[ホバープレビュー] ⏱️ タイマー設定完了 - タイマーID: ${hoverTimer}, ノード: ${nodeData.text}`);
+    }
 }
 
 // プレビュー表示
@@ -6295,9 +6313,20 @@ function showPreview(event, nodeData) {
 
 // プレビュー非表示
 function hidePreview() {
+    if (LOG_CONFIG.pink) {
+        console.log('[ホバープレビュー] hidePreview呼び出し');
+    }
     const preview = document.getElementById('hoverPreview');
     if (preview) {
+        const hadShowClass = preview.classList.contains('show');
         preview.classList.remove('show');
+        if (LOG_CONFIG.pink) {
+            console.log(`[ホバープレビュー] プレビュー非表示実行 - showクラスあり: ${hadShowClass}`);
+        }
+    } else {
+        if (LOG_CONFIG.pink) {
+            console.log('[ホバープレビュー] プレビュー要素が見つかりません');
+        }
     }
 }
 
