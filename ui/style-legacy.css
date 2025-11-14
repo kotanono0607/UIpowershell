@@ -1017,12 +1017,6 @@ button:active, .button:active {
     transform: scale(0.98);
 }
 
-.empty-message {
-    color: var(--text-secondary);
-    font-size: 14px;
-    text-align: center;
-}
-
 /* ホバープレビュー */
 .hover-preview {
     position: absolute;

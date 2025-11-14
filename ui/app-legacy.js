@@ -3605,11 +3605,7 @@ async function deleteAllNodes() {
         const rightPanel = document.getElementById('right-layer-panel');
         if (rightPanel) {
             rightPanel.classList.add('empty');
-            rightPanel.innerHTML = `
-                <div class="empty-message">
-                    <span>🟣 ピンクノードをクリックすると詳細が表示されます</span>
-                </div>
-            `;
+            rightPanel.innerHTML = '';
         }
 
         // ステップ5: 画面を再描画
@@ -6117,11 +6113,7 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
         // 右パネルをクリア（アニメーションなし）
         if (rightPanel) {
             rightPanel.classList.add('empty');
-            rightPanel.innerHTML = `
-                <div class="empty-message">
-                    <span>🟣 ピンクノードをクリックすると詳細が表示されます</span>
-                </div>
-            `;
+            rightPanel.innerHTML = '';
         }
 
         // 左パネルのdimmedを解除
@@ -6521,11 +6513,7 @@ function closeDrilldownPanel() {
     setTimeout(() => {
         rightPanel.classList.remove('slide-out');
         rightPanel.classList.add('empty');
-        rightPanel.innerHTML = `
-            <div class="empty-message">
-                <span>🟣 ピンクノードをクリックすると詳細が表示されます</span>
-            </div>
-        `;
+        rightPanel.innerHTML = '';
     }, 400);
 
     // 左パネルのdimmedを解除
@@ -6568,11 +6556,7 @@ function enterEditMode(targetLayer) {
         setTimeout(() => {
             rightPanel.classList.remove('slide-out');
             rightPanel.classList.add('empty');
-            rightPanel.innerHTML = `
-                <div class="empty-message">
-                    <span>🟣 ピンクノードをクリックすると詳細が表示されます</span>
-                </div>
-            `;
+            rightPanel.innerHTML = '';
         }, 400);
     }
 
