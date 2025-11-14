@@ -216,7 +216,7 @@ body::after {
     height: calc(100vh - 78px);
     overflow: hidden;
     flex-shrink: 0;
-    padding: 12px 12px 12px 112px;  /* 上 右 下 左（左側を100px追加して112px） */
+    padding: 12px;
     gap: 12px;
 }
 
@@ -362,8 +362,8 @@ body::after {
     background: var(--bg-color);
     border-radius: 20px;
     gap: 12px;
-    padding: 16px;
-    box-shadow: 
+    padding: 16px 16px 16px 116px;  /* 上 右 下 左（左側を100px追加して116px） */
+    box-shadow:
         inset 6px 6px 12px var(--shadow-dark),
         inset -6px -6px 12px var(--shadow-light);
 }
@@ -570,7 +570,7 @@ body::after {
 #description-panel {
     position: fixed;
     top: calc(100vh - 296px);  /* 左パネルの真下から設置（ヘッダー50px + padding12px + max-height(100vh-358px) = 100vh-296px） */
-    left: 112px;  /* main-containerのpadding-left（112px）と同じ位置 */
+    left: 16px;
     width: 605px;  /* 左パネルと同じ幅（550px → 605px） */
     max-height: 500px;  /* 600px → 500px に変更 */
     background: var(--bg-color);
