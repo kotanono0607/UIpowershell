@@ -362,7 +362,7 @@ body::after {
     background: var(--bg-color);
     border-radius: 20px;
     gap: 12px;
-    padding: 16px 16px 16px 116px;  /* 上 右 下 左（左側を100px追加して116px） */
+    padding: 16px 16px 16px 216px;  /* 上 右 下 左（左側を200px追加して216px） */
     box-shadow:
         inset 6px 6px 12px var(--shadow-dark),
         inset -6px -6px 12px var(--shadow-light);
