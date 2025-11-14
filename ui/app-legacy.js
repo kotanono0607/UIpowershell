@@ -81,6 +81,23 @@ function wrapConsoleMethod(method, level) {
             // ログメッセージを文字列化
             const message = args.map(arg => String(arg)).join(' ');
 
+            // LOG_CONFIG.pinkがtrueの場合、ピンク関連のログは常に表示
+            const pinkRelatedPrefixes = [
+                '[ホバープレビュー]', '[ピンク展開]', '[ピンク展開ポップアップ]', '[ピンク検出]', '[ピンクノード'
+            ];
+            const isPinkLog = pinkRelatedPrefixes.some(prefix => message.includes(prefix));
+            if (LOG_CONFIG.pink && isPinkLog) {
+                // LOG_CONFIG.pinkが有効な場合はフィルターをスキップ
+                originalConsole[method].apply(console, args);
+                const logEntry = {
+                    level: level,
+                    timestamp: new Date().toISOString(),
+                    message: message
+                };
+                consoleLogBuffer.push(logEntry);
+                return;
+            }
+
             // 重要なログのみを通過させる
             const importantPrefixes = [
                 '❌', '✅', '⚠'  // エラー・成功・警告マーカーのみ
