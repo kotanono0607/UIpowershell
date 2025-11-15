@@ -1485,15 +1485,28 @@ New-PolarisRoute -Path "/api/node/execute/:functionName" -Method POST -ScriptBlo
         }
 
         Write-Host "[ノード関数実行] ✅ 関数実行完了" -ForegroundColor Green
-        Write-Host "[ノード関数実行] 📤 生成されたコード (先頭200文字):" -ForegroundColor Gray
-        $codePreview = $code.Substring(0, [Math]::Min(200, $code.Length))
-        Write-Host $codePreview -ForegroundColor DarkGray
 
-        $result = @{
-            success = $true
-            code = $code
-            functionName = $functionName
+        # $codeが$nullの場合はキャンセルまたはエラー
+        if ($null -eq $code) {
+            Write-Host "[ノード関数実行] ⚠️ 関数が$nullを返しました（キャンセルまたはエラー）" -ForegroundColor Yellow
+            $result = @{
+                success = $false
+                code = $null
+                functionName = $functionName
+                error = "関数が$nullを返しました（ユーザーキャンセルまたはエラー）"
+            }
+        } else {
+            Write-Host "[ノード関数実行] 📤 生成されたコード (先頭200文字):" -ForegroundColor Gray
+            $codePreview = $code.Substring(0, [Math]::Min(200, $code.Length))
+            Write-Host $codePreview -ForegroundColor DarkGray
+
+            $result = @{
+                success = $true
+                code = $code
+                functionName = $functionName
+            }
         }
+
         $json = $result | ConvertTo-Json -Compress -Depth 5
         $Response.SetContentType('application/json; charset=utf-8')
         $Response.Send($json)
