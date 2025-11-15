@@ -9,15 +9,15 @@
     --shadow-light: #ffffff;
     --shadow-dark: #a3b1c6;
     
-    /* Aurora Gradient Colors for accents */
-    --aurora-purple: #667eea;
-    --aurora-pink: #f472b6;
-    --aurora-cyan: #06b6d4;
-    --aurora-green: #10b981;
-    --aurora-yellow: #fbbf24;
-    --aurora-orange: #f59e0b;
-    --aurora-red: #ef4444;
-    --aurora-blue: #3b82f6;
+    /* Calm Blue Palette - 控えめな青系 */
+    --aurora-purple: #5B9BD5;  /* メイン青 */
+    --aurora-pink: #7AB8E8;    /* ライト青 */
+    --aurora-cyan: #6BA8D9;    /* 中間青 */
+    --aurora-green: #4A90E2;   /* アクセント青 */
+    --aurora-yellow: #8FC4E8;  /* ソフト青 */
+    --aurora-orange: #5AA3DC;  /* 明るい青 */
+    --aurora-red: #2E5C8A;     /* 濃い青（重要な警告用） */
+    --aurora-blue: #4A90E2;    /* 鮮やか青 */
     
     /* Text Colors */
     --text-primary: #2d3748;
@@ -106,14 +106,8 @@ body::after {
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, 
-        var(--aurora-purple) 0%, 
-        var(--aurora-pink) 25%, 
-        var(--aurora-cyan) 50%, 
-        var(--aurora-green) 75%, 
-        var(--aurora-purple) 100%);
-    background-size: 200% 100%;
-    animation: auroraShimmer 5s linear infinite;
+    background: var(--aurora-purple);  /* シンプルな単色の青 */
+    /* アニメーションを削除してシンプルに */
 }
 
 @keyframes auroraShimmer {
@@ -191,10 +185,8 @@ body::after {
 }
 
 .btn-danger {
-    border: 2px solid transparent;
-    background: 
-        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
-        linear-gradient(135deg, var(--aurora-red), var(--aurora-orange)) border-box;
+    background: var(--bg-color);
+    border: 2px solid var(--aurora-red);  /* 単色のボーダー */
 }
 
 #current-layer-label {
@@ -263,7 +255,7 @@ body::after {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #6b7280, #9ca3af);  /* 落ち着いたグレー系グラデーション */
+    background: #7AB8E8;  /* 控えめな青 */
     border-radius: 10px;
 }
 
@@ -399,7 +391,7 @@ body::after {
 }
 
 .layer-label {
-    background: linear-gradient(135deg, #6b7280, #9ca3af);  /* 落ち着いたグレー系グラデーション */
+    background: #6BA8D9;  /* 控えめな青 */
     padding: 10px;
     text-align: center;
     font-weight: bold;
@@ -451,67 +443,61 @@ body::after {
 
 /* Aurora Border based on background color - 既存の色判定を維持 */
 .node-button[style*="rgb(255, 255, 255)"] {
-    background: 
-        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
-        linear-gradient(135deg, #e0e0e0, #f0f0f0) border-box;
+    background: var(--bg-color);
+    border: 2px solid #d1d5db;  /* グレーのボーダー */
 }
 
 .node-button[style*="rgb(0, 255, 127)"],
 .node-button[style*="SpringGreen"] {
-    background: 
-        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
-        linear-gradient(135deg, var(--aurora-green), var(--aurora-cyan)) border-box;
+    background: var(--bg-color);
+    border: 2px solid var(--aurora-green);  /* 単色のボーダー */
 }
 
 .node-button[style*="rgb(255, 250, 205)"],
 .node-button[style*="LemonChiffon"] {
-    background: 
-        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
-        linear-gradient(135deg, var(--aurora-yellow), var(--aurora-orange)) border-box;
+    background: var(--bg-color);
+    border: 2px solid var(--aurora-yellow);  /* 単色のボーダー */
 }
 
 .node-button[style*="rgb(252, 160, 158)"],
 .node-button[style*="Pink"] {
-    background: 
-        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
-        linear-gradient(135deg, var(--aurora-pink), #ec4899) border-box;
+    background: var(--bg-color);
+    border: 2px solid var(--aurora-pink);  /* 単色のボーダー */
     animation: pinkGlow 2s ease-in-out infinite;
 }
 
 @keyframes pinkGlow {
     0%, 100% {
-        box-shadow: 
+        box-shadow:
             4px 4px 8px var(--shadow-dark),
             -4px -4px 8px var(--shadow-light),
-            0 0 20px rgba(236, 72, 153, 0.3);
+            0 0 20px rgba(122, 184, 232, 0.3);  /* 青系のグロー */
     }
     50% {
-        box-shadow: 
+        box-shadow:
             4px 4px 8px var(--shadow-dark),
             -4px -4px 8px var(--shadow-light),
-            0 0 40px rgba(236, 72, 153, 0.5);
+            0 0 40px rgba(122, 184, 232, 0.5);  /* 青系のグロー */
     }
 }
 
 .node-button[style*="rgb(250, 128, 114)"],
 .node-button[style*="Salmon"] {
-    background: 
-        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
-        linear-gradient(135deg, var(--aurora-red), #ef4444) border-box;
+    background: var(--bg-color);
+    border: 2px solid var(--aurora-red);  /* 単色のボーダー */
 }
 
 .node-button[style*="rgb(200, 220, 255)"],
 .node-button[style*="LightBlue"] {
-    background: 
-        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
-        linear-gradient(135deg, var(--aurora-blue), #60a5fa) border-box;
+    background: var(--bg-color);
+    border: 2px solid var(--aurora-blue);  /* 単色のボーダー */
 }
 
 .node-button[style*="rgb(128, 128, 128)"],
 .node-button[style*="Gray"] {
     height: 1px !important;
     min-height: 1px !important;
-    background: linear-gradient(90deg, var(--aurora-purple), var(--aurora-pink));
+    background: var(--aurora-purple);  /* 単色の青 */
     box-shadow: none;
     border: none;
 }
@@ -561,11 +547,7 @@ body::after {
     font-size: 13px;
     font-weight: bold;
     margin-bottom: 12px;
-    color: var(--text-primary);
-    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--aurora-purple);  /* 単色の青 */
 }
 
 /* 説明パネル（左パネルの真下に固定） */
@@ -615,14 +597,8 @@ body::after {
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, 
-        var(--aurora-green) 0%, 
-        var(--aurora-cyan) 25%, 
-        var(--aurora-purple) 50%, 
-        var(--aurora-pink) 75%, 
-        var(--aurora-green) 100%);
-    background-size: 200% 100%;
-    animation: auroraShimmer 5s linear infinite reverse;
+    background: var(--aurora-purple);  /* シンプルな単色の青 */
+    /* アニメーションを削除してシンプルに */
 }
 
 /* 右クリックメニュー: Neumorphism */
@@ -666,15 +642,14 @@ body::after {
     transform: translateY(-50%);
     width: 3px;
     height: 60%;
-    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    background: var(--aurora-purple);  /* 単色の青 */
     border-radius: 0 3px 3px 0;
 }
 
 /* レイヤー化ボタン特別スタイル - 既存の機能を保持 */
 #layerize-menu-item {
-    background: linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
-                linear-gradient(135deg, var(--aurora-pink), #ec4899) border-box;
-    border: 2px solid transparent;
+    background: var(--bg-color);
+    border: 2px solid var(--aurora-pink);  /* 単色のボーダー */
     font-weight: bold;
 }
 
@@ -730,7 +705,7 @@ body::after {
 }
 
 #current-layer-label.layer-is-glow-target {
-    background: linear-gradient(135deg, var(--aurora-pink), var(--aurora-purple));
+    background: var(--aurora-purple);  /* 単色の青 */
     color: white;
     padding: 6px 18px;
     border-radius: 20px;
@@ -777,7 +752,7 @@ body::after {
     position: absolute;
     top: 12px;
     right: 12px;
-    background: linear-gradient(135deg, var(--aurora-red), var(--aurora-orange));
+    background: var(--aurora-red);  /* 単色の青（濃い） */
     color: #fff;
     border: none;
     width: 32px;
@@ -814,7 +789,7 @@ th, td {
 }
 
 th {
-    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    background: var(--aurora-purple);  /* 単色の青 */
     color: white;
     font-weight: bold;
 }
@@ -878,9 +853,8 @@ button:active, .button:active {
 
 /* Primary button with aurora gradient */
 .btn-primary, #btn-condition-save, #btn-loop-save {
-    background: 
-        linear-gradient(var(--bg-color), var(--bg-color)) padding-box,
-        linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink)) border-box;
+    background: var(--bg-color);
+    border: 2px solid var(--aurora-purple);  /* 単色のボーダー */
 }
 
 /* 既存のクラスを保持 */
@@ -950,13 +924,13 @@ button:active, .button:active {
 }
 
 .breadcrumb-item.current {
-    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    background: var(--aurora-purple);  /* 単色の青 */
     color: white;
     font-weight: bold;
     box-shadow:
         2px 2px 4px var(--shadow-dark),
         -2px -2px 4px var(--shadow-light),
-        0 0 15px rgba(102, 126, 234, 0.3);
+        0 0 15px rgba(91, 155, 213, 0.3);  /* 青系のグロー */
 }
 
 /* メインレイヤーパネル（旧left-layer-panel） */
@@ -1105,7 +1079,7 @@ button:active, .button:active {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
+    background: var(--aurora-purple);  /* 単色の青 */
     color: white;
     padding: 4px 12px;
     border-radius: 12px;
@@ -1229,7 +1203,7 @@ button:active, .button:active {
     align-items: center;
     padding: 20px 25px;
     border-bottom: 2px solid #e0e0e0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--aurora-purple);  /* 単色の青 */
 }
 
 .modal-title {
@@ -1293,7 +1267,7 @@ button:active, .button:active {
     color: var(--text-primary);
     margin-bottom: 15px;
     padding: 10px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--aurora-purple);  /* 単色の青 */
     color: white;
     border-radius: 10px;
     text-align: center;
