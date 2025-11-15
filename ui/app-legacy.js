@@ -2504,8 +2504,8 @@ function renameNode() {
     hideContextMenu();
 }
 
-// スクリプト編集
-function editScript() {
+// スクリプト編集（PowerShell Windows Forms版）
+async function editScript() {
     if (!contextMenuTarget) return;
 
     console.log('[editScript] ノード編集開始:', contextMenuTarget.text, 'ID:', contextMenuTarget.id);
@@ -2514,34 +2514,47 @@ function editScript() {
     const code = getCodeEntry(contextMenuTarget.id);
     console.log('[editScript] 取得したコード長:', code ? code.length : 0);
 
-    // モーダルを表示
-    document.getElementById('script-modal').classList.add('show');
-    document.getElementById('script-node-name').textContent = contextMenuTarget.text;
-    document.getElementById('script-editor').value = code || '';
-
     hideContextMenu();
-}
 
-// スクリプトモーダルを閉じる
-function closeScriptModal() {
-    document.getElementById('script-modal').classList.remove('show');
-}
+    try {
+        // PowerShell Windows Formsダイアログを呼び出し
+        console.log('[editScript] PowerShell編集ダイアログを呼び出します...');
+        const response = await fetch(`${API_BASE}/node/edit-script`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nodeId: contextMenuTarget.id,
+                nodeName: contextMenuTarget.text,
+                currentScript: code || ''
+            })
+        });
 
-// スクリプトを保存
-async function saveScript() {
-    if (!contextMenuTarget) return;
+        const result = await response.json();
 
-    console.log('[saveScript] スクリプト保存開始:', contextMenuTarget.text, 'ID:', contextMenuTarget.id);
+        if (!response.ok) {
+            console.error('[editScript] サーバーエラー:', result);
+            alert(`エラーが発生しました: ${result.error || 'Unknown error'}`);
+            return;
+        }
 
-    const newScript = document.getElementById('script-editor').value;
+        if (result.cancelled) {
+            console.log('[editScript] ユーザーがキャンセルしました');
+            return;
+        }
 
-    // コード.json に保存（setCodeEntry は内部で saveCodeJson を呼び出す）
-    await setCodeEntry(contextMenuTarget.id, newScript);
+        if (result.success && result.newScript !== undefined) {
+            console.log('[editScript] 編集完了 - 新しいスクリプト長:', result.newScript.length);
 
-    console.log(`[saveScript] ✅ ノード「${contextMenuTarget.text}」のスクリプトを更新しました`);
-    alert(`スクリプトを保存しました。`);
+            // コード.json に保存
+            await setCodeEntry(contextMenuTarget.id, result.newScript);
 
-    closeScriptModal();
+            console.log(`[editScript] ✅ ノード「${contextMenuTarget.text}」のスクリプトを更新しました`);
+        }
+
+    } catch (error) {
+        console.error('[editScript] エラー:', error);
+        alert(`スクリプト編集中にエラーが発生しました: ${error.message}`);
+    }
 }
 
 // スクリプト実行（選択したノード単体を実行）

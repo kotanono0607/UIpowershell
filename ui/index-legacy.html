@@ -205,20 +205,20 @@
         </div>
     </div>
 
-    <!-- スクリプト編集モーダル -->
-    <div id="script-modal" class="modal">
-        <div class="modal-content" style="width: 80%; max-width: 800px;">
-            <h2>スクリプト編集: <span id="script-node-name"></span></h2>
-            <button class="modal-close" onclick="closeScriptModal()">×</button>
-            <div class="modal-body">
-                <textarea id="script-editor" rows="20" style="width: 100%; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px;"></textarea>
-                <div style="margin-top: 10px;">
-                    <button onclick="saveScript()">💾 保存</button>
-                    <button onclick="closeScriptModal()">キャンセル</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- スクリプト編集モーダル (廃止) -->
+    <!--
+    [移行完了] 2025-11-15
+    スクリプト編集UIをWeb UIモーダルからPowerShell Windows Forms版に移行しました。
+
+    変更内容:
+    - API: POST /api/node/edit-script
+    - PowerShell関数: 複数行テキストを編集 (13_コードサブ汎用関数.ps1)
+    - JavaScript: editScript()を修正してAPI呼び出しに変更
+
+    理由:
+    - 他のパラメータ入力UI（条件分岐、ループ等）との一貫性向上
+    - コードの統一化によるメンテナンス性向上
+    -->
 
     <!-- ノード詳細設定モーダル -->
     <div id="node-settings-modal" class="modal">

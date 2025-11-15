@@ -314,3 +314,69 @@ function 文字列入力 {
         Write-Warning "文字列入力の実行に失敗しました: $($_.Exception.Message)"
     }
 }
+
+# 複数行テキストを編集する関数の定義
+function 複数行テキストを編集 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$フォームタイトル,       # フォームのタイトル
+
+        [Parameter(Mandatory = $true)]
+        [string]$ラベルテキスト,        # ラベルのテキスト
+
+        [Parameter(Mandatory = $false)]
+        [string]$初期テキスト = ""      # 初期表示するテキスト
+    )
+
+    # フォームの作成
+    $フォーム = New-Object System.Windows.Forms.Form
+    $フォーム.Text = $フォームタイトル
+    $フォーム.Size = New-Object System.Drawing.Size(800,600)
+    $フォーム.StartPosition = "CenterScreen"
+
+    # ラベルの作成
+    $ラベル = New-Object System.Windows.Forms.Label
+    $ラベル.Text = $ラベルテキスト
+    $ラベル.AutoSize = $true
+    $ラベル.Location = New-Object System.Drawing.Point(10,20)
+    $フォーム.Controls.Add($ラベル)
+
+    # 複数行テキストボックスの作成
+    $テキストボックス = New-Object System.Windows.Forms.TextBox
+    $テキストボックス.Location = New-Object System.Drawing.Point(10,50)
+    $テキストボックス.Size = New-Object System.Drawing.Size(760,480)
+    $テキストボックス.Multiline = $true
+    $テキストボックス.ScrollBars = "Both"
+    $テキストボックス.WordWrap = $false
+    $テキストボックス.Font = New-Object System.Drawing.Font("Consolas",10)
+    $テキストボックス.Text = $初期テキスト
+    $フォーム.Controls.Add($テキストボックス)
+
+    # OKボタンの作成
+    $OKボタン = New-Object System.Windows.Forms.Button
+    $OKボタン.Text = "OK"
+    $OKボタン.Size = New-Object System.Drawing.Size(100,30)
+    $OKボタン.Location = New-Object System.Drawing.Point(580,540)
+    $OKボタン.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $フォーム.AcceptButton = $OKボタン
+    $フォーム.Controls.Add($OKボタン)
+
+    # Cancelボタンの作成
+    $キャンセルボタン = New-Object System.Windows.Forms.Button
+    $キャンセルボタン.Text = "Cancel"
+    $キャンセルボタン.Size = New-Object System.Drawing.Size(100,30)
+    $キャンセルボタン.Location = New-Object System.Drawing.Point(690,540)
+    $キャンセルボタン.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $フォーム.CancelButton = $キャンセルボタン
+    $フォーム.Controls.Add($キャンセルボタン)
+
+    # フォームの表示
+    $ダイアログ結果 = $フォーム.ShowDialog()
+
+    # フォームの結果に応じて処理
+    if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
+        return $テキストボックス.Text
+    } else {
+        return $null
+    }
+}

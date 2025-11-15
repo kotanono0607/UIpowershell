@@ -1526,6 +1526,74 @@ New-PolarisRoute -Path "/api/node/execute/:functionName" -Method POST -ScriptBlo
 }
 
 # ============================================
+# ノードスクリプト編集API（PowerShell Windows Forms）
+# ============================================
+
+# スクリプト編集ダイアログを表示
+New-PolarisRoute -Path "/api/node/edit-script" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        Write-Host "[スクリプト編集] リクエスト受信" -ForegroundColor Cyan
+
+        # リクエストボディを取得
+        $body = $Request.Body | ConvertFrom-Json
+        $nodeId = $body.nodeId
+        $nodeName = $body.nodeName
+        $currentScript = $body.currentScript
+
+        Write-Host "[スクリプト編集] ノードID: $nodeId, ノード名: $nodeName" -ForegroundColor Gray
+        Write-Host "[スクリプト編集] 現在のスクリプト長: $($currentScript.Length)文字" -ForegroundColor Gray
+
+        # 汎用関数を読み込み（複数行テキストを編集）
+        $汎用関数パス = Join-Path $script:RootDir "13_コードサブ汎用関数.ps1"
+        if (Test-Path $汎用関数パス) {
+            . $汎用関数パス
+            Write-Host "[スクリプト編集] ✅ 汎用関数を読み込みました" -ForegroundColor Green
+        } else {
+            throw "汎用関数ファイルが見つかりません: $汎用関数パス"
+        }
+
+        # PowerShell Windows Formsダイアログを表示
+        Write-Host "[スクリプト編集] 📝 編集ダイアログを表示します..." -ForegroundColor Cyan
+        $editedScript = 複数行テキストを編集 -フォームタイトル "スクリプト編集 - $nodeName" -ラベルテキスト "スクリプトを編集してください:" -初期テキスト $currentScript
+
+        if ($null -eq $editedScript) {
+            # キャンセルされた
+            Write-Host "[スクリプト編集] ⚠️ ユーザーがキャンセルしました" -ForegroundColor Yellow
+            $result = @{
+                success = $false
+                cancelled = $true
+                message = "編集がキャンセルされました"
+            }
+        } else {
+            # 編集成功
+            Write-Host "[スクリプト編集] ✅ 編集完了（長さ: $($editedScript.Length)文字）" -ForegroundColor Green
+            $result = @{
+                success = $true
+                cancelled = $false
+                newScript = $editedScript
+            }
+        }
+
+        $json = $result | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+            stackTrace = $_.ScriptStackTrace
+        }
+        Write-Host "[スクリプト編集エラー] $($_.Exception.Message)" -ForegroundColor Red
+        $json = $errorResult | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# ============================================
 # ブラウザコンソールログ受信API
 # ============================================
 
