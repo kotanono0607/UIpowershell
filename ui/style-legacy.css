@@ -970,7 +970,7 @@ button:active, .button:active {
     /* ===== 表示設定 ===== */
     overflow-y: auto;
     border-radius: 20px;
-    background: var(--bg-color);
+    background: yellow;  /* 一時的に黄色に変更して場所を確認 */
     transition: all 0.4s ease;
     box-shadow:
         9px 9px 18px var(--shadow-dark),
