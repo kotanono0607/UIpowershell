@@ -949,9 +949,9 @@ button:active, .button:active {
 /* ドリルダウンパネル（旧right-layer-panel） */
 .drilldown-panel {
     /* サイズ設定 */
-    width: 400px;
-    min-height: 700px;
-    max-height: calc(100vh - 150px);
+    width: 300px;
+    min-height: 800px;
+    max-height: calc(100vh - 100px);
 
     /* 位置・配置設定 */
     flex-shrink: 0;
