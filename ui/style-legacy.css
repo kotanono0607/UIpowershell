@@ -950,6 +950,7 @@ button:active, .button:active {
 .drilldown-panel {
     /* ===== サイズ設定 ===== */
     width: 300px;                     /* パネル幅（外枠） */
+    height: calc(100vh - 78px);       /* 高さを画面いっぱいに設定 */
     min-height: 1000px;               /* 最小高さ（ノード配置スペースを縦に長く） */
     max-height: calc(100vh - 20px);   /* 最大高さ（画面下まで広く） */
 
