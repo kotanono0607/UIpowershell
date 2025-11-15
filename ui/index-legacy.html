@@ -220,26 +220,20 @@
     -->
 
     <!-- コード生成結果モーダル -->
-    <div id="code-result-modal" class="modal">
-        <div class="modal-content" style="width: 80%; max-width: 900px;">
-            <h2>✅ コード生成完了</h2>
-            <button class="modal-close" onclick="closeCodeResultModal()">×</button>
-            <div class="modal-body">
-                <div id="code-result-info" style="margin-bottom: 15px;">
-                    <!-- 結果情報（ノード数、出力先など） -->
-                </div>
-                <div style="margin-bottom: 10px;">
-                    <label style="font-weight: bold;">生成されたコード:</label>
-                </div>
-                <textarea id="code-result-preview" rows="20" readonly style="width: 100%; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; background: #f5f5f5; border: 1px solid #ccc; padding: 10px;"></textarea>
-                <div style="margin-top: 15px; display: flex; gap: 10px;">
-                    <button onclick="copyGeneratedCode()">📋 コピー</button>
-                    <button onclick="openGeneratedFile()">📂 ファイルを開く</button>
-                    <button onclick="closeCodeResultModal()">閉じる</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- コード結果モーダル (廃止) -->
+    <!--
+    [移行完了] 2025-11-15
+    コード結果UIをWeb UIモーダルからPowerShell Windows Forms版に移行しました。
+
+    変更内容:
+    - API: POST /api/code-result/show
+    - PowerShell関数: コード結果を表示 (13_コードサブ汎用関数.ps1)
+    - JavaScript: executeCode()を修正してコード生成後にAPI呼び出しを追加
+    - リサイズ可能なダイアログ（900x700、最小700x500）
+    - Consolasフォントでコードプレビュー表示
+    - コピーボタン（クリップボードにコピー）
+    - ファイルを開くボタン（Start-Processで開く）
+    -->
 
     <!-- ============================================ -->
     <!-- 条件分岐・ループダイアログ (廃止) -->

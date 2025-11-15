@@ -4051,33 +4051,31 @@ async function executeCode() {
         if (result.success) {
             console.log(`✅ [実行] 成功 - ノード数: ${result.nodeCount}個, コード長: ${result.code?.length || 0}文字`);
 
-            // 結果モーダルに情報を表示
-            const infoDiv = document.getElementById('code-result-info');
-            infoDiv.innerHTML = `
-                <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border: 1px solid #4caf50;">
-                    <p style="margin-bottom: 8px;"><strong>📊 ノード数:</strong> ${result.nodeCount}個</p>
-                    <p style="margin-bottom: 8px;"><strong>📁 出力先:</strong> ${result.outputPath || '（メモリ内のみ）'}</p>
-                    <p style="margin-bottom: 0;"><strong>⏱️ 生成時刻:</strong> ${new Date().toLocaleString('ja-JP')}</p>
-                </div>
-            `;
+            // PowerShell Windows Formsでコード結果を表示
+            try {
+                const showResultResponse = await fetch(`${API_BASE}/code-result/show`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        code: result.code,
+                        nodeCount: result.nodeCount,
+                        outputPath: result.outputPath,
+                        timestamp: new Date().toLocaleString('ja-JP')
+                    })
+                });
 
-            // 生成されたコードをプレビューに表示
-            const codePreview = document.getElementById('code-result-preview');
-            if (result.code) {
-                codePreview.value = result.code;
-            } else {
-                codePreview.value = '（コードプレビューは利用できません）';
-                console.warn('⚠ [実行] result.code が空です');
+                const showResultData = await showResultResponse.json();
+
+                if (showResultData.success) {
+                    console.log('✅ [実行] コード結果ダイアログを表示しました');
+                } else {
+                    console.error('❌ [実行] コード結果ダイアログ表示エラー:', showResultData.error);
+                }
+            } catch (error) {
+                console.error('❌ [実行] コード結果ダイアログ表示エラー:', error);
             }
-
-            // グローバル変数に保存（コピー/ファイルオープン用）
-            window.lastGeneratedCode = {
-                code: result.code,
-                path: result.outputPath
-            };
-
-            // モーダルを表示
-            document.getElementById('code-result-modal').classList.add('show');
         } else {
             console.error(`❌ [実行] 失敗: ${result.error}`);
             alert(`コード生成失敗: ${result.error}`);
@@ -4094,18 +4092,22 @@ async function executeCode() {
     }
 }
 
+// ============================================
+// コード結果モーダル（PowerShell Windows Forms版に移行）
+// ============================================
+
 function closeCodeResultModal() {
-    document.getElementById('code-result-modal').classList.remove('show');
+    console.log('[コード結果] closeCodeResultModal() は廃止されました（PowerShell Windows Forms版に移行）');
 }
 
 function copyGeneratedCode() {
-    const codePreview = document.getElementById('code-result-preview');
-    codePreview.select();
-    document.execCommand('copy');
-    alert('✅ 生成されたコードをクリップボードにコピーしました！');
+    console.log('[コード結果] copyGeneratedCode() は廃止されました（PowerShell Windows Forms版に移行）');
+    console.log('[コード結果] コピー機能はPowerShellダイアログ内のボタンで実行されます');
 }
 
 function openGeneratedFile() {
+    console.log('[コード結果] openGeneratedFile() は廃止されました（PowerShell Windows Forms版に移行）');
+    console.log('[コード結果] ファイルを開く機能はPowerShellダイアログ内のボタンで実行されます');
     if (window.lastGeneratedCode && window.lastGeneratedCode.path) {
         // PowerShellでファイルを開く（Windows環境）
         alert(`ファイルを開きます: ${window.lastGeneratedCode.path}\n\n（この機能はブラウザ制限により未実装です）`);
