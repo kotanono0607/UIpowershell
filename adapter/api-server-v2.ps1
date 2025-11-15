@@ -1310,10 +1310,14 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method GET -ScriptBlock {
                 $convertedCount = 0
                 foreach ($key in $codeData."エントリ".PSObject.Properties.Name) {
                     $originalValue = $codeData."エントリ".$key
-                    if ($originalValue -and $originalValue.Contains('\n')) {
-                        # \n を実際の改行に変換してから、ConvertTo-Jsonで正しくエスケープされるようにする
-                        $codeData."エントリ".$key = $originalValue -replace '\\n', "`r`n"
-                        $convertedCount++
+                    if ($originalValue) {
+                        # すべてのエントリに対して \n → 改行の変換を試みる（マッチしない場合は変更なし）
+                        $newValue = $originalValue -replace '\\n', "`r`n"
+                        if ($newValue -ne $originalValue) {
+                            $codeData."エントリ".$key = $newValue
+                            $convertedCount++
+                            Write-Host "[GET /code]   - [$key] 変換: $($originalValue.Length)文字 → $($newValue.Length)文字" -ForegroundColor DarkGray
+                        }
                     }
                 }
                 Write-Host "[GET /code] ✅ $convertedCount 個のエントリで改行を変換しました" -ForegroundColor Green
@@ -1431,9 +1435,14 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
             $convertedCount = 0
             foreach ($key in $codeData."エントリ".PSObject.Properties.Name) {
                 $originalValue = $codeData."エントリ".$key
-                if ($originalValue -and $originalValue.Contains('\n')) {
-                    $codeData."エントリ".$key = $originalValue -replace '\\n', "`r`n"
-                    $convertedCount++
+                if ($originalValue) {
+                    # すべてのエントリに対して \n → 改行の変換を試みる（マッチしない場合は変更なし）
+                    $newValue = $originalValue -replace '\\n', "`r`n"
+                    if ($newValue -ne $originalValue) {
+                        $codeData."エントリ".$key = $newValue
+                        $convertedCount++
+                        Write-Host "[API]   - [$key] 変換: $($originalValue.Length)文字 → $($newValue.Length)文字" -ForegroundColor DarkGray
+                    }
                 }
             }
             Write-Host "[API] ✅ $convertedCount 個のエントリで改行を変換しました" -ForegroundColor Green
