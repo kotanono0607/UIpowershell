@@ -328,6 +328,10 @@ function 複数行テキストを編集 {
         [string]$初期テキスト = ""      # 初期表示するテキスト
     )
 
+    Write-Host "[複数行テキストを編集] 関数呼び出し - タイトル: $フォームタイトル" -ForegroundColor Cyan
+    Write-Host "[複数行テキストを編集] 初期テキスト長: $($初期テキスト.Length)文字" -ForegroundColor Gray
+    Write-Host "[複数行テキストを編集] 初期テキスト内容: [$初期テキスト]" -ForegroundColor Gray
+
     # フォームの作成
     $フォーム = New-Object System.Windows.Forms.Form
     $フォーム.Text = $フォームタイトル

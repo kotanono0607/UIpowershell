@@ -2513,8 +2513,16 @@ async function editScript() {
     // コード.json からコード内容を取得
     const code = getCodeEntry(contextMenuTarget.id);
     console.log('[editScript] 取得したコード長:', code ? code.length : 0);
+    console.log('[editScript] 取得したコード内容:', code);
 
     hideContextMenu();
+
+    const requestBody = {
+        nodeId: contextMenuTarget.id,
+        nodeName: contextMenuTarget.text,
+        currentScript: code || ''
+    };
+    console.log('[editScript] APIリクエストボディ:', JSON.stringify(requestBody, null, 2));
 
     try {
         // PowerShell Windows Formsダイアログを呼び出し
@@ -2522,11 +2530,7 @@ async function editScript() {
         const response = await fetch(`${API_BASE}/node/edit-script`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                nodeId: contextMenuTarget.id,
-                nodeName: contextMenuTarget.text,
-                currentScript: code || ''
-            })
+            body: JSON.stringify(requestBody)
         });
 
         const result = await response.json();

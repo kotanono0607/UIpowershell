@@ -1543,6 +1543,7 @@ New-PolarisRoute -Path "/api/node/edit-script" -Method POST -ScriptBlock {
 
         Write-Host "[スクリプト編集] ノードID: $nodeId, ノード名: $nodeName" -ForegroundColor Gray
         Write-Host "[スクリプト編集] 現在のスクリプト長: $($currentScript.Length)文字" -ForegroundColor Gray
+        Write-Host "[スクリプト編集] 現在のスクリプト内容: [$currentScript]" -ForegroundColor Gray
 
         # 汎用関数を読み込み（複数行テキストを編集）
         $汎用関数パス = Join-Path $script:RootDir "13_コードサブ汎用関数.ps1"
