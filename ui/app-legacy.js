@@ -1773,13 +1773,9 @@ async function addNodeToLayer(setting) {
     }
 
     // ★ ドリルダウンパネルが編集されたレイヤーの子レイヤーを表示している場合は閉じる
-    if (breadcrumbStack.length > 1) {
-        const lastBreadcrumb = breadcrumbStack[breadcrumbStack.length - 1];
-        // 親ノードが編集されたレイヤーに存在する場合、ドリルダウンパネルを閉じる
-        if (lastBreadcrumb.parentNodeData && lastBreadcrumb.parentNodeData.layer === leftVisibleLayer) {
-            console.log(`[addNodeToLayer] ⚠️ ドリルダウンパネルを閉じます（親レイヤー${leftVisibleLayer}が編集されたため）`);
-            closeDrilldownPanel();
-        }
+    if (drilldownState.active && drilldownState.targetLayer === leftVisibleLayer + 1) {
+        console.log(`[addNodeToLayer] ⚠️ ドリルダウンパネルを閉じます（編集中のレイヤー${leftVisibleLayer}の子レイヤーを表示中のため）`);
+        closeDrilldownPanel();
     }
 
     // ★ レイヤー2以降の場合、親ピンクノードに反映
@@ -2868,13 +2864,9 @@ async function deleteNode() {
     }
 
     // ★ ドリルダウンパネルが編集されたレイヤーの子レイヤーを表示している場合は閉じる
-    if (breadcrumbStack.length > 1) {
-        const lastBreadcrumb = breadcrumbStack[breadcrumbStack.length - 1];
-        // 親ノードが編集されたレイヤーに存在する場合、ドリルダウンパネルを閉じる
-        if (lastBreadcrumb.parentNodeData && lastBreadcrumb.parentNodeData.layer === leftVisibleLayer) {
-            console.log(`[削除完了] ⚠️ ドリルダウンパネルを閉じます（親レイヤー${leftVisibleLayer}が編集されたため）`);
-            closeDrilldownPanel();
-        }
+    if (drilldownState.active && drilldownState.targetLayer === leftVisibleLayer + 1) {
+        console.log(`[削除完了] ⚠️ ドリルダウンパネルを閉じます（編集中のレイヤー${leftVisibleLayer}の子レイヤーを表示中のため）`);
+        closeDrilldownPanel();
     }
 
     // memory.json自動保存
@@ -3730,6 +3722,9 @@ function navigateLayer(direction) {
 
             // 現在のレイヤーより深いレイヤーをクリア
             clearDeeperLayers(leftVisibleLayer);
+
+            // ★ パンくずリストを左パネルに連動して更新
+            updateBreadcrumbForLayer(leftVisibleLayer);
         }
     } else if (direction === 'left') {
         // 左矢印: レイヤーを戻る（PowerShellの「右矢印」= 画面が右にスライド）
@@ -3743,6 +3738,9 @@ function navigateLayer(direction) {
 
             // 現在のレイヤーより深いレイヤーをクリア
             clearDeeperLayers(leftVisibleLayer);
+
+            // ★ パンくずリストを左パネルに連動して更新
+            updateBreadcrumbForLayer(leftVisibleLayer);
         }
     }
 
@@ -6038,6 +6036,24 @@ let editModeState = {
     currentLayer: 1
 };
 
+// パンくずリストを左パネルの現在レイヤーに合わせて更新
+function updateBreadcrumbForLayer(layer) {
+    breadcrumbStack = [];
+
+    for (let i = 1; i <= layer; i++) {
+        breadcrumbStack.push({
+            name: i === 1 ? 'メインフロー' : `レイヤー${i}`,
+            layer: i
+        });
+    }
+
+    if (LOG_CONFIG.breadcrumb) {
+        console.log(`[パンくずリスト] レイヤー${layer}に更新:`, breadcrumbStack.map(b => b.name).join(' → '));
+    }
+
+    renderBreadcrumb();
+}
+
 // パンくずリストを描画
 function renderBreadcrumb() {
     const breadcrumb = document.getElementById('breadcrumb');
@@ -6388,47 +6404,8 @@ function handlePinkNodeDrilldown(nodeElement) {
         console.log('[ピンクノードドリルダウン]', nodeData.text, 'レイヤー', nodeData.layer);
     }
 
-    // 右パネルにプレビュー表示
+    // 右パネルにプレビュー表示（ドリルダウンはプレビュー機能なのでパンくずは更新しない）
     const nextLayer = nodeData.layer + 1;
-
-    // パンくずリストを更新（親ノードデータも保存）
-    const layerName = nodeData.text || `スクリプト${nodeData.layer}`;
-
-    // 重複チェック: 同じノード（ID）を複数回クリックした場合は何もしない
-    const isDuplicate = breadcrumbStack.length > 0 &&
-        breadcrumbStack[breadcrumbStack.length - 1].parentNodeData?.id === nodeData.id;
-
-    if (isDuplicate) {
-        if (LOG_CONFIG.pink) {
-            console.log(`[パンくずリスト] 同じノード「${layerName}」のため、breadcrumbStack更新をスキップ`);
-        }
-    } else {
-        // 同じレイヤーの場合は置き換え、新しいレイヤーの場合は追加
-        if (breadcrumbStack.length > 0 && breadcrumbStack[breadcrumbStack.length - 1].layer === nextLayer) {
-            // 最後のエントリを置き換え（同じレイヤーの別のピンクノード）
-            breadcrumbStack[breadcrumbStack.length - 1] = {
-                name: layerName,
-                layer: nextLayer,
-                parentNodeData: nodeData
-            };
-            if (LOG_CONFIG.pink) {
-                console.log(`[パンくずリスト] 同じレイヤー${nextLayer}なので置き換え: ${layerName}`);
-            }
-        } else {
-            // 新しいレイヤーなので追加
-            breadcrumbStack.push({
-                name: layerName,
-                layer: nextLayer,
-                parentNodeData: nodeData
-            });
-            if (LOG_CONFIG.pink) {
-                console.log(`[パンくずリスト] 新しいレイヤー${nextLayer}なので追加: ${layerName}`);
-            }
-        }
-    }
-    renderBreadcrumb();
-
-    // 右パネルにプレビュー表示（編集ボタン付き）
     const expandedNodes = layerStructure[nextLayer]?.nodes || [];
     showLayerInDrilldownPanel(nodeData, expandedNodes);
 
@@ -6546,6 +6523,11 @@ function showLayerInDrilldownPanel(parentNodeData) {
         nodeContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">ノードがありません</div>';
     }
 
+    // ドリルダウン状態を更新
+    drilldownState.active = true;
+    drilldownState.currentPinkNode = parentNodeData;
+    drilldownState.targetLayer = targetLayer;
+
     // アニメーション完了後にクラスを削除
     setTimeout(() => {
         rightPanel.classList.remove('slide-in');
@@ -6579,14 +6561,12 @@ function closeDrilldownPanel() {
         escHint.classList.remove('show');
     }
 
-    // パンくずリストをリセット
-    breadcrumbStack = [{ name: 'メインフロー', layer: 1 }];
-    renderBreadcrumb();
-
     // ドリルダウン状態をクリア
     drilldownState.active = false;
     drilldownState.currentPinkNode = null;
     drilldownState.targetLayer = null;
+
+    // ★ パンくずリストは左パネルに連動するため、ドリルダウンを閉じても変更しない
 
     if (LOG_CONFIG.pink) {
         console.log('[ドリルダウン] パネルを閉じました');
@@ -6634,6 +6614,9 @@ function enterEditMode(targetLayer) {
 
     // leftVisibleLayerを編集対象レイヤーに設定（renderNodesInLayerより前に設定）
     leftVisibleLayer = targetLayer;
+
+    // ★ パンくずリストを左パネルに連動して更新（プレビューから実際の編集モードへ移行）
+    updateBreadcrumbForLayer(targetLayer);
 
     // 左パネルの全レイヤーを非表示
     for (let i = 0; i <= 6; i++) {
