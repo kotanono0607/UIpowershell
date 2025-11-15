@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.227';  // アプリバージョン
+const APP_VERSION = '1.0.236';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -2506,16 +2506,14 @@ function renameNode() {
 
 // スクリプト編集（PowerShell Windows Forms版）
 async function editScript() {
-    alert('🔥 新しいeditScript()が呼ばれました！ v1.0.235');
-
     if (!contextMenuTarget) return;
 
-    console.log('[editScript] ノード編集開始:', contextMenuTarget.text, 'ID:', contextMenuTarget.id);
+    console.log('✅ [editScript] ノード編集開始:', contextMenuTarget.text, 'ID:', contextMenuTarget.id);
 
     // コード.json からコード内容を取得
     const code = getCodeEntry(contextMenuTarget.id);
-    console.log('[editScript] 取得したコード長:', code ? code.length : 0);
-    console.log('[editScript] 取得したコード内容:', code);
+    console.log('✅ [editScript] 取得したコード長:', code ? code.length : 0);
+    console.log('✅ [editScript] 取得したコード内容:', code);
 
     hideContextMenu();
 
@@ -2524,11 +2522,11 @@ async function editScript() {
         nodeName: contextMenuTarget.text,
         currentScript: code || ''
     };
-    console.log('[editScript] APIリクエストボディ:', JSON.stringify(requestBody, null, 2));
+    console.log('✅ [editScript] APIリクエストボディ:', JSON.stringify(requestBody, null, 2));
 
     try {
         // PowerShell Windows Formsダイアログを呼び出し
-        console.log('[editScript] PowerShell編集ダイアログを呼び出します...');
+        console.log('✅ [editScript] PowerShell編集ダイアログを呼び出します...');
         const response = await fetch(`${API_BASE}/node/edit-script`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2544,12 +2542,12 @@ async function editScript() {
         }
 
         if (result.cancelled) {
-            console.log('[editScript] ユーザーがキャンセルしました');
+            console.log('⚠ [editScript] ユーザーがキャンセルしました');
             return;
         }
 
         if (result.success && result.newScript !== undefined) {
-            console.log('[editScript] 編集完了 - 新しいスクリプト長:', result.newScript.length);
+            console.log('✅ [editScript] 編集完了 - 新しいスクリプト長:', result.newScript.length);
 
             // コード.json に保存
             await setCodeEntry(contextMenuTarget.id, result.newScript);
