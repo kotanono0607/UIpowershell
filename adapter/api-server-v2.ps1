@@ -1602,6 +1602,98 @@ New-PolarisRoute -Path "/api/node/edit-script" -Method POST -ScriptBlock {
     }
 }
 
+# ノード設定ダイアログを表示
+New-PolarisRoute -Path "/api/node/settings" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        Write-Host "[ノード設定] リクエスト受信" -ForegroundColor Cyan
+
+        # リクエストボディを取得（Request.Bodyがnullの場合はRequest.BodyStringを使用）
+        if ($null -eq $Request.Body) {
+            Write-Host "[ノード設定] Request.Body が null です。Request.BodyString を確認..." -ForegroundColor Yellow
+            $bodyRaw = $Request.BodyString
+        } else {
+            $bodyRaw = $Request.Body
+        }
+
+        Write-Host "[ノード設定] bodyRaw の長さ: $($bodyRaw.Length)文字" -ForegroundColor Gray
+        $body = $bodyRaw | ConvertFrom-Json
+
+        # ノード情報をハッシュテーブルに変換
+        $ノード情報 = @{
+            id = $body.nodeId
+            text = $body.nodeName
+            color = $body.color
+            width = $body.width
+            height = $body.height
+            x = $body.x
+            y = $body.y
+            script = $body.script
+            処理番号 = $body.処理番号
+        }
+
+        # カスタムフィールド
+        if ($body.conditionExpression) {
+            $ノード情報.conditionExpression = $body.conditionExpression
+        }
+        if ($body.loopCount) {
+            $ノード情報.loopCount = $body.loopCount
+        }
+        if ($body.loopVariable) {
+            $ノード情報.loopVariable = $body.loopVariable
+        }
+
+        Write-Host "[ノード設定] ノードID: $($ノード情報.id), 処理番号: $($ノード情報.処理番号)" -ForegroundColor Gray
+
+        # 汎用関数を読み込み（ノード設定を編集）
+        $汎用関数パス = Join-Path $script:RootDir "13_コードサブ汎用関数.ps1"
+        if (Test-Path $汎用関数パス) {
+            . $汎用関数パス
+            Write-Host "[ノード設定] ✅ 汎用関数を読み込みました" -ForegroundColor Green
+        } else {
+            throw "汎用関数ファイルが見つかりません: $汎用関数パス"
+        }
+
+        # PowerShell Windows Formsダイアログを表示
+        Write-Host "[ノード設定] 📝 設定ダイアログを表示します..." -ForegroundColor Cyan
+        $編集結果 = ノード設定を編集 -ノード情報 $ノード情報
+
+        if ($null -eq $編集結果) {
+            # キャンセルされた
+            Write-Host "[ノード設定] ⚠️ ユーザーがキャンセルしました" -ForegroundColor Yellow
+            $result = @{
+                success = $false
+                cancelled = $true
+                message = "設定がキャンセルされました"
+            }
+        } else {
+            # 編集成功
+            Write-Host "[ノード設定] ✅ 編集完了" -ForegroundColor Green
+            $result = @{
+                success = $true
+                cancelled = $false
+                settings = $編集結果
+            }
+        }
+
+        $json = $result | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+            stackTrace = $_.ScriptStackTrace
+        }
+        Write-Host "[ノード設定エラー] $($_.Exception.Message)" -ForegroundColor Red
+        $json = $errorResult | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # ============================================
 # ブラウザコンソールログ受信API
 # ============================================

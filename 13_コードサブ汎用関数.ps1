@@ -384,3 +384,277 @@ function 複数行テキストを編集 {
         return $null
     }
 }
+
+# ノード設定編集フォーム関数の定義
+function ノード設定を編集 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable]$ノード情報       # ノードの全情報を含むハッシュテーブル
+    )
+
+    Write-Host "[ノード設定を編集] 関数呼び出し - ノードID: $($ノード情報.id)" -ForegroundColor Cyan
+    Write-Host "[ノード設定を編集] 処理番号: $($ノード情報.処理番号)" -ForegroundColor Gray
+
+    # フォームの作成
+    $フォーム = New-Object System.Windows.Forms.Form
+    $フォーム.Text = "ノード設定: $($ノード情報.text)"
+    $フォーム.Size = New-Object System.Drawing.Size(850,750)
+    $フォーム.StartPosition = "CenterScreen"
+    $フォーム.FormBorderStyle = "FixedDialog"
+    $フォーム.MaximizeBox = $false
+
+    $currentY = 10
+
+    # ========================================
+    # ノード名
+    # ========================================
+    $ラベル_ノード名 = New-Object System.Windows.Forms.Label
+    $ラベル_ノード名.Text = "ノード名:"
+    $ラベル_ノード名.AutoSize = $true
+    $ラベル_ノード名.Location = New-Object System.Drawing.Point(10, $currentY)
+    $ラベル_ノード名.Font = New-Object System.Drawing.Font("MS UI Gothic", 10, [System.Drawing.FontStyle]::Bold)
+    $フォーム.Controls.Add($ラベル_ノード名)
+    $currentY += 25
+
+    $テキスト_ノード名 = New-Object System.Windows.Forms.TextBox
+    $テキスト_ノード名.Location = New-Object System.Drawing.Point(10, $currentY)
+    $テキスト_ノード名.Size = New-Object System.Drawing.Size(810, 25)
+    $テキスト_ノード名.Text = $ノード情報.text
+    $フォーム.Controls.Add($テキスト_ノード名)
+    $currentY += 40
+
+    # ========================================
+    # 外観設定グループ
+    # ========================================
+    $グループ_外観 = New-Object System.Windows.Forms.GroupBox
+    $グループ_外観.Text = "外観設定"
+    $グループ_外観.Location = New-Object System.Drawing.Point(10, $currentY)
+    $グループ_外観.Size = New-Object System.Drawing.Size(810, 180)
+    $フォーム.Controls.Add($グループ_外観)
+
+    # 背景色
+    $ラベル_色 = New-Object System.Windows.Forms.Label
+    $ラベル_色.Text = "背景色:"
+    $ラベル_色.Location = New-Object System.Drawing.Point(15, 25)
+    $ラベル_色.AutoSize = $true
+    $グループ_外観.Controls.Add($ラベル_色)
+
+    $コンボ_色 = New-Object System.Windows.Forms.ComboBox
+    $コンボ_色.Location = New-Object System.Drawing.Point(15, 48)
+    $コンボ_色.Size = New-Object System.Drawing.Size(200, 25)
+    $コンボ_色.DropDownStyle = "DropDownList"
+    $コンボ_色.Items.AddRange(@("White", "Pink", "LightGray", "LightBlue", "LightGreen", "LightYellow", "LightCoral", "Lavender"))
+    if ($ノード情報.color) {
+        $コンボ_色.SelectedItem = $ノード情報.color
+    } else {
+        $コンボ_色.SelectedItem = "White"
+    }
+    $グループ_外観.Controls.Add($コンボ_色)
+
+    # 幅
+    $ラベル_幅 = New-Object System.Windows.Forms.Label
+    $ラベル_幅.Text = "幅:"
+    $ラベル_幅.Location = New-Object System.Drawing.Point(240, 25)
+    $ラベル_幅.AutoSize = $true
+    $グループ_外観.Controls.Add($ラベル_幅)
+
+    $数値_幅 = New-Object System.Windows.Forms.NumericUpDown
+    $数値_幅.Location = New-Object System.Drawing.Point(240, 48)
+    $数値_幅.Size = New-Object System.Drawing.Size(100, 25)
+    $数値_幅.Minimum = 80
+    $数値_幅.Maximum = 500
+    $数値_幅.Value = if ($ノード情報.width) { $ノード情報.width } else { 120 }
+    $グループ_外観.Controls.Add($数値_幅)
+
+    # 高さ
+    $ラベル_高さ = New-Object System.Windows.Forms.Label
+    $ラベル_高さ.Text = "高さ:"
+    $ラベル_高さ.Location = New-Object System.Drawing.Point(360, 25)
+    $ラベル_高さ.AutoSize = $true
+    $グループ_外観.Controls.Add($ラベル_高さ)
+
+    $数値_高さ = New-Object System.Windows.Forms.NumericUpDown
+    $数値_高さ.Location = New-Object System.Drawing.Point(360, 48)
+    $数値_高さ.Size = New-Object System.Drawing.Size(100, 25)
+    $数値_高さ.Minimum = 30
+    $数値_高さ.Maximum = 200
+    $数値_高さ.Value = if ($ノード情報.height) { $ノード情報.height } else { 40 }
+    $グループ_外観.Controls.Add($数値_高さ)
+
+    # X座標
+    $ラベル_X = New-Object System.Windows.Forms.Label
+    $ラベル_X.Text = "X座標:"
+    $ラベル_X.Location = New-Object System.Drawing.Point(15, 90)
+    $ラベル_X.AutoSize = $true
+    $グループ_外観.Controls.Add($ラベル_X)
+
+    $数値_X = New-Object System.Windows.Forms.NumericUpDown
+    $数値_X.Location = New-Object System.Drawing.Point(15, 113)
+    $数値_X.Size = New-Object System.Drawing.Size(150, 25)
+    $数値_X.Minimum = 0
+    $数値_X.Maximum = 2000
+    $数値_X.Value = if ($ノード情報.x) { $ノード情報.x } else { 10 }
+    $グループ_外観.Controls.Add($数値_X)
+
+    # Y座標
+    $ラベル_Y = New-Object System.Windows.Forms.Label
+    $ラベル_Y.Text = "Y座標:"
+    $ラベル_Y.Location = New-Object System.Drawing.Point(185, 90)
+    $ラベル_Y.AutoSize = $true
+    $グループ_外観.Controls.Add($ラベル_Y)
+
+    $数値_Y = New-Object System.Windows.Forms.NumericUpDown
+    $数値_Y.Location = New-Object System.Drawing.Point(185, 113)
+    $数値_Y.Size = New-Object System.Drawing.Size(150, 25)
+    $数値_Y.Minimum = 0
+    $数値_Y.Maximum = 5000
+    $数値_Y.Value = if ($ノード情報.y) { $ノード情報.y } else { 10 }
+    $グループ_外観.Controls.Add($数値_Y)
+
+    $currentY += 195
+
+    # ========================================
+    # カスタムフィールド（処理番号に応じて）
+    # ========================================
+    $テキスト_条件式 = $null
+    $数値_ループ回数 = $null
+    $テキスト_ループ変数 = $null
+
+    if ($ノード情報.処理番号 -eq '1-2') {
+        # 条件分岐
+        $グループ_カスタム = New-Object System.Windows.Forms.GroupBox
+        $グループ_カスタム.Text = "条件分岐設定"
+        $グループ_カスタム.Location = New-Object System.Drawing.Point(10, $currentY)
+        $グループ_カスタム.Size = New-Object System.Drawing.Size(810, 80)
+        $グループ_カスタム.BackColor = [System.Drawing.Color]::FromArgb(255, 255, 243, 205)
+        $フォーム.Controls.Add($グループ_カスタム)
+
+        $ラベル_条件式 = New-Object System.Windows.Forms.Label
+        $ラベル_条件式.Text = "条件式:"
+        $ラベル_条件式.Location = New-Object System.Drawing.Point(15, 25)
+        $ラベル_条件式.AutoSize = $true
+        $グループ_カスタム.Controls.Add($ラベル_条件式)
+
+        $テキスト_条件式 = New-Object System.Windows.Forms.TextBox
+        $テキスト_条件式.Location = New-Object System.Drawing.Point(15, 48)
+        $テキスト_条件式.Size = New-Object System.Drawing.Size(780, 25)
+        $テキスト_条件式.Text = if ($ノード情報.conditionExpression) { $ノード情報.conditionExpression } else { "" }
+        $グループ_カスタム.Controls.Add($テキスト_条件式)
+
+        $currentY += 95
+    } elseif ($ノード情報.処理番号 -eq '1-3') {
+        # ループ
+        $グループ_カスタム = New-Object System.Windows.Forms.GroupBox
+        $グループ_カスタム.Text = "ループ設定"
+        $グループ_カスタム.Location = New-Object System.Drawing.Point(10, $currentY)
+        $グループ_カスタム.Size = New-Object System.Drawing.Size(810, 110)
+        $グループ_カスタム.BackColor = [System.Drawing.Color]::FromArgb(255, 209, 236, 241)
+        $フォーム.Controls.Add($グループ_カスタム)
+
+        $ラベル_ループ回数 = New-Object System.Windows.Forms.Label
+        $ラベル_ループ回数.Text = "ループ回数:"
+        $ラベル_ループ回数.Location = New-Object System.Drawing.Point(15, 25)
+        $ラベル_ループ回数.AutoSize = $true
+        $グループ_カスタム.Controls.Add($ラベル_ループ回数)
+
+        $数値_ループ回数 = New-Object System.Windows.Forms.NumericUpDown
+        $数値_ループ回数.Location = New-Object System.Drawing.Point(15, 48)
+        $数値_ループ回数.Size = New-Object System.Drawing.Size(150, 25)
+        $数値_ループ回数.Minimum = 1
+        $数値_ループ回数.Maximum = 10000
+        $数値_ループ回数.Value = if ($ノード情報.loopCount) { $ノード情報.loopCount } else { 1 }
+        $グループ_カスタム.Controls.Add($数値_ループ回数)
+
+        $ラベル_ループ変数 = New-Object System.Windows.Forms.Label
+        $ラベル_ループ変数.Text = "ループ変数名:"
+        $ラベル_ループ変数.Location = New-Object System.Drawing.Point(185, 25)
+        $ラベル_ループ変数.AutoSize = $true
+        $グループ_カスタム.Controls.Add($ラベル_ループ変数)
+
+        $テキスト_ループ変数 = New-Object System.Windows.Forms.TextBox
+        $テキスト_ループ変数.Location = New-Object System.Drawing.Point(185, 48)
+        $テキスト_ループ変数.Size = New-Object System.Drawing.Size(200, 25)
+        $テキスト_ループ変数.Text = if ($ノード情報.loopVariable) { $ノード情報.loopVariable } else { "i" }
+        $グループ_カスタム.Controls.Add($テキスト_ループ変数)
+
+        $currentY += 125
+    }
+
+    # ========================================
+    # スクリプト
+    # ========================================
+    $ラベル_スクリプト = New-Object System.Windows.Forms.Label
+    $ラベル_スクリプト.Text = "スクリプト:"
+    $ラベル_スクリプト.AutoSize = $true
+    $ラベル_スクリプト.Location = New-Object System.Drawing.Point(10, $currentY)
+    $ラベル_スクリプト.Font = New-Object System.Drawing.Font("MS UI Gothic", 10, [System.Drawing.FontStyle]::Bold)
+    $フォーム.Controls.Add($ラベル_スクリプト)
+    $currentY += 25
+
+    $テキスト_スクリプト = New-Object System.Windows.Forms.TextBox
+    $テキスト_スクリプト.Location = New-Object System.Drawing.Point(10, $currentY)
+    $テキスト_スクリプト.Size = New-Object System.Drawing.Size(810, 260)
+    $テキスト_スクリプト.Multiline = $true
+    $テキスト_スクリプト.ScrollBars = "Both"
+    $テキスト_スクリプト.WordWrap = $false
+    $テキスト_スクリプト.Font = New-Object System.Drawing.Font("Consolas", 10)
+    $テキスト_スクリプト.Text = if ($ノード情報.script) { $ノード情報.script } else { "" }
+    $フォーム.Controls.Add($テキスト_スクリプト)
+    $currentY += 275
+
+    # ========================================
+    # OK/Cancelボタン
+    # ========================================
+    $OKボタン = New-Object System.Windows.Forms.Button
+    $OKボタン.Text = "保存"
+    $OKボタン.Size = New-Object System.Drawing.Size(100, 35)
+    $OKボタン.Location = New-Object System.Drawing.Point(620, $currentY)
+    $OKボタン.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $フォーム.AcceptButton = $OKボタン
+    $フォーム.Controls.Add($OKボタン)
+
+    $キャンセルボタン = New-Object System.Windows.Forms.Button
+    $キャンセルボタン.Text = "キャンセル"
+    $キャンセルボタン.Size = New-Object System.Drawing.Size(100, 35)
+    $キャンセルボタン.Location = New-Object System.Drawing.Point(730, $currentY)
+    $キャンセルボタン.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $フォーム.CancelButton = $キャンセルボタン
+    $フォーム.Controls.Add($キャンセルボタン)
+
+    # フォームの表示
+    $ダイアログ結果 = $フォーム.ShowDialog()
+
+    # フォームの結果に応じて処理
+    if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
+        Write-Host "[ノード設定を編集] ✅ 保存ボタンが押されました" -ForegroundColor Green
+        
+        $結果 = @{
+            text = $テキスト_ノード名.Text
+            color = $コンボ_色.SelectedItem.ToString()
+            width = [int]$数値_幅.Value
+            height = [int]$数値_高さ.Value
+            x = [int]$数値_X.Value
+            y = [int]$数値_Y.Value
+            script = $テキスト_スクリプト.Text
+        }
+
+        # カスタムフィールドを追加
+        if ($テキスト_条件式) {
+            $結果.conditionExpression = $テキスト_条件式.Text
+            Write-Host "[ノード設定を編集] 条件式: $($テキスト_条件式.Text)" -ForegroundColor Gray
+        }
+        if ($数値_ループ回数) {
+            $結果.loopCount = [int]$数値_ループ回数.Value
+            Write-Host "[ノード設定を編集] ループ回数: $($数値_ループ回数.Value)" -ForegroundColor Gray
+        }
+        if ($テキスト_ループ変数) {
+            $結果.loopVariable = $テキスト_ループ変数.Text
+            Write-Host "[ノード設定を編集] ループ変数: $($テキスト_ループ変数.Text)" -ForegroundColor Gray
+        }
+
+        return $結果
+    } else {
+        Write-Host "[ノード設定を編集] ⚠️ キャンセルされました" -ForegroundColor Yellow
+        return $null
+    }
+}
