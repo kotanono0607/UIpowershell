@@ -2506,6 +2506,8 @@ function renameNode() {
 
 // スクリプト編集（PowerShell Windows Forms版）
 async function editScript() {
+    alert('🔥 新しいeditScript()が呼ばれました！ v1.0.235');
+
     if (!contextMenuTarget) return;
 
     console.log('[editScript] ノード編集開始:', contextMenuTarget.text, 'ID:', contextMenuTarget.id);
