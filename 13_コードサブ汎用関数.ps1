@@ -1301,3 +1301,198 @@ function フォルダ切替を表示 {
         return $null
     }
 }
+
+
+# ============================================
+# コード結果表示ダイアログ
+# ============================================
+function コード結果を表示 {
+    <#
+    .SYNOPSIS
+    コード生成結果を表示（PowerShell Windows Forms版）
+
+    .DESCRIPTION
+    生成されたコードと情報を表示し、コピーやファイルを開く操作を提供します。
+
+    .PARAMETER 生成結果
+    コード生成結果を含むハッシュテーブル
+    - code: 生成されたコード
+    - nodeCount: ノード数
+    - outputPath: 出力先パス
+    - timestamp: 生成時刻
+
+    .EXAMPLE
+    $result = コード結果を表示 -生成結果 @{ code = "..."; nodeCount = 5; outputPath = "C:\path\to\file.ps1"; timestamp = "2025-11-15 10:30:00" }
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable]$生成結果
+    )
+
+    Write-Host "[コード結果] ========== ダイアログ開始 ==========" -ForegroundColor Cyan
+    Write-Host "[コード結果] ノード数: $($生成結果.nodeCount)" -ForegroundColor Gray
+    Write-Host "[コード結果] 出力先: $($生成結果.outputPath)" -ForegroundColor Gray
+    Write-Host "[コード結果] コード長: $($生成結果.code.Length)文字" -ForegroundColor Gray
+
+    # フォーム作成
+    $フォーム = New-Object System.Windows.Forms.Form
+    $フォーム.Text = "✅ コード生成完了"
+    $フォーム.Size = New-Object System.Drawing.Size(900, 700)
+    $フォーム.StartPosition = "CenterScreen"
+    $フォーム.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Sizable
+    $フォーム.MinimumSize = New-Object System.Drawing.Size(700, 500)
+
+    # 情報パネル
+    $パネル_情報 = New-Object System.Windows.Forms.Panel
+    $パネル_情報.Location = New-Object System.Drawing.Point(20, 20)
+    $パネル_情報.Size = New-Object System.Drawing.Size(840, 100)
+    $パネル_情報.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+    $パネル_情報.BackColor = [System.Drawing.Color]::FromArgb(232, 245, 233)  # Light green
+    $フォーム.Controls.Add($パネル_情報)
+
+    # ノード数ラベル
+    $ラベル_ノード数 = New-Object System.Windows.Forms.Label
+    $ラベル_ノード数.Text = "📊 ノード数: $($生成結果.nodeCount)個"
+    $ラベル_ノード数.Location = New-Object System.Drawing.Point(15, 15)
+    $ラベル_ノード数.AutoSize = $true
+    $ラベル_ノード数.Font = New-Object System.Drawing.Font("メイリオ", 10, [System.Drawing.FontStyle]::Regular)
+    $パネル_情報.Controls.Add($ラベル_ノード数)
+
+    # 出力先ラベル
+    $出力先テキスト = if ($生成結果.outputPath) { $生成結果.outputPath } else { "（メモリ内のみ）" }
+    $ラベル_出力先 = New-Object System.Windows.Forms.Label
+    $ラベル_出力先.Text = "📁 出力先: $出力先テキスト"
+    $ラベル_出力先.Location = New-Object System.Drawing.Point(15, 40)
+    $ラベル_出力先.Size = New-Object System.Drawing.Size(800, 20)
+    $ラベル_出力先.Font = New-Object System.Drawing.Font("メイリオ", 10, [System.Drawing.FontStyle]::Regular)
+    $パネル_情報.Controls.Add($ラベル_出力先)
+
+    # 生成時刻ラベル
+    $時刻テキスト = if ($生成結果.timestamp) { $生成結果.timestamp } else { Get-Date -Format "yyyy/MM/dd HH:mm:ss" }
+    $ラベル_時刻 = New-Object System.Windows.Forms.Label
+    $ラベル_時刻.Text = "⏱️ 生成時刻: $時刻テキスト"
+    $ラベル_時刻.Location = New-Object System.Drawing.Point(15, 65)
+    $ラベル_時刻.AutoSize = $true
+    $ラベル_時刻.Font = New-Object System.Drawing.Font("メイリオ", 10, [System.Drawing.FontStyle]::Regular)
+    $パネル_情報.Controls.Add($ラベル_時刻)
+
+    # コードプレビューラベル
+    $ラベル_コード = New-Object System.Windows.Forms.Label
+    $ラベル_コード.Text = "生成されたコード:"
+    $ラベル_コード.Location = New-Object System.Drawing.Point(20, 135)
+    $ラベル_コード.AutoSize = $true
+    $ラベル_コード.Font = New-Object System.Drawing.Font("メイリオ", 10, [System.Drawing.FontStyle]::Bold)
+    $フォーム.Controls.Add($ラベル_コード)
+
+    # コードプレビュー TextBox
+    $テキスト_コード = New-Object System.Windows.Forms.TextBox
+    $テキスト_コード.Location = New-Object System.Drawing.Point(20, 160)
+    $テキスト_コード.Size = New-Object System.Drawing.Size(840, 430)
+    $テキスト_コード.Multiline = $true
+    $テキスト_コード.ReadOnly = $true
+    $テキスト_コード.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
+    $テキスト_コード.Font = New-Object System.Drawing.Font("Consolas", 10)
+    $テキスト_コード.BackColor = [System.Drawing.Color]::FromArgb(245, 245, 245)
+    $テキスト_コード.Text = $生成結果.code
+    $テキスト_コード.WordWrap = $false
+    $フォーム.Controls.Add($テキスト_コード)
+
+    # リサイズイベント（コントロールのサイズを調整）
+    $フォーム.Add_Resize({
+        $newWidth = $フォーム.ClientSize.Width - 40
+        $newHeight = $フォーム.ClientSize.Height - 180
+
+        $パネル_情報.Width = $newWidth
+        $テキスト_コード.Size = New-Object System.Drawing.Size($newWidth, ($newHeight - 70))
+
+        # ボタンの位置を調整
+        $ボタンY = $フォーム.ClientSize.Height - 50
+        $ボタン_コピー.Location = New-Object System.Drawing.Point(20, $ボタンY)
+        $ボタン_ファイル開く.Location = New-Object System.Drawing.Point(160, $ボタンY)
+        $ボタン_閉じる.Location = New-Object System.Drawing.Point(($フォーム.ClientSize.Width - 120), $ボタンY)
+    })
+
+    # コピーボタン
+    $ボタン_コピー = New-Object System.Windows.Forms.Button
+    $ボタン_コピー.Text = "📋 コピー"
+    $ボタン_コピー.Location = New-Object System.Drawing.Point(20, 600)
+    $ボタン_コピー.Size = New-Object System.Drawing.Size(130, 35)
+    $フォーム.Controls.Add($ボタン_コピー)
+
+    # ファイルを開くボタン
+    $ボタン_ファイル開く = New-Object System.Windows.Forms.Button
+    $ボタン_ファイル開く.Text = "📂 ファイルを開く"
+    $ボタン_ファイル開く.Location = New-Object System.Drawing.Point(160, 600)
+    $ボタン_ファイル開く.Size = New-Object System.Drawing.Size(150, 35)
+    $フォーム.Controls.Add($ボタン_ファイル開く)
+
+    # ファイルパスがない場合は無効化
+    if (-not $生成結果.outputPath) {
+        $ボタン_ファイル開く.Enabled = $false
+    }
+
+    # 閉じるボタン
+    $ボタン_閉じる = New-Object System.Windows.Forms.Button
+    $ボタン_閉じる.Text = "閉じる"
+    $ボタン_閉じる.Location = New-Object System.Drawing.Point(760, 600)
+    $ボタン_閉じる.Size = New-Object System.Drawing.Size(100, 35)
+    $ボタン_閉じる.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $フォーム.Controls.Add($ボタン_閉じる)
+
+    # コピーボタンクリックイベント
+    $ボタン_コピー.Add_Click({
+        try {
+            [System.Windows.Forms.Clipboard]::SetText($テキスト_コード.Text)
+            Write-Host "[コード結果] ✅ クリップボードにコピーしました" -ForegroundColor Green
+            [System.Windows.Forms.MessageBox]::Show(
+                "生成されたコードをクリップボードにコピーしました！",
+                "コピー完了",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Information
+            ) | Out-Null
+        } catch {
+            Write-Host "[コード結果] ❌ コピーエラー: $_" -ForegroundColor Red
+            [System.Windows.Forms.MessageBox]::Show(
+                "コピーに失敗しました: $_",
+                "エラー",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Error
+            ) | Out-Null
+        }
+    })
+
+    # ファイルを開くボタンクリックイベント
+    $ボタン_ファイル開く.Add_Click({
+        if ($生成結果.outputPath -and (Test-Path $生成結果.outputPath)) {
+            try {
+                Write-Host "[コード結果] ファイルを開きます: $($生成結果.outputPath)" -ForegroundColor Cyan
+                Start-Process $生成結果.outputPath
+            } catch {
+                Write-Host "[コード結果] ❌ ファイルを開けませんでした: $_" -ForegroundColor Red
+                [System.Windows.Forms.MessageBox]::Show(
+                    "ファイルを開けませんでした: $_",
+                    "エラー",
+                    [System.Windows.Forms.MessageBoxButtons]::OK,
+                    [System.Windows.Forms.MessageBoxIcon]::Error
+                ) | Out-Null
+            }
+        } else {
+            [System.Windows.Forms.MessageBox]::Show(
+                "ファイルが見つかりません。",
+                "エラー",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
+        }
+    })
+
+    # ダイアログ表示
+    $ダイアログ結果 = $フォーム.ShowDialog()
+
+    Write-Host "[コード結果] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
+    Write-Host "[コード結果] ✅ ダイアログを閉じました" -ForegroundColor Green
+
+    return @{
+        success = $true
+    }
+}

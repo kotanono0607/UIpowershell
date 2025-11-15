@@ -785,6 +785,64 @@ New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
     }
 }
 
+# コード結果表示ダイアログ（PowerShell Windows Forms版）
+New-PolarisRoute -Path "/api/code-result/show" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        Write-Host "[API] /api/code-result/show - コード結果ダイアログを表示" -ForegroundColor Cyan
+
+        # Request.Body のnull対策
+        if ($null -eq $Request.Body) {
+            $bodyRaw = $Request.BodyString
+        } else {
+            $bodyRaw = $Request.Body
+        }
+
+        $body = $bodyRaw | ConvertFrom-Json
+
+        # 生成結果を構築
+        $生成結果 = @{
+            code = $body.code
+            nodeCount = $body.nodeCount
+            outputPath = $body.outputPath
+            timestamp = if ($body.timestamp) { $body.timestamp } else { Get-Date -Format "yyyy/MM/dd HH:mm:ss" }
+        }
+
+        Write-Host "[API] ノード数: $($生成結果.nodeCount)" -ForegroundColor Gray
+        Write-Host "[API] コード長: $($生成結果.code.Length)文字" -ForegroundColor Gray
+
+        # 共通関数ファイルを読み込み
+        . (Join-Path $script:RootDir "13_コードサブ汎用関数.ps1")
+
+        # PowerShell Windows Forms ダイアログを表示
+        $ダイアログ結果 = コード結果を表示 -生成結果 $生成結果
+
+        Write-Host "[API] ✅ コード結果ダイアログ完了" -ForegroundColor Green
+
+        # 成功レスポンス
+        $result = @{
+            success = $true
+            message = "コード結果ダイアログを表示しました"
+        }
+
+        $json = $result | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+
+    } catch {
+        Write-Host "[API] ❌ エラー: $_" -ForegroundColor Red
+        Write-Host "[API] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # PowerShellスクリプト実行（単一ノード）
 New-PolarisRoute -Path "/api/execute/script" -Method POST -ScriptBlock {
     Set-CorsHeaders -Response $Response
