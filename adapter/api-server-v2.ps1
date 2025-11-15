@@ -1911,6 +1911,22 @@ New-PolarisRoute -Path "/api/node/edit-script" -Method POST -ScriptBlock {
         Write-Host "[スクリプト編集] 現在のスクリプト長: $($currentScript.Length)文字" -ForegroundColor Gray
         Write-Host "[スクリプト編集] 現在のスクリプト内容: [$currentScript]" -ForegroundColor Gray
 
+        # ✅ 修正: JSON読み込み後、LF(\n) を CRLF(\r\n) に変換
+        # ConvertFrom-Jsonは既に\nを実際のLF文字に変換しているため、LF→CRLFの変換が必要
+        if ($currentScript) {
+            Write-Host "[スクリプト編集] 🔧 改行文字の正規化を開始（LF → CRLF）..." -ForegroundColor Yellow
+            $originalLength = $currentScript.Length
+            # LF(\n)のみをCRLF(\r\n)に変換（既にCRLFの場合は変更なし）
+            # まず既存のCRLFをプレースホルダーに置換し、LFをCRLFに変換してから戻す
+            $currentScript = $currentScript -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
+            $newLength = $currentScript.Length
+            if ($newLength -ne $originalLength) {
+                Write-Host "[スクリプト編集] ✅ 改行を正規化しました: $originalLength 文字 → $newLength 文字" -ForegroundColor Green
+            } else {
+                Write-Host "[スクリプト編集] ✅ 改行の正規化は不要でした（既にCRLF）" -ForegroundColor Green
+            }
+        }
+
         # 汎用関数を読み込み（複数行テキストを編集）
         $汎用関数パス = Join-Path $script:RootDir "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
