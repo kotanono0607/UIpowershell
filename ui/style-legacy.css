@@ -948,21 +948,25 @@ button:active, .button:active {
 
 /* ドリルダウンパネル（旧right-layer-panel） */
 .drilldown-panel {
-    /* サイズ設定 */
-    width: 300px;
-    min-height: 800px;
-    max-height: calc(100vh - 100px);
+    /* ===== サイズ設定 ===== */
+    width: 300px;                     /* パネル幅（外枠） */
+    min-height: 800px;                /* 最小高さ */
+    max-height: calc(100vh - 100px);  /* 最大高さ */
 
-    /* 位置・配置設定 */
+    /* ===== 位置・配置設定 ===== */
     flex-shrink: 0;
     position: relative;
-    margin-left: 12px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-left: 12px;    /* レイヤーパネルとの間隔 */
+    margin-top: 0px;      /* 上マージン */
+    margin-bottom: 0px;   /* 下マージン */
 
-    /* 表示設定 */
+    /* ===== 内枠設定（ノード配置スペース） ===== */
+    padding: 16px;        /* ★内側余白（内枠）★ この数値を変更してノード配置スペースを調整 */
+                          /* 実質的な内側幅 = 300px - 16px × 2 = 268px */
+                          /* 例: 20px → 260px、12px → 276px、8px → 284px */
+
+    /* ===== 表示設定 ===== */
     overflow-y: auto;
-    padding: 16px;
     border-radius: 20px;
     background: var(--bg-color);
     transition: all 0.4s ease;
