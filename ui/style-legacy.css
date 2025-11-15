@@ -948,7 +948,8 @@ button:active, .button:active {
 
 /* ドリルダウンパネル（旧right-layer-panel） */
 .drilldown-panel {
-    flex: 1;
+    width: 400px;
+    flex-shrink: 0;
     position: relative;
     overflow-y: auto;
     background: var(--bg-color);
