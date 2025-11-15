@@ -411,8 +411,8 @@ body::after {
     padding: 16px;
     position: relative;
     min-height: 700px;
-    background: var(--bg-color);
-    box-shadow: 
+    background: red;  /* 一時的に赤色に変更してノード配置枠を確認 */
+    box-shadow:
         inset 3px 3px 6px var(--shadow-dark),
         inset -3px -3px 6px var(--shadow-light);
 }
