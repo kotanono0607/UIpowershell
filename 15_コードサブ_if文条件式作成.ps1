@@ -16,14 +16,10 @@
 
             $メインJsonPath = Join-Path $rootPath "03_history\メイン.json"
 
-            # 共通ユーティリティを読み込み
-            $utilityPath = Join-Path $rootPath "00_共通ユーティリティ_JSON操作.ps1"
-            if (Test-Path $utilityPath) {
-                . $utilityPath
-            }
-
             if (Test-Path $メインJsonPath) {
-                $folderPath = 取得-JSON値 -jsonFilePath $メインJsonPath -keyName "フォルダパス"
+                # JSON読み込み（外部関数に依存しない）
+                $jsonContent = Get-Content -Path $メインJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
+                $folderPath = $jsonContent."フォルダパス"
                 $JSONPath = Join-Path $folderPath "variables.json"
             } else {
                 Write-Host "[WARNING] メイン.jsonが見つかりません: $メインJsonPath" -ForegroundColor Yellow
@@ -509,14 +505,10 @@ function ShowConditionBuilder {
 
             $メインJsonPath = Join-Path $rootPath "03_history\メイン.json"
 
-            # 共通ユーティリティを読み込み
-            $utilityPath = Join-Path $rootPath "00_共通ユーティリティ_JSON操作.ps1"
-            if (Test-Path $utilityPath) {
-                . $utilityPath
-            }
-
             if (Test-Path $メインJsonPath) {
-                $folderPath = 取得-JSON値 -jsonFilePath $メインJsonPath -keyName "フォルダパス"
+                # JSON読み込み（外部関数に依存しない）
+                $jsonContent = Get-Content -Path $メインJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
+                $folderPath = $jsonContent."フォルダパス"
                 $JSONPath = Join-Path $folderPath "variables.json"
             } else {
                 Write-Host "[WARNING] メイン.jsonが見つかりません: $メインJsonPath" -ForegroundColor Yellow
