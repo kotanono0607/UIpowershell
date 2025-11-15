@@ -1535,8 +1535,16 @@ New-PolarisRoute -Path "/api/node/edit-script" -Method POST -ScriptBlock {
     try {
         Write-Host "[スクリプト編集] リクエスト受信" -ForegroundColor Cyan
 
-        # リクエストボディを取得
-        $body = $Request.Body | ConvertFrom-Json
+        # リクエストボディを取得（Request.Bodyがnullの場合はRequest.BodyStringを使用）
+        if ($null -eq $Request.Body) {
+            Write-Host "[スクリプト編集] Request.Body が null です。Request.BodyString を確認..." -ForegroundColor Yellow
+            $bodyRaw = $Request.BodyString
+        } else {
+            $bodyRaw = $Request.Body
+        }
+
+        Write-Host "[スクリプト編集] bodyRaw の長さ: $($bodyRaw.Length)文字" -ForegroundColor Gray
+        $body = $bodyRaw | ConvertFrom-Json
         $nodeId = $body.nodeId
         $nodeName = $body.nodeName
         $currentScript = $body.currentScript
