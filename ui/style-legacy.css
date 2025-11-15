@@ -950,8 +950,8 @@ button:active, .button:active {
 .drilldown-panel {
     /* ===== サイズ設定 ===== */
     width: 300px;                     /* パネル幅（外枠） */
-    min-height: 800px;                /* 最小高さ */
-    max-height: calc(100vh - 100px);  /* 最大高さ */
+    min-height: 1000px;               /* 最小高さ（800px → 1000px に変更） */
+    max-height: calc(100vh - 80px);   /* 最大高さ（-100px → -80px に変更で+20px広がる） */
 
     /* ===== 位置・配置設定 ===== */
     flex-shrink: 0;
@@ -963,6 +963,7 @@ button:active, .button:active {
     /* ===== 内枠設定（ノード配置スペース） ===== */
     padding: 16px;        /* ★内側余白（内枠）★ この数値を変更してノード配置スペースを調整 */
                           /* 実質的な内側幅 = 300px - 16px × 2 = 268px */
+                          /* 実質的な内側高さ = 1000px - 16px × 2 = 968px（最小） */
                           /* 例: 20px → 260px、12px → 276px、8px → 284px */
 
     /* ===== 表示設定 ===== */

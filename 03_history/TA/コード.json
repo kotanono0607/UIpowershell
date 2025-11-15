@@ -1,12 +1,14 @@
 {
     "エントリ":  {
-                 "7-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
-                 "8-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
-                 "9-1":  "AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;",
-                 "10-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
-                 "11-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
-                 "12-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
-                 "13-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"
+                 "7-1":  "Add-Type -AssemblyName System.Windows.Forms\r\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+                 "8-1":  "Add-Type -AssemblyName System.Windows.Forms\r\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+                 "9-1":  "AAAA\r\n7-1;White;Aメッセージボックス表示;\r\n8-1;White;Aメッセージボックス表示;",
+                 "10-1":  "Add-Type -AssemblyName System.Windows.Forms\r\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+                 "11-1":  "Add-Type -AssemblyName System.Windows.Forms\r\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+                 "12-1":  "Add-Type -AssemblyName System.Windows.Forms\r\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+                 "13-1":  "Add-Type -AssemblyName System.Windows.Forms\r\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+                 "4-1":  "Add-Type -AssemblyName System.Windows.Forms\r\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+                 "5-1":  "Add-Type -AssemblyName System.Windows.Forms\r\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"
              },
     "最後のID":  13
 }
