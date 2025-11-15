@@ -3327,41 +3327,12 @@ async function handlePinkNodeClickPopup(node) {
     // memory.json自動保存
     await saveMemoryJson();
 
-    // 右パネルにプレビュー表示
-    console.log(`[プレビュー表示] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${expandedNodes.length}個のノード展開)`);
+    // 右パネルにドリルダウンプレビュー表示（ピンク展開時はプレビューのみ、パンくずは不変）
+    console.log(`[ピンク展開ポップアップ] ドリルダウンパネルを表示: レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${expandedNodes.length}個のノード展開)`);
+    console.log(`[ピンク展開ポップアップ] 📍 パンくずは変更しません（左パネル連動のため）`);
+    console.log(`[ピンク展開ポップアップ] 現在のbreadcrumbStack:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
 
-    // パンくずリストを更新
-    const layerName = node.text || `スクリプト${node.layer}`;
-
-    // 重複チェック: 同じノード（ID）を複数回クリックした場合は何もしない
-    const isDuplicate = breadcrumbStack.length > 0 &&
-        breadcrumbStack[breadcrumbStack.length - 1].parentNodeData?.id === node.id;
-
-    if (isDuplicate) {
-        console.log(`[パンくずリスト] 同じノード「${layerName}」のため、breadcrumbStack更新をスキップ`);
-    } else {
-        // 同じレイヤーの場合は置き換え、新しいレイヤーの場合は追加
-        if (breadcrumbStack.length > 0 && breadcrumbStack[breadcrumbStack.length - 1].layer === nextLayer) {
-            // 最後のエントリを置き換え（同じレイヤーの別のピンクノード）
-            breadcrumbStack[breadcrumbStack.length - 1] = {
-                name: layerName,
-                layer: nextLayer,
-                parentNodeData: node
-            };
-            console.log(`[パンくずリスト] 同じレイヤー${nextLayer}なので置き換え: ${layerName}`);
-        } else {
-            // 新しいレイヤーなので追加
-            breadcrumbStack.push({
-                name: layerName,
-                layer: nextLayer,
-                parentNodeData: node
-            });
-            console.log(`[パンくずリスト] 新しいレイヤー${nextLayer}なので追加: ${layerName}`);
-        }
-    }
-    renderBreadcrumb();
-
-    // 右パネルにプレビュー表示（編集ボタン付き）
+    // ドリルダウンパネルにプレビュー表示（編集ボタン付き）
     showLayerInDrilldownPanel(node, expandedNodes);
 
     // グローエフェクトを再適用（レンダリング後に実行）
@@ -3695,8 +3666,11 @@ async function deleteAllNodes() {
 // ============================================
 
 function navigateLayer(direction) {
+    console.log(`[レイヤー移動] ⬅️➡️ navigateLayer("${direction}") - 現在leftVisibleLayer=${leftVisibleLayer}`);
+
     // ドリルダウンパネルがアクティブな場合はクリア
     if (drilldownState && drilldownState.active) {
+        console.log(`[レイヤー移動] ドリルダウンパネルをクローズします`);
         closeDrilldownPanel();
     }
 
@@ -6038,6 +6012,9 @@ let editModeState = {
 
 // パンくずリストを左パネルの現在レイヤーに合わせて更新
 function updateBreadcrumbForLayer(layer) {
+    console.log(`[パンくずリスト] 🔄 updateBreadcrumbForLayer(${layer}) 呼び出し - leftVisibleLayer=${leftVisibleLayer}`);
+    console.log(`[パンくずリスト] 更新前:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
+
     breadcrumbStack = [];
 
     for (let i = 1; i <= layer; i++) {
@@ -6047,15 +6024,16 @@ function updateBreadcrumbForLayer(layer) {
         });
     }
 
-    if (LOG_CONFIG.breadcrumb) {
-        console.log(`[パンくずリスト] レイヤー${layer}に更新:`, breadcrumbStack.map(b => b.name).join(' → '));
-    }
+    console.log(`[パンくずリスト] 更新後:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
 
     renderBreadcrumb();
 }
 
 // パンくずリストを描画
 function renderBreadcrumb() {
+    console.log(`[パンくずリスト] 🎨 renderBreadcrumb() 呼び出し`);
+    console.log(`[パンくずリスト] 現在のスタック:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
+
     const breadcrumb = document.getElementById('breadcrumb');
     if (!breadcrumb) return;
 
@@ -6416,6 +6394,10 @@ function handlePinkNodeDrilldown(nodeElement) {
 
 // ドリルダウンパネルにレイヤーを表示
 function showLayerInDrilldownPanel(parentNodeData) {
+    console.log(`[ドリルダウン] 🔷 showLayerInDrilldownPanel() 呼び出し - 親ノード: L${parentNodeData.layer} "${parentNodeData.text}"`);
+    console.log(`[ドリルダウン] leftVisibleLayer=${leftVisibleLayer}`);
+    console.log(`[ドリルダウン] 現在のbreadcrumbStack:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
+
     const rightPanel = document.getElementById('right-layer-panel');
     if (!rightPanel) return;
 
@@ -6536,6 +6518,9 @@ function showLayerInDrilldownPanel(parentNodeData) {
 
 // ドリルダウンパネルを閉じる
 function closeDrilldownPanel() {
+    console.log(`[ドリルダウン] ❌ closeDrilldownPanel() 呼び出し`);
+    console.log(`[ドリルダウン] 現在のbreadcrumbStack:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
+
     const rightPanel = document.getElementById('right-layer-panel');
     const leftPanel = document.getElementById('left-layer-panel');
     const escHint = document.getElementById('escHint');
