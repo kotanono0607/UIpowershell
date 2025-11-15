@@ -1850,10 +1850,9 @@ async function addConditionSet(setting) {
         `${baseId}-1`  // カスタムID指定
     );
 
-    // コード生成（条件式） - デフォルト値を設定
-    console.log(`[条件分岐作成] デフォルト条件式を設定 - ベースID: ${baseId}`);
-    const defaultConditionCode = `if ("1" -eq "1") {\n---\n} else {\n---\n}`;
-    await setCodeEntry(`${baseId}`, defaultConditionCode);
+    // コード生成（条件式） - ベースIDを渡す
+    console.log(`[条件分岐作成] コード生成 - ベースID: ${baseId}`);
+    await generateCode(setting.処理番号, `${baseId}`);
 
     // 2. 中間ライン（グレー、高さ1px）
     const middleNode = addSingleNode(
