@@ -658,3 +658,414 @@ function ノード設定を編集 {
         return $null
     }
 }
+
+
+# ============================================
+# 変数管理ダイアログ
+# ============================================
+function 変数管理を表示 {
+    <#
+    .SYNOPSIS
+    変数管理ダイアログを表示（PowerShell Windows Forms版）
+
+    .DESCRIPTION
+    変数の一覧を表示し、追加・編集・削除を行うダイアログを表示します。
+
+    .PARAMETER 変数リスト
+    現在の変数リスト（配列形式）
+    各要素は @{ name = "変数名"; value = "値"; type = "タイプ" } のハッシュテーブル
+
+    .EXAMPLE
+    $result = 変数管理を表示 -変数リスト $variables
+    #>
+    param(
+        [Parameter(Mandatory = $false)]
+        [array]$変数リスト = @()
+    )
+
+    Write-Host "[変数管理] ========== ダイアログ開始 ==========" -ForegroundColor Cyan
+    Write-Host "[変数管理] 変数数: $($変数リスト.Count)" -ForegroundColor Gray
+
+    # フォーム作成
+    $フォーム = New-Object System.Windows.Forms.Form
+    $フォーム.Text = "変数管理"
+    $フォーム.Size = New-Object System.Drawing.Size(700, 500)
+    $フォーム.StartPosition = "CenterScreen"
+    $フォーム.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
+    $フォーム.MaximizeBox = $false
+
+    # 変数を保持するためのスクリプト変数
+    $script:現在の変数リスト = $変数リスト
+
+    # ListView作成（変数一覧表示）
+    $リストビュー = New-Object System.Windows.Forms.ListView
+    $リストビュー.Location = New-Object System.Drawing.Point(20, 20)
+    $リストビュー.Size = New-Object System.Drawing.Size(640, 350)
+    $リストビュー.View = [System.Windows.Forms.View]::Details
+    $リストビュー.FullRowSelect = $true
+    $リストビュー.GridLines = $true
+    $リストビュー.MultiSelect = $false
+
+    # 列を追加
+    $リストビュー.Columns.Add("変数名", 200) | Out-Null
+    $リストビュー.Columns.Add("値", 300) | Out-Null
+    $リストビュー.Columns.Add("タイプ", 100) | Out-Null
+
+    $フォーム.Controls.Add($リストビュー)
+
+    # ListView更新関数
+    function Update-VariableListView {
+        $リストビュー.Items.Clear()
+
+        foreach ($var in $script:現在の変数リスト) {
+            $item = New-Object System.Windows.Forms.ListViewItem($var.name)
+
+            # 値の表示形式を調整
+            $displayValue = ""
+            if ($var.type -eq "一次元" -or $var.type -eq "二次元") {
+                $displayValue = $var.displayValue
+            } else {
+                $displayValue = $var.value
+            }
+
+            # 長すぎる場合は省略
+            if ($displayValue.Length -gt 80) {
+                $displayValue = $displayValue.Substring(0, 77) + "..."
+            }
+
+            $item.SubItems.Add($displayValue) | Out-Null
+            $item.SubItems.Add($var.type) | Out-Null
+            $item.Tag = $var
+
+            $リストビュー.Items.Add($item) | Out-Null
+        }
+
+        Write-Host "[変数管理] ListView更新: $($script:現在の変数リスト.Count)個の変数" -ForegroundColor Gray
+    }
+
+    # 追加ボタン
+    $ボタン_追加 = New-Object System.Windows.Forms.Button
+    $ボタン_追加.Text = "➕ 追加"
+    $ボタン_追加.Location = New-Object System.Drawing.Point(20, 390)
+    $ボタン_追加.Size = New-Object System.Drawing.Size(100, 30)
+    $フォーム.Controls.Add($ボタン_追加)
+
+    # 編集ボタン
+    $ボタン_編集 = New-Object System.Windows.Forms.Button
+    $ボタン_編集.Text = "✏️ 編集"
+    $ボタン_編集.Location = New-Object System.Drawing.Point(130, 390)
+    $ボタン_編集.Size = New-Object System.Drawing.Size(100, 30)
+    $フォーム.Controls.Add($ボタン_編集)
+
+    # 削除ボタン
+    $ボタン_削除 = New-Object System.Windows.Forms.Button
+    $ボタン_削除.Text = "🗑️ 削除"
+    $ボタン_削除.Location = New-Object System.Drawing.Point(240, 390)
+    $ボタン_削除.Size = New-Object System.Drawing.Size(100, 30)
+    $フォーム.Controls.Add($ボタン_削除)
+
+    # 閉じるボタン
+    $ボタン_閉じる = New-Object System.Windows.Forms.Button
+    $ボタン_閉じる.Text = "閉じる"
+    $ボタン_閉じる.Location = New-Object System.Drawing.Point(560, 390)
+    $ボタン_閉じる.Size = New-Object System.Drawing.Size(100, 30)
+    $ボタン_閉じる.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $フォーム.Controls.Add($ボタン_閉じる)
+
+    # 追加ボタンクリックイベント
+    $ボタン_追加.Add_Click({
+        Write-Host "[変数管理] 追加ボタンがクリックされました" -ForegroundColor Cyan
+
+        # 変数追加ダイアログを表示
+        $result = Show-AddVariableDialog
+
+        if ($result) {
+            Write-Host "[変数管理] 新しい変数を追加: $($result.name)" -ForegroundColor Green
+            # リストに追加（実際のAPI呼び出しはJavaScript側で行う）
+            $script:現在の変数リスト += $result
+            Update-VariableListView
+        }
+    })
+
+    # 編集ボタンクリックイベント
+    $ボタン_編集.Add_Click({
+        if ($リストビュー.SelectedItems.Count -eq 0) {
+            [System.Windows.Forms.MessageBox]::Show(
+                "編集する変数を選択してください。",
+                "変数管理",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
+            return
+        }
+
+        $selectedVar = $リストビュー.SelectedItems[0].Tag
+        Write-Host "[変数管理] 編集ボタンがクリックされました: $($selectedVar.name)" -ForegroundColor Cyan
+
+        # 変数編集ダイアログを表示
+        $result = Show-EditVariableDialog -変数情報 $selectedVar
+
+        if ($result) {
+            Write-Host "[変数管理] 変数を更新: $($result.name)" -ForegroundColor Green
+            # リストを更新
+            $index = 0
+            for ($i = 0; $i -lt $script:現在の変数リスト.Count; $i++) {
+                if ($script:現在の変数リスト[$i].name -eq $selectedVar.name) {
+                    $index = $i
+                    break
+                }
+            }
+            $script:現在の変数リスト[$index] = $result
+            Update-VariableListView
+        }
+    })
+
+    # 削除ボタンクリックイベント
+    $ボタン_削除.Add_Click({
+        if ($リストビュー.SelectedItems.Count -eq 0) {
+            [System.Windows.Forms.MessageBox]::Show(
+                "削除する変数を選択してください。",
+                "変数管理",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
+            return
+        }
+
+        $selectedVar = $リストビュー.SelectedItems[0].Tag
+        Write-Host "[変数管理] 削除ボタンがクリックされました: $($selectedVar.name)" -ForegroundColor Cyan
+
+        # 確認ダイアログ
+        $confirmResult = [System.Windows.Forms.MessageBox]::Show(
+            "変数「$($selectedVar.name)」を削除しますか？",
+            "削除確認",
+            [System.Windows.Forms.MessageBoxButtons]::YesNo,
+            [System.Windows.Forms.MessageBoxIcon]::Question
+        )
+
+        if ($confirmResult -eq [System.Windows.Forms.DialogResult]::Yes) {
+            Write-Host "[変数管理] 変数を削除: $($selectedVar.name)" -ForegroundColor Green
+            # リストから削除
+            $script:現在の変数リスト = $script:現在の変数リスト | Where-Object { $_.name -ne $selectedVar.name }
+            Update-VariableListView
+        }
+    })
+
+    # 初期表示
+    Update-VariableListView
+
+    # ダイアログ表示
+    $ダイアログ結果 = $フォーム.ShowDialog()
+
+    Write-Host "[変数管理] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
+
+    if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
+        Write-Host "[変数管理] ✅ 変数管理を閉じました" -ForegroundColor Green
+        return @{
+            success = $true
+            variables = $script:現在の変数リスト
+        }
+    } else {
+        Write-Host "[変数管理] ⚠️ キャンセルされました" -ForegroundColor Yellow
+        return $null
+    }
+}
+
+
+# 変数追加ダイアログ
+function Show-AddVariableDialog {
+    $ダイアログ = New-Object System.Windows.Forms.Form
+    $ダイアログ.Text = "変数を追加"
+    $ダイアログ.Size = New-Object System.Drawing.Size(450, 220)
+    $ダイアログ.StartPosition = "CenterParent"
+    $ダイアログ.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
+    $ダイアログ.MaximizeBox = $false
+    $ダイアログ.MinimizeBox = $false
+
+    # 変数名ラベル
+    $ラベル_変数名 = New-Object System.Windows.Forms.Label
+    $ラベル_変数名.Text = "変数名:"
+    $ラベル_変数名.Location = New-Object System.Drawing.Point(20, 20)
+    $ラベル_変数名.AutoSize = $true
+    $ダイアログ.Controls.Add($ラベル_変数名)
+
+    # 変数名テキストボックス
+    $テキスト_変数名 = New-Object System.Windows.Forms.TextBox
+    $テキスト_変数名.Location = New-Object System.Drawing.Point(120, 20)
+    $テキスト_変数名.Size = New-Object System.Drawing.Size(290, 20)
+    $ダイアログ.Controls.Add($テキスト_変数名)
+
+    # 値ラベル
+    $ラベル_値 = New-Object System.Windows.Forms.Label
+    $ラベル_値.Text = "値:"
+    $ラベル_値.Location = New-Object System.Drawing.Point(20, 60)
+    $ラベル_値.AutoSize = $true
+    $ダイアログ.Controls.Add($ラベル_値)
+
+    # 値テキストボックス
+    $テキスト_値 = New-Object System.Windows.Forms.TextBox
+    $テキスト_値.Location = New-Object System.Drawing.Point(120, 60)
+    $テキスト_値.Size = New-Object System.Drawing.Size(290, 20)
+    $ダイアログ.Controls.Add($テキスト_値)
+
+    # タイプラベル
+    $ラベル_タイプ = New-Object System.Windows.Forms.Label
+    $ラベル_タイプ.Text = "タイプ:"
+    $ラベル_タイプ.Location = New-Object System.Drawing.Point(20, 100)
+    $ラベル_タイプ.AutoSize = $true
+    $ダイアログ.Controls.Add($ラベル_タイプ)
+
+    # タイプコンボボックス
+    $コンボ_タイプ = New-Object System.Windows.Forms.ComboBox
+    $コンボ_タイプ.Location = New-Object System.Drawing.Point(120, 100)
+    $コンボ_タイプ.Size = New-Object System.Drawing.Size(290, 20)
+    $コンボ_タイプ.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+    $コンボ_タイプ.Items.AddRange(@("単一値", "一次元", "二次元"))
+    $コンボ_タイプ.SelectedIndex = 0
+    $ダイアログ.Controls.Add($コンボ_タイプ)
+
+    # OKボタン
+    $ボタン_OK = New-Object System.Windows.Forms.Button
+    $ボタン_OK.Text = "OK"
+    $ボタン_OK.Location = New-Object System.Drawing.Point(230, 140)
+    $ボタン_OK.Size = New-Object System.Drawing.Size(80, 30)
+    $ボタン_OK.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $ダイアログ.Controls.Add($ボタン_OK)
+
+    # キャンセルボタン
+    $ボタン_キャンセル = New-Object System.Windows.Forms.Button
+    $ボタン_キャンセル.Text = "キャンセル"
+    $ボタン_キャンセル.Location = New-Object System.Drawing.Point(320, 140)
+    $ボタン_キャンセル.Size = New-Object System.Drawing.Size(90, 30)
+    $ボタン_キャンセル.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $ダイアログ.Controls.Add($ボタン_キャンセル)
+
+    $ダイアログ.AcceptButton = $ボタン_OK
+    $ダイアログ.CancelButton = $ボタン_キャンセル
+
+    $result = $ダイアログ.ShowDialog()
+
+    if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+        if ([string]::IsNullOrWhiteSpace($テキスト_変数名.Text)) {
+            [System.Windows.Forms.MessageBox]::Show(
+                "変数名を入力してください。",
+                "エラー",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Error
+            ) | Out-Null
+            return $null
+        }
+
+        return @{
+            name = $テキスト_変数名.Text.Trim()
+            value = $テキスト_値.Text
+            type = $コンボ_タイプ.SelectedItem.ToString()
+            displayValue = $テキスト_値.Text
+        }
+    }
+
+    return $null
+}
+
+
+# 変数編集ダイアログ
+function Show-EditVariableDialog {
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable]$変数情報
+    )
+
+    $ダイアログ = New-Object System.Windows.Forms.Form
+    $ダイアログ.Text = "変数を編集"
+    $ダイアログ.Size = New-Object System.Drawing.Size(450, 220)
+    $ダイアログ.StartPosition = "CenterParent"
+    $ダイアログ.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
+    $ダイアログ.MaximizeBox = $false
+    $ダイアログ.MinimizeBox = $false
+
+    # 変数名ラベル
+    $ラベル_変数名 = New-Object System.Windows.Forms.Label
+    $ラベル_変数名.Text = "変数名:"
+    $ラベル_変数名.Location = New-Object System.Drawing.Point(20, 20)
+    $ラベル_変数名.AutoSize = $true
+    $ダイアログ.Controls.Add($ラベル_変数名)
+
+    # 変数名テキストボックス（読み取り専用）
+    $テキスト_変数名 = New-Object System.Windows.Forms.TextBox
+    $テキスト_変数名.Location = New-Object System.Drawing.Point(120, 20)
+    $テキスト_変数名.Size = New-Object System.Drawing.Size(290, 20)
+    $テキスト_変数名.Text = $変数情報.name
+    $テキスト_変数名.ReadOnly = $true
+    $テキスト_変数名.BackColor = [System.Drawing.SystemColors]::Control
+    $ダイアログ.Controls.Add($テキスト_変数名)
+
+    # 値ラベル
+    $ラベル_値 = New-Object System.Windows.Forms.Label
+    $ラベル_値.Text = "値:"
+    $ラベル_値.Location = New-Object System.Drawing.Point(20, 60)
+    $ラベル_値.AutoSize = $true
+    $ダイアログ.Controls.Add($ラベル_値)
+
+    # 値テキストボックス
+    $テキスト_値 = New-Object System.Windows.Forms.TextBox
+    $テキスト_値.Location = New-Object System.Drawing.Point(120, 60)
+    $テキスト_値.Size = New-Object System.Drawing.Size(290, 20)
+
+    # 現在の値を設定
+    if ($変数情報.type -eq "一次元" -or $変数情報.type -eq "二次元") {
+        $テキスト_値.Text = $変数情報.displayValue
+    } else {
+        $テキスト_値.Text = $変数情報.value
+    }
+
+    $ダイアログ.Controls.Add($テキスト_値)
+
+    # タイプラベル
+    $ラベル_タイプ = New-Object System.Windows.Forms.Label
+    $ラベル_タイプ.Text = "タイプ:"
+    $ラベル_タイプ.Location = New-Object System.Drawing.Point(20, 100)
+    $ラベル_タイプ.AutoSize = $true
+    $ダイアログ.Controls.Add($ラベル_タイプ)
+
+    # タイプコンボボックス（読み取り専用）
+    $コンボ_タイプ = New-Object System.Windows.Forms.ComboBox
+    $コンボ_タイプ.Location = New-Object System.Drawing.Point(120, 100)
+    $コンボ_タイプ.Size = New-Object System.Drawing.Size(290, 20)
+    $コンボ_タイプ.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+    $コンボ_タイプ.Items.AddRange(@("単一値", "一次元", "二次元"))
+    $コンボ_タイプ.SelectedItem = $変数情報.type
+    $コンボ_タイプ.Enabled = $false
+    $ダイアログ.Controls.Add($コンボ_タイプ)
+
+    # OKボタン
+    $ボタン_OK = New-Object System.Windows.Forms.Button
+    $ボタン_OK.Text = "OK"
+    $ボタン_OK.Location = New-Object System.Drawing.Point(230, 140)
+    $ボタン_OK.Size = New-Object System.Drawing.Size(80, 30)
+    $ボタン_OK.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $ダイアログ.Controls.Add($ボタン_OK)
+
+    # キャンセルボタン
+    $ボタン_キャンセル = New-Object System.Windows.Forms.Button
+    $ボタン_キャンセル.Text = "キャンセル"
+    $ボタン_キャンセル.Location = New-Object System.Drawing.Point(320, 140)
+    $ボタン_キャンセル.Size = New-Object System.Drawing.Size(90, 30)
+    $ボタン_キャンセル.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $ダイアログ.Controls.Add($ボタン_キャンセル)
+
+    $ダイアログ.AcceptButton = $ボタン_OK
+    $ダイアログ.CancelButton = $ボタン_キャンセル
+
+    $result = $ダイアログ.ShowDialog()
+
+    if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+        return @{
+            name = $テキスト_変数名.Text.Trim()
+            value = $テキスト_値.Text
+            type = $変数情報.type
+            displayValue = $テキスト_値.Text
+        }
+    }
+
+    return $null
+}

@@ -511,6 +511,144 @@ New-PolarisRoute -Path "/api/variables/:name" -Method DELETE -ScriptBlock {
     }
 }
 
+# 変数管理ダイアログ（PowerShell Windows Forms版）
+New-PolarisRoute -Path "/api/variables/manage" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        Write-Host "[API] /api/variables/manage - 変数管理ダイアログを表示" -ForegroundColor Cyan
+
+        # 現在の変数一覧を取得
+        $変数一覧結果 = Get-VariableList_v2
+        if (-not $変数一覧結果.success) {
+            $errorResult = @{
+                success = $false
+                error = "変数一覧の取得に失敗しました: $($変数一覧結果.error)"
+            }
+            $json = $errorResult | ConvertTo-Json -Compress -Depth 5
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+            return
+        }
+
+        Write-Host "[API] 現在の変数数: $($変数一覧結果.variables.Count)" -ForegroundColor Gray
+
+        # 元の変数リストを保存（比較用）
+        $元の変数リスト = $変数一覧結果.variables
+
+        # 共通関数ファイルを読み込み
+        . (Join-Path $script:RootDir "13_コードサブ汎用関数.ps1")
+
+        # PowerShell Windows Forms ダイアログを表示
+        $ダイアログ結果 = 変数管理を表示 -変数リスト $変数一覧結果.variables
+
+        if ($null -eq $ダイアログ結果) {
+            Write-Host "[API] 変数管理ダイアログがキャンセルされました" -ForegroundColor Yellow
+            $result = @{
+                success = $false
+                cancelled = $true
+                message = "変数管理がキャンセルされました"
+            }
+            $json = $result | ConvertTo-Json -Compress -Depth 5
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+            return
+        }
+
+        Write-Host "[API] ダイアログ完了 - 変数リストを比較して変更を適用します" -ForegroundColor Green
+
+        # 変更を検出して適用
+        $新しい変数リスト = $ダイアログ結果.variables
+        $変更カウント = @{
+            追加 = 0
+            更新 = 0
+            削除 = 0
+        }
+
+        # 元のリストから変数名のマップを作成
+        $元の変数マップ = @{}
+        foreach ($var in $元の変数リスト) {
+            $元の変数マップ[$var.name] = $var
+        }
+
+        # 新しいリストから変数名のマップを作成
+        $新しい変数マップ = @{}
+        foreach ($var in $新しい変数リスト) {
+            $新しい変数マップ[$var.name] = $var
+        }
+
+        # 追加・更新を検出
+        foreach ($var in $新しい変数リスト) {
+            if ($元の変数マップ.ContainsKey($var.name)) {
+                # 既存の変数 - 値が変更されているか確認
+                $元の値 = $元の変数マップ[$var.name].value
+                $新しい値 = $var.value
+
+                # 値を文字列化して比較
+                $元の値文字列 = if ($元の値 -is [array]) { $元の値 -join "," } else { $元の値 }
+                $新しい値文字列 = if ($新しい値 -is [array]) { $新しい値 -join "," } else { $新しい値 }
+
+                if ($元の値文字列 -ne $新しい値文字列) {
+                    Write-Host "[API] 変数を更新: $($var.name)" -ForegroundColor Cyan
+                    $updateResult = Update-Variable_v2 -Name $var.name -Value $var.value
+                    if ($updateResult.success) {
+                        $変更カウント.更新++
+                    }
+                }
+            } else {
+                # 新しい変数
+                Write-Host "[API] 変数を追加: $($var.name)" -ForegroundColor Green
+                $addResult = Add-Variable_v2 -Name $var.name -Value $var.value -Type $var.type
+                if ($addResult.success) {
+                    $変更カウント.追加++
+                }
+            }
+        }
+
+        # 削除を検出
+        foreach ($var in $元の変数リスト) {
+            if (-not $新しい変数マップ.ContainsKey($var.name)) {
+                Write-Host "[API] 変数を削除: $($var.name)" -ForegroundColor Yellow
+                $removeResult = Remove-Variable_v2 -Name $var.name
+                if ($removeResult.success) {
+                    $変更カウント.削除++
+                }
+            }
+        }
+
+        Write-Host "[API] 変更完了 - 追加:$($変更カウント.追加), 更新:$($変更カウント.更新), 削除:$($変更カウント.削除)" -ForegroundColor Green
+
+        # 変更を永続化
+        $exportResult = Export-VariablesToJson_v2
+        if (-not $exportResult.success) {
+            Write-Host "[API] ⚠️ 変数のJSON保存に失敗: $($exportResult.error)" -ForegroundColor Yellow
+        }
+
+        # 成功レスポンス
+        $result = @{
+            success = $true
+            cancelled = $false
+            message = "変数管理が完了しました"
+            changes = $変更カウント
+        }
+
+        $json = $result | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+
+    } catch {
+        Write-Host "[API] ❌ エラー: $_" -ForegroundColor Red
+        Write-Host "[API] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # --------------------------------------------
 # メニュー操作API（07_メインF機能_ツールバー作成_v2.ps1）
 # --------------------------------------------
