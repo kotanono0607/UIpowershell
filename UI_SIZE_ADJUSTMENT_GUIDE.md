@@ -302,8 +302,8 @@ UIpowershell のUIサイズを調整する際の参照資料です。
 |--------|------------|--------|----------|--------|------|
 | **【サイズ設定】** | | | | | |
 | `.drilldown-panel` | `width` | `300px` | `style-legacy.css` | 952 | **パネル幅（レイヤーパネルと同じ）** ⭐重要 |
-| `.drilldown-panel` | `min-height` | `800px` | `style-legacy.css` | 953 | **最小高さ** ⭐重要 |
-| `.drilldown-panel` | `max-height` | `calc(100vh - 100px)` | `style-legacy.css` | 954 | **最大高さ（画面高さ-100px）** ⭐重要 |
+| `.drilldown-panel` | `min-height` | `1000px` | `style-legacy.css` | 953 | **最小高さ（ノード配置スペースを縦に長く）** ⭐重要 |
+| `.drilldown-panel` | `max-height` | `calc(100vh - 50px)` | `style-legacy.css` | 954 | **最大高さ（画面いっぱいに）** ⭐重要 |
 | **【位置・配置設定】** | | | | | |
 | `.drilldown-panel` | `flex-shrink` | `0` | `style-legacy.css` | 957 | 縮小しない設定 |
 | `.drilldown-panel` | `position` | `relative` | `style-legacy.css` | 958 | 位置指定方法 |
@@ -311,9 +311,10 @@ UIpowershell のUIサイズを調整する際の参照資料です。
 | `.drilldown-panel` | `margin-top` | `0px` | `style-legacy.css` | 960 | **上マージン** |
 | `.drilldown-panel` | `margin-bottom` | `0px` | `style-legacy.css` | 961 | **下マージン** |
 | **【内枠設定（ノード配置スペース）】** | | | | | |
-| `.drilldown-panel` | `padding` | `16px` | `style-legacy.css` | 964 | **★内側余白（内枠）★ この数値を変更** ⭐最重要 |
-| | | | | | **実質的な内側幅 = 300px - 16px × 2 = 268px** |
-| | | | | | **変更例: 20px→260px / 12px→276px / 8px→284px** |
+| `.drilldown-panel` | `padding` | `12px` | `style-legacy.css` | 964 | **★内側余白（内枠）★ この数値を変更** ⭐最重要 |
+| | | | | | **実質的な内側幅 = 300px - 12px × 2 = 276px** |
+| | | | | | **実質的な内側高さ = 1000px - 12px × 2 = 976px（最小）** |
+| | | | | | **変更例: 8px→284px（幅）/984px（高さ）、16px→268px（幅）/968px（高さ）** |
 | **【表示設定】** | | | | | |
 | `.drilldown-panel` | `overflow-y` | `auto` | `style-legacy.css` | 969 | 縦スクロール設定 |
 | `.drilldown-panel` | `border-radius` | `20px` | `style-legacy.css` | 970 | 角丸 |
@@ -325,16 +326,16 @@ UIpowershell のUIサイズを調整する際の参照資料です。
 
 **重要な注意事項**:
 - **★内枠（ノード配置スペース）の調整★**: **964行目の `padding` を変更**することで内側の大きさを数値で調整できます
-  - 現在: `padding: 16px` → 実質的な内側幅 268px
-  - 広げる: `padding: 20px` → 実質的な内側幅 260px（余白が広くなる）
-  - 狭める: `padding: 12px` → 実質的な内側幅 276px（ノード配置スペースが広くなる）
-  - もっと狭める: `padding: 8px` → 実質的な内側幅 284px
+  - 現在: `padding: 12px` → 実質的な内側幅 276px、内側高さ 976px
+  - 余白を広げる: `padding: 16px` → 実質的な内側幅 268px、内側高さ 968px（余白が広くなる）
+  - 余白を狭める: `padding: 8px` → 実質的な内側幅 284px、内側高さ 984px（ノード配置スペースが広がる）
 - **サイズ設定**: 横幅（`width`）、最小高さ（`min-height`）、最大高さ（`max-height`）を数値で調整可能
-- **レイヤーパネルと完全に統一**: 幅300px、内側余白16px、縦長デザイン（縦横比 約2.7:1）
+  - 最小高さ: `min-height: 1000px`（ノード配置スペースを縦に長く確保）
+  - 最大高さ: `calc(100vh - 50px)` = 画面高さ100% - ヘッダー等の50px
+- **縦長デザイン**: 幅300px、最小高さ1000px、内側余白12pxで縦長のデザイン（縦横比 約3.3:1）
 - **位置設定**: 上下左右のマージン（`margin-top/bottom/left`）で表示位置を調整可能
 - **レイヤーパネルとの間隔**: `margin-left: 12px`（コンパクトに近づけた）
-- **最大高さの計算式**: `calc(100vh - 100px)` = 画面高さ100% - ヘッダー等の100px
-- **空状態**: `.drilldown-panel.empty` クラスで非表示時は透明背景になります（978-983行目）
+- **空状態**: `.drilldown-panel.empty` クラスで非表示時は透明背景になります（979-984行目）
 
 **調整例**:
 ```css
@@ -342,19 +343,19 @@ UIpowershell のUIサイズを調整する際の参照資料です。
    ★最重要★ 内枠（ノード配置スペース）調整
    ======================================== */
 
+/* 現在の設定（ノード配置スペースを縦に長く確保） */
+.drilldown-panel {
+    padding: 12px;  /* 実質的な内側幅: 276px、内側高さ: 976px */
+}
+
 /* 内側余白を広げる → ノード配置スペースが狭くなる */
 .drilldown-panel {
-    padding: 20px;  /* 16px → 20px（実質的な内側幅: 268px → 260px） */
+    padding: 16px;  /* 12px → 16px（内側幅: 276px → 268px、内側高さ: 976px → 968px） */
 }
 
-/* 内側余白を狭める → ノード配置スペースが広くなる */
+/* 内側余白を狭める → ノード配置スペースがさらに広がる */
 .drilldown-panel {
-    padding: 12px;  /* 16px → 12px（実質的な内側幅: 268px → 276px） */
-}
-
-/* 内側余白をもっと狭める → ノード配置スペースがさらに広くなる */
-.drilldown-panel {
-    padding: 8px;   /* 16px → 8px（実質的な内側幅: 268px → 284px） */
+    padding: 8px;   /* 12px → 8px（内側幅: 276px → 284px、内側高さ: 976px → 984px） */
 }
 
 /* ========================================
@@ -366,10 +367,10 @@ UIpowershell のUIサイズを調整する際の参照資料です。
     width: 400px;  /* 300px → 400px */
 }
 
-/* パネルの高さを調整する場合 */
+/* パネルの高さを調整する場合（現在1000px） */
 .drilldown-panel {
-    min-height: 900px;  /* 800px → 900px（最小高さ） */
-    max-height: calc(100vh - 80px);  /* 最大高さをさらに広げる */
+    min-height: 1200px;  /* 1000px → 1200px（さらに縦に長く） */
+    max-height: calc(100vh - 40px);  /* 最大高さをさらに広げる */
 }
 
 /* ========================================
@@ -710,11 +711,11 @@ top: calc(100vh - 296px)
 | 対象 | 変更前 | 変更後 | 用途 |
 |------|--------|--------|------|
 | `.drilldown-panel` width | `300px` | `400px` | パネル幅を広げる |
-| `.drilldown-panel` min-height | `800px` | `900px` | 最小高さを増やす |
-| `.drilldown-panel` max-height | `calc(100vh - 100px)` | `calc(100vh - 80px)` | 最大高さを画面いっぱいに |
+| `.drilldown-panel` min-height | `1000px` | `1200px` | 最小高さをさらに増やす |
+| `.drilldown-panel` max-height | `calc(100vh - 50px)` | `calc(100vh - 40px)` | 最大高さをさらに画面いっぱいに |
 | `.drilldown-panel` margin-left | `12px` | `20px` | レイヤーパネルとの間隔を広げる |
 | `.drilldown-panel` margin-top | `0px` | `20px` | パネルを下に移動 |
-| `.drilldown-panel` padding | `16px` | `20px` | 内側余白を広げる |
+| `.drilldown-panel` padding | `12px` | `16px` | 内側余白を広げる（ノード配置スペースは狭くなる） |
 
 **調整のポイント**:
 - **横幅**: `width` を変更（400px → 500px等）
@@ -860,12 +861,13 @@ CSSファイルを変更した後は、**必ずブラウザキャッシュをク
 
 📍 ドリルダウンパネル (.drilldown-panel)
    - width: 300px (横幅：レイヤーパネルと同じ)
-   - min-height: 800px (最小高さ)
-   - max-height: calc(100vh - 100px) (最大高さ)
+   - min-height: 1000px (最小高さ：ノード配置スペースを縦に長く)
+   - max-height: calc(100vh - 50px) (最大高さ：画面いっぱいに)
    - margin-left: 12px (レイヤーパネルとの間隔：コンパクト)
    - margin-top/bottom: 0px (上下余白)
-   - padding: 16px (内側余白：レイヤーパネルと同じ)
-   - 実質的な内側幅: 268px (300px - 16px × 2)
+   - padding: 12px (内側余白)
+   - 実質的な内側幅: 276px (300px - 12px × 2)
+   - 実質的な内側高さ: 976px (1000px - 12px × 2、最小)
    - ピンクノードクリック時に子レイヤーを表示
 ```
 
@@ -1107,6 +1109,7 @@ $フォーム.Add_Resize({
 
 | 日付 | 変更内容 | 理由 |
 |------|----------|------|
+| 2025-11-15 | **ドリルダウンパネルのノード配置スペースを縦に長く拡張** (`min-height: 800px→1000px`, `max-height: -100px→-50px`, `padding: 16px→12px`) | ノード配置スペースを縦に長く（768px→976px、+208px）、実質的な内側幅も拡大（268px→276px） |
 | 2025-11-15 | **ドリルダウンパネルのサイズ調整ガイドを大幅強化** | 内枠（padding）を数値で調整できることを明確化、CSS・ガイド両方に詳細なコメントを追加 |
 | 2025-11-15 | **ドリルダウンパネルの内枠・位置をレイヤーパネルに完全統一** (`padding: 20px→16px`, `margin-left: 20px→12px`) | 実質的な内側幅を268pxに統一、レイヤーパネルに近づけて表示 |
 | 2025-11-15 | **ドリルダウンパネルを縦長に調整** (`width: 400px→300px`, `min-height: 700px→800px`) | レイヤーパネルと同じ縦横比（約2.7:1）にして縦長のデザインに統一 |

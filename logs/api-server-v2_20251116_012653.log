@@ -1,12 +1,12 @@
 ﻿**********************
 Windows PowerShell トランスクリプト開始
-開始時刻: 20251116011826
+開始時刻: 20251116012653
 ユーザー名: A-01\hello
 RunAs ユーザー: A-01\hello
 構成名: 
 コンピューター: A-01 (Microsoft Windows NT 10.0.26100.0)
 ホスト アプリケーション: powershell -NoExit -ExecutionPolicy Bypass -File .\adapter\api-server-v2.ps1 -AutoOpenBrowser
-プロセス ID: 31452
+プロセス ID: 32564
 PSVersion: 5.1.26100.7019
 PSEdition: Desktop
 PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7019
@@ -16,8 +16,8 @@ WSManStackVersion: 3.0
 PSRemotingProtocolVersion: 2.3
 SerializationVersion: 1.1.0.1
 **********************
-トランスクリプトが開始されました。出力ファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251116_011826.log
-[ログ] ログファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251116_011826.log
+トランスクリプトが開始されました。出力ファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251116_012653.log
+[ログ] ログファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251116_012653.log
 
 ==================================
 UIpowershell - Polaris API Server V2
@@ -41,7 +41,7 @@ Phase 2 v2ファイルを読み込みます...
 [OK] ネスト規制バリデーション_v2
 
 Phase 3 Adapterファイルを読み込みます...
-[OK] UIpowershell状態を初期化しました (SessionId: a87f7894-dd6c-43ea-a6b3-a42fef5488de)
+[OK] UIpowershell状態を初期化しました (SessionId: 0cd10cb0-d113-4439-84d9-3b476866b299)
 [OK] state-manager
 [OK] node-operations
 
@@ -158,26 +158,7 @@ APIエンドポイント（Phase 3対応）:
 [API] UTF-8 (BOMなし) でファイルを保存しました
 [API] ✅ ファイル保存成功
 [API]    ファイルサイズ: 1916 バイト
-[API]    最終更新時刻: 11/16/2025 01:18:37
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[API] memory.json保存リクエスト受信
-[API] フォルダ名: TA
-[API] Request.Body が null です。Request.BodyString を確認...
-[API] ✅ Request.BodyString を取得しました
-[API] リクエストボディ長: 748 文字
-[API] JSON解析成功
-[API] layerStructure取得: 7 レイヤー
-[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
-[API] フォルダは既に存在します
-[API] レイヤー1 : 1個のノード
-[API] レイヤー2 : 2個のノード
-[API] 合計ノード数: 3
-[API] JSON生成完了 (長さ: 2140 文字)
-[API] UTF-8 (BOMなし) でファイルを保存しました
-[API] ✅ ファイル保存成功
-[API]    ファイルサイズ: 2412 バイト
-[API]    最終更新時刻: 11/16/2025 01:18:37
+[API]    最終更新時刻: 11/16/2025 01:27:04
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [API] コード.json保存リクエスト受信
@@ -223,5 +204,24 @@ APIエンドポイント（Phase 3対応）:
 [API] UTF-8 (BOMなし) でファイルを保存しました
 [API] ✅ ファイル保存成功
 [API]    ファイルサイズ: 1916 バイト
-[API]    最終更新時刻: 11/16/2025 01:18:37
+[API]    最終更新時刻: 11/16/2025 01:27:04
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 748 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 1個のノード
+[API] レイヤー2 : 2個のノード
+[API] 合計ノード数: 3
+[API] JSON生成完了 (長さ: 2140 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 2412 バイト
+[API]    最終更新時刻: 11/16/2025 01:27:04
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
