@@ -1772,6 +1772,16 @@ async function addNodeToLayer(setting) {
         console.log(`[addNodeToLayer] ✅ 無効化完了`);
     }
 
+    // ★ ドリルダウンパネルが編集されたレイヤーの子レイヤーを表示している場合は閉じる
+    if (breadcrumbStack.length > 1) {
+        const lastBreadcrumb = breadcrumbStack[breadcrumbStack.length - 1];
+        // 親ノードが編集されたレイヤーに存在する場合、ドリルダウンパネルを閉じる
+        if (lastBreadcrumb.parentNodeData && lastBreadcrumb.parentNodeData.layer === leftVisibleLayer) {
+            console.log(`[addNodeToLayer] ⚠️ ドリルダウンパネルを閉じます（親レイヤー${leftVisibleLayer}が編集されたため）`);
+            closeDrilldownPanel();
+        }
+    }
+
     // ★ レイヤー2以降の場合、親ピンクノードに反映
     console.log('[addNodeToLayer] 追加されたノード数:', addedNodes.length);
     if (leftVisibleLayer >= 2 && addedNodes.length > 0) {
@@ -2855,6 +2865,16 @@ async function deleteNode() {
         pinkSelectionArray[leftVisibleLayer].expandedNode = null;
         pinkSelectionArray[leftVisibleLayer].yCoord = 0;
         pinkSelectionArray[leftVisibleLayer].initialY = 0;
+    }
+
+    // ★ ドリルダウンパネルが編集されたレイヤーの子レイヤーを表示している場合は閉じる
+    if (breadcrumbStack.length > 1) {
+        const lastBreadcrumb = breadcrumbStack[breadcrumbStack.length - 1];
+        // 親ノードが編集されたレイヤーに存在する場合、ドリルダウンパネルを閉じる
+        if (lastBreadcrumb.parentNodeData && lastBreadcrumb.parentNodeData.layer === leftVisibleLayer) {
+            console.log(`[削除完了] ⚠️ ドリルダウンパネルを閉じます（親レイヤー${leftVisibleLayer}が編集されたため）`);
+            closeDrilldownPanel();
+        }
     }
 
     // memory.json自動保存
