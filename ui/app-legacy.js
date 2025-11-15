@@ -1761,6 +1761,17 @@ async function addNodeToLayer(setting) {
         console.log('[addNodeToLayer] 通常ノード追加が完了');
     }
 
+    // ★ 同じレイヤーのピンクノード展開状態を無効化（レイヤー編集により既存の展開状態は無効）
+    if (pinkSelectionArray[leftVisibleLayer].expandedNode !== null) {
+        console.log(`[addNodeToLayer] ⚠️ レイヤー${leftVisibleLayer}のピンクノード展開状態を無効化します（ノード追加によりレイヤーが変更されたため）`);
+        console.log(`[addNodeToLayer] 無効化前: expandedNode=${pinkSelectionArray[leftVisibleLayer].expandedNode}, value=${pinkSelectionArray[leftVisibleLayer].value}`);
+        pinkSelectionArray[leftVisibleLayer].value = 0;
+        pinkSelectionArray[leftVisibleLayer].expandedNode = null;
+        pinkSelectionArray[leftVisibleLayer].yCoord = 0;
+        pinkSelectionArray[leftVisibleLayer].initialY = 0;
+        console.log(`[addNodeToLayer] ✅ 無効化完了`);
+    }
+
     // ★ レイヤー2以降の場合、親ピンクノードに反映
     console.log('[addNodeToLayer] 追加されたノード数:', addedNodes.length);
     if (leftVisibleLayer >= 2 && addedNodes.length > 0) {
@@ -2836,6 +2847,15 @@ async function deleteNode() {
 
     renderNodesInLayer(leftVisibleLayer);
     reorderNodesInLayer(leftVisibleLayer);
+
+    // ★ 同じレイヤーのピンクノード展開状態を無効化（レイヤー編集により既存の展開状態は無効）
+    if (pinkSelectionArray[leftVisibleLayer].expandedNode !== null) {
+        console.log(`[削除完了] ⚠️ レイヤー${leftVisibleLayer}のピンクノード展開状態を無効化します（ノード削除によりレイヤーが変更されたため）`);
+        pinkSelectionArray[leftVisibleLayer].value = 0;
+        pinkSelectionArray[leftVisibleLayer].expandedNode = null;
+        pinkSelectionArray[leftVisibleLayer].yCoord = 0;
+        pinkSelectionArray[leftVisibleLayer].initialY = 0;
+    }
 
     // memory.json自動保存
     saveMemoryJson();
@@ -6175,6 +6195,21 @@ function handlePinkNodeHover(node, event) {
         }
     }
     if (!nodeData) return;
+
+    // ★ アクティブ状態をチェック（レイヤー編集後の古いピンクノードはプレビューを表示しない）
+    const layer = nodeData.layer;
+    const isActive = pinkSelectionArray[layer].expandedNode === nodeData.id;
+
+    if (LOG_CONFIG.pink) {
+        console.log(`[ホバープレビュー] アクティブ状態チェック - layer: ${layer}, expandedNode: ${pinkSelectionArray[layer].expandedNode}, nodeData.id: ${nodeData.id}, isActive: ${isActive}`);
+    }
+
+    if (!isActive) {
+        if (LOG_CONFIG.pink) {
+            console.log(`[ホバープレビュー] ⚠️ 非アクティブなピンクノードのため、プレビューを表示しません`);
+        }
+        return;
+    }
 
     // 0.8秒後にプレビュー表示
     hoverTimer = setTimeout(() => {
