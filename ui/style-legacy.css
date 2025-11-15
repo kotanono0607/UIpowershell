@@ -951,7 +951,7 @@ button:active, .button:active {
     /* ===== サイズ設定 ===== */
     width: 300px;                     /* パネル幅（外枠） */
     min-height: 1000px;               /* 最小高さ（ノード配置スペースを縦に長く） */
-    max-height: calc(100vh - 50px);   /* 最大高さ（画面いっぱいに） */
+    max-height: calc(100vh - 20px);   /* 最大高さ（画面下まで広く） */
 
     /* ===== 位置・配置設定 ===== */
     flex-shrink: 0;
