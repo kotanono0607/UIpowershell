@@ -220,70 +220,17 @@
     - コードの統一化によるメンテナンス性向上
     -->
 
-    <!-- ノード詳細設定モーダル -->
-    <div id="node-settings-modal" class="modal">
-        <div class="modal-content" style="width: 70%; max-width: 700px;">
-            <h2>ノード設定: <span id="settings-node-name"></span></h2>
-            <button class="modal-close" onclick="closeNodeSettingsModal()">×</button>
-            <div class="modal-body">
-                <!-- 基本設定 -->
-                <div style="margin-bottom: 15px;">
-                    <label><strong>ノード名:</strong></label>
-                    <input type="text" id="settings-node-text" style="width: 100%; padding: 5px;" />
-                </div>
+    <!-- ノード詳細設定モーダル (廃止) -->
+    <!--
+    [移行完了] 2025-11-15
+    ノード設定UIをWeb UIモーダルからPowerShell Windows Forms版に移行しました。
 
-                <!-- 外観設定 -->
-                <div style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
-                    <label><strong>外観設定:</strong></label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
-                        <div>
-                            <label>背景色:</label>
-                            <select id="settings-node-color" style="width: 100%; padding: 5px;">
-                                <option value="White">白 (White)</option>
-                                <option value="Pink">ピンク (Pink)</option>
-                                <option value="LightGray">灰色 (LightGray)</option>
-                                <option value="LightBlue">水色 (LightBlue)</option>
-                                <option value="LightGreen">緑 (LightGreen)</option>
-                                <option value="LightYellow">黄色 (LightYellow)</option>
-                                <option value="LightCoral">コーラル (LightCoral)</option>
-                                <option value="Lavender">ラベンダー (Lavender)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>幅:</label>
-                            <input type="number" id="settings-node-width" min="80" max="500" style="width: 100%; padding: 5px;" />
-                        </div>
-                        <div>
-                            <label>高さ:</label>
-                            <input type="number" id="settings-node-height" min="30" max="200" style="width: 100%; padding: 5px;" />
-                        </div>
-                        <div>
-                            <label>X座標:</label>
-                            <input type="number" id="settings-node-x" min="0" max="2000" style="width: 100%; padding: 5px;" />
-                        </div>
-                        <div>
-                            <label>Y座標:</label>
-                            <input type="number" id="settings-node-y" min="0" max="5000" style="width: 100%; padding: 5px;" />
-                        </div>
-                    </div>
-                </div>
-
-                <div id="settings-custom-fields">
-                    <!-- 処理番号に応じたカスタムフィールドがここに表示される -->
-                </div>
-
-                <div style="margin-top: 15px;">
-                    <label><strong>スクリプト:</strong></label>
-                    <textarea id="settings-node-script" rows="10" style="width: 100%; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px;"></textarea>
-                </div>
-
-                <div style="margin-top: 15px;">
-                    <button onclick="saveNodeSettings()">💾 保存</button>
-                    <button onclick="closeNodeSettingsModal()">キャンセル</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    変更内容:
+    - API: POST /api/node/settings
+    - PowerShell関数: ノード設定を編集 (13_コードサブ汎用関数.ps1)
+    - JavaScript: openNodeSettings()を修正してAPI呼び出しに変更
+    - カスタムフィールド（条件分岐、ループ）も含めて完全移行
+    -->
 
     <!-- コード生成結果モーダル -->
     <div id="code-result-modal" class="modal">

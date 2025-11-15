@@ -4607,9 +4607,9 @@ async function setCodeEntry(id, content) {
 
 let currentSettingsNode = null;
 
-function openNodeSettings(node) {
-    console.log('[ノード設定] モーダルを開く:', node.text, 'ID:', node.id);
-    console.log('[ノード設定] 渡されたノードオブジェクト:', JSON.stringify(node, null, 2));
+// ノード設定（PowerShell Windows Forms版）
+async function openNodeSettings(node) {
+    console.log('✅ [ノード設定] モーダルを開く:', node.text, 'ID:', node.id);
 
     // ノードIDで最新の情報を取得（layerStructureから）
     let actualNode = null;
@@ -4617,174 +4617,117 @@ function openNodeSettings(node) {
         const found = layerStructure[layer].nodes.find(n => n.id === node.id);
         if (found) {
             actualNode = found;
-            console.log('[ノード設定] ✅ レイヤー', layer, 'から最新ノード情報を取得しました');
+            console.log('✅ [ノード設定] レイヤー', layer, 'から最新ノード情報を取得しました');
             break;
         }
     }
 
     if (!actualNode) {
-        console.error('[ノード設定] ❌ ノードIDが見つかりません:', node.id);
+        console.error('❌ [ノード設定] ノードIDが見つかりません:', node.id);
         alert('ノード情報が見つかりませんでした。');
         return;
     }
 
-    currentSettingsNode = actualNode;
-
-    console.log('[ノード設定] 最新ノードオブジェクト:', JSON.stringify(actualNode, null, 2));
-
-    // モーダルを表示
-    document.getElementById('node-settings-modal').classList.add('show');
-    document.getElementById('settings-node-name').textContent = actualNode.text;
-    document.getElementById('settings-node-text').value = actualNode.text;
-
-    // スクリプトをcode.jsonから取得（node.scriptは使用しない）
+    // コード.jsonからスクリプトを取得
     const scriptContent = getCodeEntry(actualNode.id);
-    console.log('[ノード設定] code.jsonからスクリプトを取得しました。ID:', actualNode.id, '長さ:', scriptContent ? scriptContent.length : 0);
-    document.getElementById('settings-node-script').value = scriptContent || '';
+    console.log('✅ [ノード設定] スクリプト取得:', scriptContent ? scriptContent.length : 0, '文字');
 
-    // 外観設定を設定
-    document.getElementById('settings-node-color').value = actualNode.color || 'White';
-    document.getElementById('settings-node-width').value = actualNode.width || 120;  // 280 → 200 → 120 に変更
-    document.getElementById('settings-node-height').value = actualNode.height || 40;
-    document.getElementById('settings-node-x').value = actualNode.x || 10;
-    document.getElementById('settings-node-y').value = actualNode.y || 10;
+    // リクエストボディを作成
+    const requestBody = {
+        nodeId: actualNode.id,
+        nodeName: actualNode.text,
+        color: actualNode.color || 'White',
+        width: actualNode.width || 120,
+        height: actualNode.height || 40,
+        x: actualNode.x || 10,
+        y: actualNode.y || 10,
+        script: scriptContent || '',
+        処理番号: actualNode.処理番号 || ''
+    };
 
-    console.log('[ノード設定] 入力フィールドに設定した値:', {
-        color: actualNode.color,
-        width: actualNode.width,
-        height: actualNode.height,
-        x: actualNode.x,
-        y: actualNode.y
-    });
+    // カスタムフィールドを追加
+    if (actualNode.conditionExpression) {
+        requestBody.conditionExpression = actualNode.conditionExpression;
+    }
+    if (actualNode.loopCount) {
+        requestBody.loopCount = actualNode.loopCount;
+    }
+    if (actualNode.loopVariable) {
+        requestBody.loopVariable = actualNode.loopVariable;
+    }
 
-    // カスタムフィールドをクリア
-    const customFields = document.getElementById('settings-custom-fields');
-    customFields.innerHTML = '';
+    console.log('✅ [ノード設定] APIリクエストボディ:', JSON.stringify(requestBody, null, 2));
 
-    // 処理番号に応じたカスタムフィールドを追加
-    if (actualNode.処理番号 === '1-2') {
-        // 条件分岐
-        customFields.innerHTML = `
-            <div style="margin-bottom: 15px; padding: 10px; background: #fff3cd; border-radius: 5px;">
-                <label><strong>条件分岐設定:</strong></label>
-                <div style="margin-top: 8px;">
-                    <label>条件式:</label>
-                    <input type="text" id="condition-expression" value="${actualNode.conditionExpression || ''}" style="width: 100%; padding: 5px;" placeholder="例: $変数 -eq '値'" />
-                </div>
-            </div>
-        `;
-    } else if (actualNode.処理番号 === '1-3') {
-        // ループ
-        customFields.innerHTML = `
-            <div style="margin-bottom: 15px; padding: 10px; background: #d1ecf1; border-radius: 5px;">
-                <label><strong>ループ設定:</strong></label>
-                <div style="margin-top: 8px;">
-                    <label>ループ回数:</label>
-                    <input type="number" id="loop-count" value="${actualNode.loopCount || 1}" style="width: 100%; padding: 5px;" />
-                </div>
-                <div style="margin-top: 8px;">
-                    <label>ループ変数名:</label>
-                    <input type="text" id="loop-variable" value="${actualNode.loopVariable || 'i'}" style="width: 100%; padding: 5px;" />
-                </div>
-            </div>
-        `;
+    try {
+        // PowerShell Windows Formsダイアログを呼び出し
+        console.log('✅ [ノード設定] PowerShell設定ダイアログを呼び出します...');
+        const response = await fetch(`${API_BASE}/node/settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            console.error('❌ [ノード設定] サーバーエラー:', result);
+            alert(`エラーが発生しました: ${result.error || 'Unknown error'}`);
+            return;
+        }
+
+        if (result.cancelled) {
+            console.log('⚠ [ノード設定] ユーザーがキャンセルしました');
+            return;
+        }
+
+        if (result.success && result.settings) {
+            console.log('✅ [ノード設定] 編集完了:', result.settings);
+
+            // ノード情報を更新
+            actualNode.text = result.settings.text;
+            actualNode.color = result.settings.color;
+            actualNode.width = result.settings.width;
+            actualNode.height = result.settings.height;
+            actualNode.x = result.settings.x;
+            actualNode.y = result.settings.y;
+
+            // カスタムフィールドを更新
+            if (result.settings.conditionExpression !== undefined) {
+                actualNode.conditionExpression = result.settings.conditionExpression;
+            }
+            if (result.settings.loopCount !== undefined) {
+                actualNode.loopCount = result.settings.loopCount;
+            }
+            if (result.settings.loopVariable !== undefined) {
+                actualNode.loopVariable = result.settings.loopVariable;
+            }
+
+            // スクリプトをコード.jsonに保存
+            await setCodeEntry(actualNode.id, result.settings.script);
+
+            // 画面を再描画
+            renderNodesInLayer(leftVisibleLayer);
+            await saveMemoryJson();
+
+            console.log('✅ [ノード設定] ✅ ノード設定を保存しました');
+        }
+
+    } catch (error) {
+        console.error('❌ [ノード設定] エラー:', error);
+        alert(`ノード設定中にエラーが発生しました: ${error.message}`);
     }
 }
 
 function closeNodeSettingsModal() {
-    document.getElementById('node-settings-modal').classList.remove('show');
-    currentSettingsNode = null;
+    // Web UIモーダルは廃止（PowerShell Windows Forms版を使用）
+    console.log('[ノード設定] closeNodeSettingsModal() は廃止されました');
 }
 
 async function saveNodeSettings() {
-    if (!currentSettingsNode) return;
-
-    console.log('[ノード設定] 保存開始:', currentSettingsNode.text, 'ID:', currentSettingsNode.id);
-
-    // 基本設定を更新
-    const newText = document.getElementById('settings-node-text').value;
-    const newScript = document.getElementById('settings-node-script').value;
-
-    // 外観設定を更新
-    const newColor = document.getElementById('settings-node-color').value;
-    const newWidth = parseInt(document.getElementById('settings-node-width').value);
-    const newHeight = parseInt(document.getElementById('settings-node-height').value);
-    const newX = parseInt(document.getElementById('settings-node-x').value);
-    const newY = parseInt(document.getElementById('settings-node-y').value);
-
-    console.log('[ノード設定] 新しい設定:', {
-        text: newText,
-        color: newColor,
-        width: newWidth,
-        height: newHeight,
-        x: newX,
-        y: newY
-    });
-
-    currentSettingsNode.text = newText;
-    currentSettingsNode.script = newScript;
-    currentSettingsNode.color = newColor;
-    currentSettingsNode.width = newWidth;
-    currentSettingsNode.height = newHeight;
-    currentSettingsNode.x = newX;
-    currentSettingsNode.y = newY;
-
-    // カスタムフィールドを保存
-    if (currentSettingsNode.処理番号 === '1-2') {
-        const conditionExpression = document.getElementById('condition-expression');
-        if (conditionExpression) {
-            currentSettingsNode.conditionExpression = conditionExpression.value;
-            console.log('[ノード設定] 条件式を保存:', conditionExpression.value);
-        }
-    } else if (currentSettingsNode.処理番号 === '1-3') {
-        const loopCount = document.getElementById('loop-count');
-        const loopVariable = document.getElementById('loop-variable');
-        if (loopCount) {
-            currentSettingsNode.loopCount = parseInt(loopCount.value);
-            console.log('[ノード設定] ループ回数を保存:', loopCount.value);
-        }
-        if (loopVariable) {
-            currentSettingsNode.loopVariable = loopVariable.value;
-            console.log('[ノード設定] ループ変数名を保存:', loopVariable.value);
-        }
-    }
-
-    // グローバルノード配列の参照を修正（参照が切れている場合のみ）
-    const globalNodeIndex = nodes.findIndex(n => n.id === currentSettingsNode.id);
-    if (globalNodeIndex !== -1) {
-        if (nodes[globalNodeIndex] !== currentSettingsNode) {
-            // 🔧 修正: Object.assignで新しいオブジェクトを作成するのではなく、
-            // 参照が切れている場合のみ正しい参照に置き換える
-            console.warn('[ノード設定] ⚠️ 参照が切れていたため修正します');
-            nodes[globalNodeIndex] = currentSettingsNode;
-            console.log('[ノード設定] グローバルノード配列の参照を修正しました:', globalNodeIndex);
-        } else {
-            console.log('[ノード設定] ✅ グローバルノード配列は既に正しい参照を持っています:', globalNodeIndex);
-        }
-    } else {
-        console.warn('[ノード設定] ⚠️ グローバルノード配列でノードが見つかりません:', currentSettingsNode.id);
-    }
-
-    // 再描画（ノードが属するレイヤーを再描画）
-    console.log('[ノード設定] レイヤー', currentSettingsNode.layer, 'を再描画します');
-    renderNodesInLayer(currentSettingsNode.layer);
-
-    // memory.json自動保存
-    await saveMemoryJson();
-
-    console.log('[ノード設定] ✅ 保存完了: ノード「' + currentSettingsNode.text + '」');
-    alert('設定を保存しました。');
-
-    closeNodeSettingsModal();
+    // Web UIモーダルは廃止（PowerShell Windows Forms版を使用）
+    console.log('[ノード設定] saveNodeSettings() は廃止されました');
 }
 
-// ============================================
-// Phase 3: 整合性チェック（バリデーション）
-// ============================================
-
-/**
- * 同色ブロック衝突チェック
- * オリジナル: archive/02-4_ボタン操作配置.ps1:16-71 (10_ボタンの一覧取得)
  */
 function checkSameColorCollision(nodeColor, currentY, newY, movingNodeId) {
     // SpringGreenまたはLemonChiffonのみチェック対象
