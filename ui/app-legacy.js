@@ -5410,11 +5410,19 @@ async function executeNodeFunction(functionName, params = {}) {
             body: JSON.stringify(params)
         });
 
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status} ${response.statusText}`);
-        }
-
+        // レスポンスボディを先に読み取る（エラー詳細取得のため）
         const result = await response.json();
+
+        if (!response.ok) {
+            console.error(`[ノード関数実行] サーバーエラー詳細:`, result);
+            if (result.error) {
+                console.error(`[ノード関数実行] エラーメッセージ: ${result.error}`);
+            }
+            if (result.stackTrace) {
+                console.error(`[ノード関数実行] スタックトレース:\n${result.stackTrace}`);
+            }
+            throw new Error(`API Error: ${response.status} - ${result.error || response.statusText}`);
+        }
 
         if (result.success && result.code) {
             console.log(`[ノード関数実行] 成功 - コード長: ${result.code.length}文字`);

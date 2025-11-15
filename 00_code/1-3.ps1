@@ -15,8 +15,13 @@ function 1_3 {
     # ================================================================
 
     # スクリプトのルートパスを取得
-    $スクリプトPath = $PSScriptRoot  # 00_code/
-    $メインPath = Split-Path $スクリプトPath  # UIpowershell/
+    # API経由での実行時は$script:RootDirを使用、直接実行時は$PSScriptRootを使用
+    if ($script:RootDir) {
+        $メインPath = $script:RootDir  # API経由: UIpowershell/
+    } else {
+        $スクリプトPath = $PSScriptRoot  # 00_code/
+        $メインPath = Split-Path $スクリプトPath  # UIpowershell/
+    }
 
     # 共通ユーティリティを読み込み（取得-JSON値、Read-JsonSafe）
     $utilityPath = Join-Path $メインPath "00_共通ユーティリティ_JSON操作.ps1"
