@@ -351,8 +351,8 @@ function IDでエントリを取得 {
                 $entries += $json内容."エントリ".$key
             }
 
-            # "`n---`n" で結合して返す（UI側と同じ形式）
-            return ($entries -join "`n---`n")
+            # "`r`n---`r`n" で結合して返す（Windows改行コード使用）
+            return ($entries -join "`r`n---`r`n")
         }
 
         # 3. どちらも見つからない場合

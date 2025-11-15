@@ -162,7 +162,9 @@ function 実行イベント_v2 {
                 if ($DebugMode) {
                     Write-Host "[出力追加] outputに追加中: 長さ=$($取得したエントリ.Length) 文字" -ForegroundColor Cyan
                 }
-                $output += "$取得したエントリ`n`n"
+                # JSONから読み込んだ文字列内の \n を実際の改行コードに変換
+                $取得したエントリ = $取得したエントリ -replace '\\n', "`r`n"
+                $output += "$取得したエントリ`r`n`r`n"
                 if ($DebugMode) {
                     Write-Host "[出力追加] 追加後のoutput長: $($output.Length) 文字" -ForegroundColor Cyan
                 }
@@ -193,8 +195,10 @@ function 実行イベント_v2 {
                             # 特定のIDでエントリを取得
                             $specialEntry = IDでエントリを取得 -ID $specialId
                             if ($specialEntry -ne $null) {
+                                # JSONから読み込んだ文字列内の \n を実際の改行コードに変換
+                                $specialEntry = $specialEntry -replace '\\n', "`r`n"
                                 # エントリの内容のみを$outputに追加（空行を追加）
-                                $output += "$specialEntry`n`n"
+                                $output += "$specialEntry`r`n`r`n"
                             }
                         }
                     }
@@ -215,7 +219,8 @@ function 実行イベント_v2 {
 
         # 出力をファイルに書き込む
         try {
-            $output | Set-Content -Path $OutputPath -Force -Encoding UTF8
+            # -Value パラメータを使用して明示的に書き込む（改行を保持）
+            Set-Content -Path $OutputPath -Value $output -Force -Encoding UTF8
             Write-Host "出力をファイルに書き込みました: $OutputPath"
         }
         catch {
@@ -645,7 +650,9 @@ function ノードリストを展開 {
                     $entry = ノードリストを展開 -ノードリスト文字列 $entry
                 }
 
-                $output += "$entry`n"
+                # JSONから読み込んだ文字列内の \n を実際の改行コードに変換
+                $entry = $entry -replace '\\n', "`r`n"
+                $output += "$entry`r`n"
             } else {
                 if ($DebugMode) {
                     Write-Host "エントリが見つかりません: $nodeId" -ForegroundColor Yellow
