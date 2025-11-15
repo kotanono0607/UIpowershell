@@ -4694,7 +4694,10 @@ async function saveNodeSettings() {
     console.log('[ノード設定] saveNodeSettings() は廃止されました');
 }
 
- */
+// ============================================
+// 同色ノード衝突チェック
+// ============================================
+
 function checkSameColorCollision(nodeColor, currentY, newY, movingNodeId) {
     // SpringGreenまたはLemonChiffonのみチェック対象
     if (nodeColor !== 'SpringGreen' && nodeColor !== 'LemonChiffon') {
