@@ -1303,6 +1303,22 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method GET -ScriptBlock {
             $content = Get-Content $codePath -Raw -Encoding UTF8
             $codeData = $content | ConvertFrom-Json
 
+            # ✅ 修正: 既存のコード.jsonから読み込んだ文字列内の \n を実際の改行コードに変換
+            # PowerShellの ConvertFrom-Json は \n を文字列リテラルとして扱うため、明示的に変換が必要
+            if ($codeData."エントリ") {
+                Write-Host "[GET /code] 🔧 改行文字列の変換を開始..." -ForegroundColor Yellow
+                $convertedCount = 0
+                foreach ($key in $codeData."エントリ".PSObject.Properties.Name) {
+                    $originalValue = $codeData."エントリ".$key
+                    if ($originalValue -and $originalValue.Contains('\n')) {
+                        # \n を実際の改行に変換してから、ConvertTo-Jsonで正しくエスケープされるようにする
+                        $codeData."エントリ".$key = $originalValue -replace '\\n', "`r`n"
+                        $convertedCount++
+                    }
+                }
+                Write-Host "[GET /code] ✅ $convertedCount 個のエントリで改行を変換しました" -ForegroundColor Green
+            }
+
             $result = @{
                 success = $true
                 data = $codeData
