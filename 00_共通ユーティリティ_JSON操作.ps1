@@ -317,6 +317,46 @@ function Initialize-JsonStore {
     }
 }
 
+<#
+.SYNOPSIS
+JSONファイルから指定されたキーの値を取得する
+
+.DESCRIPTION
+Read-JsonSafeを使用してJSONファイルを読み込み、指定されたキーの値を返す。
+
+.PARAMETER jsonFilePath
+JSONファイルのパス
+
+.PARAMETER keyName
+取得したいキー名
+
+.EXAMPLE
+$folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\03_history\メイン.json" -keyName "フォルダパス"
+#>
+function 取得-JSON値 {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$jsonFilePath,
+
+        [Parameter(Mandatory=$true)]
+        [string]$keyName
+    )
+
+    # JSONファイルを読み込み（共通関数使用）
+    $jsonContent = Read-JsonSafe -Path $jsonFilePath -Required $true -Silent $false
+
+    if (-not $jsonContent) {
+        throw "指定されたファイルが見つかりません: $jsonFilePath"
+    }
+
+    # 指定されたキーの値を取得
+    if ($jsonContent.PSObject.Properties[$keyName]) {
+        return $jsonContent.$keyName
+    } else {
+        throw "指定されたキーがJSONに存在しません: $keyName"
+    }
+}
+
 # ================================================================
 # 使用例（コメントアウト）
 # ================================================================
@@ -336,4 +376,7 @@ Write-JsonSafe -Path "C:\path\to\output.json" -Data $myData
 
 # 初期化例
 Initialize-JsonStore -Path $global:jsonパス
+
+# 値取得例
+$folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\03_history\メイン.json" -keyName "フォルダパス"
 #>

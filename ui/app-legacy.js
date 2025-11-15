@@ -1517,34 +1517,25 @@ function generateAddNodeButtons() {
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
             try {
-                // 条件分岐ビルダーの場合はダイアログを表示
-                if (setting.関数名 === 'ShowConditionBuilder') {
-                    console.log('[ボタンクリック] 条件分岐ビルダーダイアログを表示します');
-                    const dialogCode = await showConditionBuilderDialog(false);
-                    if (dialogCode) {
-                        console.log('[ボタンクリック] 条件分岐コードを取得しました');
-                        await addNodeToLayer(setting);
-                    } else {
-                        console.log('[ボタンクリック] 条件分岐がキャンセルされました');
-                        return; // キャンセル時は何もしない
-                    }
-                }
-                // ループビルダーの場合はダイアログを表示
-                else if (setting.関数名 === 'ShowLoopBuilder') {
-                    console.log('[ボタンクリック] ループビルダーダイアログを表示します');
-                    const dialogCode = await showLoopBuilderDialog();
-                    if (dialogCode) {
-                        console.log('[ボタンクリック] ループコードを取得しました');
-                        await addNodeToLayer(setting);
-                    } else {
-                        console.log('[ボタンクリック] ループがキャンセルされました');
-                        return; // キャンセル時は何もしない
-                    }
-                }
-                // その他のボタンは直接ノード追加
-                else {
-                    await addNodeToLayer(setting);
-                }
+                // ============================================
+                // 🔄 移行完了: 条件分岐・ループビルダーはPowerShell Windows Forms版に統一
+                // ============================================
+                // 以前はWeb UIダイアログを表示していましたが、現在は全てのボタンで
+                // API経由で00_code/*.ps1を呼び出す統一処理に変更されました。
+                //
+                // - 1-2.ps1 (条件分岐): ShowConditionBuilder をPowerShell Windows Forms で表示
+                // - 1-3.ps1 (ループ): ShowLoopBuilder をPowerShell Windows Forms で表示
+                // - その他のボタンも同様にAPI経由で処理
+                //
+                // メリット:
+                // - コードの一貫性が向上（全てのパラメータ入力UIがPowerShell Windows Forms）
+                // - JavaScript約900行削除による保守性向上
+                // - 変数管理システムとの深い統合
+                // ============================================
+
+                // 全てのボタンで統一的にノード追加処理
+                await addNodeToLayer(setting);
+
             } catch (error) {
                 console.error('[ボタンクリック] ❌ エラーが発生しました:', error);
                 console.error('[ボタンクリック] スタックトレース:', error.stack);
@@ -5500,9 +5491,8 @@ function getFunctionNameFromProcessingNumber(処理番号) {
 }
 
 // コード生成関数のマッピング
+// 🔄 移行完了: ShowConditionBuilder/ShowLoopBuilder は削除（PowerShell版に移行）
 const codeGeneratorFunctions = {
-    'ShowConditionBuilder': showConditionBuilderDialog,
-    'ShowLoopBuilder': showLoopBuilderDialog,
     '1_1': generate_1_1,
     '1_6': generate_1_6,
     '99_1': generate_99_1
@@ -5537,13 +5527,8 @@ async function generateCode(処理番号, ノードID, 直接エントリ = null
             if (処理番号 === '99-1') {
                 entryString = await generatorFunc(直接エントリ);
             } else {
-                // ダイアログを表示する場合は await
-                if (関数名 === 'ShowConditionBuilder' || 関数名 === 'ShowLoopBuilder') {
-                    console.log(`[コード生成] ダイアログを表示します`);
-                    entryString = await generatorFunc();
-                } else {
-                    entryString = await generatorFunc();
-                }
+                // 通常処理
+                entryString = await generatorFunc();
             }
         } else {
             // 未実装の場合は、API経由で00_code/*.ps1を呼び出す

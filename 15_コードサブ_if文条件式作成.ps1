@@ -1,7 +1,39 @@
 ﻿function ShowLoopBuilder {
     param(
-        [string]$JSONPath = $global:JSONPath  # 変数リストを格納したJSONファイルのパス
+        [string]$JSONPath  # 変数リストを格納したJSONファイルのパス
     )
+
+    # JSONPathが未指定の場合は、プロジェクトルートから取得
+    if (-not $JSONPath) {
+        try {
+            # API実行時のパス（adapter/api-server-v2.ps1の$script:RootDirを使用）
+            if ($script:RootDir) {
+                $rootPath = $script:RootDir
+            } else {
+                # 通常実行時のパス（現在のスクリプトから2階層上がプロジェクトルート）
+                $rootPath = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+            }
+
+            $メインJsonPath = Join-Path $rootPath "03_history\メイン.json"
+
+            # 共通ユーティリティを読み込み
+            $utilityPath = Join-Path $rootPath "00_共通ユーティリティ_JSON操作.ps1"
+            if (Test-Path $utilityPath) {
+                . $utilityPath
+            }
+
+            if (Test-Path $メインJsonPath) {
+                $folderPath = 取得-JSON値 -jsonFilePath $メインJsonPath -keyName "フォルダパス"
+                $JSONPath = Join-Path $folderPath "variables.json"
+            } else {
+                Write-Host "[WARNING] メイン.jsonが見つかりません: $メインJsonPath" -ForegroundColor Yellow
+                $JSONPath = $null
+            }
+        } catch {
+            Write-Host "[WARNING] JSONPath取得エラー: $_" -ForegroundColor Yellow
+            $JSONPath = $null
+        }
+    }
 
     # 単一値の変数名リストを取得
     $variablesList = Get-SingleValueVariableNames -JSONPath $JSONPath
@@ -460,9 +492,41 @@ function Get-ArrayVariableNames {
 
 function ShowConditionBuilder {
     param(
-        [string]$JSONPath = $global:JSONPath,  # 変数リストを格納したJSONファイルのパス
+        [string]$JSONPath,  # 変数リストを格納したJSONファイルのパス
         [switch]$IsFromLoopBuilder  # ループビルダーからの呼び出しかどうか
     )
+
+    # JSONPathが未指定の場合は、プロジェクトルートから取得
+    if (-not $JSONPath) {
+        try {
+            # API実行時のパス（adapter/api-server-v2.ps1の$script:RootDirを使用）
+            if ($script:RootDir) {
+                $rootPath = $script:RootDir
+            } else {
+                # 通常実行時のパス（現在のスクリプトから2階層上がプロジェクトルート）
+                $rootPath = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+            }
+
+            $メインJsonPath = Join-Path $rootPath "03_history\メイン.json"
+
+            # 共通ユーティリティを読み込み
+            $utilityPath = Join-Path $rootPath "00_共通ユーティリティ_JSON操作.ps1"
+            if (Test-Path $utilityPath) {
+                . $utilityPath
+            }
+
+            if (Test-Path $メインJsonPath) {
+                $folderPath = 取得-JSON値 -jsonFilePath $メインJsonPath -keyName "フォルダパス"
+                $JSONPath = Join-Path $folderPath "variables.json"
+            } else {
+                Write-Host "[WARNING] メイン.jsonが見つかりません: $メインJsonPath" -ForegroundColor Yellow
+                $JSONPath = $null
+            }
+        } catch {
+            Write-Host "[WARNING] JSONPath取得エラー: $_" -ForegroundColor Yellow
+            $JSONPath = $null
+        }
+    }
 
     # 単一値の変数名リストを取得
     $variablesList = Get-SingleValueVariableNames -JSONPath $JSONPath
@@ -859,9 +923,9 @@ function ShowConditionBuilder {
 }
 
 
-$スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレクトリを変数に格納
-$global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\03_history\メイン.json" -keyName "フォルダパス"
-$global:JSONPath = "$global:folderPath\variables.json"
+# ================================================================
+# 補助関数: 単一値変数名リスト取得
+# ================================================================
 function Get-SingleValueVariableNames {
     param(
         [string]$JSONPath = $global:JSONPath # JSONファイルのパスを指定
