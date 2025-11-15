@@ -307,12 +307,12 @@ UIpowershell のUIサイズを調整する際の参照資料です。
 | **【位置・配置設定】** | | | | | |
 | `.drilldown-panel` | `flex-shrink` | `0` | `style-legacy.css` | 957 | 縮小しない設定 |
 | `.drilldown-panel` | `position` | `relative` | `style-legacy.css` | 958 | 位置指定方法 |
-| `.drilldown-panel` | `margin-left` | `20px` | `style-legacy.css` | 959 | **左マージン（レイヤーパネルとの間隔）** ⭐重要 |
+| `.drilldown-panel` | `margin-left` | `12px` | `style-legacy.css` | 959 | **左マージン（レイヤーパネルとの間隔）** ⭐重要 |
 | `.drilldown-panel` | `margin-top` | `0px` | `style-legacy.css` | 960 | **上マージン** |
 | `.drilldown-panel` | `margin-bottom` | `0px` | `style-legacy.css` | 961 | **下マージン** |
 | **【表示設定】** | | | | | |
 | `.drilldown-panel` | `overflow-y` | `auto` | `style-legacy.css` | 964 | 縦スクロール設定 |
-| `.drilldown-panel` | `padding` | `20px` | `style-legacy.css` | 965 | **内側余白** |
+| `.drilldown-panel` | `padding` | `16px` | `style-legacy.css` | 965 | **内側余白（レイヤーパネルと同じ）** ⭐重要 |
 | `.drilldown-panel` | `border-radius` | `20px` | `style-legacy.css` | 966 | 角丸 |
 | `.drilldown-panel` | `box-shadow` | 複数値 | `style-legacy.css` | 969-971 | ニューモーフィズム影 |
 | **【編集ボタン】** | | | | | |
@@ -322,8 +322,10 @@ UIpowershell のUIサイズを調整する際の参照資料です。
 
 **重要な注意事項**:
 - **サイズ設定**: 横幅（`width`）、最小高さ（`min-height`）、最大高さ（`max-height`）を数値で調整可能
-- **レイヤーパネルと同じ縦横比**: 幅300px、最小高さ800pxで縦長のデザインに統一（縦横比 約2.7:1）
+- **レイヤーパネルと完全に統一**: 幅300px、内側余白16px、縦長デザイン（縦横比 約2.7:1）
+- **実質的な内側幅**: 300px - 16px × 2 = **268px**（レイヤーパネルと同じ）
 - **位置設定**: 上下左右のマージン（`margin-top/bottom/left`）で表示位置を調整可能
+- **レイヤーパネルとの間隔**: `margin-left: 12px`（コンパクトに近づけた）
 - **最大高さの計算式**: `calc(100vh - 100px)` = 画面高さ100% - ヘッダー等の100px
 - **空状態**: `.drilldown-panel.empty` クラスで非表示時は透明背景になります（974-979行目）
 
@@ -346,7 +348,7 @@ UIpowershell のUIサイズを調整する際の参照資料です。
 
 /* レイヤーパネルとの間隔を広げる場合 */
 .drilldown-panel {
-    margin-left: 30px;  /* 20px → 30px */
+    margin-left: 20px;  /* 12px → 20px */
 }
 
 /* パネルを上下に移動する場合 */
@@ -359,7 +361,7 @@ UIpowershell のUIサイズを調整する際の参照資料です。
 
 /* 内側余白を広げる場合 */
 .drilldown-panel {
-    padding: 30px;  /* 20px → 30px */
+    padding: 20px;  /* 16px → 20px */
 }
 ```
 
@@ -680,9 +682,9 @@ top: calc(100vh - 296px)
 | `.drilldown-panel` width | `300px` | `400px` | パネル幅を広げる |
 | `.drilldown-panel` min-height | `800px` | `900px` | 最小高さを増やす |
 | `.drilldown-panel` max-height | `calc(100vh - 100px)` | `calc(100vh - 80px)` | 最大高さを画面いっぱいに |
-| `.drilldown-panel` margin-left | `20px` | `30px` | レイヤーパネルとの間隔を広げる |
+| `.drilldown-panel` margin-left | `12px` | `20px` | レイヤーパネルとの間隔を広げる |
 | `.drilldown-panel` margin-top | `0px` | `20px` | パネルを下に移動 |
-| `.drilldown-panel` padding | `20px` | `30px` | 内側余白を広げる |
+| `.drilldown-panel` padding | `16px` | `20px` | 内側余白を広げる |
 
 **調整のポイント**:
 - **横幅**: `width` を変更（400px → 500px等）
@@ -830,9 +832,10 @@ CSSファイルを変更した後は、**必ずブラウザキャッシュをク
    - width: 300px (横幅：レイヤーパネルと同じ)
    - min-height: 800px (最小高さ)
    - max-height: calc(100vh - 100px) (最大高さ)
-   - margin-left: 20px (レイヤーパネルとの間隔)
+   - margin-left: 12px (レイヤーパネルとの間隔：コンパクト)
    - margin-top/bottom: 0px (上下余白)
-   - padding: 20px (内側余白)
+   - padding: 16px (内側余白：レイヤーパネルと同じ)
+   - 実質的な内側幅: 268px (300px - 16px × 2)
    - ピンクノードクリック時に子レイヤーを表示
 ```
 
@@ -1074,6 +1077,7 @@ $フォーム.Add_Resize({
 
 | 日付 | 変更内容 | 理由 |
 |------|----------|------|
+| 2025-11-15 | **ドリルダウンパネルの内枠・位置をレイヤーパネルに完全統一** (`padding: 20px→16px`, `margin-left: 20px→12px`) | 実質的な内側幅を268pxに統一、レイヤーパネルに近づけて表示 |
 | 2025-11-15 | **ドリルダウンパネルを縦長に調整** (`width: 400px→300px`, `min-height: 700px→800px`) | レイヤーパネルと同じ縦横比（約2.7:1）にして縦長のデザインに統一 |
 | 2025-11-15 | **ドリルダウンパネルに詳細なサイズ・位置調整機能を追加** | 横幅だけでなく、高さ（min/max）、上下左右の位置を数値で調整可能に |
 | 2025-11-15 | **ドリルダウンパネルを固定幅に変更** (`flex: 1` → `width: 400px`) | 他のパネルと同様に数値で幅を調整できるようにするため |
