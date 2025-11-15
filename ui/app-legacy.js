@@ -6444,7 +6444,7 @@ function showLayerInDrilldownPanel(parentNodeData) {
             </button>
         </div>
         <div class="layer-indicator">L${targetLayer}</div>
-        <div class="node-list-container" id="drilldown-nodes" style="position: relative; min-height: 400px;">
+        <div class="node-list-container" id="drilldown-nodes" style="position: relative;">
             <!-- ノードがここに表示される -->
         </div>
     `;

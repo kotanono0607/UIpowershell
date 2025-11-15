@@ -411,7 +411,7 @@ body::after {
     padding: 16px;
     position: relative;
     min-height: 700px;
-    background: red;  /* 一時的に赤色に変更してノード配置枠を確認 */
+    background: var(--bg-color);
     box-shadow:
         inset 3px 3px 6px var(--shadow-dark),
         inset -3px -3px 6px var(--shadow-light);
@@ -948,6 +948,10 @@ button:active, .button:active {
 
 /* ドリルダウンパネル（旧right-layer-panel） */
 .drilldown-panel {
+    /* ===== レイアウト設定 ===== */
+    display: flex;
+    flex-direction: column;
+
     /* ===== サイズ設定 ===== */
     width: 300px;                     /* パネル幅（外枠） */
     height: calc(100vh - 78px);       /* 高さを画面いっぱいに設定 */
@@ -970,7 +974,7 @@ button:active, .button:active {
     /* ===== 表示設定 ===== */
     overflow-y: auto;
     border-radius: 20px;
-    background: yellow;  /* 一時的に黄色に変更して場所を確認 */
+    background: var(--bg-color);
     transition: all 0.4s ease;
     box-shadow:
         9px 9px 18px var(--shadow-dark),
@@ -983,6 +987,13 @@ button:active, .button:active {
     justify-content: center;
     background: transparent;
     box-shadow: none;
+}
+
+/* ドリルダウンパネル内のノード配置枠を画面いっぱいに */
+.drilldown-panel .node-list-container {
+    flex: 1;  /* 親の残りスペースを全て使う */
+    min-height: unset;  /* 元の700pxを解除 */
+    overflow-y: auto;
 }
 
 /* ドリルダウンパネルの編集ボタン */
