@@ -167,29 +167,17 @@
         <div class="context-menu-item" onclick="deleteNode()">削除</div>
     </div>
 
-    <!-- 変数管理モーダル -->
-    <div id="variable-modal" class="modal">
-        <div class="modal-content">
-            <h2>変数管理</h2>
-            <button class="modal-close" onclick="closeVariableModal()">×</button>
-            <div class="modal-body">
-                <button onclick="addVariablePrompt()">➕ 新しい変数を追加</button>
-                <table id="variable-table">
-                    <thead>
-                        <tr>
-                            <th>変数名</th>
-                            <th>値</th>
-                            <th>タイプ</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="variable-list">
-                        <!-- 変数がここに表示される -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    <!-- 変数管理モーダル (廃止) -->
+    <!--
+    [移行完了] 2025-11-15
+    変数管理UIをWeb UIモーダルからPowerShell Windows Forms版に移行しました。
+
+    変更内容:
+    - API: POST /api/variables/manage
+    - PowerShell関数: 変数管理を表示 (13_コードサブ汎用関数.ps1)
+    - JavaScript: openVariableModal()を修正してAPI呼び出しに変更
+    - 追加・編集・削除すべての操作をPowerShell Windows Formsダイアログ内で実行
+    -->
 
     <!-- フォルダ切替モーダル -->
     <div id="folder-modal" class="modal">

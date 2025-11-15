@@ -3796,109 +3796,67 @@ async function loadVariables() {
     }
 }
 
-function openVariableModal() {
-    document.getElementById('variable-modal').classList.add('show');
-    renderVariableTable();
+// ============================================
+// 変数管理モーダル（PowerShell Windows Forms版に移行）
+// ============================================
+
+async function openVariableModal() {
+    console.log('✅ [変数管理] モーダルを開く（PowerShell Windows Forms版）');
+
+    try {
+        // API経由でPowerShell Windows Forms ダイアログを表示
+        const response = await fetch(`${API_BASE}/variables/manage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.cancelled) {
+            console.log('✅ [変数管理] キャンセルされました');
+            return;
+        }
+
+        if (result.success) {
+            console.log('✅ [変数管理] 変数管理が完了しました');
+            console.log(`✅ [変数管理] 変更: 追加=${result.changes.追加}, 更新=${result.changes.更新}, 削除=${result.changes.削除}`);
+
+            // 変数リストを再読み込み
+            await loadVariables();
+        } else {
+            console.error('❌ [変数管理] エラー:', result.error);
+            alert(`変数管理エラー: ${result.error}`);
+        }
+
+    } catch (error) {
+        console.error('❌ [変数管理] 予期しないエラー:', error);
+        alert(`変数管理中にエラーが発生しました: ${error.message}`);
+    }
 }
 
 function closeVariableModal() {
-    document.getElementById('variable-modal').classList.remove('show');
+    console.log('[変数管理] closeVariableModal() は廃止されました（PowerShell Windows Forms版に移行）');
 }
 
 function renderVariableTable() {
-    const tbody = document.getElementById('variable-list');
-    tbody.innerHTML = '';
-
-    Object.entries(variables).forEach(([name, data]) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${name}</td>
-            <td>${data.value || ''}</td>
-            <td>${data.type || '単一値'}</td>
-            <td>
-                <button onclick="editVariable('${name}')">編集</button>
-                <button onclick="deleteVariable('${name}')">削除</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
+    console.log('[変数管理] renderVariableTable() は廃止されました（PowerShell Windows Forms版に移行）');
 }
 
 async function addVariablePrompt() {
-    const name = prompt('変数名を入力してください:');
-    if (!name || name.trim() === '') return;
-
-    const value = prompt('値を入力してください:');
-
-    try {
-        // API経由で変数を追加
-        const result = await callApi('/variables', 'POST', {
-            name: name.trim(),
-            value: value || '',
-            type: '単一値'
-        });
-
-        if (result.success) {
-            // ローカル変数にも追加
-            variables[name.trim()] = {
-                value: value || '',
-                type: '単一値'
-            };
-            renderVariableTable();
-            console.log(`変数「${name}」を追加しました（API永続化済み）`);
-        } else {
-            alert(`変数追加に失敗しました: ${result.error}`);
-        }
-    } catch (error) {
-        console.error('変数追加エラー:', error);
-        alert(`変数追加中にエラーが発生しました: ${error.message}`);
-    }
+    console.log('[変数管理] addVariablePrompt() は廃止されました（PowerShell Windows Forms版に移行）');
+    console.log('[変数管理] 代わりに openVariableModal() を使用してください');
 }
 
 async function editVariable(name) {
-    const value = prompt(`「${name}」の新しい値を入力してください:`, variables[name].value);
-    if (value === null) return; // キャンセル時
-
-    try {
-        // API経由で変数を更新
-        const result = await callApi(`/variables/${name}`, 'PUT', {
-            value: value
-        });
-
-        if (result.success) {
-            // ローカル変数も更新
-            variables[name].value = value;
-            renderVariableTable();
-            console.log(`変数「${name}」を更新しました（API永続化済み）`);
-        } else {
-            alert(`変数更新に失敗しました: ${result.error}`);
-        }
-    } catch (error) {
-        console.error('変数更新エラー:', error);
-        alert(`変数更新中にエラーが発生しました: ${error.message}`);
-    }
+    console.log('[変数管理] editVariable() は廃止されました（PowerShell Windows Forms版に移行）');
+    console.log('[変数管理] 代わりに openVariableModal() を使用してください');
 }
 
 async function deleteVariable(name) {
-    const confirmed = confirm(`変数「${name}」を削除しますか？`);
-    if (!confirmed) return;
-
-    try {
-        // API経由で変数を削除
-        const result = await callApi(`/variables/${name}`, 'DELETE');
-
-        if (result.success) {
-            // ローカル変数からも削除
-            delete variables[name];
-            renderVariableTable();
-            console.log(`変数「${name}」を削除しました（API永続化済み）`);
-        } else {
-            alert(`変数削除に失敗しました: ${result.error}`);
-        }
-    } catch (error) {
-        console.error('変数削除エラー:', error);
-        alert(`変数削除中にエラーが発生しました: ${error.message}`);
-    }
+    console.log('[変数管理] deleteVariable() は廃止されました（PowerShell Windows Forms版に移行）');
+    console.log('[変数管理] 代わりに openVariableModal() を使用してください');
 }
 
 // ============================================
