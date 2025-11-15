@@ -288,6 +288,52 @@ UIpowershell のUIサイズを調整する際の参照資料です。
 | `.node-list-container` | `min-height` | `700px` | `style-legacy.css` | 419 | **ノードリスト最小高さ** |
 | `.node-list-container` | `padding` | `16px` | `style-legacy.css` | 418 | ノードリスト内側余白 |
 
+#### 5-2. ドリルダウンパネル（右パネル）
+
+**名称情報**:
+- **日本語名**: ドリルダウンパネル / 右パネル
+- **英語名**: Drilldown Panel / Right Panel
+- **HTML ID**: `#right-layer-panel`
+- **CSS Class**: `.drilldown-panel`, `.drilldown-edit-btn`
+- **JavaScript変数**: `drilldownState`, `drilldownTargetNode`
+- **表示条件**: ピンクノードをクリックした時に表示され、子レイヤーのノードを表示
+
+| UI要素 | プロパティ | 現在値 | ファイル | 行番号 | 説明 |
+|--------|------------|--------|----------|--------|------|
+| `.drilldown-panel` | `flex` | `1` | `style-legacy.css` | 951 | **幅（残りスペース全て使用）** ⭐重要 |
+| `.drilldown-panel` | `padding` | `20px` | `style-legacy.css` | 956 | **内側余白** |
+| `.drilldown-panel` | `margin-left` | `20px` | `style-legacy.css` | 957 | **左マージン（レイヤーパネルとの間隔）** |
+| `.drilldown-panel` | `border-radius` | `20px` | `style-legacy.css` | 955 | 角丸 |
+| `.drilldown-panel` | `box-shadow` | 複数値 | `style-legacy.css` | 959-961 | ニューモーフィズム影 |
+| `.drilldown-edit-btn` | `padding` | `5px 12px` | `style-legacy.css` | 974 | 編集ボタン余白 |
+| `.drilldown-edit-btn` | `font-size` | `13px` | `style-legacy.css` | 980 | 編集ボタン文字サイズ |
+| `.drilldown-edit-btn` | `border-radius` | `6px` | `style-legacy.css` | 976 | 編集ボタン角丸 |
+
+**重要な注意事項**:
+- **動的幅**: `flex: 1` により、レイヤーパネルの右側の残りスペース全てを使用します
+- **固定幅にする場合**: `flex: 1` を削除し、`width: 400px` のように固定値を指定
+- **レイヤーパネルとの間隔**: `margin-left: 20px` で調整
+- **空状態**: `.drilldown-panel.empty` クラスで非表示時は透明背景になります（964-970行目）
+
+**調整例**:
+```css
+/* 固定幅にする場合 */
+.drilldown-panel {
+    width: 400px;  /* flex: 1 を削除して width を指定 */
+    flex-shrink: 0; /* 縮小しないように */
+}
+
+/* 内側余白を広げる場合 */
+.drilldown-panel {
+    padding: 30px;  /* 20px → 30px */
+}
+
+/* レイヤーパネルとの間隔を広げる場合 */
+.drilldown-panel {
+    margin-left: 30px;  /* 20px → 30px */
+}
+```
+
 ### 6️⃣ ノードボタン（配置済みノード）
 
 **名称情報**:
@@ -731,6 +777,12 @@ CSSファイルを変更した後は、**必ずブラウザキャッシュをク
    - left: 640px (レイヤー1左側の200pxスペース内)
    - width: 180px
    - 縦展開 (flex-direction: column)
+
+📍 ドリルダウンパネル (.drilldown-panel)
+   - flex: 1 (残りスペース全て使用)
+   - padding: 20px
+   - margin-left: 20px (レイヤーパネルとの間隔)
+   - ピンクノードクリック時に子レイヤーを表示
 ```
 
 ---
@@ -971,6 +1023,7 @@ $フォーム.Add_Resize({
 
 | 日付 | 変更内容 | 理由 |
 |------|----------|------|
+| 2025-11-15 | **ドリルダウンパネルのサイズ調整セクション追加**（セクション5-2） | ドリルダウンパネルの具体的な調整箇所が欠落していたため追加 |
 | 2025-11-15 | **PowerShell Windows Formsセクション追加** | コード結果・フォルダ管理モーダルの移行完了に伴い、ガイド更新 |
 | 2025-11-15 | **アーキテクチャ概要セクション追加** | 段階的移行の全体像を説明 |
 | 2025-11-15 | コード結果モーダルをPowerShell Windows Formsに移行 | リサイズ対応・UX改善 |
