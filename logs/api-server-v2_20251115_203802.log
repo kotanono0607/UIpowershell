@@ -1,0 +1,751 @@
+﻿**********************
+Windows PowerShell トランスクリプト開始
+開始時刻: 20251115203802
+ユーザー名: A-01\hello
+RunAs ユーザー: A-01\hello
+構成名: 
+コンピューター: A-01 (Microsoft Windows NT 10.0.26100.0)
+ホスト アプリケーション: powershell -NoExit -ExecutionPolicy Bypass -File .\adapter\api-server-v2.ps1 -AutoOpenBrowser
+プロセス ID: 24412
+PSVersion: 5.1.26100.7019
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7019
+BuildVersion: 10.0.26100.7019
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+トランスクリプトが開始されました。出力ファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251115_203802.log
+[ログ] ログファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251115_203802.log
+
+==================================
+UIpowershell - Polaris API Server V2
+Version: 1.0.179 (UTF-8エンコーディング修正版)
+==================================
+
+[OK] Polarisモジュールを読み込みます: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\Modules\Polaris
+[OK] Polarisモジュールを読み込みました (Version: Polaris.Version)
+
+既存のPowerShell関数を読み込みます...
+[OK] JSON操作ユーティリティ
+
+[OK] コードID管理JSON
+
+Phase 2 v2ファイルを読み込みます...
+[OK] コードメイン_コード本文_v2
+[OK] 変数機能_変数管理UI_v2
+[OK] メインF機能_ツールバー作成_v2
+[OK] メインF機能_メインボタン処理_v2
+[OK] 削除処理_v2
+[OK] ネスト規制バリデーション_v2
+
+Phase 3 Adapterファイルを読み込みます...
+[OK] UIpowershell状態を初期化しました (SessionId: 4434efea-c338-4105-a11d-d32b43b39dd8)
+[OK] state-manager
+[OK] node-operations
+
+==================================
+
+静的ファイル提供を設定します...
+[OK] 静的ファイル提供を設定しました
+
+Polarisサーバーを起動します...
+  ポート: 8080
+  URL: http://localhost:8080
+  フロントエンド: http://localhost:8080/index-legacy.html
+
+エントリ
+--------
+@{1-1=Add-Type -AssemblyName System.Windows.Forms...
+
+==================================
+✓ サーバー起動成功！
+==================================
+
+アクセス先: http://localhost:8080
+
+APIエンドポイント（Phase 3対応）:
+
+【基本】
+  GET  /api/health                    - ヘルスチェック
+  GET  /api/session                   - セッション情報
+  GET  /api/debug                     - デバッグ情報
+
+【ノード管理】
+  GET  /api/nodes                     - 全ノード取得
+  PUT  /api/nodes                     - ノード配列を一括設定
+  POST /api/nodes                     - ノード追加
+  DELETE /api/nodes/:id               - ノード削除
+  DELETE /api/nodes/all               - 全ノード削除
+
+【変数管理】
+  GET  /api/variables                 - 変数一覧取得
+  GET  /api/variables/:name           - 変数取得
+  POST /api/variables                 - 変数追加
+  PUT  /api/variables/:name           - 変数更新
+  DELETE /api/variables/:name         - 変数削除
+
+【メニュー操作】
+  GET  /api/menu/structure            - メニュー構造取得
+  POST /api/menu/action/:actionId     - メニューアクション実行
+
+【実行・フォルダ】
+  POST /api/execute/generate          - PowerShellコード生成
+  GET  /api/folders                   - フォルダ一覧取得
+  POST /api/folders                   - フォルダ作成
+  PUT  /api/folders/:name             - フォルダ切り替え
+
+【バリデーション】
+  POST /api/validate/drop             - ドロップ可否チェック
+
+【コードID管理】
+  POST /api/id/generate               - 新規ID生成
+  POST /api/entry/add                 - エントリ追加
+  GET  /api/entry/:id                 - エントリ取得
+  GET  /api/entries/all               - 全エントリ取得
+
+【ブラウザログ】
+  POST /api/browser-logs              - ブラウザコンソールログ受信
+
+停止するには Ctrl+C を押してください
+
+[ブラウザ] Microsoft Edge（UIpowershell専用）を最大化アプリモードで起動します
+           URL: http://localhost:8080/index-legacy.html
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] 🔥 DELETE /api/nodes/all エンドポイントが呼ばれました！
+[API] 🔍 Request.Method: DELETE
+[API] 🔍 Request.Path:
+[API] 全ノード削除リクエスト受信
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 519 文字
+[API] JSON解析成功
+[API] body のプロパティ: nodes
+[API] body.nodesの型: System.Object[]
+[API] 削除対象ノード数: 3
+[API] サンプルノードID: node-4, node-5, node-6
+[API] ✅ 全ノード削除完了: 3個
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{},"最後のID":0}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{},"最後のID":0}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 34
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{},"最後のID":0}}]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{},"最後のID":0}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{},"最後のID":0}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 56 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+
+             },
+    "最後のID":  0
+}
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 70 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:20
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 250 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] 合計ノード数: 0
+[API] JSON生成完了 (長さ: 465 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 489 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:21
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[ノード関数実行] 関数名: 1_6
+[ノード関数実行] スクリプトパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\1-6.ps1
+[ノード関数実行] 📂 ファイルを読み込み中...
+[ノード関数実行] 📄 ファイルパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\1-6.ps1
+[ノード関数実行] ⏰ ファイル更新日時: 11/10/2025 05:47:22
+[ノード関数実行] 📝 ファイルプレビュー (先頭200文字):
+function 1_6 {
+@"
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです!AA!。", "タイトル", "OK", "Information")
+"@
+}
+[ノード関数実行] ✅ 汎用関数を読み込みました
+[ノード関数実行] ✅ スクリプト読み込み完了
+[ノード関数実行] 🚀 関数 '1_6' を実行中...
+[ノード関数実行] ✅ 関数実行完了
+[ノード関数実行] 📤 生成されたコード (先頭200文字):
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです!AA!。", "タイトル", "OK", "Information")
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":7}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":7}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 186
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":7}}]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":7}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":7}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 227 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "7-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 279 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:26
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[ノード関数実行] 関数名: 1_6
+[ノード関数実行] スクリプトパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\1-6.ps1
+[ノード関数実行] 📂 ファイルを読み込み中...
+[ノード関数実行] 📄 ファイルパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\00_code\1-6.ps1
+[ノード関数実行] ⏰ ファイル更新日時: 11/10/2025 05:47:22
+[ノード関数実行] 📝 ファイルプレビュー (先頭200文字):
+function 1_6 {
+@"
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです!AA!。", "タイトル", "OK", "Information")
+"@
+}
+[ノード関数実行] ✅ 汎用関数を読み込みました
+[ノード関数実行] ✅ スクリプト読み込み完了
+[ノード関数実行] 🚀 関数 '1_6' を実行中...
+[ノード関数実行] ✅ 関数実行完了
+[ノード関数実行] 📤 生成されたコード (先頭200文字):
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです!AA!。", "タイトル", "OK", "Information")
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 587 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 2個のノード
+[API] 合計ノード数: 2
+[API] JSON生成完了 (長さ: 1554 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1722 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:26
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":8}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":8}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 339
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyN]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":8}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":8}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 401 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "7-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 491 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:26
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 587 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 2個のノード
+[API] 合計ノード数: 2
+[API] JSON生成完了 (長さ: 1554 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1722 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:27
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+出力をファイルに書き込みました: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\output.ps1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[実行イベント完了] レスポンス情報:
+  success: True
+  nodeCount: 2
+  outputPath: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\output.ps1
+  output長: 274 文字
+  outputが空: False
+  output先頭200文字: Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです!AA!。", "タイトル", "OK", "Information")
+
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.For
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[実行] ノード数: 2, 成功: True
+[API] /api/code-result/show - コード結果ダイアログを表示
+[API] ノード数: 2
+[API] コード長: 274文字
+[コード結果] ========== ダイアログ開始 ==========
+[コード結果] ノード数: 2
+[コード結果] 出力先: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\output.ps1
+[コード結果] コード長: 274文字
+[コード結果] ダイアログ結果: OK
+[コード結果] ✅ ダイアログを閉じました
+[API] ✅ コード結果ダイアログ完了
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 604 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 2個のノード
+[API] 合計ノード数: 2
+[API] JSON生成完了 (長さ: 1554 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1722 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:36
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 621 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 2個のノード
+[API] 合計ノード数: 2
+[API] JSON生成完了 (長さ: 1554 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1722 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:36
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;"},"最後のID":9}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;"},"最後のID":9}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 402
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyN]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;"},"最後のID":9}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;"},"最後のID":9}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 485 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "7-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 619 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:37
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 434 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 1個のノード
+[API] 合計ノード数: 1
+[API] JSON生成完了 (長さ: 1049 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1177 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:38
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 727 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 1個のノード
+[API] レイヤー2 : 2個のノード
+[API] 合計ノード数: 3
+[API] JSON生成完了 (長さ: 2142 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 2414 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:38
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":10}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":10}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 557
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyN]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":10}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":10}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 661 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "7-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 833 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:38
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":11}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":11}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 711
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyN]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":11}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":11}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 836 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "7-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1046 バイト
+[API]    最終更新時刻: 11/15/2025 20:38:38
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+出力をファイルに書き込みました: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\output.ps1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[実行イベント完了] レスポンス情報:
+  success: True
+  nodeCount: 1
+  outputPath: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\output.ps1
+  output長: 274 文字
+  outputが空: False
+  output先頭200文字: Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.MessageBox]::Show("これはメッセージボックスです!AA!。", "タイトル", "OK", "Information")
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Form
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[実行] ノード数: 1, 成功: True
+[API] /api/code-result/show - コード結果ダイアログを表示
+[API] ノード数: 1
+[API] コード長: 274文字
+[コード結果] ========== ダイアログ開始 ==========
+[コード結果] ノード数: 1
+[コード結果] 出力先: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\output.ps1
+[コード結果] コード長: 274文字
+[コード結果] ダイアログ結果: OK
+[コード結果] ✅ ダイアログを閉じました
+[API] ✅ コード結果ダイアログ完了
+[ノード設定] リクエスト受信
+[ノード設定] Request.Body が null です。Request.BodyString を確認...
+[ノード設定] bodyRaw の長さ: 164文字
+[ノード設定] ノードID: 9, 処理番号: 99-1
+[ノード設定] ✅ 汎用関数を読み込みました
+[ノード設定] 📝 設定ダイアログを表示します...
+[ノード設定を編集] 関数呼び出し - ノードID: 9
+[ノード設定を編集] 処理番号: 99-1
+[ノード設定を編集] ⚠️ キャンセルされました
+[ノード設定] ⚠️ ユーザーがキャンセルしました
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","12-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":12}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","12-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":12}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 865
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyN]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","12-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":12}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","12-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":12}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 1011 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "7-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1259 バイト
+[API]    最終更新時刻: 11/15/2025 20:39:02
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] コード.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] ========== Request オブジェクトのデバッグ ==========
+[API] Request 型: PolarisRequest
+[API] Request プロパティ一覧:
+[API]   - Body :
+[API]   - BodyString : {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","12-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","13-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":13}}
+[API]   - Query :
+[API]   - AcceptTypes : */*
+[API]   - Cookies :
+[API]   - Headers : sec-ch-ua-platform sec-ch-ua sec-ch-ua-mobile Origin Sec-Fetch-Site Sec-Fetch-Mode Sec-Fetch-Dest Connection Content-Length Content-Type Accept Accept-Encoding Accept-Language Host Referer User-Agent
+[API]   - Method : POST
+[API]   - Url : http://localhost:8080/api/folders/TA/code
+[API]   - UserAgent : Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0
+[API]   - ClientIP : ::1
+[API]   - RawRequest : System.Net.HttpListenerRequest
+[API]   - Parameters : @{name=TA; 0=/api/folders/TA/code}
+[API]   - User :
+[API] ====================================================
+[API] Request.Body のデバッグ開始...
+[API] ❌ Request.Body が null です
+[API] Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","12-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","13-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":13}}
+[API] Request.Body の型: System.String
+[API] Request.Body の文字列表現長さ: 1019
+[API] Request.Body の最初の200文字: [{"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyN]
+[API] bodyRaw を ConvertFrom-Json します...
+[API] ✅ ConvertFrom-Json完了
+[API] bodyの内容: {"codeData":{"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","12-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","13-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":13}}
+[API] ✅ codeDataを取得しました
+[API] codeDataの内容: {"エントリ":{"7-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","8-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","9-1":"AAAA\n7-1;White;Aメッセージボックス表示;\n8-1;White;Aメッセージボックス表示;","10-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","11-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","12-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")","13-1":"Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")"},"最後のID":13}
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\コード.json
+[API] フォルダパス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA
+[API] フォルダは既に存在します
+[API] JSON生成完了 (長さ: 1186 文字)
+[API] JSON内容の最初の200文字: {
+    "エントリ":  {
+                 "7-1":  "Add-Type -AssemblyName System.Windows.Forms\n[System.Windows.Forms.MessageBox]::Show(\"これはメッセージボックスです!AA!。\", \"タイトル\", \"OK\", \"Information\")",
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 1472 バイト
+[API]    最終更新時刻: 11/15/2025 20:39:02
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[API] memory.json保存リクエスト受信
+[API] フォルダ名: TA
+[API] Request.Body が null です。Request.BodyString を確認...
+[API] ✅ Request.BodyString を取得しました
+[API] リクエストボディ長: 727 文字
+[API] JSON解析成功
+[API] layerStructure取得: 7 レイヤー
+[API] 保存先パス: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\03_history\TA\memory.json
+[API] フォルダは既に存在します
+[API] レイヤー1 : 1個のノード
+[API] レイヤー2 : 2個のノード
+[API] 合計ノード数: 3
+[API] JSON生成完了 (長さ: 2142 文字)
+[API] UTF-8 (BOMなし) でファイルを保存しました
+[API] ✅ ファイル保存成功
+[API]    ファイルサイズ: 2414 バイト
+[API]    最終更新時刻: 11/15/2025 20:39:02
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[ノード設定] リクエスト受信
+[ノード設定] Request.Body が null です。Request.BodyString を確認...
+[ノード設定] bodyRaw の長さ: 164文字
+[ノード設定] ノードID: 9, 処理番号: 99-1
+[ノード設定] ✅ 汎用関数を読み込みました
+[ノード設定] 📝 設定ダイアログを表示します...
+[ノード設定を編集] 関数呼び出し - ノードID: 9
+[ノード設定を編集] 処理番号: 99-1
+[ノード設定を編集] ⚠️ キャンセルされました
+[ノード設定] ⚠️ ユーザーがキャンセルしました
+[スクリプト編集] リクエスト受信
+[スクリプト編集] Request.Body が null です。Request.BodyString を確認...
+[スクリプト編集] bodyRaw の長さ: 104文字
+[スクリプト編集] ノードID: 9, ノード名: スクリプト
+[スクリプト編集] 現在のスクリプト長: 52文字
+[スクリプト編集] 現在のスクリプト内容: [AAAA
+7-1;White;Aメッセージボックス表示;
+8-1;White;Aメッセージボックス表示;]
+[スクリプト編集] ✅ 汎用関数を読み込みました
+[スクリプト編集] 📝 編集ダイアログを表示します...
+[複数行テキストを編集] 関数呼び出し - タイトル: スクリプト編集 - スクリプト
+[複数行テキストを編集] 初期テキスト長: 52文字
+[複数行テキストを編集] 初期テキスト内容: [AAAA
+7-1;White;Aメッセージボックス表示;
+8-1;White;Aメッセージボックス表示;]
+[スクリプト編集] ⚠️ ユーザーがキャンセルしました

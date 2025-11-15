@@ -216,14 +216,15 @@ body::after {
     height: calc(100vh - 78px + 40px);  /* breadcrumb-barの高さ(40px)を戻す */
     overflow: hidden;
     flex-shrink: 0;
-    padding: 12px;
+    /* 上下だけ 24px、左右 0 */
+    padding: 36px 0;
     gap: 12px;
     margin-top: -40px;  /* breadcrumb-barの元のスペースを埋める */
 }
 
 /* 左パネル: Neumorphism */
 #left-panel {
-    width: 605px;  /* 550px → 605px に変更（1.1倍） */
+    width: 480px;  /* 550px → 605px に変更（1.1倍） */
     max-height: calc(100vh - 78px - 280px);  /* ヘッダー・フッター分を確保（元の値に戻す） */
     background: var(--bg-color);
     border-radius: 20px;
@@ -293,7 +294,7 @@ body::after {
 }
 
 #node-buttons-container {
-    width: 407px;  /* 370px → 407px に変更（1.1倍） */
+    width: 307px;  /* 370px → 407px に変更（1.1倍） */
     flex-shrink: 0;
     margin-left: auto;  /* 右詰めにする */
     overflow: hidden auto;  /* 横hidden、縦auto */
@@ -572,7 +573,7 @@ body::after {
     position: fixed;
     top: calc(100vh - 296px);  /* 左パネルの真下から設置（ヘッダー50px + padding12px + max-height(100vh-358px) = 100vh-296px） */
     left: 16px;
-    width: 605px;  /* 左パネルと同じ幅（550px → 605px） */
+    width: 455px;  /* 左パネルと同じ幅（550px → 605px） */
     max-height: 500px;  /* 600px → 500px に変更 */
     background: var(--bg-color);
     border-radius: 16px;
@@ -894,7 +895,7 @@ button:active, .button:active {
 /* パンくずリスト */
 .breadcrumb-bar {
     position: fixed;
-    left: 640px;  /* main-container(12px) + left-panel(605px) + gap(12px) + 余白(11px) */
+    left: 510px;  /* main-container(12px) + left-panel(605px) + gap(12px) + 余白(11px) */
     top: 50px;    /* header(50px) */
     width: 180px;
     max-height: calc(100vh - 50px - 36px - 20px);  /* 上下余白確保 */
