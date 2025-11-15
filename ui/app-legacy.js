@@ -1639,36 +1639,60 @@ async function updateParentPinkNode(addedNodes, deletedNodes = []) {
     console.log('[親ピンクノード更新] 親ピンクノードの現在のscript:', parentPinkNode.script);
 
     // ★★★ 新方式: 現在のレイヤーから完全再構築 ★★★
-    console.log('[親ピンクノード更新] 現在のレイヤーから完全再構築します');
+    console.log('[親ピンクノード更新] ========== 現在のレイヤーから完全再構築 ==========');
 
     // 現在のレイヤーのすべてのノードをY座標でソート
     const currentLayerNodes = [...layerStructure[leftVisibleLayer].nodes].sort((a, b) => a.y - b.y);
     console.log('[親ピンクノード更新] 現在のレイヤーのノード数:', currentLayerNodes.length);
     console.log('[親ピンクノード更新] ノード一覧:', currentLayerNodes.map(n => `${n.id}(${n.text})`).join(', '));
 
+    // 🔍 各ノードの詳細情報をログ出力
+    console.log('[親ピンクノード更新] 🔍 各ノードの詳細:');
+    currentLayerNodes.forEach((node, idx) => {
+        console.log(`  [${idx}] ID=${node.id}, text="${node.text}", color=${node.color}`);
+        console.log(`       scriptフィールド: ${node.script ? node.script.substring(0, 100) : '(なし)'}`);
+        // code.jsonエントリも確認
+        const codeEntry = codeData["エントリ"] ? codeData["エントリ"][`${node.id}-1`] : null;
+        console.log(`       code.jsonエントリ[${node.id}-1]: ${codeEntry ? codeEntry.substring(0, 100) : '(なし)'}`);
+    });
+
     // 全ノードからscriptを再構築（Pinkノードのscriptは含めない）
     const newScript = currentLayerNodes.map(node =>
         `${node.id};${node.color};${node.text};`
     ).join('_');
 
-    console.log('[親ピンクノード更新] 再構築後のscript:', newScript);
+    console.log('[親ピンクノード更新] 🔍 再構築後のscript:', newScript);
+    console.log('[親ピンクノード更新] ⚠️ 注意: このscriptにはメタ情報のみで、実際のコード内容は含まれていません');
 
     // 親ピンクノードのscriptを更新
+    console.log('[親ピンクノード更新] ========== 親ピンクノードscript更新 ==========');
+    console.log('[親ピンクノード更新] 更新前の親ピンクノードscript:', parentPinkNode.script);
     parentPinkNode.script = newScript;
+    console.log('[親ピンクノード更新] 更新後の親ピンクノードscript:', parentPinkNode.script);
 
     // グローバルnodesも更新
     const globalNode = nodes.find(n => n.id === parentPinkNodeId);
     if (globalNode) {
+        console.log('[親ピンクノード更新] グローバルnodesも更新します');
         globalNode.script = parentPinkNode.script;
     }
 
     // コード.jsonに保存（"AAAA\n"プレフィックス付き、改行区切り）
     const formattedEntryString = 'AAAA\n' + parentPinkNode.script.replace(/_/g, '\n');
-    console.log('[親ピンクノード更新] フォーマット後のエントリ:', formattedEntryString.substring(0, 100) + '...');
+    console.log('[親ピンクノード更新] ========== code.json保存 ==========');
+    console.log('[親ピンクノード更新] 保存するノードID:', parentPinkNodeId);
+    console.log('[親ピンクノード更新] フォーマット後のエントリ:', formattedEntryString);
+    console.log('[親ピンクノード更新] 🔍 code.jsonに保存される内容にはPowerShellコードが含まれていません');
+    console.log('[親ピンクノード更新] 🔍 子ノードの実際のコードは各ノードIDのエントリに保存されています');
 
     try {
         await setCodeEntry(parentPinkNodeId, formattedEntryString);
         console.log('[親ピンクノード更新] ✅ コード.json保存成功 - ノードID:', parentPinkNodeId);
+
+        // 🔍 保存後のcode.jsonエントリを確認
+        const savedEntry = codeData["エントリ"] ? codeData["エントリ"][`${parentPinkNodeId}-1`] : null;
+        console.log('[親ピンクノード更新] 🔍 保存後のcode.jsonエントリ確認:');
+        console.log(`  code.json["エントリ"]["${parentPinkNodeId}-1"]:`, savedEntry);
     } catch (error) {
         console.error('[親ピンクノード更新] ❌ コード.json保存エラー:', error);
         alert('親ピンクノードの更新に失敗しました。コンソールを確認してください。');
@@ -2668,24 +2692,8 @@ async function layerizeNode() {
     const entryString = deletedNodeInfo.join('_');
 
     // 赤枠ノードをグローバル配列とレイヤーから削除
-    console.log(`[レイヤー化] ========== 削除処理開始 ==========`);
-    console.log(`[レイヤー化] 対象レイヤー: ${leftVisibleLayer}`);
-    console.log(`[レイヤー化] layerNodes === layerStructure[${leftVisibleLayer}].nodes: ${layerNodes === layerStructure[leftVisibleLayer].nodes}`);
-    console.log(`[レイヤー化] 削除前: layerNodes.length = ${layerNodes.length}`);
-    console.log(`[レイヤー化] 削除前: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
-    console.log(`[レイヤー化] 削除前のグローバルノード数: ${nodes.length}`);
+    console.log(`[レイヤー化] ========== ノード削除処理開始 ==========`);
     console.log(`[レイヤー化] 削除予定ノード数: ${sortedRedNodes.length}`);
-
-    // 🔍 デバッグ: 削除前のlayerStructure全体の状態を出力
-    console.log(`[レイヤー化] 🔍 削除前のlayerStructure全体:`);
-    for (let i = 0; i <= 6; i++) {
-        const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
-    }
-    console.log(`[レイヤー化] 🔍 削除前のlayerStructure[${leftVisibleLayer}].nodes詳細:`);
-    layerStructure[leftVisibleLayer].nodes.forEach((n, idx) => {
-        console.log(`🔍   [${idx}] ID=${n.id}, text="${n.text}", color=${n.color}, layer=${n.layer}`);
-    });
 
     sortedRedNodes.forEach((node, index) => {
         console.log(`[レイヤー化] [${index + 1}/${sortedRedNodes.length}] ノード削除中: ID=${node.id}, text="${node.text}"`);
@@ -2709,21 +2717,7 @@ async function layerizeNode() {
         }
     });
 
-    console.log(`[レイヤー化] ========== 削除処理完了 ==========`);
-    console.log(`[レイヤー化] 削除後: layerNodes.length = ${layerNodes.length}`);
-    console.log(`[レイヤー化] 削除後: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
-    console.log(`[レイヤー化] 削除後のグローバルノード数: ${nodes.length}`);
-
-    // 🔍 デバッグ: 削除後のlayerStructure全体の状態を出力
-    console.log(`[レイヤー化] 🔍 削除後のlayerStructure全体:`);
-    for (let i = 0; i <= 6; i++) {
-        const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
-    }
-    console.log(`[レイヤー化] 🔍 削除後のlayerStructure[${leftVisibleLayer}].nodes詳細:`);
-    layerStructure[leftVisibleLayer].nodes.forEach((n, idx) => {
-        console.log(`🔍   [${idx}] ID=${n.id}, text="${n.text}", color=${n.color}, layer=${n.layer}`);
-    });
+    console.log(`[レイヤー化] ✅ ${sortedRedNodes.length}個のノードを削除しました`);
 
     // 新しいピンクノードを作成
     const newNodeId = nodeCounter++;
@@ -2744,53 +2738,51 @@ async function layerizeNode() {
     // グローバル配列とレイヤーに追加
     nodes.push(newNode);
     layerNodes.push(newNode);
-    console.log(`[レイヤー化] ピンクノード追加後: layerNodes.length = ${layerNodes.length}, layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
-
-    // 🔍 デバッグ: ピンクノード追加後のlayerStructure全体の状態を出力
-    console.log(`[レイヤー化] 🔍 ピンクノード追加後のlayerStructure全体:`);
-    for (let i = 0; i <= 6; i++) {
-        const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
-    }
-    console.log(`[レイヤー化] 🔍 ピンクノード追加後のlayerStructure[${leftVisibleLayer}].nodes詳細:`);
-    layerStructure[leftVisibleLayer].nodes.forEach((n, idx) => {
-        console.log(`🔍   [${idx}] ID=${n.id}, text="${n.text}", color=${n.color}, layer=${n.layer}`);
-    });
+    console.log(`[レイヤー化] ✅ 新しいピンクノード作成: ID=${newNodeId}`);
 
     // Pink選択配列を更新（PowerShell互換）
     pinkSelectionArray[leftVisibleLayer].initialY = minY;
     pinkSelectionArray[leftVisibleLayer].value = 1;
 
     // ★★★ 追加: コード.jsonにピンクノードの内容を保存 ★★★
-    console.log(`[レイヤー化] コード.jsonに保存します - ノードID: ${newNodeId}`);
-    console.log(`[レイヤー化] entryString: ${entryString}`);
+    console.log(`[レイヤー化] ========== code.json保存処理開始 ==========`);
+    console.log(`[レイヤー化] 新しいピンクノードID: ${newNodeId}`);
+    console.log(`[レイヤー化] entryString (子ノードリスト): ${entryString}`);
+
+    // 🔍 削除されたノードのcode.jsonエントリを確認
+    console.log(`[レイヤー化] 🔍 削除された各ノードのcode.jsonエントリ:`);
+    sortedRedNodes.forEach(node => {
+        const codeEntry = codeData["エントリ"] ? codeData["エントリ"][`${node.id}-1`] : null;
+        console.log(`  ノードID=${node.id} (${node.text}), code.json[${node.id}-1]: ${codeEntry ? codeEntry.substring(0, 80) + '...' : '(なし)'}`);
+    });
 
     // entryStringを "AAAA" プレフィックス付き、改行区切りに変換
     // 現在: "30-1;Pink;スクリプト;_31-1;White;処理A;_32-1;White;処理B;"
     // 変換後: "AAAA\n30-1;Pink;スクリプト;\n31-1;White;処理A;\n32-1;White;処理B;"
     const formattedEntryString = 'AAAA\n' + entryString.replace(/_/g, '\n');
-    console.log(`[レイヤー化] フォーマット後: ${formattedEntryString}`);
+    console.log(`[レイヤー化] フォーマット後のエントリ: ${formattedEntryString}`);
+    console.log(`[レイヤー化] 🔍 この内容にはメタ情報のみで、実際のコードは含まれていません`);
+    console.log(`[レイヤー化] 🔍 実際のコードは各子ノードIDのエントリに保存されています`);
 
     // コード.jsonに保存（setCodeEntry関数を使用）
     try {
         await setCodeEntry(newNodeId, formattedEntryString);
         console.log(`[レイヤー化] ✅ コード.json保存成功 - ノードID: ${newNodeId}`);
+
+        // 🔍 保存後のcode.jsonエントリを確認
+        const savedEntry = codeData["エントリ"] ? codeData["エントリ"][`${newNodeId}-1`] : null;
+        console.log(`[レイヤー化] 🔍 保存後のcode.jsonエントリ確認:`);
+        console.log(`  code.json["エントリ"]["${newNodeId}-1"]:`, savedEntry);
     } catch (error) {
         console.error(`[レイヤー化] ❌ コード.json保存エラー:`, error);
         alert('ピンクノードの保存に失敗しました。コンソールを確認してください。');
     }
+    console.log(`[レイヤー化] ========== code.json保存処理完了 ==========`);
 
     // ★★★ 追加: レイヤー2以降の場合、親ピンクノードに反映 ★★★
     if (leftVisibleLayer >= 2) {
         console.log(`[レイヤー化] ========== 親ピンクノード更新処理開始 ==========`);
-        console.log(`[レイヤー化] レイヤー${leftVisibleLayer}なので親ピンクノードに反映します`);
-        console.log(`[レイヤー化] 削除されたノード: ${sortedRedNodes.map(n => `ID=${n.id}(${n.text})`).join(', ')}`);
-        console.log(`[レイヤー化] 追加するノード: ID=${newNode.id}(${newNode.text})`);
-        console.log(`[レイヤー化] updateParentPinkNode前: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
-        console.log(`[レイヤー化] 現在のlayerStructure[${leftVisibleLayer}].nodes:`, layerStructure[leftVisibleLayer].nodes.map(n => `${n.id}(${n.text})`));
         await updateParentPinkNode([newNode], sortedRedNodes);
-        console.log(`[レイヤー化] updateParentPinkNode後: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
-        console.log(`[レイヤー化] 更新後のlayerStructure[${leftVisibleLayer}].nodes:`, layerStructure[leftVisibleLayer].nodes.map(n => `${n.id}(${n.text})`));
         console.log(`[レイヤー化] ========== 親ピンクノード更新処理完了 ==========`);
     }
 
@@ -2798,20 +2790,16 @@ async function layerizeNode() {
     updateDualPanelDisplay();
 
     // 画面を再描画（左右両パネル）
-    console.log(`[レイヤー化] renderNodesInLayer前: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
-    console.log(`[レイヤー化] renderNodesInLayer前のノードID一覧: [${layerStructure[leftVisibleLayer].nodes.map(n => `${n.id}(${n.text})`).join(', ')}]`);
     renderNodesInLayer(leftVisibleLayer, 'left');
     renderNodesInLayer(rightVisibleLayer, 'right');
 
     // memory.json自動保存
-    console.log(`[レイヤー化] saveMemoryJson前: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
     saveMemoryJson();
-    console.log(`[レイヤー化] saveMemoryJson後: layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
 
     // 矢印を再描画
     refreshAllArrows();
 
-    console.log(`[レイヤー化] レイヤー${leftVisibleLayer}: ${sortedRedNodes.length}個 → ノード${newNodeId} (スクリプト)`);
+    console.log(`[レイヤー化] ✅ 完了: レイヤー${leftVisibleLayer}の${sortedRedNodes.length}個のノード → ピンクノード${newNodeId}`);
 
     hideContextMenu();
 }
