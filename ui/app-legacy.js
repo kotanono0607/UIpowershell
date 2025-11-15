@@ -3940,64 +3940,70 @@ async function loadFolders() {
     }
 }
 
-function createFolder() {
-    const folderName = prompt('新しいフォルダ名を入力してください:');
-    if (!folderName || folderName.trim() === '') return;
+// ============================================
+// フォルダ管理（PowerShell Windows Forms版に移行）
+// ============================================
 
-    callApi('/folders', 'POST', { name: folderName.trim() })
-        .then(result => {
-            if (result.success) {
-                alert(`フォルダ「${folderName}」を作成しました。`);
-                loadFolders();
-            } else {
-                alert(`フォルダ作成に失敗しました: ${result.error}`);
-            }
-        });
+function createFolder() {
+    console.log('[フォルダ管理] createFolder() は廃止されました（PowerShell Windows Forms版に移行）');
+    console.log('[フォルダ管理] 代わりに switchFolder() を使用してください');
 }
 
-function switchFolder() {
-    document.getElementById('folder-modal').classList.add('show');
+async function switchFolder() {
+    console.log('✅ [フォルダ切替] ダイアログを開く（PowerShell Windows Forms版）');
 
-    // フォルダ一覧を表示
-    const select = document.getElementById('folder-select');
-    select.innerHTML = '';
+    try {
+        // API経由でPowerShell Windows Forms ダイアログを表示
+        const response = await fetch(`${API_BASE}/folders/switch-dialog`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
 
-    folders.forEach(folder => {
-        const option = document.createElement('option');
-        option.value = folder;
-        option.textContent = folder;
-        select.appendChild(option);
-    });
+        const result = await response.json();
+
+        if (result.cancelled) {
+            console.log('✅ [フォルダ切替] キャンセルされました');
+            return;
+        }
+
+        if (result.success) {
+            console.log('✅ [フォルダ切替] フォルダ選択完了:', result.folderName);
+
+            // フォルダが切り替えられた場合
+            if (result.switched) {
+                console.log('✅ [フォルダ切替] フォルダが切り替えられました:', result.folderName);
+                currentFolder = result.folderName;
+
+                // コード.json、variables.json、memory.jsonを再読み込み
+                await loadCodeJson();
+                await loadVariablesJson();
+                await loadExistingNodes();
+                await loadFolders();
+
+                console.log('✅ [フォルダ切替] データ再読み込み完了');
+            } else {
+                console.log('✅ [フォルダ切替] 同じフォルダが選択されました（変更なし）');
+            }
+        } else {
+            console.error('❌ [フォルダ切替] エラー:', result.error);
+            alert(`フォルダ切替エラー: ${result.error}`);
+        }
+
+    } catch (error) {
+        console.error('❌ [フォルダ切替] 予期しないエラー:', error);
+        alert(`フォルダ切替中にエラーが発生しました: ${error.message}`);
+    }
 }
 
 function closeFolderModal() {
-    document.getElementById('folder-modal').classList.remove('show');
+    console.log('[フォルダ切替] closeFolderModal() は廃止されました（PowerShell Windows Forms版に移行）');
 }
 
 async function selectFolder() {
-    const select = document.getElementById('folder-select');
-    const folderName = select.value;
-
-    if (!folderName) return;
-
-    try {
-        const result = await callApi(`/folders/${folderName}`, 'PUT');
-        if (result.success) {
-            currentFolder = folderName;
-            alert(`フォルダ「${folderName}」に切り替えました。`);
-            closeFolderModal();
-
-            // コード.json、variables.json、memory.jsonを読み込む
-            await loadCodeJson();
-            await loadVariablesJson();
-            await loadExistingNodes();
-        } else {
-            alert(`フォルダ切り替えに失敗しました: ${result.error}`);
-        }
-    } catch (error) {
-        console.error('フォルダ切り替えエラー:', error);
-        alert(`フォルダ切り替えエラー: ${error.message}`);
-    }
+    console.log('[フォルダ切替] selectFolder() は廃止されました（PowerShell Windows Forms版に移行）');
+    console.log('[フォルダ切替] 代わりに switchFolder() を使用してください');
 }
 
 // ============================================

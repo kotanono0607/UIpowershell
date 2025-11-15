@@ -179,19 +179,18 @@
     - 追加・編集・削除すべての操作をPowerShell Windows Formsダイアログ内で実行
     -->
 
-    <!-- フォルダ切替モーダル -->
-    <div id="folder-modal" class="modal">
-        <div class="modal-content">
-            <h2>フォルダ切替</h2>
-            <button class="modal-close" onclick="closeFolderModal()">×</button>
-            <div class="modal-body">
-                <select id="folder-select" size="10">
-                    <!-- フォルダ一覧が表示される -->
-                </select>
-                <button onclick="selectFolder()">選択</button>
-            </div>
-        </div>
-    </div>
+    <!-- フォルダ切替モーダル (廃止) -->
+    <!--
+    [移行完了] 2025-11-15
+    フォルダ切替UIをWeb UIモーダルからPowerShell Windows Forms版に移行しました。
+
+    変更内容:
+    - API: POST /api/folders/switch-dialog
+    - PowerShell関数: フォルダ切替を表示 (13_コードサブ汎用関数.ps1)
+    - JavaScript: switchFolder()を修正してAPI呼び出しに変更
+    - フォルダ選択と新規作成を統合ダイアログ内で実行
+    - ListBoxダブルクリックで即座に選択可能
+    -->
 
     <!-- スクリプト編集モーダル (廃止) -->
     <!--
