@@ -1069,3 +1069,235 @@ function Show-EditVariableDialog {
 
     return $null
 }
+
+
+# ============================================
+# フォルダ切替ダイアログ
+# ============================================
+function フォルダ切替を表示 {
+    <#
+    .SYNOPSIS
+    フォルダ切替ダイアログを表示（PowerShell Windows Forms版）
+
+    .DESCRIPTION
+    フォルダの一覧を表示し、選択・新規作成を行うダイアログを表示します。
+
+    .PARAMETER フォルダリスト
+    現在のフォルダリスト（配列）
+
+    .PARAMETER 現在のフォルダ
+    現在選択されているフォルダ名
+
+    .EXAMPLE
+    $result = フォルダ切替を表示 -フォルダリスト @("folder1", "folder2") -現在のフォルダ "folder1"
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [array]$フォルダリスト,
+
+        [Parameter(Mandatory = $false)]
+        [string]$現在のフォルダ = ""
+    )
+
+    Write-Host "[フォルダ切替] ========== ダイアログ開始 ==========" -ForegroundColor Cyan
+    Write-Host "[フォルダ切替] フォルダ数: $($フォルダリスト.Count)" -ForegroundColor Gray
+    Write-Host "[フォルダ切替] 現在のフォルダ: $現在のフォルダ" -ForegroundColor Gray
+
+    # フォルダリストをスクリプト変数に保存
+    $script:現在のフォルダリスト = [System.Collections.ArrayList]::new($フォルダリスト)
+    $script:選択されたフォルダ = $null
+    $script:新規作成されたフォルダ = $null
+
+    # フォーム作成
+    $フォーム = New-Object System.Windows.Forms.Form
+    $フォーム.Text = "フォルダ切替"
+    $フォーム.Size = New-Object System.Drawing.Size(500, 450)
+    $フォーム.StartPosition = "CenterScreen"
+    $フォーム.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
+    $フォーム.MaximizeBox = $false
+
+    # 説明ラベル
+    $ラベル_説明 = New-Object System.Windows.Forms.Label
+    $ラベル_説明.Text = "フォルダを選択してください:"
+    $ラベル_説明.Location = New-Object System.Drawing.Point(20, 20)
+    $ラベル_説明.AutoSize = $true
+    $フォーム.Controls.Add($ラベル_説明)
+
+    # 現在のフォルダ表示ラベル
+    if ($現在のフォルダ) {
+        $ラベル_現在 = New-Object System.Windows.Forms.Label
+        $ラベル_現在.Text = "現在のフォルダ: $現在のフォルダ"
+        $ラベル_現在.Location = New-Object System.Drawing.Point(20, 45)
+        $ラベル_現在.AutoSize = $true
+        $ラベル_現在.ForeColor = [System.Drawing.Color]::Blue
+        $フォーム.Controls.Add($ラベル_現在)
+    }
+
+    # ListBox作成（フォルダ一覧表示）
+    $リストボックス = New-Object System.Windows.Forms.ListBox
+    $リストボックス.Location = New-Object System.Drawing.Point(20, 75)
+    $リストボックス.Size = New-Object System.Drawing.Size(440, 250)
+    $リストボックス.Font = New-Object System.Drawing.Font("Consolas", 10)
+    $フォーム.Controls.Add($リストボックス)
+
+    # ListBox更新関数
+    function Update-FolderListBox {
+        $リストボックス.Items.Clear()
+        foreach ($folder in $script:現在のフォルダリスト) {
+            $リストボックス.Items.Add($folder) | Out-Null
+        }
+
+        # 現在のフォルダを選択状態にする
+        if ($現在のフォルダ -and $script:現在のフォルダリスト.Contains($現在のフォルダ)) {
+            $index = $script:現在のフォルダリスト.IndexOf($現在のフォルダ)
+            $リストボックス.SelectedIndex = $index
+        }
+
+        Write-Host "[フォルダ切替] ListBox更新: $($script:現在のフォルダリスト.Count)個のフォルダ" -ForegroundColor Gray
+    }
+
+    # 選択ボタン
+    $ボタン_選択 = New-Object System.Windows.Forms.Button
+    $ボタン_選択.Text = "選択"
+    $ボタン_選択.Location = New-Object System.Drawing.Point(20, 345)
+    $ボタン_選択.Size = New-Object System.Drawing.Size(100, 35)
+    $フォーム.Controls.Add($ボタン_選択)
+
+    # 新規作成ボタン
+    $ボタン_新規作成 = New-Object System.Windows.Forms.Button
+    $ボタン_新規作成.Text = "新規作成"
+    $ボタン_新規作成.Location = New-Object System.Drawing.Point(130, 345)
+    $ボタン_新規作成.Size = New-Object System.Drawing.Size(100, 35)
+    $フォーム.Controls.Add($ボタン_新規作成)
+
+    # キャンセルボタン
+    $ボタン_キャンセル = New-Object System.Windows.Forms.Button
+    $ボタン_キャンセル.Text = "キャンセル"
+    $ボタン_キャンセル.Location = New-Object System.Drawing.Point(360, 345)
+    $ボタン_キャンセル.Size = New-Object System.Drawing.Size(100, 35)
+    $ボタン_キャンセル.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $フォーム.Controls.Add($ボタン_キャンセル)
+
+    # 選択ボタンクリックイベント
+    $ボタン_選択.Add_Click({
+        if ($リストボックス.SelectedItem) {
+            $script:選択されたフォルダ = $リストボックス.SelectedItem.ToString()
+            Write-Host "[フォルダ切替] フォルダが選択されました: $($script:選択されたフォルダ)" -ForegroundColor Green
+            $フォーム.DialogResult = [System.Windows.Forms.DialogResult]::OK
+            $フォーム.Close()
+        } else {
+            [System.Windows.Forms.MessageBox]::Show(
+                "フォルダを選択してください。",
+                "フォルダ切替",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
+        }
+    })
+
+    # 新規作成ボタンクリックイベント
+    $ボタン_新規作成.Add_Click({
+        # 新規フォルダ名入力ダイアログ
+        $入力フォーム = New-Object System.Windows.Forms.Form
+        $入力フォーム.Text = "新しいフォルダを作成"
+        $入力フォーム.Size = New-Object System.Drawing.Size(400, 150)
+        $入力フォーム.StartPosition = "CenterParent"
+        $入力フォーム.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
+        $入力フォーム.MaximizeBox = $false
+        $入力フォーム.MinimizeBox = $false
+
+        $ラベル = New-Object System.Windows.Forms.Label
+        $ラベル.Text = "新しいフォルダ名:"
+        $ラベル.Location = New-Object System.Drawing.Point(20, 20)
+        $ラベル.AutoSize = $true
+        $入力フォーム.Controls.Add($ラベル)
+
+        $テキストボックス = New-Object System.Windows.Forms.TextBox
+        $テキストボックス.Location = New-Object System.Drawing.Point(20, 50)
+        $テキストボックス.Size = New-Object System.Drawing.Size(340, 20)
+        $入力フォーム.Controls.Add($テキストボックス)
+
+        $ボタン_OK = New-Object System.Windows.Forms.Button
+        $ボタン_OK.Text = "作成"
+        $ボタン_OK.Location = New-Object System.Drawing.Point(200, 80)
+        $ボタン_OK.Size = New-Object System.Drawing.Size(75, 25)
+        $ボタン_OK.DialogResult = [System.Windows.Forms.DialogResult]::OK
+        $入力フォーム.Controls.Add($ボタン_OK)
+
+        $ボタン_キャンセル2 = New-Object System.Windows.Forms.Button
+        $ボタン_キャンセル2.Text = "キャンセル"
+        $ボタン_キャンセル2.Location = New-Object System.Drawing.Point(285, 80)
+        $ボタン_キャンセル2.Size = New-Object System.Drawing.Size(75, 25)
+        $ボタン_キャンセル2.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+        $入力フォーム.Controls.Add($ボタン_キャンセル2)
+
+        $入力フォーム.AcceptButton = $ボタン_OK
+        $入力フォーム.CancelButton = $ボタン_キャンセル2
+
+        $result = $入力フォーム.ShowDialog()
+
+        if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+            $新しいフォルダ名 = $テキストボックス.Text.Trim()
+
+            if ([string]::IsNullOrWhiteSpace($新しいフォルダ名)) {
+                [System.Windows.Forms.MessageBox]::Show(
+                    "フォルダ名を入力してください。",
+                    "エラー",
+                    [System.Windows.Forms.MessageBoxButtons]::OK,
+                    [System.Windows.Forms.MessageBoxIcon]::Error
+                ) | Out-Null
+                return
+            }
+
+            if ($script:現在のフォルダリスト.Contains($新しいフォルダ名)) {
+                [System.Windows.Forms.MessageBox]::Show(
+                    "そのフォルダは既に存在します。",
+                    "エラー",
+                    [System.Windows.Forms.MessageBoxButtons]::OK,
+                    [System.Windows.Forms.MessageBoxIcon]::Error
+                ) | Out-Null
+                return
+            }
+
+            Write-Host "[フォルダ切替] 新しいフォルダを作成: $新しいフォルダ名" -ForegroundColor Green
+            $script:現在のフォルダリスト.Add($新しいフォルダ名) | Out-Null
+            $script:新規作成されたフォルダ = $新しいフォルダ名
+            Update-FolderListBox
+
+            # 作成したフォルダを選択状態にする
+            $index = $script:現在のフォルダリスト.IndexOf($新しいフォルダ名)
+            $リストボックス.SelectedIndex = $index
+        }
+    })
+
+    # ListBoxダブルクリックで選択
+    $リストボックス.Add_DoubleClick({
+        if ($リストボックス.SelectedItem) {
+            $script:選択されたフォルダ = $リストボックス.SelectedItem.ToString()
+            Write-Host "[フォルダ切替] フォルダが選択されました（ダブルクリック）: $($script:選択されたフォルダ)" -ForegroundColor Green
+            $フォーム.DialogResult = [System.Windows.Forms.DialogResult]::OK
+            $フォーム.Close()
+        }
+    })
+
+    # 初期表示
+    Update-FolderListBox
+
+    # ダイアログ表示
+    $ダイアログ結果 = $フォーム.ShowDialog()
+
+    Write-Host "[フォルダ切替] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
+
+    if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
+        Write-Host "[フォルダ切替] ✅ フォルダが選択されました: $($script:選択されたフォルダ)" -ForegroundColor Green
+        return @{
+            success = $true
+            action = "select"
+            folderName = $script:選択されたフォルダ
+            newFolder = $script:新規作成されたフォルダ
+        }
+    } else {
+        Write-Host "[フォルダ切替] ⚠️ キャンセルされました" -ForegroundColor Yellow
+        return $null
+    }
+}

@@ -889,6 +889,126 @@ New-PolarisRoute -Path "/api/folders/:name" -Method PUT -ScriptBlock {
     }
 }
 
+# フォルダ切替ダイアログ（PowerShell Windows Forms版）
+New-PolarisRoute -Path "/api/folders/switch-dialog" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        Write-Host "[API] /api/folders/switch-dialog - フォルダ切替ダイアログを表示" -ForegroundColor Cyan
+
+        # 現在のフォルダ一覧を取得
+        $フォルダ一覧結果 = フォルダ切替イベント_v2 -FolderName "list"
+        if (-not $フォルダ一覧結果.success) {
+            $errorResult = @{
+                success = $false
+                error = "フォルダ一覧の取得に失敗しました: $($フォルダ一覧結果.error)"
+            }
+            $json = $errorResult | ConvertTo-Json -Compress -Depth 5
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+            return
+        }
+
+        $フォルダリスト = $フォルダ一覧結果.folders
+
+        # 現在のフォルダを取得
+        $rootDir = $global:RootDirForPolaris
+        $mainJsonPath = Join-Path $rootDir "03_history\メイン.json"
+        $現在のフォルダ = ""
+
+        if (Test-Path $mainJsonPath) {
+            try {
+                $content = Get-Content $mainJsonPath -Raw -Encoding UTF8
+                $mainData = $content | ConvertFrom-Json
+                $folderPath = $mainData.フォルダパス
+                $現在のフォルダ = Split-Path -Leaf $folderPath
+                Write-Host "[API] 現在のフォルダ: $現在のフォルダ" -ForegroundColor Gray
+            } catch {
+                Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗しました: $_" -ForegroundColor Yellow
+            }
+        }
+
+        Write-Host "[API] フォルダ数: $($フォルダリスト.Count)" -ForegroundColor Gray
+
+        # 共通関数ファイルを読み込み
+        . (Join-Path $script:RootDir "13_コードサブ汎用関数.ps1")
+
+        # PowerShell Windows Forms ダイアログを表示
+        $ダイアログ結果 = フォルダ切替を表示 -フォルダリスト $フォルダリスト -現在のフォルダ $現在のフォルダ
+
+        if ($null -eq $ダイアログ結果) {
+            Write-Host "[API] フォルダ切替ダイアログがキャンセルされました" -ForegroundColor Yellow
+            $result = @{
+                success = $false
+                cancelled = $true
+                message = "フォルダ切替がキャンセルされました"
+            }
+            $json = $result | ConvertTo-Json -Compress -Depth 5
+            $Response.SetContentType('application/json; charset=utf-8')
+            $Response.Send($json)
+            return
+        }
+
+        Write-Host "[API] ダイアログ完了 - 選択されたフォルダ: $($ダイアログ結果.folderName)" -ForegroundColor Green
+
+        # 新しいフォルダが作成された場合はAPI経由で作成
+        if ($ダイアログ結果.newFolder) {
+            Write-Host "[API] 新しいフォルダを作成: $($ダイアログ結果.newFolder)" -ForegroundColor Cyan
+            $作成結果 = フォルダ作成イベント_v2 -FolderName $ダイアログ結果.newFolder
+            if (-not $作成結果.success) {
+                Write-Host "[API] ⚠️ フォルダ作成に失敗: $($作成結果.error)" -ForegroundColor Yellow
+            }
+        }
+
+        # 選択されたフォルダが現在のフォルダと異なる場合は切り替え
+        if ($ダイアログ結果.folderName -ne $現在のフォルダ) {
+            Write-Host "[API] フォルダを切り替え: $($ダイアログ結果.folderName)" -ForegroundColor Cyan
+            $切替結果 = フォルダ切替イベント_v2 -FolderName $ダイアログ結果.folderName
+
+            if ($切替結果.success) {
+                Write-Host "[API] ✅ フォルダ切り替え成功" -ForegroundColor Green
+            } else {
+                Write-Host "[API] ❌ フォルダ切り替え失敗: $($切替結果.error)" -ForegroundColor Red
+            }
+
+            # 成功レスポンス
+            $result = @{
+                success = $切替結果.success
+                cancelled = $false
+                message = "フォルダ「$($ダイアログ結果.folderName)」に切り替えました"
+                folderName = $ダイアログ結果.folderName
+                switched = $true
+                error = $切替結果.error
+            }
+        } else {
+            # 同じフォルダが選択された場合
+            Write-Host "[API] 同じフォルダが選択されました（切り替えなし）" -ForegroundColor Gray
+            $result = @{
+                success = $true
+                cancelled = $false
+                message = "フォルダ選択完了（変更なし）"
+                folderName = $ダイアログ結果.folderName
+                switched = $false
+            }
+        }
+
+        $json = $result | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+
+    } catch {
+        Write-Host "[API] ❌ エラー: $_" -ForegroundColor Red
+        Write-Host "[API] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # メイン.json読み込み（現在のフォルダパス取得）
 New-PolarisRoute -Path "/api/main-json" -Method GET -ScriptBlock {
     Set-CorsHeaders -Response $Response
