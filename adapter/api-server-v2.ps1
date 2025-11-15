@@ -1303,24 +1303,25 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method GET -ScriptBlock {
             $content = Get-Content $codePath -Raw -Encoding UTF8
             $codeData = $content | ConvertFrom-Json
 
-            # ✅ 修正: 既存のコード.jsonから読み込んだ文字列内の \n を実際の改行コードに変換
-            # PowerShellの ConvertFrom-Json は \n を文字列リテラルとして扱うため、明示的に変換が必要
+            # ✅ 修正: JSON読み込み後、LF(\n) を CRLF(\r\n) に変換
+            # ConvertFrom-Jsonは既に\nを実際のLF文字に変換しているため、LF→CRLFの変換が必要
             if ($codeData."エントリ") {
-                Write-Host "[GET /code] 🔧 改行文字列の変換を開始..." -ForegroundColor Yellow
+                Write-Host "[GET /code] 🔧 改行文字の正規化を開始（LF → CRLF）..." -ForegroundColor Yellow
                 $convertedCount = 0
                 foreach ($key in $codeData."エントリ".PSObject.Properties.Name) {
                     $originalValue = $codeData."エントリ".$key
                     if ($originalValue) {
-                        # すべてのエントリに対して \n → 改行の変換を試みる（マッチしない場合は変更なし）
-                        $newValue = $originalValue -replace '\\n', "`r`n"
+                        # LF(\n)のみをCRLF(\r\n)に変換（既にCRLFの場合は変更なし）
+                        # まず既存のCRLFをプレースホルダーに置換し、LFをCRLFに変換してから戻す
+                        $newValue = $originalValue -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
                         if ($newValue -ne $originalValue) {
                             $codeData."エントリ".$key = $newValue
                             $convertedCount++
-                            Write-Host "[GET /code]   - [$key] 変換: $($originalValue.Length)文字 → $($newValue.Length)文字" -ForegroundColor DarkGray
+                            Write-Host "[GET /code]   - [$key] LF→CRLF変換: $($originalValue.Length)文字 → $($newValue.Length)文字" -ForegroundColor DarkGray
                         }
                     }
                 }
-                Write-Host "[GET /code] ✅ $convertedCount 個のエントリで改行を変換しました" -ForegroundColor Green
+                Write-Host "[GET /code] ✅ $convertedCount 個のエントリで改行を正規化しました" -ForegroundColor Green
             }
 
             $result = @{
@@ -1428,24 +1429,25 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
             throw "codeDataが見つかりません"
         }
 
-        # ✅ 修正: JSONから読み込んだ文字列内の \n を実際の改行コードに変換
-        # PowerShellの ConvertFrom-Json は \n を文字列リテラルとして扱うため、明示的に変換が必要
+        # ✅ 修正: JSON読み込み後、LF(\n) を CRLF(\r\n) に変換
+        # ConvertFrom-Jsonは既に\nを実際のLF文字に変換しているため、LF→CRLFの変換が必要
         if ($codeData."エントリ") {
-            Write-Host "[API] 🔧 改行文字列の変換を開始..." -ForegroundColor Yellow
+            Write-Host "[API] 🔧 改行文字の正規化を開始（LF → CRLF）..." -ForegroundColor Yellow
             $convertedCount = 0
             foreach ($key in $codeData."エントリ".PSObject.Properties.Name) {
                 $originalValue = $codeData."エントリ".$key
                 if ($originalValue) {
-                    # すべてのエントリに対して \n → 改行の変換を試みる（マッチしない場合は変更なし）
-                    $newValue = $originalValue -replace '\\n', "`r`n"
+                    # LF(\n)のみをCRLF(\r\n)に変換（既にCRLFの場合は変更なし）
+                    # まず既存のCRLFをプレースホルダーに置換し、LFをCRLFに変換してから戻す
+                    $newValue = $originalValue -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
                     if ($newValue -ne $originalValue) {
                         $codeData."エントリ".$key = $newValue
                         $convertedCount++
-                        Write-Host "[API]   - [$key] 変換: $($originalValue.Length)文字 → $($newValue.Length)文字" -ForegroundColor DarkGray
+                        Write-Host "[API]   - [$key] LF→CRLF変換: $($originalValue.Length)文字 → $($newValue.Length)文字" -ForegroundColor DarkGray
                     }
                 }
             }
-            Write-Host "[API] ✅ $convertedCount 個のエントリで改行を変換しました" -ForegroundColor Green
+            Write-Host "[API] ✅ $convertedCount 個のエントリで改行を正規化しました" -ForegroundColor Green
         }
 
         Write-Host "[API] ✅ codeDataを取得しました" -ForegroundColor Green
