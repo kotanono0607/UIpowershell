@@ -954,16 +954,15 @@ button:active, .button:active {
 
     /* ===== サイズ設定 ===== */
     width: 300px;                     /* パネル幅（外枠） */
-    height: calc(100vh - 78px);       /* 高さを画面いっぱいに設定 */
+    height: calc(100vh - 86px);       /* 高さ = 画面高さ - ヘッダー(50px) - padding-top(36px) */
     min-height: 1000px;               /* 最小高さ（ノード配置スペースを縦に長く） */
-    max-height: calc(100vh - 20px);   /* 最大高さ（画面下まで広く） */
+    max-height: calc(100vh - 86px);   /* 最大高さ */
 
-    /* ===== 位置・配置設定 ===== */
-    flex-shrink: 0;
-    position: relative;
-    margin-left: 0px;     /* レイヤーパネルとの間隔なし（編集パネルに密着） */
-    margin-top: 0px;      /* 上マージン */
-    margin-bottom: 0px;   /* 下マージン */
+    /* ===== 位置・配置設定（座標指定） ===== */
+    position: fixed;      /* 固定配置（座標で指定可能） */
+    left: 1149px;         /* left-panel(605px) + gap(12px) + center-padding-left(216px) + center-padding(12px) + layer-panel(300px) + gap(4px) */
+    top: 86px;            /* header(50px) + main-container padding-top(36px) */
+    z-index: 100;         /* 他要素の上に表示 */
 
     /* ===== 内枠設定（ノード配置スペース） ===== */
     padding: 12px;        /* ★内側余白（内枠）★ この数値を変更してノード配置スペースを調整 */
