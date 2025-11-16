@@ -47,7 +47,14 @@ function debugLog(category, ...args) {
 async function writeControlLog(message) {
     const now = new Date();
     const timestamp = now.toISOString().replace('T', ' ').substring(0, 23);
-    const timeOnly = now.toTimeString().substring(0, 12); // HH:MM:SS.mmm
+
+    // 時刻をミリ秒付きでフォーマット (HH:MM:SS.mmm)
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+    const timeOnly = `${hours}:${minutes}:${seconds}.${milliseconds}`;
+
     const logMessage = `🕒 [ControlLog] [${timeOnly}] ${message}`;
 
     // ブラウザコンソールに表示（✅マーカーで重要ログとして表示）
