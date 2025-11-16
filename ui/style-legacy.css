@@ -961,11 +961,11 @@ button:active, .button:active {
     /* ===== 位置・配置設定（座標指定） ===== */
     position: fixed;      /* 固定配置（座標で指定可能） */
     left: 1149px;         /* left-panel(605px) + gap(12px) + center-padding-left(216px) + center-padding(12px) + layer-panel(300px) + gap(4px) */
-    top: 86px;            /* header(50px) + main-container padding-top(36px) */
+    top: 58px;            /* header(50px) + main-container padding-top(36px) */
     z-index: 100;         /* 他要素の上に表示 */
 
     /* ===== 内枠設定（ノード配置スペース） ===== */
-    padding: 16px;        /* ★内側余白（内枠）★ 編集パネルと統一 */
+    padding: 0px;        /* ★内側余白（内枠）★ 編集パネルと統一 */
                           /* 実質的な内側幅 = 300px - 16px × 2 = 268px */
                           /* 実質的な内側高さ = 1000px - 16px × 2 = 968px（最小）*/
 
@@ -996,7 +996,7 @@ button:active, .button:active {
 
 /* ドリルダウンパネルの編集ボタン */
 .drilldown-edit-btn {
-    padding: 5px 12px;
+    padding: 0px 0px;
     border: none;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.25);

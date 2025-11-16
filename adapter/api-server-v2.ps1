@@ -1370,7 +1370,19 @@ New-PolarisRoute -Path "/api/folders/:name/code" -Method POST -ScriptBlock {
         $folderName = $Request.Parameters.name
         Write-Host "[API] フォルダ名: $folderName" -ForegroundColor Yellow
 
-        # リクエストボディを取得
+        # $Request オブジェクトの詳細を確認
+        Write-Host "[API] ========== Request オブジェクトのデバッグ ==========" -ForegroundColor Cyan
+        Write-Host "[API] Request 型: $($Request.GetType().FullName)" -ForegroundColor Cyan
+        Write-Host "[API] Request プロパティ一覧:" -ForegroundColor Cyan
+        $Request.PSObject.Properties | ForEach-Object {
+            $propName = $_.Name
+            $propValue = try { $_.Value } catch { "Error: $($_.Exception.Message)" }
+            Write-Host "[API]   - $propName : $propValue" -ForegroundColor Gray
+        }
+        Write-Host "[API] ====================================================" -ForegroundColor Cyan
+
+        # リクエストボディを取得（ストリームは一度しか読めない可能性があるため、一度だけ読み込む）
+        Write-Host "[API] Request.Body のデバッグ開始..." -ForegroundColor Cyan
         $bodyRaw = $Request.Body
 
         if ($null -eq $bodyRaw) {
