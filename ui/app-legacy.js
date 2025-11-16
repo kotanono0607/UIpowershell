@@ -45,8 +45,10 @@ function debugLog(category, ...args) {
  * @param {string} message - ログメッセージ
  */
 async function writeControlLog(message) {
-    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 23);
-    const logMessage = `🕒 [ControlLog] ${message}`;
+    const now = new Date();
+    const timestamp = now.toISOString().replace('T', ' ').substring(0, 23);
+    const timeOnly = now.toTimeString().substring(0, 12); // HH:MM:SS.mmm
+    const logMessage = `🕒 [ControlLog] [${timeOnly}] ${message}`;
 
     // ブラウザコンソールに表示（✅マーカーで重要ログとして表示）
     console.log(logMessage);
@@ -55,7 +57,7 @@ async function writeControlLog(message) {
         await fetch(`${API_BASE}/control-log`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: `[BROWSER] ${message}` })
+            body: JSON.stringify({ message: `[BROWSER] [${timestamp}] ${message}` })
         });
     } catch (error) {
         // サーバーへの送信失敗は無視（起動初期はサーバーがまだ起動していない可能性がある）
