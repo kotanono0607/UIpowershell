@@ -639,8 +639,9 @@ function drawPanelArrows(layerId) {
 
     // ループの矢印を描画
     const loopGroups = findLoopGroups(nodes);
-    // console.log(`[デバッグ] ループグループ数: ${loopGroups.length}`);
+    console.log(`🔍 [drawPanelArrows] layerId=${layerId}, ループグループ数: ${loopGroups.length}`);
     loopGroups.forEach(group => {
+        console.log(`🔍 [drawPanelArrows] ループ矢印描画: ${group.startNode.textContent} → ${group.endNode.textContent}`);
         drawLoopArrows(ctx, group.startNode, group.endNode, containerRect);
     });
 
@@ -847,7 +848,10 @@ function findLoopGroups(nodes) {
         const text = node.textContent.trim();
         const groupId = node.dataset.groupId;
 
+        console.log(`🔍 [findLoopGroups] ノード検証: text="${text}", color=${color}, isLemonChiffon=${isLemonChiffonColor(color)}, groupId=${groupId}`);
+
         if (isLemonChiffonColor(color) && groupId) {
+            console.log(`🔍 [findLoopGroups] ✅ ループノード検出: text="${text}", groupId=${groupId}`);
             if (!groupMap.has(groupId)) {
                 groupMap.set(groupId, []);
             }
@@ -856,7 +860,9 @@ function findLoopGroups(nodes) {
     });
 
     // 各グループで開始と終了を特定
+    console.log(`🔍 [findLoopGroups] groupMap.size=${groupMap.size}`);
     groupMap.forEach((groupNodes, groupId) => {
+        console.log(`🔍 [findLoopGroups] GroupID=${groupId}, ノード数=${groupNodes.length}`);
         if (groupNodes.length === 2) {
             const sorted = groupNodes.sort((a, b) => {
                 const aRect = a.getBoundingClientRect();
@@ -864,10 +870,14 @@ function findLoopGroups(nodes) {
                 return aRect.top - bRect.top;
             });
 
+            console.log(`🔍 [findLoopGroups] ✅ ループグループ追加: ${sorted[0].textContent} → ${sorted[1].textContent}`);
             groups.push({ startNode: sorted[0], endNode: sorted[1] });
+        } else {
+            console.log(`🔍 [findLoopGroups] ⚠️ ノード数が2でない: ${groupNodes.length}`);
         }
     });
 
+    console.log(`🔍 [findLoopGroups] 最終結果: ${groups.length}グループ`);
     return groups;
 }
 
@@ -6462,7 +6472,7 @@ function showLayerInDrilldownPanel(parentNodeData) {
             btn.className = 'node-button';
 
             // デバッグ: ノードデータの確認
-            console.log(`[ドリルダウン] ノードデータ: text="${node.text}", color=${node.color}, groupId=${node.groupId}, id=${node.id}`);
+            console.log(`🔍 [ドリルダウン] ノードデータ: text="${node.text}", color=${node.color}, groupId=${node.groupId}, id=${node.id}`);
 
             // テキストの省略表示（20文字以上は省略）
             const displayText = node.text.length > 20 ? node.text.substring(0, 20) + '...' : node.text;
@@ -6478,7 +6488,9 @@ function showLayerInDrilldownPanel(parentNodeData) {
             // GroupIDを設定（ループ検出用）
             if (node.groupId !== null && node.groupId !== undefined) {
                 btn.dataset.groupId = node.groupId;
-                console.log(`[ドリルダウン] ノードにGroupID設定: text="${node.text}", groupId=${node.groupId}`);
+                console.log(`🔍 [ドリルダウン] ノードにGroupID設定: text="${node.text}", groupId=${node.groupId}`);
+            } else {
+                console.log(`🔍 [ドリルダウン] GroupIDなし: text="${node.text}", groupId=${node.groupId}`);
             }
 
             // 赤枠スタイルを適用
@@ -6539,11 +6551,13 @@ function showLayerInDrilldownPanel(parentNodeData) {
 
         // CanvasをarrowState.canvasMapに登録
         arrowState.canvasMap.set('drilldown-panel', canvas);
-        console.log('[ドリルダウン] Canvasをarrowstate.canvasMapに登録: drilldown-panel');
+        console.log('🔍 [ドリルダウン] Canvasをarrowstate.canvasMapに登録: drilldown-panel');
 
         // 矢印を描画（編集パネルと共通のdrawPanelArrows関数を使用）
         setTimeout(() => {
+            console.log('🔍 [ドリルダウン] drawPanelArrows呼び出し開始');
             drawPanelArrows('drilldown-panel');
+            console.log('🔍 [ドリルダウン] drawPanelArrows呼び出し完了');
         }, 100);
     } else if (nodeContainer) {
         nodeContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">ノードがありません</div>';
