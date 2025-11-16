@@ -63,10 +63,37 @@ Write-Host ""
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $logFile = Join-Path $logDir "api-server-v2_$timestamp.log"
 
+# コントロールログファイル（起動時からノード生成可能までのタイムスタンプ記録）
+$controlLogFile = Join-Path $logDir "control-log_$timestamp.log"
+
 # トランスクリプト開始
 Start-Transcript -Path $logFile -Append -Force
 Write-Host "[ログ] ログファイル: $logFile" -ForegroundColor Green
+Write-Host "[ログ] コントロールログ: $controlLogFile" -ForegroundColor Green
 Write-Host ""
+
+# ============================================
+# コントロールログ関数
+# ============================================
+
+function Write-ControlLog {
+    param(
+        [string]$Message,
+        [string]$LogFile = $controlLogFile
+    )
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
+    $logEntry = "[$timestamp] $Message"
+
+    # ファイルに追記
+    Add-Content -Path $LogFile -Value $logEntry -Encoding UTF8
+
+    # コンソールにも表示
+    Write-Host $logEntry -ForegroundColor Cyan
+}
+
+# 起動開始タイムスタンプ
+Write-ControlLog "[START] UIpowershell 起動開始"
 
 # ============================================
 # 1. モジュール読み込み
@@ -91,6 +118,7 @@ if (Test-Path $polarisModulePath) {
 try {
     Import-Module Polaris -ErrorAction Stop
     Write-Host "[OK] Polarisモジュールを読み込みました (Version: $(Get-Module Polaris).Version)" -ForegroundColor Green
+    Write-ControlLog "[MODULE] Polarisモジュール読み込み完了"
 } catch {
     Write-Host "[エラー] Polarisモジュールの読み込みに失敗しました" -ForegroundColor Red
     Write-Host "       詳細: $($_.Exception.Message)" -ForegroundColor Red
@@ -184,6 +212,8 @@ Write-Host "[OK] node-operations" -ForegroundColor Green
 Write-Host ""
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
+
+Write-ControlLog "[MODULE] 全モジュール読み込み完了"
 
 # ============================================
 # 2. Polaris HTTPサーバー設定
@@ -2141,6 +2171,50 @@ New-PolarisRoute -Path "/api/browser-logs" -Method POST -ScriptBlock {
     }
 }
 
+# ブラウザからのコントロールログを受信
+New-PolarisRoute -Path "/api/control-log" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        # リクエストボディを取得
+        $bodyRaw = $null
+        if ($null -eq $Request.Body) {
+            if ($Request.PSObject.Properties['BodyString']) {
+                $bodyRaw = $Request.BodyString
+            } else {
+                throw "Request.Body が null です"
+            }
+        } else {
+            $bodyRaw = $Request.Body
+        }
+
+        $body = $bodyRaw | ConvertFrom-Json
+        $message = $body.message
+
+        # コントロールログに記録
+        Write-ControlLog $message
+
+        # 成功レスポンス
+        $result = @{
+            success = $true
+            message = "ログを記録しました"
+        }
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+
+    } catch {
+        Write-Host "[コントロールログAPI] エラー: $($_.Exception.Message)" -ForegroundColor Red
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
 # ============================================
 # 4. 静的ファイル（HTML/JS）の提供設定
 # ============================================
@@ -2315,6 +2389,8 @@ try {
     Write-Host ""
     Write-Host "アクセス先: http://localhost:$Port" -ForegroundColor Cyan
     Write-Host ""
+
+    Write-ControlLog "[SERVER] APIサーバー起動成功 (ポート: $Port)"
     Write-Host "APIエンドポイント（Phase 3対応）:" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "【基本】" -ForegroundColor White

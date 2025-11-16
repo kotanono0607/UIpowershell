@@ -8,6 +8,31 @@
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
+// コントロールログ関数
+// ============================================
+
+/**
+ * コントロールログを記録（サーバーに送信）
+ * @param {string} message - ログメッセージ
+ */
+async function writeControlLog(message) {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 23);
+    const logMessage = `[BROWSER] ${message}`;
+
+    console.log(`[ControlLog] ${timestamp} ${logMessage}`);
+
+    try {
+        await fetch(`${API_BASE}/control-log`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: logMessage })
+        });
+    } catch (error) {
+        console.error('[ControlLog] サーバーへの送信失敗:', error);
+    }
+}
+
+// ============================================
 // グローバル変数
 // ============================================
 
@@ -1554,15 +1579,27 @@ function setupDialogEventListeners() {
 // 初期化
 // ============================================
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     console.log('UIpowershell Phase 4 - 初期化開始');
+
+    // コントロールログ: DOMContentLoaded
+    await writeControlLog('[INIT] DOMContentLoaded - HTMLロード完了');
+
+    // コントロールログ: React Flow初期化開始
+    await writeControlLog('[INIT] React Flow初期化開始');
 
     // React Flowを初期化
     initReactFlow();
+
+    // コントロールログ: React Flow初期化完了
+    await writeControlLog('[INIT] React Flow初期化完了');
 
     // API接続テスト
     testApiConnection();
 
     // ダイアログイベントリスナーを設定
     setupDialogEventListeners();
+
+    // コントロールログ: 初期化完了、ノード生成可能
+    await writeControlLog('[READY] 初期化完了 - ノード生成可能');
 });
