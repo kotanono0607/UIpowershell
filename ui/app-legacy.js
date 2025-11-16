@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.238';  // アプリバージョン
+const APP_VERSION = '1.0.239';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -6467,9 +6467,11 @@ function showLayerInDrilldownPanel(parentNodeData) {
     // ノードを描画（既存のrenderNodesInLayerと同じロジック）
     const nodeContainer = rightPanel.querySelector('#drilldown-nodes');
     console.log(`🔍 [ドリルダウン] nodeContainer=${nodeContainer ? '✅あり' : '❌なし'}, layerNodes.length=${layerNodes.length}`);
+    console.log(`🔍 [ドリルダウン] 条件チェック: nodeContainer=${!!nodeContainer}, layerNodes.length=${layerNodes.length}, layerNodes.length > 0=${layerNodes.length > 0}`);
+    console.log(`🔍 [ドリルダウン] 条件全体: ${!!(nodeContainer && layerNodes.length > 0)}`);
 
     if (nodeContainer && layerNodes.length > 0) {
-        console.log(`🔍 [ドリルダウン] ノード描画開始: ${layerNodes.length}個`);
+        console.log(`🔍 [ドリルダウン] ✅ IF文の中に入りました！ノード描画開始: ${layerNodes.length}個`);
         // Y座標でソート
         const sortedNodes = layerNodes.sort((a, b) => a.y - b.y);
 
