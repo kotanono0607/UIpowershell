@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.244';  // アプリバージョン
+const APP_VERSION = '1.0.245';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -2712,10 +2712,11 @@ async function layerizeNode() {
     // 最小Y位置を取得
     const minY = sortedRedNodes[0].y;
 
-    // 削除したノード情報を配列に追加（ID;色;テキスト）
+    // 削除したノード情報を配列に追加（ID;色;テキスト;groupId）
     // 注意: scriptフィールドは含めない（Pink→Pinkのネスト時に子ノード情報が重複するため）
     const deletedNodeInfo = sortedRedNodes.map(node => {
-        return `${node.id};${node.color};${node.text};`;
+        const groupIdStr = (node.groupId !== null && node.groupId !== undefined) ? node.groupId : '';
+        return `${node.id};${node.color};${node.text};${groupIdStr}`;
     });
 
     const entryString = deletedNodeInfo.join('_');
@@ -3247,9 +3248,14 @@ async function handlePinkNodeClickPopup(node) {
         const originalId = parts[0];
         const color = parts[1];
         const text = parts[2];
-        let script = parts[3] || '';
+        // parts[3]はgroupId（レイヤー化処理で保存された値）
+        const groupIdFromScript = parts[3] || '';
+        // groupIdを数値に変換（空文字列の場合はnull）
+        const groupId = groupIdFromScript ? parseInt(groupIdFromScript) : null;
+        // parts[4]以降がscript（通常は空）
+        let script = parts[4] || '';
 
-        console.warn(`🔍🔍🔍 [展開処理] originalId="${originalId}", color=${color}, text="${text}"`);
+        console.warn(`🔍🔍🔍 [展開処理] originalId="${originalId}", color=${color}, text="${text}", groupId=${groupId}`);
 
         // ピンクノードの場合、コード.jsonからscriptデータを復元
         if (color === 'Pink' && !script) {
@@ -3273,17 +3279,6 @@ async function handlePinkNodeClickPopup(node) {
 
         // Y座標を設定
         const nodeY = baseY + interval;
-
-        // 元のノードを検索してgroupIdを取得
-        console.warn(`🔍🔍🔍 [展開処理] nodes配列の長さ: ${nodes.length}`);
-        console.warn(`🔍🔍🔍 [展開処理] 検索中のoriginalId: "${originalId}" (型: ${typeof originalId})`);
-        const originalNode = nodes.find(n => {
-            console.warn(`🔍🔍🔍 [展開処理] 比較中: n.id="${n.id}" (型: ${typeof n.id}) vs originalId="${originalId}"`);
-            return n.id === originalId;
-        });
-        console.warn(`🔍🔍🔍 [展開処理] originalNode検索結果: ${originalNode ? `✅ 発見 groupId=${originalNode.groupId}` : '❌ 見つからず'}`);
-        const groupId = originalNode ? originalNode.groupId : null;
-        console.warn(`🔍🔍🔍 [展開処理] 最終groupId: ${groupId}`);
 
         // 新しいノードを作成
         const newNodeId = nodeCounter++;
