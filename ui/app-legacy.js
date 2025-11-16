@@ -36,6 +36,33 @@ function debugLog(category, ...args) {
 }
 
 // ============================================
+// コントロールログ関数
+// ============================================
+
+/**
+ * コントロールログを記録（サーバーに送信）
+ * 起動時からノード生成可能までのタイムスタンプを記録
+ * @param {string} message - ログメッセージ
+ */
+async function writeControlLog(message) {
+    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 23);
+    const logMessage = `🕒 [ControlLog] ${message}`;
+
+    // ブラウザコンソールに表示（✅マーカーで重要ログとして表示）
+    console.log(logMessage);
+
+    try {
+        await fetch(`${API_BASE}/control-log`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: `[BROWSER] ${message}` })
+        });
+    } catch (error) {
+        // サーバーへの送信失敗は無視（起動初期はサーバーがまだ起動していない可能性がある）
+    }
+}
+
+// ============================================
 // ブラウザコンソールログキャプチャ
 // ============================================
 
@@ -100,7 +127,7 @@ function wrapConsoleMethod(method, level) {
 
             // 重要なログのみを通過させる
             const importantPrefixes = [
-                '❌', '✅', '⚠'  // エラー・成功・警告マーカーのみ
+                '❌', '✅', '⚠', '🕒', '🎉'  // エラー・成功・警告・コントロールログ・完了マーカーのみ
             ];
 
             // 重要なログ以外は抑制
@@ -1334,6 +1361,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('UIpowershell Legacy UI v1.0.171 - 起動開始');
     console.log('═══════════════════════════════════════════════');
 
+    // コントロールログ: DOMContentLoaded
+    await writeControlLog('✅ [INIT] DOMContentLoaded - HTMLロード完了');
+
     // 矢印描画機能を初期化（arrow-drawing.jsの内容が統合されているため即座に利用可能）
     console.log('[矢印] Arrow drawing initialization...');
     initializeArrowCanvas();
@@ -1341,6 +1371,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.arrowDrawing.initialized = true;
     console.log('[矢印] Arrow drawing initialized successfully');
     // console.log(`[デバッグ] Canvas数: ${window.arrowDrawing.state.canvasMap.size}`);
+
+    // コントロールログ: 矢印描画初期化完了
+    await writeControlLog('✅ [INIT] 矢印描画機能の初期化完了');
 
     // ウィンドウリサイズ時に矢印を再描画
     window.addEventListener('resize', resizeCanvases);
@@ -1350,12 +1383,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // API接続テスト
     await testApiConnection();
+    await writeControlLog('✅ [INIT] APIサーバー接続テスト完了');
 
     // 左右パネル表示を初期化
     updateDualPanelDisplay();
 
     // ボタン設定.jsonを読み込み
     await loadButtonSettings();
+    await writeControlLog('✅ [INIT] ボタン設定の読み込み完了');
 
     // カテゴリーパネルにノード追加ボタンを生成（初期は無効化）
     generateAddNodeButtons();
@@ -1365,25 +1400,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ダイアログのイベントリスナー設定（DOM ready後）
     setupDialogEventListeners();
+    await writeControlLog('✅ [INIT] イベントリスナー設定完了');
 
     // 変数を読み込み
     await loadVariables();
+    await writeControlLog('✅ [INIT] 変数の読み込み完了');
 
     // フォルダ一覧を読み込み（デフォルトフォルダ自動選択）
     console.log('[初期化] フォルダ初期化を開始...');
     await loadFolders();
     console.log('[初期化] ✅ フォルダ初期化完了 - currentFolder:', currentFolder);
+    await writeControlLog('✅ [INIT] フォルダ初期化完了');
 
     // ボタンを有効化
     enableAddNodeButtons();
+    await writeControlLog('✅ [INIT] ノード追加ボタンを有効化');
 
     // 既存のノードを読み込み（memory.jsonから）
     // ※loadFolders()の後に実行（currentFolderが設定された後）
     await loadExistingNodes();
+    await writeControlLog('✅ [INIT] 既存ノードの読み込み完了');
 
     console.log('═══════════════════════════════════════════════');
     console.log(`✅ UIpowershell 初期化完了 [Version: ${APP_VERSION}]`);
     console.log('═══════════════════════════════════════════════');
+
+    // コントロールログ: 初期化完了、ノード生成可能
+    await writeControlLog('🎉 [READY] 初期化完了 - ノード生成可能');
 
     // 横スクロールバー問題のデバッグ
     setTimeout(() => {
