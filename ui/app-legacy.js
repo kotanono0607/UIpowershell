@@ -6501,6 +6501,35 @@ function showLayerInDrilldownPanel(parentNodeData) {
 
             nodeContainer.appendChild(btn);
         });
+
+        // Canvas要素を追加して矢印を描画
+        const existingCanvas = nodeContainer.querySelector('.arrow-canvas');
+        if (existingCanvas) {
+            existingCanvas.remove(); // 既存のCanvasがあれば削除
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.className = 'arrow-canvas';
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.pointerEvents = 'none'; // クリックイベントを透過
+        canvas.style.zIndex = '1'; // ノードの上に表示
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+
+        // Canvasサイズを親要素に合わせる
+        const width = Math.max(nodeContainer.clientWidth, nodeContainer.offsetWidth, nodeContainer.scrollWidth, 299);
+        const height = Math.max(nodeContainer.clientHeight, nodeContainer.offsetHeight, nodeContainer.scrollHeight, 1200);
+        canvas.width = width;
+        canvas.height = height;
+
+        nodeContainer.appendChild(canvas);
+
+        // 矢印を描画
+        setTimeout(() => {
+            drawDrilldownArrows(canvas, sortedNodes);
+        }, 100);
     } else if (nodeContainer) {
         nodeContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">ノードがありません</div>';
     }
@@ -6767,6 +6796,74 @@ function initLayerNavigation() {
     if (LOG_CONFIG.initialization) {
         console.log('[レイヤーナビゲーション] 初期化完了');
     }
+}
+
+// ドリルダウンパネルの矢印を描画
+function drawDrilldownArrows(canvas, nodes) {
+    if (!canvas || !nodes || nodes.length === 0) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Canvasをクリア
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // ノードをY座標でソート
+    const sortedNodes = [...nodes].sort((a, b) => (a.y || 0) - (b.y || 0));
+
+    // ノード間に矢印を描画
+    for (let i = 0; i < sortedNodes.length - 1; i++) {
+        const fromNode = sortedNodes[i];
+        const toNode = sortedNodes[i + 1];
+
+        // 高さが1pxのノード（セパレーター）はスキップ
+        if (fromNode.height === 1 || toNode.height === 1) {
+            continue;
+        }
+
+        // ノードの中心X座標とY座標を計算
+        const fromX = (fromNode.x || 90) + 60; // ノード幅120pxの中央
+        const fromY = fromNode.y + 40; // ノード高さ40pxの下端
+        const toX = (toNode.x || 90) + 60;
+        const toY = toNode.y;
+
+        // Auroraグラデーション矢印
+        const gradient = ctx.createLinearGradient(fromX, fromY, toX, toY);
+        gradient.addColorStop(0.0, '#667eea');
+        gradient.addColorStop(0.25, '#f472b6');
+        gradient.addColorStop(0.5, '#06b6d4');
+        gradient.addColorStop(0.75, '#10b981');
+        gradient.addColorStop(1.0, '#fbbf24');
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.stroke();
+
+        // 矢印の先端を描画
+        const arrowSize = 8;
+        const angle = Math.atan2(toY - fromY, toX - fromX);
+
+        ctx.fillStyle = '#fbbf24'; // グラデーションの最後の色
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(
+            toX - arrowSize * Math.cos(angle - Math.PI / 6),
+            toY - arrowSize * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+            toX - arrowSize * Math.cos(angle + Math.PI / 6),
+            toY - arrowSize * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    console.log(`[ドリルダウン矢印] ${sortedNodes.length - 1}本の矢印を描画`);
 }
 
 // DOMContentLoaded時に初期化
