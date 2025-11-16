@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.241';  // アプリバージョン
+const APP_VERSION = '1.0.242';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -83,7 +83,7 @@ function wrapConsoleMethod(method, level) {
 
             // LOG_CONFIG.pinkがtrueの場合、ピンク関連のログは常に表示
             const pinkRelatedPrefixes = [
-                '[ホバープレビュー]', '[ピンク展開]', '[ピンク展開ポップアップ]', '[ピンク検出]', '[ピンクノード'
+                '[ホバープレビュー]', '[ピンク展開]', '[ピンク展開ポップアップ]', '[ピンク検出]', '[ピンクノード', '[ドリルダウン]'
             ];
             const isPinkLog = pinkRelatedPrefixes.some(prefix => message.includes(prefix));
             if (LOG_CONFIG.pink && isPinkLog) {
