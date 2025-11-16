@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.239';  // アプリバージョン
+const APP_VERSION = '1.0.240';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -6474,64 +6474,73 @@ function showLayerInDrilldownPanel(parentNodeData) {
         console.log(`🔍 [ドリルダウン] ✅ IF文の中に入りました！ノード描画開始: ${layerNodes.length}個`);
         // Y座標でソート
         const sortedNodes = layerNodes.sort((a, b) => a.y - b.y);
+        console.log(`🔍 [ドリルダウン] sortedNodes.length=${sortedNodes.length}`);
 
-        sortedNodes.forEach(node => {
-            const btn = document.createElement('div');
-            btn.className = 'node-button';
+        try {
+            sortedNodes.forEach((node, index) => {
+                console.log(`🔍 [ドリルダウン] forEachループ ${index}回目開始`);
 
-            // デバッグ: ノードデータの確認
-            console.log(`🔍 [ドリルダウン] ノードデータ: text="${node.text}", color=${node.color}, groupId=${node.groupId}, id=${node.id}`);
+                const btn = document.createElement('div');
+                btn.className = 'node-button';
 
-            // テキストの省略表示（20文字以上は省略）
-            const displayText = node.text.length > 20 ? node.text.substring(0, 20) + '...' : node.text;
-            btn.textContent = displayText;
-            btn.title = node.text; // ツールチップで完全なテキストを表示
+                // デバッグ: ノードデータの確認
+                console.log(`🔍 [ドリルダウン] ノードデータ: text="${node.text}", color=${node.color}, groupId=${node.groupId}, id=${node.id}`);
 
-            btn.style.backgroundColor = getColorCode(node.color);
-            btn.style.position = 'absolute';
-            btn.style.left = `${node.x || 90}px`;
-            btn.style.top = `${node.y}px`;
-            btn.dataset.nodeId = node.id;
+                // テキストの省略表示（20文字以上は省略）
+                const displayText = node.text.length > 20 ? node.text.substring(0, 20) + '...' : node.text;
+                btn.textContent = displayText;
+                btn.title = node.text; // ツールチップで完全なテキストを表示
 
-            // GroupIDを設定（ループ検出用）
-            if (node.groupId !== null && node.groupId !== undefined) {
-                btn.dataset.groupId = node.groupId;
-                console.log(`🔍 [ドリルダウン] ノードにGroupID設定: text="${node.text}", groupId=${node.groupId}`);
-            } else {
-                console.log(`🔍 [ドリルダウン] GroupIDなし: text="${node.text}", groupId=${node.groupId}`);
-            }
+                btn.style.backgroundColor = getColorCode(node.color);
+                btn.style.position = 'absolute';
+                btn.style.left = `${node.x || 90}px`;
+                btn.style.top = `${node.y}px`;
+                btn.dataset.nodeId = node.id;
 
-            // 赤枠スタイルを適用
-            if (node.redBorder) {
-                btn.classList.add('red-border');
-            }
-
-            // 高さを設定
-            if (node.height && node.height === 1) {
-                btn.style.height = '1px';
-                btn.style.minHeight = '1px';
-                btn.style.fontSize = '0';
-            } else {
-                // ピンクノードの場合はドリルダウン可能にする
-                if (node.color === 'Pink') {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handlePinkNodeDrilldown(btn);
-                    });
-
-                    // ノードデータを要素に保存
-                    btn.nodeData = node;
+                // GroupIDを設定（ループ検出用）
+                if (node.groupId !== null && node.groupId !== undefined) {
+                    btn.dataset.groupId = node.groupId;
+                    console.log(`🔍 [ドリルダウン] ノードにGroupID設定: text="${node.text}", groupId=${node.groupId}`);
+                } else {
+                    console.log(`🔍 [ドリルダウン] GroupIDなし: text="${node.text}", groupId=${node.groupId}`);
                 }
 
-                // ダブルクリックで詳細設定を開く
-                btn.addEventListener('dblclick', () => {
-                    openNodeSettings(node);
-                });
-            }
+                // 赤枠スタイルを適用
+                if (node.redBorder) {
+                    btn.classList.add('red-border');
+                }
 
-            nodeContainer.appendChild(btn);
-        });
+                // 高さを設定
+                if (node.height && node.height === 1) {
+                    btn.style.height = '1px';
+                    btn.style.minHeight = '1px';
+                    btn.style.fontSize = '0';
+                } else {
+                    // ピンクノードの場合はドリルダウン可能にする
+                    if (node.color === 'Pink') {
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handlePinkNodeDrilldown(btn);
+                        });
+
+                        // ノードデータを要素に保存
+                        btn.nodeData = node;
+                    }
+
+                    // ダブルクリックで詳細設定を開く
+                    btn.addEventListener('dblclick', () => {
+                        openNodeSettings(node);
+                    });
+                }
+
+                nodeContainer.appendChild(btn);
+                console.log(`🔍 [ドリルダウン] forEachループ ${index}回目完了`);
+            });
+        } catch (error) {
+            console.log(`🔍 [ドリルダウン] ❌ エラー発生: ${error.message}`);
+            console.error(`🔍 [ドリルダウン] エラー詳細:`, error);
+        }
 
         console.log(`🔍 [ドリルダウン] ノード描画完了: ${sortedNodes.length}個`);
 
