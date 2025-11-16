@@ -208,8 +208,8 @@ body::after {
     height: calc(100vh - 78px + 40px);  /* breadcrumb-barの高さ(40px)を戻す */
     overflow: hidden;
     flex-shrink: 0;
-    /* 上下だけ 8px、左右 0（ドリルダウンパネル縦長化のため36px→8pxに変更） */
-    padding: 8px 0;
+    /* 上下だけ 36px、左右 0 */
+    padding: 36px 0;
     gap: 12px;
     margin-top: -40px;  /* breadcrumb-barの元のスペースを埋める */
 }
@@ -355,7 +355,7 @@ body::after {
     overflow-x: hidden;
     background: var(--bg-color);
     border-radius: 20px;
-    gap: 12px;
+    gap: 4px;   /* レイヤーパネル間の間隔を縮小（12px→4px） */
     padding: 12px 12px 12px 216px;  /* 上 右 下 左（上下16px→12pxに変更でドリルダウンパネル縦長化） */
     box-shadow:
         inset 6px 6px 12px var(--shadow-dark),
@@ -961,7 +961,7 @@ button:active, .button:active {
     /* ===== 位置・配置設定 ===== */
     flex-shrink: 0;
     position: relative;
-    margin-left: 4px;     /* レイヤーパネルとの間隔（編集パネルのすぐ横に配置） */
+    margin-left: 0px;     /* レイヤーパネルとの間隔なし（編集パネルに密着） */
     margin-top: 0px;      /* 上マージン */
     margin-bottom: 0px;   /* 下マージン */
 
