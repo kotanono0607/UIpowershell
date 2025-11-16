@@ -965,10 +965,9 @@ button:active, .button:active {
     z-index: 100;         /* 他要素の上に表示 */
 
     /* ===== 内枠設定（ノード配置スペース） ===== */
-    padding: 12px;        /* ★内側余白（内枠）★ この数値を変更してノード配置スペースを調整 */
-                          /* 実質的な内側幅 = 300px - 12px × 2 = 276px */
-                          /* 実質的な内側高さ = 1000px - 12px × 2 = 976px（最小）*/
-                          /* 例: 8px → 284px（幅）/ 984px（高さ）、16px → 268px（幅）/ 968px（高さ） */
+    padding: 16px;        /* ★内側余白（内枠）★ 編集パネルと統一 */
+                          /* 実質的な内側幅 = 300px - 16px × 2 = 268px */
+                          /* 実質的な内側高さ = 1000px - 16px × 2 = 968px（最小）*/
 
     /* ===== 表示設定 ===== */
     overflow-y: auto;
@@ -988,10 +987,10 @@ button:active, .button:active {
     box-shadow: none;
 }
 
-/* ドリルダウンパネル内のノード配置枠を画面いっぱいに */
+/* ドリルダウンパネル内のノード配置枠（編集パネルと統一） */
 .drilldown-panel .node-list-container {
     flex: 1;  /* 親の残りスペースを全て使う */
-    min-height: unset;  /* 元の700pxを解除 */
+    min-height: 700px;  /* 編集パネルと統一 */
     overflow-y: auto;
 }
 
