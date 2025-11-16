@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.240';  // アプリバージョン
+const APP_VERSION = '1.0.241';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -6406,6 +6406,11 @@ function handlePinkNodeDrilldown(nodeElement) {
 
 // ドリルダウンパネルにレイヤーを表示
 function showLayerInDrilldownPanel(parentNodeData) {
+    // デバッグ：本当にこの関数が呼ばれているか確認
+    window.DRILLDOWN_CALLED = (window.DRILLDOWN_CALLED || 0) + 1;
+    console.warn(`🔍🔍🔍 [ドリルダウン] showLayerInDrilldownPanel() 呼び出し回数: ${window.DRILLDOWN_CALLED}`);
+    console.error(`🔍🔍🔍 [ドリルダウン] 親ノード: L${parentNodeData?.layer} "${parentNodeData?.text}"`);
+
     console.log(`🔍 [ドリルダウン] 🔷 showLayerInDrilldownPanel() 呼び出し - 親ノード: L${parentNodeData.layer} "${parentNodeData.text}"`);
     console.log(`🔍 [ドリルダウン] leftVisibleLayer=${leftVisibleLayer}`);
     console.log(`🔍 [ドリルダウン] 現在のbreadcrumbStack:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
