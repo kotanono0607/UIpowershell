@@ -17,30 +17,30 @@ Write-Host ""
 $ErrorActionPreference = "Stop"
 
 # ============================================
-# 1. Polarisモジュールの確認とインストール
+# 1. Podeモジュールの確認とインストール
 # ============================================
 
-Write-Host "[1/5] Polarisモジュールを確認..." -ForegroundColor Yellow
+Write-Host "[1/5] Podeモジュールを確認..." -ForegroundColor Yellow
 
-$polarisModule = Get-Module -ListAvailable -Name Polaris | Select-Object -First 1
+$podeModule = Get-Module -ListAvailable -Name Pode | Select-Object -First 1
 
-if (-not $polarisModule) {
-    Write-Host "      Polarisがインストールされていません。インストールします..." -ForegroundColor Yellow
+if (-not $podeModule) {
+    Write-Host "      Podeがインストールされていません。インストールします..." -ForegroundColor Yellow
     try {
-        Install-Module -Name Polaris -Scope CurrentUser -Force -AllowClobber
-        $polarisModule = Get-Module -ListAvailable -Name Polaris | Select-Object -First 1
-        Write-Host "      [OK] Polarisをインストールしました" -ForegroundColor Green
+        Install-Module -Name Pode -Scope CurrentUser -Force -AllowClobber
+        $podeModule = Get-Module -ListAvailable -Name Pode | Select-Object -First 1
+        Write-Host "      [OK] Podeをインストールしました" -ForegroundColor Green
     } catch {
         Write-Host ""
-        Write-Host "[エラー] Polarisのインストールに失敗しました" -ForegroundColor Red
+        Write-Host "[エラー] Podeのインストールに失敗しました" -ForegroundColor Red
         Write-Host "詳細: $($_.Exception.Message)" -ForegroundColor Red
         Write-Host ""
         Write-Host "手動でインストールしてください:" -ForegroundColor Yellow
-        Write-Host "  Install-Module -Name Polaris -Scope CurrentUser -Force" -ForegroundColor Yellow
+        Write-Host "  Install-Module -Name Pode -Scope CurrentUser -Force" -ForegroundColor Yellow
         exit 1
     }
 } else {
-    Write-Host "      [OK] Polaris Version $($polarisModule.Version) を検出" -ForegroundColor Green
+    Write-Host "      [OK] Pode Version $($podeModule.Version) を検出" -ForegroundColor Green
 }
 
 # ============================================
@@ -90,13 +90,13 @@ foreach ($item in $itemsToCopy) {
 }
 
 # ============================================
-# 4. Polarisモジュールをコピー（重要！）
+# 4. Podeモジュールをコピー（重要！）
 # ============================================
 
-Write-Host "[4/5] Polarisモジュールをコピー（完全スタンドアロン化）..." -ForegroundColor Yellow
+Write-Host "[4/5] Podeモジュールをコピー（完全スタンドアロン化）..." -ForegroundColor Yellow
 
-$polarisSourcePath = $polarisModule.ModuleBase
-$polarisDestPath = Join-Path $distUIpowershell "Modules\Polaris"
+$podeSourcePath = $podeModule.ModuleBase
+$podeDestPath = Join-Path $distUIpowershell "Modules\Pode"
 
 # Modulesディレクトリを作成
 $modulesDir = Join-Path $distUIpowershell "Modules"
@@ -104,12 +104,12 @@ if (-not (Test-Path $modulesDir)) {
     New-Item -ItemType Directory -Path $modulesDir -Force | Out-Null
 }
 
-# Polarisモジュール全体をコピー
-Copy-Item -Path $polarisSourcePath -Destination $polarisDestPath -Recurse -Force
+# Podeモジュール全体をコピー
+Copy-Item -Path $podeSourcePath -Destination $podeDestPath -Recurse -Force
 
-Write-Host "      [OK] Polarisモジュールをコピー完了" -ForegroundColor Green
-Write-Host "      場所: $polarisDestPath" -ForegroundColor Gray
-Write-Host "      サイズ: $([math]::Round((Get-ChildItem $polarisDestPath -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB, 2)) MB" -ForegroundColor Gray
+Write-Host "      [OK] Podeモジュールをコピー完了" -ForegroundColor Green
+Write-Host "      場所: $podeDestPath" -ForegroundColor Gray
+Write-Host "      サイズ: $([math]::Round((Get-ChildItem $podeDestPath -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB, 2)) MB" -ForegroundColor Gray
 
 # ============================================
 # 5. 配布用README作成
@@ -130,7 +130,7 @@ $readmeContent = @"
 
 ## 📦 含まれるもの
 
-- Polarisモジュール (Version $($polarisModule.Version)) - 同梱済み
+- Podeモジュール (Version $($podeModule.Version)) - 同梱済み
 - React 18 + ReactDOM 18 - ローカル同梱 (約11KB + 129KB)
 - React Flow 11 - ローカル同梱 (約151KB + 7.5KB CSS)
 - 既存PowerShell関数 (70%再利用)
@@ -163,7 +163,7 @@ http://localhost:8080
 
 このパッケージは**完全オフライン対応**です：
 
-- **Polarisサーバー起動**：インターネット不要 ✅
+- **Podeサーバー起動**：インターネット不要 ✅
 - **React/ReactDOM/React Flow読み込み**：ローカルから読み込み ✅
 - **すべてのライブラリ**：ui/libs/ に同梱済み ✅
 
@@ -185,7 +185,7 @@ http://localhost:8080
 
 ## 🔒 セキュリティ
 
-- Polarisは localhost (127.0.0.1) のみリスニング
+- Podeは localhost (127.0.0.1) のみリスニング
 - 外部ネットワークからのアクセスは不可
 - データはすべてローカルに保存
 
@@ -196,8 +196,8 @@ http://localhost:8080
 ---
 
 **配布日**: $(Get-Date -Format "yyyy年MM月dd日 HH:mm")
-**Polarisバージョン**: $($polarisModule.Version)
-**ライセンス**: MIT License (Polaris), プロジェクトライセンスに準拠 (UIpowershell)
+**Podeバージョン**: $($podeModule.Version)
+**ライセンス**: MIT License (Pode), プロジェクトライセンスに準拠 (UIpowershell)
 "@
 
 $readmePath = Join-Path $distUIpowershell "配布用README.txt"
@@ -230,9 +230,9 @@ Write-Host "ファイル数: $fileCount" -ForegroundColor Yellow
 Write-Host ""
 
 Write-Host "含まれるもの:" -ForegroundColor Cyan
-Write-Host "  ✅ Polarisモジュール（完全版）" -ForegroundColor White
-Write-Host "  ✅ adapter/api-server.ps1" -ForegroundColor White
-Write-Host "  ✅ ui/index.html" -ForegroundColor White
+Write-Host "  ✅ Podeモジュール（完全版）" -ForegroundColor White
+Write-Host "  ✅ adapter/api-server-v2-pode-complete.ps1" -ForegroundColor White
+Write-Host "  ✅ ui/index-legacy.html" -ForegroundColor White
 Write-Host "  ✅ 既存PowerShell関数" -ForegroundColor White
 Write-Host "  ✅ 実行_prototype.bat" -ForegroundColor White
 Write-Host "  ✅ ドキュメント" -ForegroundColor White
