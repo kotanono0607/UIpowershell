@@ -2381,7 +2381,10 @@ Write-Host "  フロントエンド: http://localhost:$Port/index-legacy.html" -
 Write-Host ""
 
 try {
-    Start-Polaris -Port $Port -MinRunspaces 1 -MaxRunspaces 5
+    # Runspaceを事前に5つ作成して並列リクエストに対応
+    # MinRunspaces=1だと2つ目以降のリクエストでRunspace作成に1秒かかる問題を解決
+    Write-Host "Runspaceプールを作成中（MinRunspaces: 5, MaxRunspaces: 5）..." -ForegroundColor Cyan
+    Start-Polaris -Port $Port -MinRunspaces 5 -MaxRunspaces 5
 
     Write-Host "==================================" -ForegroundColor Green
     Write-Host "✓ サーバー起動成功！" -ForegroundColor Green
@@ -2390,7 +2393,7 @@ try {
     Write-Host "アクセス先: http://localhost:$Port" -ForegroundColor Cyan
     Write-Host ""
 
-    Write-ControlLog "[SERVER] APIサーバー起動成功 (ポート: $Port)"
+    Write-ControlLog "[SERVER] APIサーバー起動成功 (ポート: $Port, Runspaces: 5)"
     Write-Host "APIエンドポイント（Phase 3対応）:" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "【基本】" -ForegroundColor White
