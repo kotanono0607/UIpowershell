@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.242';  // アプリバージョン
+const APP_VERSION = '1.0.243';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3272,6 +3272,10 @@ async function handlePinkNodeClickPopup(node) {
         // Y座標を設定
         const nodeY = baseY + interval;
 
+        // 元のノードを検索してgroupIdを取得
+        const originalNode = nodes.find(n => n.id === originalId);
+        const groupId = originalNode ? originalNode.groupId : null;
+
         // 新しいノードを作成
         const newNodeId = nodeCounter++;
         const newNode = {
@@ -3285,10 +3289,11 @@ async function handlePinkNodeClickPopup(node) {
             width: nodeWidth,
             height: nodeHeight,
             script: script,
-            redBorder: false
+            redBorder: false,
+            groupId: groupId  // 🔥 元のノードからgroupIdをコピー
         };
 
-        console.log(`[展開処理] ノード作成: ID=${newNodeId}, テキスト=${text}, 色=${color}, Y=${nodeY}`);
+        console.log(`[展開処理] ノード作成: ID=${newNodeId}, テキスト=${text}, 色=${color}, Y=${nodeY}, groupId=${groupId}`);
 
         // グローバル配列とレイヤーに追加
         nodes.push(newNode);
