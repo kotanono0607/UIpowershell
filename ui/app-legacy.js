@@ -521,8 +521,8 @@ function drawRightPanelPinkArrows() {
 }
 
 function drawPanelArrows(layerId) {
-    // 右パネル（*-right）はスキップ
-    if (layerId.includes('-right')) {
+    // 右パネル（*-right）はスキップ（ただしdrilldown-panelは除く）
+    if (layerId.includes('-right') && layerId !== 'drilldown-panel') {
         return;
     }
 
@@ -531,15 +531,17 @@ function drawPanelArrows(layerId) {
     const canvas = arrowState.canvasMap.get(layerId);
     if (!canvas) {
         // 右パネルのCanvasが見つからない場合は警告を出さない
-        if (!layerId.includes('-right')) {
+        if (!layerId.includes('-right') && layerId !== 'drilldown-panel') {
             console.error(`[デバッグ] Canvas が見つかりません: ${layerId}`);
         }
         return;
     }
 
-    const layerPanel = document.getElementById(layerId);
+    // ドリルダウンパネルの場合はright-layer-panelを取得
+    const panelId = layerId === 'drilldown-panel' ? 'right-layer-panel' : layerId;
+    const layerPanel = document.getElementById(panelId);
     if (!layerPanel) {
-        if (!layerId.includes('-right')) {
+        if (!layerId.includes('-right') && layerId !== 'drilldown-panel') {
             console.error(`[デバッグ] レイヤーパネルが見つかりません: ${layerId}`);
         }
         return;
@@ -6531,9 +6533,13 @@ function showLayerInDrilldownPanel(parentNodeData) {
 
         nodeContainer.appendChild(canvas);
 
-        // 矢印を描画
+        // CanvasをarrowState.canvasMapに登録
+        arrowState.canvasMap.set('drilldown-panel', canvas);
+        console.log('[ドリルダウン] Canvasをarrowstate.canvasMapに登録: drilldown-panel');
+
+        // 矢印を描画（編集パネルと共通のdrawPanelArrows関数を使用）
         setTimeout(() => {
-            drawDrilldownArrows(canvas, sortedNodes);
+            drawPanelArrows('drilldown-panel');
         }, 100);
     } else if (nodeContainer) {
         nodeContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">ノードがありません</div>';
@@ -6803,143 +6809,7 @@ function initLayerNavigation() {
     }
 }
 
-// ドリルダウンパネルの矢印を描画（条件分岐・ループ対応版）
-function drawDrilldownArrows(canvas, nodes) {
-    if (!canvas || !nodes || nodes.length === 0) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Canvasをクリア
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // ドリルダウンパネル内のDOM要素を取得
-    const nodeContainer = canvas.closest('.node-list-container');
-    if (!nodeContainer) {
-        console.warn('[ドリルダウン矢印] node-list-containerが見つかりません');
-        return;
-    }
-
-    const domNodes = Array.from(nodeContainer.querySelectorAll('.node-button'));
-    if (domNodes.length === 0) {
-        console.log('[ドリルダウン矢印] DOMノードが見つかりません');
-        return;
-    }
-
-    // Y座標でソート
-    const sortedDomNodes = domNodes.sort((a, b) => a.offsetTop - b.offsetTop);
-
-    console.log(`[ドリルダウン矢印] DOMノード数: ${sortedDomNodes.length}`);
-
-    // 条件分岐グループを検出
-    const conditionGroups = findConditionGroups(sortedDomNodes);
-    console.log(`[ドリルダウン矢印] 条件分岐グループ数: ${conditionGroups.length}`);
-
-    // ループグループを検出
-    const loopGroups = findLoopGroups(sortedDomNodes);
-    console.log(`[ドリルダウン矢印] ループグループ数: ${loopGroups.length}`);
-
-    // 条件分岐グループに属するノードのセット
-    const nodesInConditionGroups = new Set();
-    conditionGroups.forEach(group => {
-        nodesInConditionGroups.add(group.startNode);
-        nodesInConditionGroups.add(group.endNode);
-        group.innerNodes.forEach(node => nodesInConditionGroups.add(node));
-    });
-
-    // ループグループに属するノードのセット
-    const nodesInLoopGroups = new Set();
-    loopGroups.forEach(group => {
-        nodesInLoopGroups.add(group.startNode);
-        nodesInLoopGroups.add(group.endNode);
-    });
-
-    // 条件分岐の矢印を描画
-    const containerRect = nodeContainer.getBoundingClientRect();
-    conditionGroups.forEach(group => {
-        console.log(`[ドリルダウン矢印] 条件分岐描画: ${group.startNode.textContent} → ${group.endNode.textContent}`);
-        drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect);
-    });
-
-    // ループの矢印を描画
-    loopGroups.forEach(group => {
-        console.log(`[ドリルダウン矢印] ループ描画: ${group.startNode.textContent} → ${group.endNode.textContent}`);
-        drawLoopArrows(ctx, group.startNode, group.endNode, containerRect);
-    });
-
-    // 白→白の通常矢印を描画（条件分岐やループに属していないノード間）
-    let auroraArrowCount = 0;
-    for (let i = 0; i < sortedDomNodes.length - 1; i++) {
-        const fromNode = sortedDomNodes[i];
-        const toNode = sortedDomNodes[i + 1];
-
-        // 高さが1pxのノード（セパレーター）はスキップ
-        if (fromNode.offsetHeight <= 1 || toNode.offsetHeight <= 1) {
-            continue;
-        }
-
-        // 条件分岐グループやループグループに属しているノードはスキップ
-        if (nodesInConditionGroups.has(fromNode) || nodesInConditionGroups.has(toNode)) {
-            continue;
-        }
-        if (nodesInLoopGroups.has(fromNode) || nodesInLoopGroups.has(toNode)) {
-            continue;
-        }
-
-        // 白色ノードの場合のみAuroraグラデーション矢印を描画
-        const fromColor = window.getComputedStyle(fromNode).backgroundColor;
-        const toColor = window.getComputedStyle(toNode).backgroundColor;
-
-        if (isWhiteColor(fromColor) && isWhiteColor(toColor)) {
-            const fromRect = fromNode.getBoundingClientRect();
-            const toRect = toNode.getBoundingClientRect();
-
-            const fromX = fromRect.left + fromRect.width / 2 - containerRect.left;
-            const fromY = fromRect.bottom - containerRect.top;
-            const toX = toRect.left + toRect.width / 2 - containerRect.left;
-            const toY = toRect.top - containerRect.top;
-
-            // Auroraグラデーション矢印
-            const gradient = ctx.createLinearGradient(fromX, fromY, toX, toY);
-            gradient.addColorStop(0.0, '#667eea');
-            gradient.addColorStop(0.25, '#f472b6');
-            gradient.addColorStop(0.5, '#06b6d4');
-            gradient.addColorStop(0.75, '#10b981');
-            gradient.addColorStop(1.0, '#fbbf24');
-
-            ctx.strokeStyle = gradient;
-            ctx.lineWidth = 3;
-            ctx.setLineDash([]);
-
-            ctx.beginPath();
-            ctx.moveTo(fromX, fromY);
-            ctx.lineTo(toX, toY);
-            ctx.stroke();
-
-            // 矢印の先端を描画
-            const arrowSize = 8;
-            const angle = Math.atan2(toY - fromY, toX - fromX);
-
-            ctx.fillStyle = '#fbbf24'; // グラデーションの最後の色
-            ctx.beginPath();
-            ctx.moveTo(toX, toY);
-            ctx.lineTo(
-                toX - arrowSize * Math.cos(angle - Math.PI / 6),
-                toY - arrowSize * Math.sin(angle - Math.PI / 6)
-            );
-            ctx.lineTo(
-                toX - arrowSize * Math.cos(angle + Math.PI / 6),
-                toY - arrowSize * Math.sin(angle + Math.PI / 6)
-            );
-            ctx.closePath();
-            ctx.fill();
-
-            auroraArrowCount++;
-        }
-    }
-
-    console.log(`[ドリルダウン矢印] Aurora矢印: ${auroraArrowCount}本, 条件分岐: ${conditionGroups.length}グループ, ループ: ${loopGroups.length}グループ`);
-}
+// 注: drawDrilldownArrows関数は削除され、代わりに共通のdrawPanelArrows関数を使用するようになりました
 
 // DOMContentLoaded時に初期化
 if (document.readyState === 'loading') {
