@@ -6461,6 +6461,9 @@ function showLayerInDrilldownPanel(parentNodeData) {
             const btn = document.createElement('div');
             btn.className = 'node-button';
 
+            // デバッグ: ノードデータの確認
+            console.log(`[ドリルダウン] ノードデータ: text="${node.text}", color=${node.color}, groupId=${node.groupId}, id=${node.id}`);
+
             // テキストの省略表示（20文字以上は省略）
             const displayText = node.text.length > 20 ? node.text.substring(0, 20) + '...' : node.text;
             btn.textContent = displayText;
@@ -6473,8 +6476,9 @@ function showLayerInDrilldownPanel(parentNodeData) {
             btn.dataset.nodeId = node.id;
 
             // GroupIDを設定（ループ検出用）
-            if (node.groupId) {
+            if (node.groupId !== null && node.groupId !== undefined) {
                 btn.dataset.groupId = node.groupId;
+                console.log(`[ドリルダウン] ノードにGroupID設定: text="${node.text}", groupId=${node.groupId}`);
             }
 
             // 赤枠スタイルを適用
