@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.237';  // アプリバージョン
+const APP_VERSION = '1.0.238';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -6406,12 +6406,15 @@ function handlePinkNodeDrilldown(nodeElement) {
 
 // ドリルダウンパネルにレイヤーを表示
 function showLayerInDrilldownPanel(parentNodeData) {
-    console.log(`[ドリルダウン] 🔷 showLayerInDrilldownPanel() 呼び出し - 親ノード: L${parentNodeData.layer} "${parentNodeData.text}"`);
-    console.log(`[ドリルダウン] leftVisibleLayer=${leftVisibleLayer}`);
-    console.log(`[ドリルダウン] 現在のbreadcrumbStack:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
+    console.log(`🔍 [ドリルダウン] 🔷 showLayerInDrilldownPanel() 呼び出し - 親ノード: L${parentNodeData.layer} "${parentNodeData.text}"`);
+    console.log(`🔍 [ドリルダウン] leftVisibleLayer=${leftVisibleLayer}`);
+    console.log(`🔍 [ドリルダウン] 現在のbreadcrumbStack:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
 
     const rightPanel = document.getElementById('right-layer-panel');
-    if (!rightPanel) return;
+    if (!rightPanel) {
+        console.log(`🔍 [ドリルダウン] ❌ right-layer-panel が見つかりません`);
+        return;
+    }
 
     const targetLayer = parentNodeData.layer + 1;
 
@@ -6420,11 +6423,9 @@ function showLayerInDrilldownPanel(parentNodeData) {
         ? layerStructure[targetLayer].nodes
         : [];
 
-    if (LOG_CONFIG.pink) {
-        console.log(`[ドリルダウン] レイヤー${targetLayer}のノード数: ${layerNodes.length}`);
-        if (layerNodes.length > 0) {
-            console.log(`[ドリルダウン] 最初のノード:`, layerNodes[0]);
-        }
+    console.log(`🔍 [ドリルダウン] レイヤー${targetLayer}のノード数: ${layerNodes.length}`);
+    if (layerNodes.length > 0) {
+        console.log(`🔍 [ドリルダウン] 最初のノード:`, layerNodes[0]);
     }
 
     // 空状態を解除
@@ -6432,6 +6433,8 @@ function showLayerInDrilldownPanel(parentNodeData) {
 
     // アニメーションクラス追加
     rightPanel.classList.add('slide-in');
+
+    console.log(`🔍 [ドリルダウン] rightPanel.innerHTML生成開始`);
 
     // コンテンツ生成
     const layerName = parentNodeData.text || `スクリプト${parentNodeData.layer}`;
@@ -6463,7 +6466,10 @@ function showLayerInDrilldownPanel(parentNodeData) {
 
     // ノードを描画（既存のrenderNodesInLayerと同じロジック）
     const nodeContainer = rightPanel.querySelector('#drilldown-nodes');
+    console.log(`🔍 [ドリルダウン] nodeContainer=${nodeContainer ? '✅あり' : '❌なし'}, layerNodes.length=${layerNodes.length}`);
+
     if (nodeContainer && layerNodes.length > 0) {
+        console.log(`🔍 [ドリルダウン] ノード描画開始: ${layerNodes.length}個`);
         // Y座標でソート
         const sortedNodes = layerNodes.sort((a, b) => a.y - b.y);
 
@@ -6525,12 +6531,16 @@ function showLayerInDrilldownPanel(parentNodeData) {
             nodeContainer.appendChild(btn);
         });
 
+        console.log(`🔍 [ドリルダウン] ノード描画完了: ${sortedNodes.length}個`);
+
         // Canvas要素を追加して矢印を描画
         const existingCanvas = nodeContainer.querySelector('.arrow-canvas');
         if (existingCanvas) {
+            console.log(`🔍 [ドリルダウン] 既存Canvasを削除`);
             existingCanvas.remove(); // 既存のCanvasがあれば削除
         }
 
+        console.log(`🔍 [ドリルダウン] Canvas要素作成開始`);
         const canvas = document.createElement('canvas');
         canvas.className = 'arrow-canvas';
         canvas.style.position = 'absolute';
