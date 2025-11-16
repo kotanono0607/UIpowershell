@@ -973,7 +973,7 @@ button:active, .button:active {
 
     /* ===== 表示設定 ===== */
     overflow-y: auto;
-    border-radius: 20px;
+    border-radius: 16px;    /* レイヤーパネルと同じ角丸に統一 */
     background: var(--bg-color);
     transition: all 0.4s ease;
     box-shadow:
