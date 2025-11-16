@@ -128,6 +128,26 @@ if (Test-Path $podeModulePath) {
     Write-Host "       PowerShell Galleryからのインストールを試みます..." -ForegroundColor Yellow
 }
 
+# ============================================
+# PowerShell 5.1対応: PodeモジュールのUTF-8 BOM修正
+# ============================================
+# PowerShell 5.1はUTF-8 BOMが必要なため、Podeモジュールの問題ファイルを修正
+Write-Host "PowerShell 5.1環境用にPodeモジュールを最適化しています..." -ForegroundColor Cyan
+
+$podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
+if (Test-Path $podeConsoleFile) {
+    try {
+        $content = Get-Content $podeConsoleFile -Raw -Encoding UTF8
+        $utf8BOM = New-Object System.Text.UTF8Encoding $true
+        [System.IO.File]::WriteAllText($podeConsoleFile, $content, $utf8BOM)
+        Write-Host "[OK] Podeモジュールのエンコーディングを修正しました" -ForegroundColor Green
+    } catch {
+        Write-Host "[警告] Podeモジュールの修正をスキップ: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "[情報] Podeモジュールが未インストールです（自動インストールされます）" -ForegroundColor Gray
+}
+
 try {
     Import-Module Pode -ErrorAction Stop
     Write-Host "[OK] Podeモジュールを読み込みました (Version: $((Get-Module Pode).Version))" -ForegroundColor Green
@@ -142,6 +162,20 @@ try {
     try {
         Write-Host "Install-Module -Name Pode -Scope CurrentUser -Force を実行中..." -ForegroundColor Cyan
         Install-Module -Name Pode -Scope CurrentUser -Force -AllowClobber
+
+        # PowerShell 5.1対応: インストール後にPodeモジュールを修正
+        Write-Host "Podeモジュールのエンコーディングを修正しています..." -ForegroundColor Cyan
+        $podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
+        if (Test-Path $podeConsoleFile) {
+            try {
+                $content = Get-Content $podeConsoleFile -Raw -Encoding UTF8
+                $utf8BOM = New-Object System.Text.UTF8Encoding $true
+                [System.IO.File]::WriteAllText($podeConsoleFile, $content, $utf8BOM)
+                Write-Host "[OK] Podeモジュールのエンコーディング修正完了" -ForegroundColor Green
+            } catch {
+                Write-Host "[警告] エンコーディング修正をスキップ" -ForegroundColor Yellow
+            }
+        }
 
         Import-Module Pode -ErrorAction Stop
         Write-Host "[OK] Podeのインストールと読み込みに成功しました！" -ForegroundColor Green
