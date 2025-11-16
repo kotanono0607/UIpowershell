@@ -260,6 +260,8 @@ function Set-CorsHeaders {
 
 # ヘルスチェック
 New-PolarisRoute -Path "/api/health" -Method GET -ScriptBlock {
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+
     Set-CorsHeaders -Response $Response
     $result = @{
         status = "ok"
@@ -270,6 +272,9 @@ New-PolarisRoute -Path "/api/health" -Method GET -ScriptBlock {
     $json = $result | ConvertTo-Json -Compress
     $Response.SetContentType('application/json; charset=utf-8')
     $Response.Send($json)
+
+    $sw.Stop()
+    Write-Host "⏱️ [API Timing] /health 処理時間: $($sw.ElapsedMilliseconds)ms" -ForegroundColor Yellow
 }
 
 # セッション情報取得
@@ -449,11 +454,16 @@ New-PolarisRoute -Path "/api/nodes/:id" -Method DELETE -ScriptBlock {
 
 # 変数一覧取得
 New-PolarisRoute -Path "/api/variables" -Method GET -ScriptBlock {
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+
     Set-CorsHeaders -Response $Response
     $result = Get-VariableList_v2
     $json = $result | ConvertTo-Json -Compress
     $Response.SetContentType('application/json; charset=utf-8')
     $Response.Send($json)
+
+    $sw.Stop()
+    Write-Host "⏱️ [API Timing] /variables 処理時間: $($sw.ElapsedMilliseconds)ms" -ForegroundColor Yellow
 }
 
 # 変数取得（名前指定）
