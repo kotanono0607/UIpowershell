@@ -1261,7 +1261,6 @@ function debugCanvasInfo(layerId = 'layer-1') {
     ctx.moveTo(10, 10);
     ctx.lineTo(100, 100);
     ctx.stroke();
-    console.log('テスト描画完了: 赤い線を (10,10) から (100,100) に描画しました');
 
     return canvas;
 }
