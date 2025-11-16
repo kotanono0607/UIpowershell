@@ -961,7 +961,7 @@ button:active, .button:active {
     /* ===== 位置・配置設定 ===== */
     flex-shrink: 0;
     position: relative;
-    margin-left: 12px;    /* レイヤーパネルとの間隔 */
+    margin-left: 4px;     /* レイヤーパネルとの間隔（編集パネルのすぐ横に配置） */
     margin-top: 0px;      /* 上マージン */
     margin-bottom: 0px;   /* 下マージン */
 
