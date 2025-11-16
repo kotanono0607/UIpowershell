@@ -136,7 +136,7 @@ function wrapConsoleMethod(method, level) {
 
             // 重要なログのみを通過させる
             const importantPrefixes = [
-                '❌', '✅', '⚠', '🕒', '🎉'  // エラー・成功・警告・コントロールログ・完了マーカーのみ
+                '❌', '✅', '⚠', '🕒', '🎉', '🔍'  // エラー・成功・警告・コントロールログ・完了・タイミングマーカー
             ];
 
             // 重要なログ以外は抑制
@@ -1470,9 +1470,20 @@ window.addEventListener('resize', checkScreenWidth);
 // ============================================
 
 async function testApiConnection() {
+    const t0 = performance.now();
+    console.log('🔍 [API Timing] /health リクエスト開始');
+
     try {
+        const t1 = performance.now();
         const response = await fetch(`${API_BASE}/health`);
+        const t2 = performance.now();
+        console.log(`🔍 [API Timing] /health フェッチ完了: ${(t2-t1).toFixed(1)}ms`);
+
         const data = await response.json();
+        const t3 = performance.now();
+        console.log(`🔍 [API Timing] /health JSON解析完了: ${(t3-t2).toFixed(1)}ms`);
+        console.log(`🔍 [API Timing] /health 合計: ${(t3-t0).toFixed(1)}ms`);
+
         console.log('API接続成功:', data);
         return true;
     } catch (error) {
@@ -1483,6 +1494,9 @@ async function testApiConnection() {
 }
 
 async function callApi(endpoint, method = 'GET', body = null) {
+    const t0 = performance.now();
+    console.log(`🔍 [API Timing] ${endpoint} リクエスト開始 (${method})`);
+
     const options = {
         method: method,
         headers: { 'Content-Type': 'application/json' }
@@ -1492,8 +1506,17 @@ async function callApi(endpoint, method = 'GET', body = null) {
         options.body = JSON.stringify(body);
     }
 
+    const t1 = performance.now();
     const response = await fetch(`${API_BASE}${endpoint}`, options);
-    return await response.json();
+    const t2 = performance.now();
+    console.log(`🔍 [API Timing] ${endpoint} フェッチ完了: ${(t2-t1).toFixed(1)}ms`);
+
+    const data = await response.json();
+    const t3 = performance.now();
+    console.log(`🔍 [API Timing] ${endpoint} JSON解析完了: ${(t3-t2).toFixed(1)}ms`);
+    console.log(`🔍 [API Timing] ${endpoint} 合計: ${(t3-t0).toFixed(1)}ms`);
+
+    return data;
 }
 
 // ============================================
@@ -1501,17 +1524,27 @@ async function callApi(endpoint, method = 'GET', body = null) {
 // ============================================
 
 async function loadButtonSettings() {
+    const t0 = performance.now();
     try {
         console.log('[ボタン設定] ロード開始...');
+        console.log('🔍 [API Timing] /button-settings.json リクエスト開始');
+
         // APIサーバー経由でボタン設定.jsonを読み込み
         // 注: 日本語URLのエンコード問題を避けるため、英語エイリアスを使用
+        const t1 = performance.now();
         const response = await fetch('/button-settings.json');
+        const t2 = performance.now();
+        console.log(`🔍 [API Timing] /button-settings.json フェッチ完了: ${(t2-t1).toFixed(1)}ms`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         buttonSettings = await response.json();
+        const t3 = performance.now();
+        console.log(`🔍 [API Timing] /button-settings.json JSON解析完了: ${(t3-t2).toFixed(1)}ms`);
+        console.log(`🔍 [API Timing] /button-settings.json 合計: ${(t3-t0).toFixed(1)}ms`);
+
         console.log('[ボタン設定] ✅ ロード完了:', buttonSettings.length, '個');
         console.log('[ボタン設定] 最初の3つ:', buttonSettings.slice(0, 3));
     } catch (error) {
