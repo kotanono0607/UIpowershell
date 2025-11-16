@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.243';  // アプリバージョン
+const APP_VERSION = '1.0.244';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -3249,6 +3249,8 @@ async function handlePinkNodeClickPopup(node) {
         const text = parts[2];
         let script = parts[3] || '';
 
+        console.warn(`🔍🔍🔍 [展開処理] originalId="${originalId}", color=${color}, text="${text}"`);
+
         // ピンクノードの場合、コード.jsonからscriptデータを復元
         if (color === 'Pink' && !script) {
             const savedScript = getCodeEntry(originalId);
@@ -3273,8 +3275,15 @@ async function handlePinkNodeClickPopup(node) {
         const nodeY = baseY + interval;
 
         // 元のノードを検索してgroupIdを取得
-        const originalNode = nodes.find(n => n.id === originalId);
+        console.warn(`🔍🔍🔍 [展開処理] nodes配列の長さ: ${nodes.length}`);
+        console.warn(`🔍🔍🔍 [展開処理] 検索中のoriginalId: "${originalId}" (型: ${typeof originalId})`);
+        const originalNode = nodes.find(n => {
+            console.warn(`🔍🔍🔍 [展開処理] 比較中: n.id="${n.id}" (型: ${typeof n.id}) vs originalId="${originalId}"`);
+            return n.id === originalId;
+        });
+        console.warn(`🔍🔍🔍 [展開処理] originalNode検索結果: ${originalNode ? `✅ 発見 groupId=${originalNode.groupId}` : '❌ 見つからず'}`);
         const groupId = originalNode ? originalNode.groupId : null;
+        console.warn(`🔍🔍🔍 [展開処理] 最終groupId: ${groupId}`);
 
         // 新しいノードを作成
         const newNodeId = nodeCounter++;
