@@ -376,6 +376,9 @@ Start-PodeServer {
     # CONVERTED_ROUTES.ps1内で行います（スコープ問題の回避のため）
     # ============================================
 
+    # adapterディレクトリのパスを取得
+    $adapterDir = Split-Path -Parent $PSCommandPath
+
     # エンドポイント設定
     Add-PodeEndpoint -Address localhost -Port $global:ServerPort -Protocol Http
 
