@@ -1754,8 +1754,29 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             Write-Host "[ノード関数実行] ✅ 汎用関数を読み込みました" -ForegroundColor Green
         }
 
-        . $scriptPath
-        Write-Host "[ノード関数実行] ✅ スクリプト読み込み完了" -ForegroundColor Green
+        # スクリプトを読み込み（エンコーディング自動判定）
+        # まず UTF-8 で試して、失敗したら Default (Shift-JIS) で試す
+        $scriptLoaded = $false
+        try {
+            # UTF-8 で試す
+            $scriptContent = Get-Content -Path $scriptPath -Raw -Encoding UTF8
+            Invoke-Expression $scriptContent
+            $scriptLoaded = $true
+            Write-Host "[ノード関数実行] ✅ スクリプト読み込み完了 (UTF-8)" -ForegroundColor Green
+        } catch {
+            Write-Host "[ノード関数実行] UTF-8での読み込みに失敗、Default エンコーディングで再試行..." -ForegroundColor Yellow
+        }
+
+        if (-not $scriptLoaded) {
+            try {
+                # Default (Shift-JIS) で試す
+                $scriptContent = Get-Content -Path $scriptPath -Raw -Encoding Default
+                Invoke-Expression $scriptContent
+                Write-Host "[ノード関数実行] ✅ スクリプト読み込み完了 (Default/Shift-JIS)" -ForegroundColor Green
+            } catch {
+                throw "スクリプトの読み込みに失敗しました: $_"
+            }
+        }
 
         # リクエストボディを取得
         $params = @{}
@@ -1809,6 +1830,9 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             stackTrace = $_.ScriptStackTrace
         }
         Write-Host "[ノード関数実行エラー] $($_.Exception.Message)" -ForegroundColor Red
+        if ($_.ScriptStackTrace) {
+            Write-Host "[ノード関数実行エラー] 発生場所 $($_.ScriptStackTrace)" -ForegroundColor Red
+        }
         Write-PodeJsonResponse -Value $errorResult -Depth 5
     }
 }
