@@ -5,6 +5,53 @@
 # 変換ルート数: 50個
 # ==============================================================================
 
+# ==============================================================================
+# v2ファイルとAdapterファイルをルート定義スコープ内で読み込み
+# （Podeのスレッド分離問題を回避するため）
+# ==============================================================================
+
+Write-Host "[CONVERTED_ROUTES.ps1] v2ファイルとAdapterファイルを読み込みます..." -ForegroundColor Cyan
+
+# RootDirを取得（Get-PodeStateから）
+$RootDir = Get-PodeState -Name 'RootDir'
+$adapterDir = Split-Path -Parent $PSCommandPath
+
+# Phase 2 v2ファイルを読み込み
+$v2FilesToLoad = @(
+    "12_コードメイン_コード本文_v2.ps1",
+    "10_変数機能_変数管理UI_v2.ps1",
+    "07_メインF機能_ツールバー作成_v2.ps1",
+    "08_メインF機能_メインボタン処理_v2.ps1",
+    "02-6_削除処理_v2.ps1",
+    "02-2_ネスト規制バリデーション_v2.ps1"
+)
+
+foreach ($file in $v2FilesToLoad) {
+    $filePath = Join-Path $RootDir $file
+    if (Test-Path $filePath) {
+        . $filePath
+        Write-Host "  [OK] $file" -ForegroundColor Green
+    } else {
+        Write-Host "  [警告] $file が見つかりません" -ForegroundColor Yellow
+    }
+}
+
+# Phase 3 Adapterファイルを読み込み
+$adapterFiles = @("state-manager.ps1", "node-operations.ps1")
+
+foreach ($file in $adapterFiles) {
+    $filePath = Join-Path $adapterDir $file
+    if (Test-Path $filePath) {
+        . $filePath
+        Write-Host "  [OK] $file" -ForegroundColor Green
+    } else {
+        Write-Host "  [警告] $file が見つかりません" -ForegroundColor Yellow
+    }
+}
+
+Write-Host "[CONVERTED_ROUTES.ps1] 全関数の読み込み完了！" -ForegroundColor Green
+Write-Host ""
+
 # ------------------------------
 # ヘルスチェック
 # ------------------------------
