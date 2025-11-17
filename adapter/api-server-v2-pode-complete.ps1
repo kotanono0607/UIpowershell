@@ -151,26 +151,15 @@ if (Test-Path $podeConsoleFile) {
             $lineNumber++
             $originalLine = $line
 
-            # 460-470行目を直接修正（エラー発生範囲）
+            # 460-470行目を直接修正（エラー発生範囲）- コメントを完全削除
             if ($lineNumber -ge 460 -and $lineNumber -le 470) {
-                # この範囲の全コメントから非ASCII文字を削除
                 if ($line -match '(.*)#(.*)') {
                     $codePart = $Matches[1]
-                    $commentPart = $Matches[2]
-
-                    # コメント内のバイトを調べて非ASCII文字を削除
-                    $cleanComment = ""
-                    foreach ($char in $commentPart.ToCharArray()) {
-                        $charCode = [int][char]$char
-                        if ($charCode -ge 0 -and $charCode -le 127) {
-                            $cleanComment += $char
-                        } else {
-                            # 非ASCII文字は空白に置換（完全に削除すると構文が壊れる可能性）
-                            $cleanComment += " "
-                            $replacedCount++
-                        }
+                    # コメントを完全削除して構文エラーを回避
+                    $line = $codePart.TrimEnd()
+                    if ($line -ne $originalLine) {
+                        $replacedCount++
                     }
-                    $line = $codePart + "#" + $cleanComment
                 }
             } else {
                 # 他の行も念のため処理
@@ -241,26 +230,15 @@ try {
                     $lineNumber++
                     $originalLine = $line
 
-                    # 460-470行目を直接修正（エラー発生範囲）
+                    # 460-470行目を直接修正（エラー発生範囲）- コメントを完全削除
                     if ($lineNumber -ge 460 -and $lineNumber -le 470) {
-                        # この範囲の全コメントから非ASCII文字を削除
                         if ($line -match '(.*)#(.*)') {
                             $codePart = $Matches[1]
-                            $commentPart = $Matches[2]
-
-                            # コメント内のバイトを調べて非ASCII文字を削除
-                            $cleanComment = ""
-                            foreach ($char in $commentPart.ToCharArray()) {
-                                $charCode = [int][char]$char
-                                if ($charCode -ge 0 -and $charCode -le 127) {
-                                    $cleanComment += $char
-                                } else {
-                                    # 非ASCII文字は空白に置換
-                                    $cleanComment += " "
-                                    $replacedCount++
-                                }
+                            # コメントを完全削除して構文エラーを回避
+                            $line = $codePart.TrimEnd()
+                            if ($line -ne $originalLine) {
+                                $replacedCount++
                             }
-                            $line = $codePart + "#" + $cleanComment
                         }
                     } else {
                         # 他の行も念のため処理

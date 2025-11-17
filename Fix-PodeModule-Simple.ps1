@@ -64,24 +64,15 @@ try {
         $lineNumber++
         $originalLine = $line
 
-        # Target lines 460-470 (error range)
+        # Target lines 460-470 (error range) - remove problematic comments entirely
         if ($lineNumber -ge 460 -and $lineNumber -le 470) {
             if ($line -match '(.*)#(.*)') {
                 $codePart = $Matches[1]
-                $commentPart = $Matches[2]
-
-                # Remove non-ASCII characters from comments
-                $cleanComment = ""
-                foreach ($char in $commentPart.ToCharArray()) {
-                    $charCode = [int][char]$char
-                    if ($charCode -ge 0 -and $charCode -le 127) {
-                        $cleanComment += $char
-                    } else {
-                        $cleanComment += " "
-                        $replacedCount++
-                    }
+                # Remove comment entirely to avoid syntax errors
+                $line = $codePart.TrimEnd()
+                if ($line -ne $originalLine) {
+                    $replacedCount++
                 }
-                $line = $codePart + "#" + $cleanComment
             }
         } else {
             # Process other lines
