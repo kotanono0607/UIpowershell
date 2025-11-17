@@ -379,16 +379,20 @@ Write-Host "  URL: http://localhost:$Port" -ForegroundColor White
 Write-Host "  フロントエンド: http://localhost:$Port/index-legacy.html" -ForegroundColor Cyan
 Write-Host ""
 
+# PowerShell 5.1互換: スクリプトスコープ変数を定義（$using:は使用不可）
+$script:ServerPort = $Port
+$script:ShouldOpenBrowser = $AutoOpenBrowser
+
 # Start-PodeServer でサーバー設定とルート定義を行う
 Start-PodeServer {
 
     # エンドポイント設定
-    Add-PodeEndpoint -Address localhost -Port $using:Port -Protocol Http
+    Add-PodeEndpoint -Address localhost -Port $script:ServerPort -Protocol Http
 
     # ロギング設定
     New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging
 
-    Write-ControlLog "[SERVER] Podeサーバーエンドポイント設定完了 (ポート: $using:Port)"
+    Write-ControlLog "[SERVER] Podeサーバーエンドポイント設定完了 (ポート: $script:ServerPort)"
 
     # CORS設定（すべてのオリジンを許可）
     Add-PodeCors -Name 'AllowAll' -Origin '*' -Methods 'GET, POST, PUT, DELETE, OPTIONS' -Headers 'Content-Type, Authorization'
@@ -421,10 +425,10 @@ Start-PodeServer {
     Write-Host "✓ Podeサーバー起動成功！" -ForegroundColor Green
     Write-Host "==================================" -ForegroundColor Green
     Write-Host ""
-    Write-Host "アクセス先: http://localhost:$using:Port" -ForegroundColor Cyan
+    Write-Host "アクセス先: http://localhost:$script:ServerPort" -ForegroundColor Cyan
     Write-Host ""
 
-    Write-ControlLog "[SERVER] Podeサーバー起動成功 (ポート: $using:Port)"
+    Write-ControlLog "[SERVER] Podeサーバー起動成功 (ポート: $script:ServerPort)"
 
     Write-Host "APIエンドポイント（Phase 3対応）:" -ForegroundColor Yellow
     Write-Host ""
@@ -480,9 +484,9 @@ Start-PodeServer {
     Write-Host ""
 
     # ブラウザ自動起動（Edge専用 - Chrome分離）
-    if ($using:AutoOpenBrowser) {
+    if ($script:ShouldOpenBrowser) {
         Start-Sleep -Seconds 1
-        $url = "http://localhost:$using:Port/index-legacy.html"
+        $url = "http://localhost:$script:ServerPort/index-legacy.html"
 
         # Microsoft Edge専用で起動（Chromeと分離）
         $edgePaths = @(
