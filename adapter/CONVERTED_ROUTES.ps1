@@ -1754,13 +1754,17 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             Write-Host "[ノード関数実行] ✅ 汎用関数を読み込みました" -ForegroundColor Green
         }
 
+        # スクリプトのディレクトリを取得（$PSScriptRoot の置換に使用）
+        $scriptDir = Split-Path -Parent $scriptPath
+        Write-Host "[ノード関数実行] 📁 スクリプトディレクトリ: $scriptDir" -ForegroundColor Cyan
+
         # スクリプトを読み込み（エンコーディング自動判定）
         # まず UTF-8 で試して、失敗したら Default (Shift-JIS) で試す
+        $scriptContent = $null
         $scriptLoaded = $false
         try {
             # UTF-8 で試す
             $scriptContent = Get-Content -Path $scriptPath -Raw -Encoding UTF8
-            Invoke-Expression $scriptContent
             $scriptLoaded = $true
             Write-Host "[ノード関数実行] ✅ スクリプト読み込み完了 (UTF-8)" -ForegroundColor Green
         } catch {
@@ -1771,18 +1775,21 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             try {
                 # Default (Shift-JIS) で試す
                 $scriptContent = Get-Content -Path $scriptPath -Raw -Encoding Default
-                Invoke-Expression $scriptContent
+                $scriptLoaded = $true
                 Write-Host "[ノード関数実行] ✅ スクリプト読み込み完了 (Default/Shift-JIS)" -ForegroundColor Green
             } catch {
                 throw "スクリプトの読み込みに失敗しました: $_"
             }
         }
 
-        # スクリプトのディレクトリを $PSScriptRoot として設定（スクリプト内で使用されるため）
-        $scriptDir = Split-Path -Parent $scriptPath
-        $global:PSScriptRoot = $scriptDir
-        $script:PSScriptRoot = $scriptDir
-        Write-Host "[ノード関数実行] 📁 `$PSScriptRoot を設定: $scriptDir" -ForegroundColor Cyan
+        # $PSScriptRoot の参照を実際のパスで置換（関数内で使用できるようにする）
+        # PowerShell の自動変数 $PSScriptRoot は Invoke-Expression では動作しないため
+        $scriptDirEscaped = $scriptDir -replace '\\', '\\'
+        $scriptContent = $scriptContent -replace '\$PSScriptRoot', "'$scriptDirEscaped'"
+        Write-Host "[ノード関数実行] 🔄 `$PSScriptRoot を '$scriptDir' で置換" -ForegroundColor Cyan
+
+        # スクリプトを実行して関数を定義
+        Invoke-Expression $scriptContent
 
         # リクエストボディを取得
         $params = @{}
