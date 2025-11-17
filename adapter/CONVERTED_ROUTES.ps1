@@ -99,6 +99,7 @@ if (-not (Get-Command Get-VariableList_v2 -ErrorAction SilentlyContinue)) {
     $adapterDir = Get-PodeState -Name 'AdapterDir'
 
     . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
     . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
     . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
     . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -204,6 +205,7 @@ Add-PodeRoute -Method Delete -Path "/api/nodes/all" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -269,6 +271,7 @@ Add-PodeRoute -Method Delete -Path "/api/nodes/:id" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -309,6 +312,7 @@ Add-PodeRoute -Method Get -Path "/api/variables" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -337,6 +341,7 @@ Add-PodeRoute -Method Get -Path "/api/variables/:name" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -370,6 +375,7 @@ Add-PodeRoute -Method Post -Path "/api/variables" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -403,6 +409,7 @@ Add-PodeRoute -Method Put -Path "/api/variables/:name" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -437,6 +444,7 @@ Add-PodeRoute -Method Delete -Path "/api/variables/:name" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -470,6 +478,7 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -616,6 +625,7 @@ Add-PodeRoute -Method Get -Path "/api/menu/structure" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -639,6 +649,7 @@ Add-PodeRoute -Method Post -Path "/api/menu/action/:actionId" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -676,6 +687,7 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -861,6 +873,7 @@ Add-PodeRoute -Method Get -Path "/api/folders" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -884,6 +897,7 @@ Add-PodeRoute -Method Post -Path "/api/folders" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -917,6 +931,7 @@ Add-PodeRoute -Method Put -Path "/api/folders/:name" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -950,6 +965,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
@@ -1484,6 +1500,7 @@ Add-PodeRoute -Method Post -Path "/api/validate/drop" -ScriptBlock {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
         . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
         . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
