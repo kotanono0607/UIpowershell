@@ -386,11 +386,29 @@ Start-PodeServer {
         "02-2_ネスト規制バリデーション_v2.ps1"
     )
 
+    # v2ファイルで定義される関数をグローバルスコープにエクスポート
     foreach ($file in $v2FilesToLoad) {
         $filePath = Join-Path $global:RootDir $file
         if (Test-Path $filePath) {
+            # 現在の関数リストを取得（読み込み前）
+            $beforeFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
+
+            # ファイルを読み込み
             . $filePath
-            Write-Host "[OK] $file" -ForegroundColor Green
+
+            # 新しく定義された関数を取得
+            $afterFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
+            $newFunctions = $afterFunctions | Where-Object { $_ -notin $beforeFunctions }
+
+            # 新しい関数をグローバルスコープに再定義
+            foreach ($funcName in $newFunctions) {
+                if (Test-Path "function:$funcName") {
+                    $funcDef = Get-Content "function:$funcName"
+                    Set-Item -Path "function:global:$funcName" -Value $funcDef -Force
+                }
+            }
+
+            Write-Host "[OK] $file (関数をグローバルスコープにエクスポート)" -ForegroundColor Green
         } else {
             Write-Host "[警告] $file が見つかりません" -ForegroundColor Yellow
         }
@@ -400,20 +418,36 @@ Start-PodeServer {
 
     $adapterDir = Split-Path -Parent $PSCommandPath
 
-    $stateManagerPath = Join-Path $adapterDir "state-manager.ps1"
-    if (Test-Path $stateManagerPath) {
-        . $stateManagerPath
-        Write-Host "[OK] state-manager.ps1" -ForegroundColor Green
-    } else {
-        Write-Host "[警告] state-manager.ps1 が見つかりません" -ForegroundColor Yellow
-    }
+    # Adapterファイルもグローバルスコープにエクスポート
+    $adapterFiles = @(
+        @{ Name = "state-manager.ps1"; Path = (Join-Path $adapterDir "state-manager.ps1") },
+        @{ Name = "node-operations.ps1"; Path = (Join-Path $adapterDir "node-operations.ps1") }
+    )
 
-    $nodeOpsPath = Join-Path $adapterDir "node-operations.ps1"
-    if (Test-Path $nodeOpsPath) {
-        . $nodeOpsPath
-        Write-Host "[OK] node-operations.ps1" -ForegroundColor Green
-    } else {
-        Write-Host "[警告] node-operations.ps1 が見つかりません" -ForegroundColor Yellow
+    foreach ($adapterFile in $adapterFiles) {
+        if (Test-Path $adapterFile.Path) {
+            # 現在の関数リストを取得（読み込み前）
+            $beforeFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
+
+            # ファイルを読み込み
+            . $adapterFile.Path
+
+            # 新しく定義された関数を取得
+            $afterFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
+            $newFunctions = $afterFunctions | Where-Object { $_ -notin $beforeFunctions }
+
+            # 新しい関数をグローバルスコープに再定義
+            foreach ($funcName in $newFunctions) {
+                if (Test-Path "function:$funcName") {
+                    $funcDef = Get-Content "function:$funcName"
+                    Set-Item -Path "function:global:$funcName" -Value $funcDef -Force
+                }
+            }
+
+            Write-Host "[OK] $($adapterFile.Name) (関数をグローバルスコープにエクスポート)" -ForegroundColor Green
+        } else {
+            Write-Host "[警告] $($adapterFile.Name) が見つかりません" -ForegroundColor Yellow
+        }
     }
 
     Write-Host "[OK] 全v2関数とAdapter関数を読み込みました" -ForegroundColor Green
