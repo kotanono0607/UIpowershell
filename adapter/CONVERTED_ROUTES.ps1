@@ -81,6 +81,41 @@ if ($newFunctions.Count -gt 0) {
 }
 Write-Host ""
 
+# ==============================================================================
+# 【重要】Podeランスペース分離問題の解決策
+# ==============================================================================
+# 問題: Add-PodeRoute -ScriptBlock は独立したランスペースで実行され、
+#       親スコープのグローバル関数にアクセスできない
+#
+# 解決策: 各スクリプトブロック内で必要なファイルをドットソースする
+#         パフォーマンス最適化のため、既に読み込まれているかチェック
+# ==============================================================================
+
+# 共通初期化コード（文字列として定義）
+$script:InitCode = @'
+# v2関数の初期化（未読み込みの場合のみ）
+if (-not (Get-Command Get-VariableList_v2 -ErrorAction SilentlyContinue)) {
+    $RootDir = Get-PodeState -Name 'RootDir'
+    $adapterDir = Get-PodeState -Name 'AdapterDir'
+
+    . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+    . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+    . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+    . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+    . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+    . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+    . (Join-Path $adapterDir "state-manager.ps1")
+    . (Join-Path $adapterDir "node-operations.ps1")
+}
+'@
+
+# AdapterDirをPode Stateに保存（各スクリプトブロックからアクセス可能にする）
+$adapterDir = Split-Path -Parent $PSCommandPath
+Set-PodeState -Name 'AdapterDir' -Value $adapterDir
+
+Write-Host "[情報] Podeランスペース用の共通初期化コードを準備しました" -ForegroundColor Cyan
+Write-Host ""
+
 # ------------------------------
 # ヘルスチェック
 # ------------------------------
@@ -238,6 +273,20 @@ Add-PodeRoute -Method Delete -Path "/api/nodes/:id" -ScriptBlock {
 # 変数一覧取得
 # ------------------------------
 Add-PodeRoute -Method Get -Path "/api/variables" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command Get-VariableList_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
 
     $result = Get-VariableList_v2
@@ -654,6 +703,20 @@ Add-PodeRoute -Method Post -Path "/api/execute/script" -ScriptBlock {
 # フォルダ一覧取得
 # ------------------------------
 Add-PodeRoute -Method Get -Path "/api/folders" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command フォルダ切替イベント_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     $result = フォルダ切替イベント_v2 -FolderName "list"
     Write-PodeJsonResponse -Value $result
 }
@@ -662,6 +725,20 @@ Add-PodeRoute -Method Get -Path "/api/folders" -ScriptBlock {
 # フォルダ作成
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/folders" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command フォルダ作成イベント_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         $body = $WebEvent.Data
         $result = フォルダ作成イベント_v2 -FolderName $body.name
