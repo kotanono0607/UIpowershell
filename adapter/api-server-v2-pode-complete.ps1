@@ -138,6 +138,14 @@ $podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.
 if (Test-Path $podeConsoleFile) {
     try {
         $content = Get-Content $podeConsoleFile -Raw -Encoding UTF8
+
+        # PowerShell 5.1で問題を起こす特殊文字をコメントから削除
+        # Box Drawing文字や特殊なハイフン文字を標準のハイフンに置換
+        $content = $content -replace "[\u2500-\u257F]", "-"  # Box Drawing characters
+        $content = $content -replace "[\u2010-\u2015]", "-"  # Various dashes
+        $content = $content -replace "[\u2212]", "-"         # Minus sign
+
+        # UTF-8 BOMで保存
         $utf8BOM = New-Object System.Text.UTF8Encoding $true
         [System.IO.File]::WriteAllText($podeConsoleFile, $content, $utf8BOM)
         Write-Host "[OK] Podeモジュールのエンコーディングを修正しました" -ForegroundColor Green
@@ -169,6 +177,14 @@ try {
         if (Test-Path $podeConsoleFile) {
             try {
                 $content = Get-Content $podeConsoleFile -Raw -Encoding UTF8
+
+                # PowerShell 5.1で問題を起こす特殊文字をコメントから削除
+                # Box Drawing文字や特殊なハイフン文字を標準のハイフンに置換
+                $content = $content -replace "[\u2500-\u257F]", "-"  # Box Drawing characters
+                $content = $content -replace "[\u2010-\u2015]", "-"  # Various dashes
+                $content = $content -replace "[\u2212]", "-"         # Minus sign
+
+                # UTF-8 BOMで保存
                 $utf8BOM = New-Object System.Text.UTF8Encoding $true
                 [System.IO.File]::WriteAllText($podeConsoleFile, $content, $utf8BOM)
                 Write-Host "[OK] Podeモジュールのエンコーディング修正完了" -ForegroundColor Green
