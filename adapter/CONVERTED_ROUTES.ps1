@@ -198,6 +198,20 @@ Add-PodeRoute -Method Post -Path "/api/nodes" -ScriptBlock {
 # すべてのノードを削除
 # ------------------------------
 Add-PodeRoute -Method Delete -Path "/api/nodes/all" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command すべてのノードを削除_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
     Write-Host "[API] 🔥 DELETE /api/nodes/all エンドポイントが呼ばれました！" -ForegroundColor Magenta
     Write-Host "[API] 🔍 Request.Method: $($WebEvent.Method)" -ForegroundColor Cyan
@@ -504,6 +518,20 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
 # メニュー構造取得
 # ------------------------------
 Add-PodeRoute -Method Get -Path "/api/menu/structure" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command Get-MenuStructure_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     $result = Get-MenuStructure_v2
     Write-PodeJsonResponse -Value $result
 }
@@ -512,6 +540,20 @@ Add-PodeRoute -Method Get -Path "/api/menu/structure" -ScriptBlock {
 # メニューアクション実行
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/menu/action/:actionId" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command Execute-MenuAction_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         $actionId = $WebEvent.Parameters['actionId']
         $body = $WebEvent.Data
@@ -534,6 +576,20 @@ Add-PodeRoute -Method Post -Path "/api/menu/action/:actionId" -ScriptBlock {
 # PowerShellコード生成
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command 実行イベント_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         # デバッグモード（環境変数で制御）
         $DebugMode = $env:UIPOWERSHELL_DEBUG -eq "1"
@@ -1294,6 +1350,20 @@ Add-PodeRoute -Method Get -Path "/api/folders/:name/variables" -ScriptBlock {
 # ドロップ可否チェック
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/validate/drop" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command ドロップ禁止チェック_ネスト規制_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         $body = $WebEvent.Data
 
