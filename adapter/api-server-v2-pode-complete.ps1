@@ -77,7 +77,7 @@ $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $logFile = Join-Path $logDir "api-server-v2_$timestamp.log"
 
 # コントロールログファイル（起動時からノード生成可能までのタイムスタンプ記録）
-$controlLogFile = Join-Path $logDir "control-log_$timestamp.log"
+$global:controlLogFile = Join-Path $logDir "control-log_$timestamp.log"
 
 # トランスクリプト開始
 Start-Transcript -Path $logFile -Append -Force
@@ -89,17 +89,19 @@ Write-Host ""
 # コントロールログ関数
 # ============================================
 
-function Write-ControlLog {
+function global:Write-ControlLog {
     param(
         [string]$Message,
-        [string]$LogFile = $controlLogFile
+        [string]$LogFile = $global:controlLogFile
     )
 
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
     $logEntry = "[$timestamp] $Message"
 
     # ファイルに追記
-    Add-Content -Path $LogFile -Value $logEntry -Encoding UTF8
+    if ($LogFile -and $LogFile -ne "") {
+        Add-Content -Path $LogFile -Value $logEntry -Encoding UTF8
+    }
 
     # コンソールにも表示
     Write-Host $logEntry -ForegroundColor Cyan
@@ -340,54 +342,11 @@ if (Test-Path $varManagePath) {
     Write-Host "[警告] 09_変数機能_コードID管理JSON.ps1 が見つかりません" -ForegroundColor Yellow
 }
 
-# Phase 2 v2ファイルを読み込み
-Write-Host ""
-Write-Host "Phase 2 v2ファイルを読み込みます..." -ForegroundColor Cyan
-
-$v2FilesToLoad = @(
-    "12_コードメイン_コード本文_v2.ps1",
-    "10_変数機能_変数管理UI_v2.ps1",
-    "07_メインF機能_ツールバー作成_v2.ps1",
-    "08_メインF機能_メインボタン処理_v2.ps1",
-    "02-6_削除処理_v2.ps1",
-    "02-2_ネスト規制バリデーション_v2.ps1"
-)
-
-foreach ($file in $v2FilesToLoad) {
-    $filePath = Join-Path $script:RootDir $file
-    if (Test-Path $filePath) {
-        . $filePath
-        Write-Host "[OK] $file" -ForegroundColor Green
-    } else {
-        Write-Host "[警告] $file が見つかりません" -ForegroundColor Yellow
-    }
-}
-
-# Phase 3 Adapterファイルを読み込み
-Write-Host ""
-Write-Host "Phase 3 Adapterファイルを読み込みます..." -ForegroundColor Cyan
-
-$stateManagerPath = Join-Path $PSScriptRoot "state-manager.ps1"
-if (Test-Path $stateManagerPath) {
-    . $stateManagerPath
-    Write-Host "[OK] state-manager.ps1" -ForegroundColor Green
-} else {
-    Write-Host "[警告] state-manager.ps1 が見つかりません" -ForegroundColor Yellow
-}
-
-$nodeOpsPath = Join-Path $PSScriptRoot "node-operations.ps1"
-if (Test-Path $nodeOpsPath) {
-    . $nodeOpsPath
-    Write-Host "[OK] node-operations.ps1" -ForegroundColor Green
-} else {
-    Write-Host "[警告] node-operations.ps1 が見つかりません" -ForegroundColor Yellow
-}
-
 Write-Host ""
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
 
-Write-ControlLog "[MODULE] 全モジュール読み込み完了"
+Write-ControlLog "[MODULE] 基本モジュール読み込み完了"
 
 # 静的ファイル配信用パス
 $script:uiPath = Join-Path $script:RootDir "ui"
@@ -411,6 +370,54 @@ $global:uiPath = $script:uiPath
 
 # Start-PodeServer でサーバー設定とルート定義を行う
 Start-PodeServer {
+
+    # ============================================
+    # Podeスコープ内でv2ファイルを読み込み
+    # ============================================
+
+    Write-Host "Podeスコープ内でPhase 2 v2ファイルを読み込みます..." -ForegroundColor Cyan
+
+    $v2FilesToLoad = @(
+        "12_コードメイン_コード本文_v2.ps1",
+        "10_変数機能_変数管理UI_v2.ps1",
+        "07_メインF機能_ツールバー作成_v2.ps1",
+        "08_メインF機能_メインボタン処理_v2.ps1",
+        "02-6_削除処理_v2.ps1",
+        "02-2_ネスト規制バリデーション_v2.ps1"
+    )
+
+    foreach ($file in $v2FilesToLoad) {
+        $filePath = Join-Path $global:RootDir $file
+        if (Test-Path $filePath) {
+            . $filePath
+            Write-Host "[OK] $file" -ForegroundColor Green
+        } else {
+            Write-Host "[警告] $file が見つかりません" -ForegroundColor Yellow
+        }
+    }
+
+    Write-Host "Podeスコープ内でPhase 3 Adapterファイルを読み込みます..." -ForegroundColor Cyan
+
+    $adapterDir = Split-Path -Parent $PSCommandPath
+
+    $stateManagerPath = Join-Path $adapterDir "state-manager.ps1"
+    if (Test-Path $stateManagerPath) {
+        . $stateManagerPath
+        Write-Host "[OK] state-manager.ps1" -ForegroundColor Green
+    } else {
+        Write-Host "[警告] state-manager.ps1 が見つかりません" -ForegroundColor Yellow
+    }
+
+    $nodeOpsPath = Join-Path $adapterDir "node-operations.ps1"
+    if (Test-Path $nodeOpsPath) {
+        . $nodeOpsPath
+        Write-Host "[OK] node-operations.ps1" -ForegroundColor Green
+    } else {
+        Write-Host "[警告] node-operations.ps1 が見つかりません" -ForegroundColor Yellow
+    }
+
+    Write-Host "[OK] 全v2関数とAdapter関数を読み込みました" -ForegroundColor Green
+    Write-Host ""
 
     # エンドポイント設定
     Add-PodeEndpoint -Address localhost -Port $global:ServerPort -Protocol Http
@@ -452,7 +459,7 @@ Start-PodeServer {
     Set-PodeState -Name 'ShouldOpenBrowser' -Value $global:ShouldOpenBrowser
 
     # 変換されたルート定義ファイルを読み込み
-    $convertedRoutesPath = Join-Path $PSScriptRoot "CONVERTED_ROUTES.ps1"
+    $convertedRoutesPath = Join-Path $adapterDir "CONVERTED_ROUTES.ps1"
     if (Test-Path $convertedRoutesPath) {
         . $convertedRoutesPath
         Write-Host "[OK] CONVERTED_ROUTES.ps1 から50個のルートを読み込みました" -ForegroundColor Green
