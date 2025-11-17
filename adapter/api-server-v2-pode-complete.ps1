@@ -137,18 +137,59 @@ Write-Host "PowerShell 5.1環境用にPodeモジュールを最適化してい�
 $podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
 if (Test-Path $podeConsoleFile) {
     try {
-        $content = Get-Content $podeConsoleFile -Raw -Encoding UTF8
+        # 行ごとに読み込んで処理（より確実）
+        $lines = Get-Content $podeConsoleFile -Encoding UTF8
+        $fixedLines = @()
+        $replacedCount = 0
 
-        # PowerShell 5.1で問題を起こす特殊文字をコメントから削除
-        # Box Drawing文字や特殊なハイフン文字を標準のハイフンに置換
-        $content = $content -replace "[\u2500-\u257F]", "-"  # Box Drawing characters
-        $content = $content -replace "[\u2010-\u2015]", "-"  # Various dashes
-        $content = $content -replace "[\u2212]", "-"         # Minus sign
+        foreach ($line in $lines) {
+            # 各種特殊文字を標準ASCII文字に置換
+            $originalLine = $line
+
+            # Box Drawing文字（0x2500-0x257F）を置換
+            $line = $line -replace ([char]0x2500), '-'
+            $line = $line -replace ([char]0x2501), '-'
+            $line = $line -replace ([char]0x2502), '|'
+            $line = $line -replace ([char]0x2503), '|'
+
+            # En Dash (U+2013) と Em Dash (U+2014)
+            $line = $line -replace ([char]0x2013), '-'
+            $line = $line -replace ([char]0x2014), '-'
+
+            # Minus sign (U+2212)
+            $line = $line -replace ([char]0x2212), '-'
+
+            # すべての非ASCII文字をコメント内で検出して置換（より広範囲）
+            if ($line -match '#') {
+                # コメント部分のみ処理
+                $parts = $line -split '#', 2
+                if ($parts.Count -eq 2) {
+                    $code = $parts[0]
+                    $comment = $parts[1]
+
+                    # コメント内の非ASCII文字を削除または置換
+                    $comment = $comment -replace '[^\x00-\x7F]', '?'
+
+                    $line = $code + '#' + $comment
+                }
+            }
+
+            if ($originalLine -ne $line) {
+                $replacedCount++
+            }
+
+            $fixedLines += $line
+        }
 
         # UTF-8 BOMで保存
         $utf8BOM = New-Object System.Text.UTF8Encoding $true
-        [System.IO.File]::WriteAllText($podeConsoleFile, $content, $utf8BOM)
-        Write-Host "[OK] Podeモジュールのエンコーディングを修正しました" -ForegroundColor Green
+        [System.IO.File]::WriteAllLines($podeConsoleFile, $fixedLines, $utf8BOM)
+
+        if ($replacedCount -gt 0) {
+            Write-Host "[OK] Podeモジュールのエンコーディングを修正しました ($replacedCount 行)" -ForegroundColor Green
+        } else {
+            Write-Host "[情報] Podeモジュールは既に修正済みです" -ForegroundColor Gray
+        }
     } catch {
         Write-Host "[警告] Podeモジュールの修正をスキップ: $($_.Exception.Message)" -ForegroundColor Yellow
     }
@@ -176,20 +217,61 @@ try {
         $podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
         if (Test-Path $podeConsoleFile) {
             try {
-                $content = Get-Content $podeConsoleFile -Raw -Encoding UTF8
+                # 行ごとに読み込んで処理（より確実）
+                $lines = Get-Content $podeConsoleFile -Encoding UTF8
+                $fixedLines = @()
+                $replacedCount = 0
 
-                # PowerShell 5.1で問題を起こす特殊文字をコメントから削除
-                # Box Drawing文字や特殊なハイフン文字を標準のハイフンに置換
-                $content = $content -replace "[\u2500-\u257F]", "-"  # Box Drawing characters
-                $content = $content -replace "[\u2010-\u2015]", "-"  # Various dashes
-                $content = $content -replace "[\u2212]", "-"         # Minus sign
+                foreach ($line in $lines) {
+                    # 各種特殊文字を標準ASCII文字に置換
+                    $originalLine = $line
+
+                    # Box Drawing文字（0x2500-0x257F）を置換
+                    $line = $line -replace ([char]0x2500), '-'
+                    $line = $line -replace ([char]0x2501), '-'
+                    $line = $line -replace ([char]0x2502), '|'
+                    $line = $line -replace ([char]0x2503), '|'
+
+                    # En Dash (U+2013) と Em Dash (U+2014)
+                    $line = $line -replace ([char]0x2013), '-'
+                    $line = $line -replace ([char]0x2014), '-'
+
+                    # Minus sign (U+2212)
+                    $line = $line -replace ([char]0x2212), '-'
+
+                    # すべての非ASCII文字をコメント内で検出して置換（より広範囲）
+                    if ($line -match '#') {
+                        # コメント部分のみ処理
+                        $parts = $line -split '#', 2
+                        if ($parts.Count -eq 2) {
+                            $code = $parts[0]
+                            $comment = $parts[1]
+
+                            # コメント内の非ASCII文字を削除または置換
+                            $comment = $comment -replace '[^\x00-\x7F]', '?'
+
+                            $line = $code + '#' + $comment
+                        }
+                    }
+
+                    if ($originalLine -ne $line) {
+                        $replacedCount++
+                    }
+
+                    $fixedLines += $line
+                }
 
                 # UTF-8 BOMで保存
                 $utf8BOM = New-Object System.Text.UTF8Encoding $true
-                [System.IO.File]::WriteAllText($podeConsoleFile, $content, $utf8BOM)
-                Write-Host "[OK] Podeモジュールのエンコーディング修正完了" -ForegroundColor Green
+                [System.IO.File]::WriteAllLines($podeConsoleFile, $fixedLines, $utf8BOM)
+
+                if ($replacedCount -gt 0) {
+                    Write-Host "[OK] Podeモジュールのエンコーディング修正完了 ($replacedCount 行)" -ForegroundColor Green
+                } else {
+                    Write-Host "[情報] Podeモジュールは既に修正済みです" -ForegroundColor Gray
+                }
             } catch {
-                Write-Host "[警告] エンコーディング修正をスキップ" -ForegroundColor Yellow
+                Write-Host "[警告] エンコーディング修正をスキップ: $($_.Exception.Message)" -ForegroundColor Yellow
             }
         }
 
