@@ -1821,14 +1821,36 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
 
         # 汎用関数を読み込み
         $汎用関数パス = Join-Path $RootDir "add-on\汎用関数.ps1"
-        $ps.AddCommand('Invoke-Expression').AddParameter('Command', ". '$汎用関数パス'") | Out-Null
-        $ps.Invoke() | Out-Null
-        $ps.Commands.Clear()
+        if (Test-Path $汎用関数パス) {
+            # 汎用関数の内容を読み込んで実行
+            try {
+                $汎用関数Content = Get-Content -Path $汎用関数パス -Raw -Encoding UTF8
+            } catch {
+                $汎用関数Content = Get-Content -Path $汎用関数パス -Raw -Encoding Default
+            }
+            $ps.AddScript($汎用関数Content) | Out-Null
+            $result = $ps.Invoke()
+            if ($ps.HadErrors) {
+                $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
+                Write-Host "[ノード関数実行] ⚠️ 汎用関数の読み込みでエラー: $errorMsg" -ForegroundColor Yellow
+                $ps.Streams.Error.Clear()
+            }
+            $ps.Commands.Clear()
+            Write-Host "[ノード関数実行] ✅ STA runspace に汎用関数を読み込みました" -ForegroundColor Green
+        } else {
+            Write-Host "[ノード関数実行] ⚠️ 汎用関数が見つかりません: $汎用関数パス" -ForegroundColor Yellow
+        }
 
         # スクリプトを読み込んで関数を定義
         $ps.AddScript($scriptContent) | Out-Null
-        $ps.Invoke() | Out-Null
+        $result = $ps.Invoke()
+        if ($ps.HadErrors) {
+            $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
+            Write-Host "[ノード関数実行] ⚠️ スクリプト定義でエラー: $errorMsg" -ForegroundColor Yellow
+            $ps.Streams.Error.Clear()
+        }
         $ps.Commands.Clear()
+        Write-Host "[ノード関数実行] ✅ STA runspace にノード関数を定義しました" -ForegroundColor Green
 
         # 関数を実行
         $ps.AddCommand($functionName)
