@@ -104,6 +104,7 @@ if (-not (Get-Command Get-VariableList_v2 -ErrorAction SilentlyContinue)) {
     . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
     . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
     . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
     . (Join-Path $adapterDir "state-manager.ps1")
     . (Join-Path $adapterDir "node-operations.ps1")
 }
@@ -208,6 +209,7 @@ Add-PodeRoute -Method Delete -Path "/api/nodes/all" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -272,6 +274,7 @@ Add-PodeRoute -Method Delete -Path "/api/nodes/:id" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -311,6 +314,7 @@ Add-PodeRoute -Method Get -Path "/api/variables" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -338,6 +342,7 @@ Add-PodeRoute -Method Get -Path "/api/variables/:name" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -370,6 +375,7 @@ Add-PodeRoute -Method Post -Path "/api/variables" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -402,6 +408,7 @@ Add-PodeRoute -Method Put -Path "/api/variables/:name" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -435,6 +442,7 @@ Add-PodeRoute -Method Delete -Path "/api/variables/:name" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -467,6 +475,7 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -612,6 +621,7 @@ Add-PodeRoute -Method Get -Path "/api/menu/structure" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -634,6 +644,7 @@ Add-PodeRoute -Method Post -Path "/api/menu/action/:actionId" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -670,6 +681,8 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -853,6 +866,7 @@ Add-PodeRoute -Method Get -Path "/api/folders" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -875,6 +889,7 @@ Add-PodeRoute -Method Post -Path "/api/folders" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -907,6 +922,7 @@ Add-PodeRoute -Method Put -Path "/api/folders/:name" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -939,6 +955,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
@@ -1472,6 +1489,7 @@ Add-PodeRoute -Method Post -Path "/api/validate/drop" -ScriptBlock {
         . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
         . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
         . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
         . (Join-Path $adapterDir "state-manager.ps1")
         . (Join-Path $adapterDir "node-operations.ps1")
     }
