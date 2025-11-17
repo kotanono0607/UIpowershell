@@ -64,29 +64,33 @@ try {
         $lineNumber++
         $originalLine = $line
 
-        # Target lines 460-470 (error range) - remove problematic comments entirely
-        if ($lineNumber -ge 460 -and $lineNumber -le 470) {
-            if ($line -match '(.*)#(.*)') {
-                $codePart = $Matches[1]
-                # Remove comment entirely to avoid syntax errors
-                $line = $codePart.TrimEnd()
-                if ($line -ne $originalLine) {
-                    $replacedCount++
-                }
-            }
-        } else {
-            # Process other lines
-            $line = $line -replace ([char]0x2500), '-'
-            $line = $line -replace ([char]0x2501), '-'
-            $line = $line -replace ([char]0x2502), '|'
-            $line = $line -replace ([char]0x2503), '|'
-            $line = $line -replace ([char]0x2013), '-'
-            $line = $line -replace ([char]0x2014), '-'
-            $line = $line -replace ([char]0x2212), '-'
+        # Replace all problematic Unicode characters with ASCII equivalents
+        # Box Drawing characters
+        $line = $line -replace ([char]0x2500), '-'
+        $line = $line -replace ([char]0x2501), '-'
+        $line = $line -replace ([char]0x2502), '|'
+        $line = $line -replace ([char]0x2503), '|'
 
-            if ($originalLine -ne $line) {
-                $replacedCount++
-            }
+        # Dashes
+        $line = $line -replace ([char]0x2013), '-'  # En dash
+        $line = $line -replace ([char]0x2014), '-'  # Em dash
+        $line = $line -replace ([char]0x2212), '-'  # Minus sign
+
+        # Apostrophes and quotes (critical for line 482)
+        $line = $line -replace ([char]0x2018), "'"  # Left single quote
+        $line = $line -replace ([char]0x2019), "'"  # Right single quote (apostrophe)
+        $line = $line -replace ([char]0x201C), '"'  # Left double quote
+        $line = $line -replace ([char]0x201D), '"'  # Right double quote
+
+        # For lines 460-470, handle problematic quoted characters
+        if ($lineNumber -ge 460 -and $lineNumber -le 470) {
+            # Remove quoted non-ASCII characters like '─'
+            $line = $line -replace "'[^\x00-\x7F]+'", "''"
+            $line = $line -replace '"[^\x00-\x7F]+"', '""'
+        }
+
+        if ($originalLine -ne $line) {
+            $replacedCount++
         }
 
         $fixedLines += $line

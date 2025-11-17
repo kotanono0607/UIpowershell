@@ -151,30 +151,32 @@ if (Test-Path $podeConsoleFile) {
             $lineNumber++
             $originalLine = $line
 
-            # 460-470行目を直接修正（エラー発生範囲）- コメントを完全削除
-            if ($lineNumber -ge 460 -and $lineNumber -le 470) {
-                if ($line -match '(.*)#(.*)') {
-                    $codePart = $Matches[1]
-                    # コメントを完全削除して構文エラーを回避
-                    $line = $codePart.TrimEnd()
-                    if ($line -ne $originalLine) {
-                        $replacedCount++
-                    }
-                }
-            } else {
-                # 他の行も念のため処理
-                # Box Drawing文字を置換
-                $line = $line -replace ([char]0x2500), '-'
-                $line = $line -replace ([char]0x2501), '-'
-                $line = $line -replace ([char]0x2502), '|'
-                $line = $line -replace ([char]0x2503), '|'
-                $line = $line -replace ([char]0x2013), '-'
-                $line = $line -replace ([char]0x2014), '-'
-                $line = $line -replace ([char]0x2212), '-'
+            # すべての問題あるUnicode文字をASCII相当文字に置換
+            # Box Drawing文字
+            $line = $line -replace ([char]0x2500), '-'
+            $line = $line -replace ([char]0x2501), '-'
+            $line = $line -replace ([char]0x2502), '|'
+            $line = $line -replace ([char]0x2503), '|'
 
-                if ($originalLine -ne $line) {
-                    $replacedCount++
-                }
+            # ダッシュ類
+            $line = $line -replace ([char]0x2013), '-'
+            $line = $line -replace ([char]0x2014), '-'
+            $line = $line -replace ([char]0x2212), '-'
+
+            # アポストロフィとクォート（482行目対策）
+            $line = $line -replace ([char]0x2018), "'"
+            $line = $line -replace ([char]0x2019), "'"
+            $line = $line -replace ([char]0x201C), '"'
+            $line = $line -replace ([char]0x201D), '"'
+
+            # 460-470行目：クォート内の非ASCII文字を削除
+            if ($lineNumber -ge 460 -and $lineNumber -le 470) {
+                $line = $line -replace "'[^\x00-\x7F]+'", "''"
+                $line = $line -replace '"[^\x00-\x7F]+"', '""'
+            }
+
+            if ($originalLine -ne $line) {
+                $replacedCount++
             }
 
             $fixedLines += $line
@@ -230,29 +232,32 @@ try {
                     $lineNumber++
                     $originalLine = $line
 
-                    # 460-470行目を直接修正（エラー発生範囲）- コメントを完全削除
-                    if ($lineNumber -ge 460 -and $lineNumber -le 470) {
-                        if ($line -match '(.*)#(.*)') {
-                            $codePart = $Matches[1]
-                            # コメントを完全削除して構文エラーを回避
-                            $line = $codePart.TrimEnd()
-                            if ($line -ne $originalLine) {
-                                $replacedCount++
-                            }
-                        }
-                    } else {
-                        # 他の行も念のため処理
-                        $line = $line -replace ([char]0x2500), '-'
-                        $line = $line -replace ([char]0x2501), '-'
-                        $line = $line -replace ([char]0x2502), '|'
-                        $line = $line -replace ([char]0x2503), '|'
-                        $line = $line -replace ([char]0x2013), '-'
-                        $line = $line -replace ([char]0x2014), '-'
-                        $line = $line -replace ([char]0x2212), '-'
+                    # すべての問題あるUnicode文字をASCII相当文字に置換
+                    # Box Drawing文字
+                    $line = $line -replace ([char]0x2500), '-'
+                    $line = $line -replace ([char]0x2501), '-'
+                    $line = $line -replace ([char]0x2502), '|'
+                    $line = $line -replace ([char]0x2503), '|'
 
-                        if ($originalLine -ne $line) {
-                            $replacedCount++
-                        }
+                    # ダッシュ類
+                    $line = $line -replace ([char]0x2013), '-'
+                    $line = $line -replace ([char]0x2014), '-'
+                    $line = $line -replace ([char]0x2212), '-'
+
+                    # アポストロフィとクォート（482行目対策）
+                    $line = $line -replace ([char]0x2018), "'"
+                    $line = $line -replace ([char]0x2019), "'"
+                    $line = $line -replace ([char]0x201C), '"'
+                    $line = $line -replace ([char]0x201D), '"'
+
+                    # 460-470行目：クォート内の非ASCII文字を削除
+                    if ($lineNumber -ge 460 -and $lineNumber -le 470) {
+                        $line = $line -replace "'[^\x00-\x7F]+'", "''"
+                        $line = $line -replace '"[^\x00-\x7F]+"', '""'
+                    }
+
+                    if ($originalLine -ne $line) {
+                        $replacedCount++
                     }
 
                     $fixedLines += $line
