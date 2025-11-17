@@ -10,8 +10,6 @@ Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 
 $podeVersion = "2.11.0"
-$podeModulePath = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode"
-$podeConsoleFile = "$podeModulePath\$podeVersion\Private\Console.ps1"
 
 if ($Uninstall) {
     Write-Host "[1/2] Uninstalling all Pode versions..." -ForegroundColor Yellow
@@ -24,9 +22,16 @@ if ($Uninstall) {
     Uninstall-Module -Name Pode -AllVersions -Force -ErrorAction SilentlyContinue
     Write-Host "  OK Uninstalled" -ForegroundColor Gray
 
-    if (Test-Path $podeModulePath) {
-        Remove-Item $podeModulePath -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host "  OK Deleted directory" -ForegroundColor Gray
+    # Delete all Pode module directories
+    $possiblePaths = @(
+        "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode",
+        "$env:ProgramFiles\WindowsPowerShell\Modules\Pode"
+    )
+    foreach ($path in $possiblePaths) {
+        if (Test-Path $path) {
+            Remove-Item $path -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "  OK Deleted directory: $path" -ForegroundColor Gray
+        }
     }
 
     Write-Host ""
@@ -38,9 +43,19 @@ if ($Uninstall) {
 
 Write-Host "[FIX] Fixing Console.ps1..." -ForegroundColor Cyan
 
+# Auto-detect Pode installation path
+$podeModule = Get-Module Pode -ListAvailable | Where-Object { $_.Version -eq $podeVersion } | Select-Object -First 1
+if (-not $podeModule) {
+    Write-Host "[ERROR] Pode $podeVersion not found" -ForegroundColor Red
+    Write-Host "        Please run with -Uninstall option first" -ForegroundColor Yellow
+    exit 1
+}
+
+$podeConsoleFile = Join-Path (Split-Path $podeModule.Path -Parent) "Private\Console.ps1"
+Write-Host "  Detected: $podeConsoleFile" -ForegroundColor Gray
+
 if (-not (Test-Path $podeConsoleFile)) {
     Write-Host "[ERROR] Console.ps1 not found: $podeConsoleFile" -ForegroundColor Red
-    Write-Host "        Please run with -Uninstall option first" -ForegroundColor Yellow
     exit 1
 }
 
