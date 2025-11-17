@@ -1842,17 +1842,27 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         }
 
         # PowerShell プロファイルを読み込み（デバッグ表示、ウインドウハンドルでアクティブにする等の依存関数）
+        # 環境変数から直接パスを構築（STA runspace では $PROFILE 変数が設定されていないため）
+        $userProfile = [System.Environment]::GetEnvironmentVariable('USERPROFILE')
         $profilePaths = @(
-            $PROFILE.CurrentUserAllHosts,
-            $PROFILE.CurrentUserCurrentHost,
-            $PROFILE
+            "$userProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1",
+            "$userProfile\Documents\WindowsPowerShell\profile.ps1",
+            "$userProfile\Documents\PowerShell\Microsoft.PowerShell_profile.ps1",
+            "$userProfile\Documents\PowerShell\profile.ps1"
         )
 
         $profileLoaded = $false
         foreach ($profilePath in $profilePaths) {
-            if ($profilePath -and (Test-Path $profilePath)) {
+            if (Test-Path $profilePath) {
+                Write-Host "[ノード関数実行] 📄 プロファイル候補: $profilePath" -ForegroundColor Gray
                 try {
-                    $profileContent = Get-Content -Path $profilePath -Raw -Encoding UTF8 -ErrorAction Stop
+                    # エンコーディング自動判定
+                    try {
+                        $profileContent = Get-Content -Path $profilePath -Raw -Encoding UTF8 -ErrorAction Stop
+                    } catch {
+                        $profileContent = Get-Content -Path $profilePath -Raw -Encoding Default -ErrorAction Stop
+                    }
+
                     $ps.AddScript($profileContent) | Out-Null
                     $result = $ps.Invoke()
                     if ($ps.HadErrors) {
@@ -1873,6 +1883,10 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
 
         if (-not $profileLoaded) {
             Write-Host "[ノード関数実行] ⚠️ PowerShell プロファイルが見つかりませんでした" -ForegroundColor Yellow
+            Write-Host "[ノード関数実行] 確認したパス:" -ForegroundColor Yellow
+            foreach ($path in $profilePaths) {
+                Write-Host "  - $path" -ForegroundColor Gray
+            }
         }
 
         # スクリプトを読み込んで関数を定義
