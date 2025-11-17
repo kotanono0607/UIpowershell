@@ -262,6 +262,20 @@ Add-PodeRoute -Method Delete -Path "/api/nodes/all" -ScriptBlock {
 # ノード削除（単一）
 # ------------------------------
 Add-PodeRoute -Method Delete -Path "/api/nodes/:id" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command ノード削除_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         $nodeId = $WebEvent.Parameters['id']
         $body = $WebEvent.Data
@@ -314,6 +328,20 @@ Add-PodeRoute -Method Get -Path "/api/variables" -ScriptBlock {
 # 変数取得（名前指定）
 # ------------------------------
 Add-PodeRoute -Method Get -Path "/api/variables/:name" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command Get-Variable_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         $varName = $WebEvent.Parameters['name']
         $result = Get-Variable_v2 -Name $varName
@@ -332,6 +360,20 @@ Add-PodeRoute -Method Get -Path "/api/variables/:name" -ScriptBlock {
 # 変数追加
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/variables" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command Add-Variable_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         $body = $WebEvent.Data
         $result = Add-Variable_v2 -Name $body.name -Value $body.value -Type $body.type
@@ -350,6 +392,20 @@ Add-PodeRoute -Method Post -Path "/api/variables" -ScriptBlock {
 # 変数更新
 # ------------------------------
 Add-PodeRoute -Method Put -Path "/api/variables/:name" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command Update-Variable_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         $varName = $WebEvent.Parameters['name']
         $body = $WebEvent.Data
@@ -369,6 +425,20 @@ Add-PodeRoute -Method Put -Path "/api/variables/:name" -ScriptBlock {
 # 変数削除
 # ------------------------------
 Add-PodeRoute -Method Delete -Path "/api/variables/:name" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command Remove-Variable_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         $varName = $WebEvent.Parameters['name']
         $result = Remove-Variable_v2 -Name $varName
@@ -387,6 +457,20 @@ Add-PodeRoute -Method Delete -Path "/api/variables/:name" -ScriptBlock {
 # 変数管理ダイアログ
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command Get-VariableList_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         Write-Host "[API] /api/variables/manage - 変数管理ダイアログを表示" -ForegroundColor Cyan
 
@@ -813,6 +897,20 @@ Add-PodeRoute -Method Post -Path "/api/folders" -ScriptBlock {
 # フォルダ切り替え
 # ------------------------------
 Add-PodeRoute -Method Put -Path "/api/folders/:name" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command フォルダ切替イベント_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         $folderName = $WebEvent.Parameters['name']
         $result = フォルダ切替イベント_v2 -FolderName $folderName
@@ -831,6 +929,20 @@ Add-PodeRoute -Method Put -Path "/api/folders/:name" -ScriptBlock {
 # フォルダ切替ダイアログ
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
+    # v2関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command フォルダ切替イベント_v2 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Get-PodeState -Name 'AdapterDir'
+        . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
+        . (Join-Path $RootDir "10_変数機能_変数管理UI_v2.ps1")
+        . (Join-Path $RootDir "07_メインF機能_ツールバー作成_v2.ps1")
+        . (Join-Path $RootDir "08_メインF機能_メインボタン処理_v2.ps1")
+        . (Join-Path $RootDir "02-6_削除処理_v2.ps1")
+        . (Join-Path $RootDir "02-2_ネスト規制バリデーション_v2.ps1")
+        . (Join-Path $adapterDir "state-manager.ps1")
+        . (Join-Path $adapterDir "node-operations.ps1")
+    }
+
     try {
         Write-Host "[API] /api/folders/switch-dialog - フォルダ切替ダイアログを表示" -ForegroundColor Cyan
 
