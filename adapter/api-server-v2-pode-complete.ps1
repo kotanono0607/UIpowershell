@@ -137,45 +137,55 @@ Write-Host "PowerShell 5.1環境用にPodeモジュールを最適化してい�
 $podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
 if (Test-Path $podeConsoleFile) {
     try {
-        # 行ごとに読み込んで処理（より確実）
-        $lines = Get-Content $podeConsoleFile -Encoding UTF8
+        # バイナリモードで正確に読み取る
+        $bytes = [System.IO.File]::ReadAllBytes($podeConsoleFile)
+        $content = [System.Text.Encoding]::UTF8.GetString($bytes)
+
+        # 行ごとに処理
+        $lines = $content -split "`r?`n"
         $fixedLines = @()
+        $lineNumber = 0
         $replacedCount = 0
 
         foreach ($line in $lines) {
-            # 各種特殊文字を標準ASCII文字に置換
+            $lineNumber++
             $originalLine = $line
 
-            # Box Drawing文字（0x2500-0x257F）を置換
-            $line = $line -replace ([char]0x2500), '-'
-            $line = $line -replace ([char]0x2501), '-'
-            $line = $line -replace ([char]0x2502), '|'
-            $line = $line -replace ([char]0x2503), '|'
+            # 460-470行目を直接修正（エラー発生範囲）
+            if ($lineNumber -ge 460 -and $lineNumber -le 470) {
+                # この範囲の全コメントから非ASCII文字を削除
+                if ($line -match '(.*)#(.*)') {
+                    $codePart = $Matches[1]
+                    $commentPart = $Matches[2]
 
-            # En Dash (U+2013) と Em Dash (U+2014)
-            $line = $line -replace ([char]0x2013), '-'
-            $line = $line -replace ([char]0x2014), '-'
-
-            # Minus sign (U+2212)
-            $line = $line -replace ([char]0x2212), '-'
-
-            # すべての非ASCII文字をコメント内で検出して置換（より広範囲）
-            if ($line -match '#') {
-                # コメント部分のみ処理
-                $parts = $line -split '#', 2
-                if ($parts.Count -eq 2) {
-                    $code = $parts[0]
-                    $comment = $parts[1]
-
-                    # コメント内の非ASCII文字を削除または置換
-                    $comment = $comment -replace '[^\x00-\x7F]', '?'
-
-                    $line = $code + '#' + $comment
+                    # コメント内のバイトを調べて非ASCII文字を削除
+                    $cleanComment = ""
+                    foreach ($char in $commentPart.ToCharArray()) {
+                        $charCode = [int][char]$char
+                        if ($charCode -ge 0 -and $charCode -le 127) {
+                            $cleanComment += $char
+                        } else {
+                            # 非ASCII文字は空白に置換（完全に削除すると構文が壊れる可能性）
+                            $cleanComment += " "
+                            $replacedCount++
+                        }
+                    }
+                    $line = $codePart + "#" + $cleanComment
                 }
-            }
+            } else {
+                # 他の行も念のため処理
+                # Box Drawing文字を置換
+                $line = $line -replace ([char]0x2500), '-'
+                $line = $line -replace ([char]0x2501), '-'
+                $line = $line -replace ([char]0x2502), '|'
+                $line = $line -replace ([char]0x2503), '|'
+                $line = $line -replace ([char]0x2013), '-'
+                $line = $line -replace ([char]0x2014), '-'
+                $line = $line -replace ([char]0x2212), '-'
 
-            if ($originalLine -ne $line) {
-                $replacedCount++
+                if ($originalLine -ne $line) {
+                    $replacedCount++
+                }
             }
 
             $fixedLines += $line
@@ -186,7 +196,7 @@ if (Test-Path $podeConsoleFile) {
         [System.IO.File]::WriteAllLines($podeConsoleFile, $fixedLines, $utf8BOM)
 
         if ($replacedCount -gt 0) {
-            Write-Host "[OK] Podeモジュールのエンコーディングを修正しました ($replacedCount 行)" -ForegroundColor Green
+            Write-Host "[OK] Podeモジュールのエンコーディングを修正しました ($replacedCount 文字)" -ForegroundColor Green
         } else {
             Write-Host "[情報] Podeモジュールは既に修正済みです" -ForegroundColor Gray
         }
@@ -217,45 +227,54 @@ try {
         $podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
         if (Test-Path $podeConsoleFile) {
             try {
-                # 行ごとに読み込んで処理（より確実）
-                $lines = Get-Content $podeConsoleFile -Encoding UTF8
+                # バイナリモードで正確に読み取る
+                $bytes = [System.IO.File]::ReadAllBytes($podeConsoleFile)
+                $content = [System.Text.Encoding]::UTF8.GetString($bytes)
+
+                # 行ごとに処理
+                $lines = $content -split "`r?`n"
                 $fixedLines = @()
+                $lineNumber = 0
                 $replacedCount = 0
 
                 foreach ($line in $lines) {
-                    # 各種特殊文字を標準ASCII文字に置換
+                    $lineNumber++
                     $originalLine = $line
 
-                    # Box Drawing文字（0x2500-0x257F）を置換
-                    $line = $line -replace ([char]0x2500), '-'
-                    $line = $line -replace ([char]0x2501), '-'
-                    $line = $line -replace ([char]0x2502), '|'
-                    $line = $line -replace ([char]0x2503), '|'
+                    # 460-470行目を直接修正（エラー発生範囲）
+                    if ($lineNumber -ge 460 -and $lineNumber -le 470) {
+                        # この範囲の全コメントから非ASCII文字を削除
+                        if ($line -match '(.*)#(.*)') {
+                            $codePart = $Matches[1]
+                            $commentPart = $Matches[2]
 
-                    # En Dash (U+2013) と Em Dash (U+2014)
-                    $line = $line -replace ([char]0x2013), '-'
-                    $line = $line -replace ([char]0x2014), '-'
-
-                    # Minus sign (U+2212)
-                    $line = $line -replace ([char]0x2212), '-'
-
-                    # すべての非ASCII文字をコメント内で検出して置換（より広範囲）
-                    if ($line -match '#') {
-                        # コメント部分のみ処理
-                        $parts = $line -split '#', 2
-                        if ($parts.Count -eq 2) {
-                            $code = $parts[0]
-                            $comment = $parts[1]
-
-                            # コメント内の非ASCII文字を削除または置換
-                            $comment = $comment -replace '[^\x00-\x7F]', '?'
-
-                            $line = $code + '#' + $comment
+                            # コメント内のバイトを調べて非ASCII文字を削除
+                            $cleanComment = ""
+                            foreach ($char in $commentPart.ToCharArray()) {
+                                $charCode = [int][char]$char
+                                if ($charCode -ge 0 -and $charCode -le 127) {
+                                    $cleanComment += $char
+                                } else {
+                                    # 非ASCII文字は空白に置換
+                                    $cleanComment += " "
+                                    $replacedCount++
+                                }
+                            }
+                            $line = $codePart + "#" + $cleanComment
                         }
-                    }
+                    } else {
+                        # 他の行も念のため処理
+                        $line = $line -replace ([char]0x2500), '-'
+                        $line = $line -replace ([char]0x2501), '-'
+                        $line = $line -replace ([char]0x2502), '|'
+                        $line = $line -replace ([char]0x2503), '|'
+                        $line = $line -replace ([char]0x2013), '-'
+                        $line = $line -replace ([char]0x2014), '-'
+                        $line = $line -replace ([char]0x2212), '-'
 
-                    if ($originalLine -ne $line) {
-                        $replacedCount++
+                        if ($originalLine -ne $line) {
+                            $replacedCount++
+                        }
                     }
 
                     $fixedLines += $line
@@ -266,7 +285,7 @@ try {
                 [System.IO.File]::WriteAllLines($podeConsoleFile, $fixedLines, $utf8BOM)
 
                 if ($replacedCount -gt 0) {
-                    Write-Host "[OK] Podeモジュールのエンコーディング修正完了 ($replacedCount 行)" -ForegroundColor Green
+                    Write-Host "[OK] Podeモジュールのエンコーディング修正完了 ($replacedCount 文字)" -ForegroundColor Green
                 } else {
                     Write-Host "[情報] Podeモジュールは既に修正済みです" -ForegroundColor Gray
                 }
