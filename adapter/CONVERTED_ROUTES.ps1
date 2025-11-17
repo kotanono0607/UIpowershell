@@ -1802,12 +1802,51 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             Write-Host "[ノード関数実行] パラメータ: $($params | ConvertTo-Json -Compress)" -ForegroundColor Gray
         }
 
-        # 関数を実行
+        # 関数を実行（UI関数用にSTAアパートメントで実行）
         Write-Host "[ノード関数実行] 🚀 関数 '$functionName' を実行中..." -ForegroundColor Yellow
+
+        # STA runspace を作成（WPF UIに必要）
+        $runspace = [runspacefactory]::CreateRunspace()
+        $runspace.ApartmentState = [System.Threading.ApartmentState]::STA
+        $runspace.ThreadOptions = [System.Management.Automation.Runspaces.PSThreadOptions]::ReuseThread
+        $runspace.Open()
+
+        # 必要な変数を runspace に設定
+        $runspace.SessionStateProxy.SetVariable('RootDir', $RootDir)
+        $runspace.SessionStateProxy.SetVariable('scriptDir', $scriptDir)
+
+        # PowerShell インスタンスを作成
+        $ps = [PowerShell]::Create()
+        $ps.Runspace = $runspace
+
+        # 汎用関数を読み込み
+        $汎用関数パス = Join-Path $RootDir "add-on\汎用関数.ps1"
+        $ps.AddCommand('Invoke-Expression').AddParameter('Command', ". '$汎用関数パス'") | Out-Null
+        $ps.Invoke() | Out-Null
+        $ps.Commands.Clear()
+
+        # スクリプトを読み込んで関数を定義
+        $ps.AddScript($scriptContent) | Out-Null
+        $ps.Invoke() | Out-Null
+        $ps.Commands.Clear()
+
+        # 関数を実行
+        $ps.AddCommand($functionName)
         if ($params.Count -gt 0) {
-            $code = & $functionName @params
-        } else {
-            $code = & $functionName
+            $ps.AddParameters($params)
+        }
+
+        try {
+            $code = $ps.Invoke()
+            if ($ps.HadErrors) {
+                $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
+                throw "関数実行中にエラーが発生しました: $errorMsg"
+            }
+        } finally {
+            # クリーンアップ
+            $ps.Dispose()
+            $runspace.Close()
+            $runspace.Dispose()
         }
 
         Write-Host "[ノード関数実行] ✅ 関数実行完了" -ForegroundColor Green
