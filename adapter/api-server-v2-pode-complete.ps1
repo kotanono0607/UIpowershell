@@ -394,10 +394,15 @@ Start-PodeServer {
 
     Write-ControlLog "[SERVER] Podeサーバーエンドポイント設定完了 (ポート: $script:ServerPort)"
 
-    # CORS設定（すべてのオリジンを許可）
-    Add-PodeCors -Name 'AllowAll' -Origin '*' -Methods 'GET, POST, PUT, DELETE, OPTIONS' -Headers 'Content-Type, Authorization'
+    # CORS設定（PowerShell 5.1 / Pode 2.11.0互換：ミドルウェアを使用）
+    Add-PodeMiddleware -Name 'CORS' -ScriptBlock {
+        Add-PodeHeader -Name 'Access-Control-Allow-Origin' -Value '*'
+        Add-PodeHeader -Name 'Access-Control-Allow-Methods' -Value 'GET, POST, PUT, DELETE, OPTIONS'
+        Add-PodeHeader -Name 'Access-Control-Allow-Headers' -Value 'Content-Type, Authorization'
+        return $true
+    }
 
-    Write-ControlLog "[CORS] CORS設定完了"
+    Write-ControlLog "[CORS] CORS設定完了（ミドルウェア方式）"
 
     # ============================================
     # 4. 変換されたルート定義を読み込み
