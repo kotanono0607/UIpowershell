@@ -1841,6 +1841,22 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             Write-Host "[ノード関数実行] ⚠️ 汎用関数が見つかりません: $汎用関数パス" -ForegroundColor Yellow
         }
 
+        # デバッグ表示関数を定義（add-on\汎用関数.ps1 からの依存関数）
+        $デバッグ表示Definition = @'
+function デバッグ表示 {
+    param(
+        [string]$表示文字,
+        [int]$表示時間秒 = 2
+    )
+    Write-Host "[デバッグ表示] $表示文字" -ForegroundColor Cyan
+    # WPFでポップアップ表示する実装は省略（STA runspaceでは必要最小限のログ出力のみ）
+}
+'@
+        $ps.AddScript($デバッグ表示Definition) | Out-Null
+        $ps.Invoke() | Out-Null
+        $ps.Commands.Clear()
+        Write-Host "[ノード関数実行] ✅ デバッグ表示関数を定義しました" -ForegroundColor Green
+
         # スクリプトを読み込んで関数を定義
         $ps.AddScript($scriptContent) | Out-Null
         $result = $ps.Invoke()
