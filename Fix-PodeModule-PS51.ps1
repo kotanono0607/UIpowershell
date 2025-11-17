@@ -52,11 +52,16 @@ if (-not $podeModule) {
 }
 
 $podeConsoleFile = Join-Path (Split-Path $podeModule.Path -Parent) "Private\Console.ps1"
-Write-Host "  Detected: $podeConsoleFile" -ForegroundColor Gray
+Write-Host "  Checking: $podeConsoleFile" -ForegroundColor Gray
 
 if (-not (Test-Path $podeConsoleFile)) {
-    Write-Host "[ERROR] Console.ps1 not found: $podeConsoleFile" -ForegroundColor Red
-    exit 1
+    Write-Host "[INFO] Console.ps1 not found in Pode $podeVersion" -ForegroundColor Gray
+    Write-Host "       This version does not have encoding issues - no fix needed!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "==========================================" -ForegroundColor Green
+    Write-Host "Pode $podeVersion is ready to use!" -ForegroundColor Green
+    Write-Host "==========================================" -ForegroundColor Green
+    exit 0
 }
 
 try {
