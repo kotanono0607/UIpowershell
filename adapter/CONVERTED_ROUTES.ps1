@@ -1778,6 +1778,12 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             }
         }
 
+        # スクリプトのディレクトリを $PSScriptRoot として設定（スクリプト内で使用されるため）
+        $scriptDir = Split-Path -Parent $scriptPath
+        $global:PSScriptRoot = $scriptDir
+        $script:PSScriptRoot = $scriptDir
+        Write-Host "[ノード関数実行] 📁 `$PSScriptRoot を設定: $scriptDir" -ForegroundColor Cyan
+
         # リクエストボディを取得
         $params = @{}
         $bodyJson = $WebEvent.Data
