@@ -1387,6 +1387,12 @@ Add-PodeRoute -Method Post -Path "/api/validate/drop" -ScriptBlock {
 # 新しいIDを自動生成
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/id/generate" -ScriptBlock {
+    # コードID管理関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command IDを自動生成する -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
+    }
+
     try {
         $newId = IDを自動生成する
         $result = @{
@@ -1408,6 +1414,12 @@ Add-PodeRoute -Method Post -Path "/api/id/generate" -ScriptBlock {
 # エントリを追加（指定ID）
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/entry/add" -ScriptBlock {
+    # コードID管理関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command エントリを追加_指定ID -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
+    }
+
     try {
         $body = $WebEvent.Data
 
@@ -1438,6 +1450,12 @@ Add-PodeRoute -Method Post -Path "/api/entry/add" -ScriptBlock {
 # IDでエントリを取得
 # ------------------------------
 Add-PodeRoute -Method Get -Path "/api/entry/:id" -ScriptBlock {
+    # コードID管理関数の初期化（未読み込みの場合のみ）
+    if (-not (Get-Command IDでエントリを取得 -ErrorAction SilentlyContinue)) {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
+    }
+
     try {
         $id = $WebEvent.Parameters['id']
         $entry = IDでエントリを取得 -targetID $id
