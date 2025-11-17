@@ -1715,9 +1715,14 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         $functionName = $WebEvent.Parameters['functionName']
         Write-Host "[ノード関数実行] 関数名: $functionName" -ForegroundColor Cyan
 
+        # RootDirを取得してグローバル変数に設定（関数内で使用するため）
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $global:RootDir = $RootDir
+        $script:RootDir = $RootDir
+
         # 関数名をファイル名に変換（例: "8_1" -> "8-1.ps1"）
         $fileName = $functionName -replace '_', '-'
-        $scriptPath = Join-Path (Get-PodeState -Name 'RootDir') "00_code\$fileName.ps1"
+        $scriptPath = Join-Path $RootDir "00_code\$fileName.ps1"
 
         Write-Host "[ノード関数実行] スクリプトパス: $scriptPath" -ForegroundColor Gray
 
@@ -1743,7 +1748,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         Write-Host $preview -ForegroundColor DarkGray
 
         # 汎用関数を読み込み（13_コードサブ汎用関数.ps1）
-        $汎用関数パス = Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1"
+        $汎用関数パス = Join-Path $RootDir "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
             . $汎用関数パス
             Write-Host "[ノード関数実行] ✅ 汎用関数を読み込みました" -ForegroundColor Green
