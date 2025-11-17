@@ -268,7 +268,7 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
         $元の変数リスト = $変数一覧結果.variables
 
         # 共通関数ファイルを読み込み
-        . (Join-Path $global:RootDir "13_コードサブ汎用関数.ps1")
+        . (Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1")
 
         # PowerShell Windows Forms ダイアログを表示
         $ダイアログ結果 = 変数管理を表示 -変数リスト $変数一覧結果.variables
@@ -503,7 +503,7 @@ Add-PodeRoute -Method Post -Path "/api/code-result/show" -ScriptBlock {
         Write-Host "[API] コード長: $($生成結果.code.Length)文字" -ForegroundColor Gray
 
         # 共通関数ファイルを読み込み
-        . (Join-Path $global:RootDir "13_コードサブ汎用関数.ps1")
+        . (Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1")
 
         # PowerShell Windows Forms ダイアログを表示
         $ダイアログ結果 = コード結果を表示 -生成結果 $生成結果
@@ -550,7 +550,7 @@ Add-PodeRoute -Method Post -Path "/api/execute/script" -ScriptBlock {
         }
 
         # 汎用関数を読み込み（13_コードサブ汎用関数.ps1）
-        $汎用関数パス = Join-Path $global:RootDir "13_コードサブ汎用関数.ps1"
+        $汎用関数パス = Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
             . $汎用関数パス
         }
@@ -639,7 +639,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
         $フォルダリスト = $フォルダ一覧結果.folders
 
         # 現在のフォルダを取得
-        $rootDir = $global:RootDir
+        $rootDir = Get-PodeState -Name 'RootDir'
         $mainJsonPath = Join-Path $rootDir "03_history\メイン.json"
         $現在のフォルダ = ""
 
@@ -658,7 +658,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
         Write-Host "[API] フォルダ数: $($フォルダリスト.Count)" -ForegroundColor Gray
 
         # 共通関数ファイルを読み込み
-        . (Join-Path $global:RootDir "13_コードサブ汎用関数.ps1")
+        . (Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1")
 
         # PowerShell Windows Forms ダイアログを表示
         $ダイアログ結果 = フォルダ切替を表示 -フォルダリスト $フォルダリスト -現在のフォルダ $現在のフォルダ
@@ -736,7 +736,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Get -Path "/api/main-json" -ScriptBlock {
     try {
-        $rootDir = $global:RootDir
+        $rootDir = Get-PodeState -Name 'RootDir'
         $mainJsonPath = Join-Path $rootDir "03_history\メイン.json"
 
         if (Test-Path $mainJsonPath) {
@@ -776,7 +776,7 @@ Add-PodeRoute -Method Get -Path "/api/main-json" -ScriptBlock {
 Add-PodeRoute -Method Get -Path "/api/folders/:name/memory" -ScriptBlock {
     try {
         $folderName = $WebEvent.Parameters['name']
-        $rootDir = $global:RootDir
+        $rootDir = Get-PodeState -Name 'RootDir'
         $memoryPath = Join-Path $rootDir "03_history\$folderName\memory.json"
 
         if (Test-Path $memoryPath) {
@@ -833,7 +833,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
         $layerStructure = $body.layerStructure
         Write-Host "[API] layerStructure取得: $($layerStructure.PSObject.Properties.Name.Count) レイヤー" -ForegroundColor Gray
 
-        $rootDir = $global:RootDir
+        $rootDir = Get-PodeState -Name 'RootDir'
         $folderPath = Join-Path $rootDir "03_history\$folderName"
         $memoryPath = Join-Path $folderPath "memory.json"
 
@@ -931,7 +931,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
 Add-PodeRoute -Method Get -Path "/api/folders/:name/code" -ScriptBlock {
     try {
         $folderName = $WebEvent.Parameters['name']
-        $rootDir = $global:RootDir
+        $rootDir = Get-PodeState -Name 'RootDir'
         $codePath = Join-Path $rootDir "03_history\$folderName\コード.json"
 
         if (Test-Path $codePath) {
@@ -1040,7 +1040,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/code" -ScriptBlock {
         Write-Host "[API] ✅ codeDataを取得しました" -ForegroundColor Green
         Write-Host "[API] codeDataの内容: $($codeData | ConvertTo-Json -Compress -Depth 2)" -ForegroundColor Yellow
 
-        $rootDir = $global:RootDir
+        $rootDir = Get-PodeState -Name 'RootDir'
         $folderPath = Join-Path $rootDir "03_history\$folderName"
         $codePath = Join-Path $folderPath "コード.json"
 
@@ -1103,7 +1103,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/code" -ScriptBlock {
 Add-PodeRoute -Method Get -Path "/api/folders/:name/variables" -ScriptBlock {
     try {
         $folderName = $WebEvent.Parameters['name']
-        $rootDir = $global:RootDir
+        $rootDir = Get-PodeState -Name 'RootDir'
         $variablesPath = Join-Path $rootDir "03_history\$folderName\variables.json"
 
         if (Test-Path $variablesPath) {
@@ -1248,7 +1248,7 @@ Add-PodeRoute -Method Get -Path "/api/entry/:id" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Get -Path "/api/entries/all" -ScriptBlock {
     try {
-        $jsonPath = Join-Path $global:RootDir "00_code\コード.json"
+        $jsonPath = Join-Path (Get-PodeState -Name 'RootDir') "00_code\コード.json"
 
         if (Test-Path $jsonPath) {
             $jsonContent = Get-Content $jsonPath -Encoding UTF8 -Raw | ConvertFrom-Json
@@ -1281,7 +1281,7 @@ Add-PodeRoute -Method Get -Path "/api/entries/all" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Get -Path "/api/node/functions" -ScriptBlock {
     try {
-        $codeDir = Join-Path $global:RootDir "00_code"
+        $codeDir = Join-Path (Get-PodeState -Name 'RootDir') "00_code"
 
         if (Test-Path $codeDir) {
             # 00_code/*.ps1 ファイルを取得
@@ -1329,7 +1329,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
 
         # 関数名をファイル名に変換（例: "8_1" -> "8-1.ps1"）
         $fileName = $functionName -replace '_', '-'
-        $scriptPath = Join-Path $global:RootDir "00_code\$fileName.ps1"
+        $scriptPath = Join-Path (Get-PodeState -Name 'RootDir') "00_code\$fileName.ps1"
 
         Write-Host "[ノード関数実行] スクリプトパス: $scriptPath" -ForegroundColor Gray
 
@@ -1355,7 +1355,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         Write-Host $preview -ForegroundColor DarkGray
 
         # 汎用関数を読み込み（13_コードサブ汎用関数.ps1）
-        $汎用関数パス = Join-Path $global:RootDir "13_コードサブ汎用関数.ps1"
+        $汎用関数パス = Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
             . $汎用関数パス
             Write-Host "[ノード関数実行] ✅ 汎用関数を読み込みました" -ForegroundColor Green
@@ -1453,7 +1453,7 @@ Add-PodeRoute -Method Post -Path "/api/node/edit-script" -ScriptBlock {
         }
 
         # 汎用関数を読み込み（複数行テキストを編集）
-        $汎用関数パス = Join-Path $global:RootDir "13_コードサブ汎用関数.ps1"
+        $汎用関数パス = Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
             . $汎用関数パス
             Write-Host "[スクリプト編集] ✅ 汎用関数を読み込みました" -ForegroundColor Green
@@ -1533,7 +1533,7 @@ Add-PodeRoute -Method Post -Path "/api/node/settings" -ScriptBlock {
         Write-Host "[ノード設定] ノードID: $($ノード情報.id), 処理番号: $($ノード情報.処理番号)" -ForegroundColor Gray
 
         # 汎用関数を読み込み（ノード設定を編集）
-        $汎用関数パス = Join-Path $global:RootDir "13_コードサブ汎用関数.ps1"
+        $汎用関数パス = Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
             . $汎用関数パス
             Write-Host "[ノード設定] ✅ 汎用関数を読み込みました" -ForegroundColor Green
@@ -1585,7 +1585,7 @@ Add-PodeRoute -Method Post -Path "/api/browser-logs" -ScriptBlock {
         $body = $WebEvent.Data
 
         # ログディレクトリの確認
-        $logDir = Join-Path $global:RootDir "logs"
+        $logDir = Join-Path (Get-PodeState -Name 'RootDir') "logs"
         if (-not (Test-Path $logDir)) {
             New-Item -ItemType Directory -Path $logDir -Force | Out-Null
         }
@@ -1666,7 +1666,7 @@ Add-PodeRoute -Method Post -Path "/api/control-log" -ScriptBlock {
 
 # ルートパス "/" - index-legacy.htmlを提供
 Add-PodeRoute -Method Get -Path "/" -ScriptBlock {
-    $uiPath = $global:uiPath
+    $uiPath = Get-PodeState -Name 'uiPath'
     $indexPath = Join-Path $uiPath "index-legacy.html"
     if (Test-Path $indexPath) {
         $content = Get-Content $indexPath -Raw -Encoding UTF8
@@ -1680,7 +1680,7 @@ Add-PodeRoute -Method Get -Path "/" -ScriptBlock {
 
 # index-legacy.html
 Add-PodeRoute -Method Get -Path "/index-legacy.html" -ScriptBlock {
-    $uiPath = $global:uiPath
+    $uiPath = Get-PodeState -Name 'uiPath'
     $indexPath = Join-Path $uiPath "index-legacy.html"
     if (Test-Path $indexPath) {
         $content = Get-Content $indexPath -Raw -Encoding UTF8
@@ -1694,7 +1694,7 @@ Add-PodeRoute -Method Get -Path "/index-legacy.html" -ScriptBlock {
 
 # style-legacy.css
 Add-PodeRoute -Method Get -Path "/style-legacy.css" -ScriptBlock {
-    $uiPath = $global:uiPath
+    $uiPath = Get-PodeState -Name 'uiPath'
     $cssPath = Join-Path $uiPath "style-legacy.css"
     if (Test-Path $cssPath) {
         $content = Get-Content $cssPath -Raw -Encoding UTF8
@@ -1708,7 +1708,7 @@ Add-PodeRoute -Method Get -Path "/style-legacy.css" -ScriptBlock {
 
 # app-legacy.js
 Add-PodeRoute -Method Get -Path "/app-legacy.js" -ScriptBlock {
-    $uiPath = $global:uiPath
+    $uiPath = Get-PodeState -Name 'uiPath'
     $jsPath = Join-Path $uiPath "app-legacy.js"
     if (Test-Path $jsPath) {
         $content = Get-Content $jsPath -Raw -Encoding UTF8
@@ -1722,7 +1722,7 @@ Add-PodeRoute -Method Get -Path "/app-legacy.js" -ScriptBlock {
 
 # layer-detail.html
 Add-PodeRoute -Method Get -Path "/layer-detail.html" -ScriptBlock {
-    $uiPath = $global:uiPath
+    $uiPath = Get-PodeState -Name 'uiPath'
     $htmlPath = Join-Path $uiPath "layer-detail.html"
     if (Test-Path $htmlPath) {
         $content = Get-Content $htmlPath -Raw -Encoding UTF8
@@ -1736,7 +1736,7 @@ Add-PodeRoute -Method Get -Path "/layer-detail.html" -ScriptBlock {
 
 # layer-detail.js
 Add-PodeRoute -Method Get -Path "/layer-detail.js" -ScriptBlock {
-    $uiPath = $global:uiPath
+    $uiPath = Get-PodeState -Name 'uiPath'
     $jsPath = Join-Path $uiPath "layer-detail.js"
     if (Test-Path $jsPath) {
         $content = Get-Content $jsPath -Raw -Encoding UTF8
@@ -1750,7 +1750,7 @@ Add-PodeRoute -Method Get -Path "/layer-detail.js" -ScriptBlock {
 
 # modal-functions.js
 Add-PodeRoute -Method Get -Path "/modal-functions.js" -ScriptBlock {
-    $uiPath = $global:uiPath
+    $uiPath = Get-PodeState -Name 'uiPath'
     $jsPath = Join-Path $uiPath "modal-functions.js"
     if (Test-Path $jsPath) {
         $content = Get-Content $jsPath -Raw -Encoding UTF8
@@ -1764,7 +1764,7 @@ Add-PodeRoute -Method Get -Path "/modal-functions.js" -ScriptBlock {
 
 # ボタン設定.json (英語エイリアス: /button-settings.json)
 Add-PodeRoute -Method Get -Path "/button-settings.json" -ScriptBlock {
-    $rootDir = $global:RootDir
+    $rootDir = Get-PodeState -Name 'RootDir'
     $jsonPath = Join-Path $rootDir "ボタン設定.json"
     if (Test-Path $jsonPath) {
         $content = Get-Content $jsonPath -Raw -Encoding UTF8
@@ -1779,7 +1779,7 @@ Add-PodeRoute -Method Get -Path "/button-settings.json" -ScriptBlock {
 
 # ボタン設定.json (日本語パス)
 Add-PodeRoute -Method Get -Path "/ボタン設定.json" -ScriptBlock {
-    $rootDir = $global:RootDir
+    $rootDir = Get-PodeState -Name 'RootDir'
     $jsonPath = Join-Path $rootDir "ボタン設定.json"
     if (Test-Path $jsonPath) {
         $content = Get-Content $jsonPath -Raw -Encoding UTF8

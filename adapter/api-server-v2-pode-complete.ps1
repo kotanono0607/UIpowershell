@@ -421,6 +421,13 @@ Start-PodeServer {
 
     Write-Host "APIエンドポイントを設定します..." -ForegroundColor Cyan
 
+    # PowerShell 5.1 / Pode 2.11.0互換: Podeの状態管理を使用して変数を共有
+    # ルート定義内のスクリプトブロックからGet-PodeStateでアクセス可能
+    Set-PodeState -Name 'RootDir' -Value $global:RootDir
+    Set-PodeState -Name 'uiPath' -Value $global:uiPath
+    Set-PodeState -Name 'ServerPort' -Value $global:ServerPort
+    Set-PodeState -Name 'ShouldOpenBrowser' -Value $global:ShouldOpenBrowser
+
     # 変換されたルート定義ファイルを読み込み
     $convertedRoutesPath = Join-Path $PSScriptRoot "CONVERTED_ROUTES.ps1"
     if (Test-Path $convertedRoutesPath) {
