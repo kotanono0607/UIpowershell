@@ -1663,104 +1663,106 @@ Add-PodeRoute -Method Post -Path "/api/control-log" -ScriptBlock {
 # ------------------------------
 # 静的ファイル配信
 # ------------------------------
+# 注: 静的ファイル（HTML, CSS, JS）はAdd-PodeStaticRouteで処理されます
+# 個別ルートは不要のためコメントアウト
 
-# ルートパス "/" - index-legacy.htmlを提供
-Add-PodeRoute -Method Get -Path "/" -ScriptBlock {
-    $uiPath = Get-PodeState -Name 'uiPath'
-    $indexPath = Join-Path $uiPath "index-legacy.html"
-    if (Test-Path $indexPath) {
-        $content = Get-Content $indexPath -Raw -Encoding UTF8
-        Set-PodeHeader -Name "Content-Type" -Value "text/html; charset=utf-8"
-        Write-PodeTextResponse -Value $content
-    } else {
-        Set-PodeResponseStatus -Code 404
-        Write-PodeTextResponse -Value "index-legacy.html not found"
-    }
-}
+# # ルートパス "/" - index-legacy.htmlを提供
+# Add-PodeRoute -Method Get -Path "/" -ScriptBlock {
+#     $uiPath = Get-PodeState -Name 'uiPath'
+#     $indexPath = Join-Path $uiPath "index-legacy.html"
+#     if (Test-Path $indexPath) {
+#         $content = Get-Content $indexPath -Raw -Encoding UTF8
+#         Set-PodeHeader -Name "Content-Type" -Value "text/html; charset=utf-8"
+#         Write-PodeTextResponse -Value $content
+#     } else {
+#         Set-PodeResponseStatus -Code 404
+#         Write-PodeTextResponse -Value "index-legacy.html not found"
+#     }
+# }
 
-# index-legacy.html
-Add-PodeRoute -Method Get -Path "/index-legacy.html" -ScriptBlock {
-    $uiPath = Get-PodeState -Name 'uiPath'
-    $indexPath = Join-Path $uiPath "index-legacy.html"
-    if (Test-Path $indexPath) {
-        $content = Get-Content $indexPath -Raw -Encoding UTF8
-        Set-PodeHeader -Name "Content-Type" -Value "text/html; charset=utf-8"
-        Write-PodeTextResponse -Value $content
-    } else {
-        Set-PodeResponseStatus -Code 404
-        Write-PodeTextResponse -Value "index-legacy.html not found"
-    }
-}
+# # index-legacy.html
+# Add-PodeRoute -Method Get -Path "/index-legacy.html" -ScriptBlock {
+#     $uiPath = Get-PodeState -Name 'uiPath'
+#     $indexPath = Join-Path $uiPath "index-legacy.html"
+#     if (Test-Path $indexPath) {
+#         $content = Get-Content $indexPath -Raw -Encoding UTF8
+#         Set-PodeHeader -Name "Content-Type" -Value "text/html; charset=utf-8"
+#         Write-PodeTextResponse -Value $content
+#     } else {
+#         Set-PodeResponseStatus -Code 404
+#         Write-PodeTextResponse -Value "index-legacy.html not found"
+#     }
+# }
 
-# style-legacy.css
-Add-PodeRoute -Method Get -Path "/style-legacy.css" -ScriptBlock {
-    $uiPath = Get-PodeState -Name 'uiPath'
-    $cssPath = Join-Path $uiPath "style-legacy.css"
-    if (Test-Path $cssPath) {
-        $content = Get-Content $cssPath -Raw -Encoding UTF8
-        Set-PodeHeader -Name "Content-Type" -Value "text/css; charset=utf-8"
-        Write-PodeTextResponse -Value $content
-    } else {
-        Set-PodeResponseStatus -Code 404
-        Write-PodeTextResponse -Value "style-legacy.css not found"
-    }
-}
+# # style-legacy.css
+# Add-PodeRoute -Method Get -Path "/style-legacy.css" -ScriptBlock {
+#     $uiPath = Get-PodeState -Name 'uiPath'
+#     $cssPath = Join-Path $uiPath "style-legacy.css"
+#     if (Test-Path $cssPath) {
+#         $content = Get-Content $cssPath -Raw -Encoding UTF8
+#         Set-PodeHeader -Name "Content-Type" -Value "text/css; charset=utf-8"
+#         Write-PodeTextResponse -Value $content
+#     } else {
+#         Set-PodeResponseStatus -Code 404
+#         Write-PodeTextResponse -Value "style-legacy.css not found"
+#     }
+# }
 
-# app-legacy.js
-Add-PodeRoute -Method Get -Path "/app-legacy.js" -ScriptBlock {
-    $uiPath = Get-PodeState -Name 'uiPath'
-    $jsPath = Join-Path $uiPath "app-legacy.js"
-    if (Test-Path $jsPath) {
-        $content = Get-Content $jsPath -Raw -Encoding UTF8
-        Set-PodeHeader -Name "Content-Type" -Value "application/javascript; charset=utf-8"
-        Write-PodeTextResponse -Value $content
-    } else {
-        Set-PodeResponseStatus -Code 404
-        Write-PodeTextResponse -Value "app-legacy.js not found"
-    }
-}
+# # app-legacy.js
+# Add-PodeRoute -Method Get -Path "/app-legacy.js" -ScriptBlock {
+#     $uiPath = Get-PodeState -Name 'uiPath'
+#     $jsPath = Join-Path $uiPath "app-legacy.js"
+#     if (Test-Path $jsPath) {
+#         $content = Get-Content $jsPath -Raw -Encoding UTF8
+#         Set-PodeHeader -Name "Content-Type" -Value "application/javascript; charset=utf-8"
+#         Write-PodeTextResponse -Value $content
+#     } else {
+#         Set-PodeResponseStatus -Code 404
+#         Write-PodeTextResponse -Value "app-legacy.js not found"
+#     }
+# }
 
-# layer-detail.html
-Add-PodeRoute -Method Get -Path "/layer-detail.html" -ScriptBlock {
-    $uiPath = Get-PodeState -Name 'uiPath'
-    $htmlPath = Join-Path $uiPath "layer-detail.html"
-    if (Test-Path $htmlPath) {
-        $content = Get-Content $htmlPath -Raw -Encoding UTF8
-        Set-PodeHeader -Name "Content-Type" -Value "text/html; charset=utf-8"
-        Write-PodeTextResponse -Value $content
-    } else {
-        Set-PodeResponseStatus -Code 404
-        Write-PodeTextResponse -Value "layer-detail.html not found"
-    }
-}
+# # layer-detail.html
+# Add-PodeRoute -Method Get -Path "/layer-detail.html" -ScriptBlock {
+#     $uiPath = Get-PodeState -Name 'uiPath'
+#     $htmlPath = Join-Path $uiPath "layer-detail.html"
+#     if (Test-Path $htmlPath) {
+#         $content = Get-Content $htmlPath -Raw -Encoding UTF8
+#         Set-PodeHeader -Name "Content-Type" -Value "text/html; charset=utf-8"
+#         Write-PodeTextResponse -Value $content
+#     } else {
+#         Set-PodeResponseStatus -Code 404
+#         Write-PodeTextResponse -Value "layer-detail.html not found"
+#     }
+# }
 
-# layer-detail.js
-Add-PodeRoute -Method Get -Path "/layer-detail.js" -ScriptBlock {
-    $uiPath = Get-PodeState -Name 'uiPath'
-    $jsPath = Join-Path $uiPath "layer-detail.js"
-    if (Test-Path $jsPath) {
-        $content = Get-Content $jsPath -Raw -Encoding UTF8
-        Set-PodeHeader -Name "Content-Type" -Value "application/javascript; charset=utf-8"
-        Write-PodeTextResponse -Value $content
-    } else {
-        Set-PodeResponseStatus -Code 404
-        Write-PodeTextResponse -Value "layer-detail.js not found"
-    }
-}
+# # layer-detail.js
+# Add-PodeRoute -Method Get -Path "/layer-detail.js" -ScriptBlock {
+#     $uiPath = Get-PodeState -Name 'uiPath'
+#     $jsPath = Join-Path $uiPath "layer-detail.js"
+#     if (Test-Path $jsPath) {
+#         $content = Get-Content $jsPath -Raw -Encoding UTF8
+#         Set-PodeHeader -Name "Content-Type" -Value "application/javascript; charset=utf-8"
+#         Write-PodeTextResponse -Value $content
+#     } else {
+#         Set-PodeResponseStatus -Code 404
+#         Write-PodeTextResponse -Value "layer-detail.js not found"
+#     }
+# }
 
-# modal-functions.js
-Add-PodeRoute -Method Get -Path "/modal-functions.js" -ScriptBlock {
-    $uiPath = Get-PodeState -Name 'uiPath'
-    $jsPath = Join-Path $uiPath "modal-functions.js"
-    if (Test-Path $jsPath) {
-        $content = Get-Content $jsPath -Raw -Encoding UTF8
-        Set-PodeHeader -Name "Content-Type" -Value "application/javascript; charset=utf-8"
-        Write-PodeTextResponse -Value $content
-    } else {
-        Set-PodeResponseStatus -Code 404
-        Write-PodeTextResponse -Value "modal-functions.js not found"
-    }
-}
+# # modal-functions.js
+# Add-PodeRoute -Method Get -Path "/modal-functions.js" -ScriptBlock {
+#     $uiPath = Get-PodeState -Name 'uiPath'
+#     $jsPath = Join-Path $uiPath "modal-functions.js"
+#     if (Test-Path $jsPath) {
+#         $content = Get-Content $jsPath -Raw -Encoding UTF8
+#         Set-PodeHeader -Name "Content-Type" -Value "application/javascript; charset=utf-8"
+#         Write-PodeTextResponse -Value $content
+#     } else {
+#         Set-PodeResponseStatus -Code 404
+#         Write-PodeTextResponse -Value "modal-functions.js not found"
+#     }
+# }
 
 # ボタン設定.json (英語エイリアス: /button-settings.json)
 Add-PodeRoute -Method Get -Path "/button-settings.json" -ScriptBlock {

@@ -439,6 +439,11 @@ Start-PodeServer {
         Write-Host "        ルート定義ファイルが必要です" -ForegroundColor Red
     }
 
+    # 静的ファイル配信（Pode 2.11.0の組み込み機能を使用）
+    Add-PodeStaticRoute -Path '/' -Source $global:uiPath -Defaults @('index-legacy.html')
+    Write-Host "[OK] 静的ファイル配信を設定しました: $global:uiPath" -ForegroundColor Green
+    Write-ControlLog "[STATIC] 静的ファイル配信設定完了"
+
     # ============================================
     # 5. サーバー起動完了メッセージ
     # ============================================
