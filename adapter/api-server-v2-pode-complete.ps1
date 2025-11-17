@@ -191,9 +191,9 @@ if (Test-Path $podeConsoleFile) {
             $fixedLines += $line
         }
 
-        # UTF-8 BOMで保存
-        $utf8BOM = New-Object System.Text.UTF8Encoding $true
-        [System.IO.File]::WriteAllLines($podeConsoleFile, $fixedLines, $utf8BOM)
+        # UTF-8 BOM無しで保存（モジュールファイルはBOM無しが推奨）
+        $utf8NoBOM = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllLines($podeConsoleFile, $fixedLines, $utf8NoBOM)
 
         if ($replacedCount -gt 0) {
             Write-Host "[OK] Podeモジュールのエンコーディングを修正しました ($replacedCount 文字)" -ForegroundColor Green
@@ -280,9 +280,9 @@ try {
                     $fixedLines += $line
                 }
 
-                # UTF-8 BOMで保存
-                $utf8BOM = New-Object System.Text.UTF8Encoding $true
-                [System.IO.File]::WriteAllLines($podeConsoleFile, $fixedLines, $utf8BOM)
+                # UTF-8 BOM無しで保存（モジュールファイルはBOM無しが推奨）
+                $utf8NoBOM = New-Object System.Text.UTF8Encoding $false
+                [System.IO.File]::WriteAllLines($podeConsoleFile, $fixedLines, $utf8NoBOM)
 
                 if ($replacedCount -gt 0) {
                     Write-Host "[OK] Podeモジュールのエンコーディング修正完了 ($replacedCount 文字)" -ForegroundColor Green

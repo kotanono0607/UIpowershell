@@ -101,9 +101,9 @@ try {
         $fixedLines += $line
     }
 
-    # Save with UTF-8 BOM
-    $utf8BOM = New-Object System.Text.UTF8Encoding $true
-    [System.IO.File]::WriteAllLines($podeConsoleFile, $fixedLines, $utf8BOM)
+    # Save with UTF-8 without BOM (module files should not have BOM)
+    $utf8NoBOM = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllLines($podeConsoleFile, $fixedLines, $utf8NoBOM)
 
     Write-Host ""
     if ($replacedCount -gt 0) {
