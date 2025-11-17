@@ -56,17 +56,29 @@ foreach ($file in $adapterFiles) {
 $afterFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
 $newFunctions = $afterFunctions | Where-Object { $_ -notin $beforeFunctions }
 
-Write-Host "  [情報] 新しく定義された関数をグローバルスコープにエクスポート中..." -ForegroundColor Cyan
-$exportCount = 0
-foreach ($funcName in $newFunctions) {
-    if (Test-Path "function:$funcName") {
-        $funcDef = Get-Content "function:$funcName"
-        Set-Item -Path "function:global:$funcName" -Value $funcDef -Force
-        $exportCount++
-    }
-}
+Write-Host "  [デバッグ] 読み込み前の関数数: $($beforeFunctions.Count)" -ForegroundColor Yellow
+Write-Host "  [デバッグ] 読み込み後の関数数: $($afterFunctions.Count)" -ForegroundColor Yellow
+Write-Host "  [デバッグ] 新しい関数数: $($newFunctions.Count)" -ForegroundColor Yellow
 
-Write-Host "[CONVERTED_ROUTES.ps1] 全関数の読み込み完了！($exportCount 個の関数をグローバル化)" -ForegroundColor Green
+if ($newFunctions.Count -gt 0) {
+    Write-Host "  [情報] 新しく定義された関数をグローバルスコープにエクスポート中..." -ForegroundColor Cyan
+    $exportCount = 0
+    $exportedFunctions = @()
+    foreach ($funcName in $newFunctions) {
+        if (Test-Path "function:$funcName") {
+            $funcDef = Get-Content "function:$funcName"
+            Set-Item -Path "function:global:$funcName" -Value $funcDef -Force
+            $exportCount++
+            $exportedFunctions += $funcName
+        }
+    }
+
+    Write-Host "[CONVERTED_ROUTES.ps1] 全関数の読み込み完了！($exportCount 個の関数をグローバル化)" -ForegroundColor Green
+    Write-Host "  [デバッグ] エクスポートされた関数: $($exportedFunctions -join ', ')" -ForegroundColor Yellow
+} else {
+    Write-Host "  [警告] 新しい関数が検出されませんでした！" -ForegroundColor Red
+    Write-Host "  [警告] これはスコープ問題が発生する可能性があります" -ForegroundColor Red
+}
 Write-Host ""
 
 # ------------------------------

@@ -372,86 +372,9 @@ $global:uiPath = $script:uiPath
 Start-PodeServer {
 
     # ============================================
-    # Podeスコープ内でv2ファイルを読み込み
+    # 注: v2ファイルとAdapterファイルの読み込みは
+    # CONVERTED_ROUTES.ps1内で行います（スコープ問題の回避のため）
     # ============================================
-
-    Write-Host "Podeスコープ内でPhase 2 v2ファイルを読み込みます..." -ForegroundColor Cyan
-
-    $v2FilesToLoad = @(
-        "12_コードメイン_コード本文_v2.ps1",
-        "10_変数機能_変数管理UI_v2.ps1",
-        "07_メインF機能_ツールバー作成_v2.ps1",
-        "08_メインF機能_メインボタン処理_v2.ps1",
-        "02-6_削除処理_v2.ps1",
-        "02-2_ネスト規制バリデーション_v2.ps1"
-    )
-
-    # v2ファイルで定義される関数をグローバルスコープにエクスポート
-    foreach ($file in $v2FilesToLoad) {
-        $filePath = Join-Path $global:RootDir $file
-        if (Test-Path $filePath) {
-            # 現在の関数リストを取得（読み込み前）
-            $beforeFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
-
-            # ファイルを読み込み
-            . $filePath
-
-            # 新しく定義された関数を取得
-            $afterFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
-            $newFunctions = $afterFunctions | Where-Object { $_ -notin $beforeFunctions }
-
-            # 新しい関数をグローバルスコープに再定義
-            foreach ($funcName in $newFunctions) {
-                if (Test-Path "function:$funcName") {
-                    $funcDef = Get-Content "function:$funcName"
-                    Set-Item -Path "function:global:$funcName" -Value $funcDef -Force
-                }
-            }
-
-            Write-Host "[OK] $file (関数をグローバルスコープにエクスポート)" -ForegroundColor Green
-        } else {
-            Write-Host "[警告] $file が見つかりません" -ForegroundColor Yellow
-        }
-    }
-
-    Write-Host "Podeスコープ内でPhase 3 Adapterファイルを読み込みます..." -ForegroundColor Cyan
-
-    $adapterDir = Split-Path -Parent $PSCommandPath
-
-    # Adapterファイルもグローバルスコープにエクスポート
-    $adapterFiles = @(
-        @{ Name = "state-manager.ps1"; Path = (Join-Path $adapterDir "state-manager.ps1") },
-        @{ Name = "node-operations.ps1"; Path = (Join-Path $adapterDir "node-operations.ps1") }
-    )
-
-    foreach ($adapterFile in $adapterFiles) {
-        if (Test-Path $adapterFile.Path) {
-            # 現在の関数リストを取得（読み込み前）
-            $beforeFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
-
-            # ファイルを読み込み
-            . $adapterFile.Path
-
-            # 新しく定義された関数を取得
-            $afterFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
-            $newFunctions = $afterFunctions | Where-Object { $_ -notin $beforeFunctions }
-
-            # 新しい関数をグローバルスコープに再定義
-            foreach ($funcName in $newFunctions) {
-                if (Test-Path "function:$funcName") {
-                    $funcDef = Get-Content "function:$funcName"
-                    Set-Item -Path "function:global:$funcName" -Value $funcDef -Force
-                }
-            }
-
-            Write-Host "[OK] $($adapterFile.Name) (関数をグローバルスコープにエクスポート)" -ForegroundColor Green
-        } else {
-            Write-Host "[警告] $($adapterFile.Name) が見つかりません" -ForegroundColor Yellow
-        }
-    }
-
-    Write-Host "[OK] 全v2関数とAdapter関数を読み込みました" -ForegroundColor Green
-    Write-Host ""
 
     # エンドポイント設定
     Add-PodeEndpoint -Address localhost -Port $global:ServerPort -Protocol Http
