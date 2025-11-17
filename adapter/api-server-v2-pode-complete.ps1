@@ -134,7 +134,11 @@ if (Test-Path $podeModulePath) {
 # PowerShell 5.1はUTF-8 BOMが必要なため、Podeモジュールの問題ファイルを修正
 Write-Host "PowerShell 5.1環境用にPodeモジュールを最適化しています..." -ForegroundColor Cyan
 
-$podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
+# Pode 2.11.0または2.12.1のConsole.ps1を検出
+$podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.11.0\Private\Console.ps1"
+if (-not (Test-Path $podeConsoleFile)) {
+    $podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
+}
 if (Test-Path $podeConsoleFile) {
     try {
         # バイナリモードで正確に読み取る
@@ -210,12 +214,13 @@ try {
     Write-Host ""
 
     try {
-        Write-Host "Install-Module -Name Pode -Scope CurrentUser -Force を実行中..." -ForegroundColor Cyan
-        Install-Module -Name Pode -Scope CurrentUser -Force -AllowClobber
+        Write-Host "Install-Module -Name Pode -RequiredVersion 2.11.0 -Scope CurrentUser -Force を実行中..." -ForegroundColor Cyan
+        Write-Host "    （PowerShell 5.1互換バージョンをインストールします）" -ForegroundColor Gray
+        Install-Module -Name Pode -RequiredVersion 2.11.0 -Scope CurrentUser -Force -AllowClobber
 
         # PowerShell 5.1対応: インストール後にPodeモジュールを修正
         Write-Host "Podeモジュールのエンコーディングを修正しています..." -ForegroundColor Cyan
-        $podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
+        $podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.11.0\Private\Console.ps1"
         if (Test-Path $podeConsoleFile) {
             try {
                 # バイナリモードで正確に読み取る
