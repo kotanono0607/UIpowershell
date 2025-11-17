@@ -1819,8 +1819,8 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         $ps = [PowerShell]::Create()
         $ps.Runspace = $runspace
 
-        # 汎用関数を読み込み
-        $汎用関数パス = Join-Path $RootDir "add-on\汎用関数.ps1"
+        # 汎用関数を読み込み（13_コードサブ汎用関数.ps1）
+        $汎用関数パス = Join-Path $RootDir "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
             # 汎用関数の内容を読み込んで実行
             try {
