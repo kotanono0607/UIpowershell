@@ -340,6 +340,29 @@ if (Test-Path $varManagePath) {
     Write-Host "[警告] 09_変数機能_コードID管理JSON.ps1 が見つかりません" -ForegroundColor Yellow
 }
 
+# Phase 2 v2ファイルを読み込み
+Write-Host ""
+Write-Host "Phase 2 v2ファイルを読み込みます..." -ForegroundColor Cyan
+
+$v2FilesToLoad = @(
+    "12_コードメイン_コード本文_v2.ps1",
+    "10_変数機能_変数管理UI_v2.ps1",
+    "07_メインF機能_ツールバー作成_v2.ps1",
+    "08_メインF機能_メインボタン処理_v2.ps1",
+    "02-6_削除処理_v2.ps1",
+    "02-2_ネスト規制バリデーション_v2.ps1"
+)
+
+foreach ($file in $v2FilesToLoad) {
+    $filePath = Join-Path $script:RootDir $file
+    if (Test-Path $filePath) {
+        . $filePath
+        Write-Host "[OK] $file" -ForegroundColor Green
+    } else {
+        Write-Host "[警告] $file が見つかりません" -ForegroundColor Yellow
+    }
+}
+
 # Phase 3 Adapterファイルを読み込み
 Write-Host ""
 Write-Host "Phase 3 Adapterファイルを読み込みます..." -ForegroundColor Cyan
