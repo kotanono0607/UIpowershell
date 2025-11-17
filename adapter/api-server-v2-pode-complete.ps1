@@ -404,6 +404,14 @@ Start-PodeServer {
 
     Write-ControlLog "[CORS] CORS設定完了（ミドルウェア方式）"
 
+    # CORSプリフライトリクエスト（OPTIONS）を処理
+    Add-PodeRoute -Method Options -Path * -ScriptBlock {
+        # ヘッダーは既にミドルウェアで設定済み
+        Write-PodeTextResponse -Value 'OK' -StatusCode 200
+    }
+
+    Write-ControlLog "[CORS] OPTIONSプリフライトハンドラー設定完了"
+
     # ============================================
     # 4. 変換されたルート定義を読み込み
     # ============================================
