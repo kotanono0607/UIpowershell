@@ -26,6 +26,9 @@ $v2FilesToLoad = @(
     "02-2_ネスト規制バリデーション_v2.ps1"
 )
 
+# 読み込み前の関数リストを取得
+$beforeFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
+
 foreach ($file in $v2FilesToLoad) {
     $filePath = Join-Path $RootDir $file
     if (Test-Path $filePath) {
@@ -49,7 +52,21 @@ foreach ($file in $adapterFiles) {
     }
 }
 
-Write-Host "[CONVERTED_ROUTES.ps1] 全関数の読み込み完了！" -ForegroundColor Green
+# 読み込み後の関数リストを取得し、新しい関数をグローバル化
+$afterFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
+$newFunctions = $afterFunctions | Where-Object { $_ -notin $beforeFunctions }
+
+Write-Host "  [情報] 新しく定義された関数をグローバルスコープにエクスポート中..." -ForegroundColor Cyan
+$exportCount = 0
+foreach ($funcName in $newFunctions) {
+    if (Test-Path "function:$funcName") {
+        $funcDef = Get-Content "function:$funcName"
+        Set-Item -Path "function:global:$funcName" -Value $funcDef -Force
+        $exportCount++
+    }
+}
+
+Write-Host "[CONVERTED_ROUTES.ps1] 全関数の読み込み完了！($exportCount 個の関数をグローバル化)" -ForegroundColor Green
 Write-Host ""
 
 # ------------------------------
