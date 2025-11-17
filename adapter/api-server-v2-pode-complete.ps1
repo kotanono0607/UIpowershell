@@ -379,20 +379,23 @@ Write-Host "  URL: http://localhost:$Port" -ForegroundColor White
 Write-Host "  フロントエンド: http://localhost:$Port/index-legacy.html" -ForegroundColor Cyan
 Write-Host ""
 
-# PowerShell 5.1互換: スクリプトスコープ変数を定義（$using:は使用不可）
-$script:ServerPort = $Port
-$script:ShouldOpenBrowser = $AutoOpenBrowser
+# PowerShell 5.1互換: グローバルスコープ変数を定義（$using:は使用不可）
+# Start-PodeServerブロック内のスクリプトブロックからアクセスするため
+$global:ServerPort = $Port
+$global:ShouldOpenBrowser = $AutoOpenBrowser
+$global:RootDir = $script:RootDir
+$global:uiPath = $script:uiPath
 
 # Start-PodeServer でサーバー設定とルート定義を行う
 Start-PodeServer {
 
     # エンドポイント設定
-    Add-PodeEndpoint -Address localhost -Port $script:ServerPort -Protocol Http
+    Add-PodeEndpoint -Address localhost -Port $global:ServerPort -Protocol Http
 
     # ロギング設定
     New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging
 
-    Write-ControlLog "[SERVER] Podeサーバーエンドポイント設定完了 (ポート: $script:ServerPort)"
+    Write-ControlLog "[SERVER] Podeサーバーエンドポイント設定完了 (ポート: $global:ServerPort)"
 
     # CORS設定（PowerShell 5.1 / Pode 2.11.0互換：ミドルウェアを使用）
     Add-PodeMiddleware -Name 'CORS' -ScriptBlock {
@@ -438,10 +441,10 @@ Start-PodeServer {
     Write-Host "✓ Podeサーバー起動成功！" -ForegroundColor Green
     Write-Host "==================================" -ForegroundColor Green
     Write-Host ""
-    Write-Host "アクセス先: http://localhost:$script:ServerPort" -ForegroundColor Cyan
+    Write-Host "アクセス先: http://localhost:$global:ServerPort" -ForegroundColor Cyan
     Write-Host ""
 
-    Write-ControlLog "[SERVER] Podeサーバー起動成功 (ポート: $script:ServerPort)"
+    Write-ControlLog "[SERVER] Podeサーバー起動成功 (ポート: $global:ServerPort)"
 
     Write-Host "APIエンドポイント（Phase 3対応）:" -ForegroundColor Yellow
     Write-Host ""
@@ -497,9 +500,9 @@ Start-PodeServer {
     Write-Host ""
 
     # ブラウザ自動起動（Edge専用 - Chrome分離）
-    if ($script:ShouldOpenBrowser) {
+    if ($global:ShouldOpenBrowser) {
         Start-Sleep -Seconds 1
-        $url = "http://localhost:$script:ServerPort/index-legacy.html"
+        $url = "http://localhost:$global:ServerPort/index-legacy.html"
 
         # Microsoft Edge専用で起動（Chromeと分離）
         $edgePaths = @(
