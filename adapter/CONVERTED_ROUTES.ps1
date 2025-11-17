@@ -1841,49 +1841,39 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             Write-Host "[ノード関数実行] ⚠️ 汎用関数が見つかりません: $汎用関数パス" -ForegroundColor Yellow
         }
 
-        # デバッグ表示関数を定義（add-on\汎用関数.ps1 からの依存関数）
-        $デバッグ表示Definition = @'
-function デバッグ表示 {
-    param(
-        [string]$表示文字,
-        [int]$表示時間秒 = 2
-    )
-    Write-Host "[デバッグ表示] $表示文字" -ForegroundColor Cyan
-    # WPFでポップアップ表示する実装は省略（STA runspaceでは必要最小限のログ出力のみ）
-}
-'@
-        $ps.AddScript($デバッグ表示Definition) | Out-Null
-        $ps.Invoke() | Out-Null
-        $ps.Commands.Clear()
-        Write-Host "[ノード関数実行] ✅ デバッグ表示関数を定義しました" -ForegroundColor Green
+        # PowerShell プロファイルを読み込み（デバッグ表示、ウインドウハンドルでアクティブにする等の依存関数）
+        $profilePaths = @(
+            $PROFILE.CurrentUserAllHosts,
+            $PROFILE.CurrentUserCurrentHost,
+            $PROFILE
+        )
 
-        # ウインドウハンドルでアクティブにする関数を定義（add-on\win32API.psm1 からの依存関数）
-        $ウインドウアクティブDefinition = @'
-function ウインドウハンドルでアクティブにする {
-    param(
-        [IntPtr]$ウインドウハンドル
-    )
-    Write-Host "[ウインドウアクティブ] ハンドル: $ウインドウハンドル" -ForegroundColor Cyan
-    # Win32 API の SetForegroundWindow 実装は省略（STA runspaceでは必要最小限のログ出力のみ）
-    try {
-        Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-public class Win32 {
-    [DllImport("user32.dll")]
-    public static extern bool SetForegroundWindow(IntPtr hWnd);
-}
-"@
-        [Win32]::SetForegroundWindow($ウインドウハンドル) | Out-Null
-    } catch {
-        # 既に定義されている場合はエラーを無視
-    }
-}
-'@
-        $ps.AddScript($ウインドウアクティブDefinition) | Out-Null
-        $ps.Invoke() | Out-Null
-        $ps.Commands.Clear()
-        Write-Host "[ノード関数実行] ✅ ウインドウアクティブ関数を定義しました" -ForegroundColor Green
+        $profileLoaded = $false
+        foreach ($profilePath in $profilePaths) {
+            if ($profilePath -and (Test-Path $profilePath)) {
+                try {
+                    $profileContent = Get-Content -Path $profilePath -Raw -Encoding UTF8 -ErrorAction Stop
+                    $ps.AddScript($profileContent) | Out-Null
+                    $result = $ps.Invoke()
+                    if ($ps.HadErrors) {
+                        $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
+                        Write-Host "[ノード関数実行] ⚠️ プロファイル読み込みでエラー: $errorMsg" -ForegroundColor Yellow
+                        $ps.Streams.Error.Clear()
+                    } else {
+                        Write-Host "[ノード関数実行] ✅ PowerShell プロファイルを読み込みました: $profilePath" -ForegroundColor Green
+                        $profileLoaded = $true
+                    }
+                    $ps.Commands.Clear()
+                    break
+                } catch {
+                    Write-Host "[ノード関数実行] ⚠️ プロファイル読み込み失敗: $profilePath - $_" -ForegroundColor Yellow
+                }
+            }
+        }
+
+        if (-not $profileLoaded) {
+            Write-Host "[ノード関数実行] ⚠️ PowerShell プロファイルが見つかりませんでした" -ForegroundColor Yellow
+        }
 
         # スクリプトを読み込んで関数を定義
         $ps.AddScript($scriptContent) | Out-Null
