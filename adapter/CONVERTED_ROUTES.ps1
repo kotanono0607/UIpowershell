@@ -1857,6 +1857,34 @@ function デバッグ表示 {
         $ps.Commands.Clear()
         Write-Host "[ノード関数実行] ✅ デバッグ表示関数を定義しました" -ForegroundColor Green
 
+        # ウインドウハンドルでアクティブにする関数を定義（add-on\win32API.psm1 からの依存関数）
+        $ウインドウアクティブDefinition = @'
+function ウインドウハンドルでアクティブにする {
+    param(
+        [IntPtr]$ウインドウハンドル
+    )
+    Write-Host "[ウインドウアクティブ] ハンドル: $ウインドウハンドル" -ForegroundColor Cyan
+    # Win32 API の SetForegroundWindow 実装は省略（STA runspaceでは必要最小限のログ出力のみ）
+    try {
+        Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class Win32 {
+    [DllImport("user32.dll")]
+    public static extern bool SetForegroundWindow(IntPtr hWnd);
+}
+"@
+        [Win32]::SetForegroundWindow($ウインドウハンドル) | Out-Null
+    } catch {
+        # 既に定義されている場合はエラーを無視
+    }
+}
+'@
+        $ps.AddScript($ウインドウアクティブDefinition) | Out-Null
+        $ps.Invoke() | Out-Null
+        $ps.Commands.Clear()
+        Write-Host "[ノード関数実行] ✅ ウインドウアクティブ関数を定義しました" -ForegroundColor Green
+
         # スクリプトを読み込んで関数を定義
         $ps.AddScript($scriptContent) | Out-Null
         $result = $ps.Invoke()
