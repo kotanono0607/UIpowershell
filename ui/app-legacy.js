@@ -639,26 +639,30 @@ function drawPanelArrows(layerId) {
         const currentColor = window.getComputedStyle(currentNode).backgroundColor;
         const nextColor = window.getComputedStyle(nextNode).backgroundColor;
 
-        // 白→白の場合は黒の矢印を描画
-        if (isWhiteColor(currentColor) && isWhiteColor(nextColor)) {
-            console.log(`[デバッグ] 白→白の矢印を描画: ${i} → ${i+1}`);
+        // 通常ノード間の矢印（黒）: White, Pink を通常扱い
+        const isCurrentNormal = isWhiteColor(currentColor) || isPinkColor(currentColor);
+        const isNextNormal = isWhiteColor(nextColor) || isPinkColor(nextColor);
+
+        // 通常ノード → 通常ノード
+        if (isCurrentNormal && isNextNormal) {
+            console.log(`[デバッグ] 通常→通常の矢印を描画: ${i} → ${i+1}`);
             drawDownArrow(ctx, currentNode, nextNode, '#000000');
             arrowCount++;
         }
-        // 白→緑（条件分岐開始前）
-        else if (isWhiteColor(currentColor) && isSpringGreenColor(nextColor)) {
+        // 通常ノード → 緑（条件分岐開始前）
+        else if (isCurrentNormal && isSpringGreenColor(nextColor)) {
             drawDownArrow(ctx, currentNode, nextNode, '#000000');
         }
-        // 緑→白（条件分岐終了後）
-        else if (isSpringGreenColor(currentColor) && isWhiteColor(nextColor)) {
+        // 緑 → 通常ノード（条件分岐終了後）
+        else if (isSpringGreenColor(currentColor) && isNextNormal) {
             drawDownArrow(ctx, currentNode, nextNode, '#000000');
         }
-        // 白→黄（ループ開始前）
-        else if (isWhiteColor(currentColor) && isLemonChiffonColor(nextColor)) {
+        // 通常ノード → 黄（ループ開始前）
+        else if (isCurrentNormal && isLemonChiffonColor(nextColor)) {
             drawDownArrow(ctx, currentNode, nextNode, '#000000');
         }
-        // 黄→白（ループ終了後）
-        else if (isLemonChiffonColor(currentColor) && isWhiteColor(nextColor)) {
+        // 黄 → 通常ノード（ループ終了後）
+        else if (isLemonChiffonColor(currentColor) && isNextNormal) {
             drawDownArrow(ctx, currentNode, nextNode, '#000000');
         }
         // 注: 赤→赤と青→青はdrawConditionalBranchArrows内で処理されるため、ここでは削除
@@ -841,35 +845,43 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         drawArrowHead(ctx, horizontalEndX, endY, endLeftX, endY);
     }
 
-    // 4. innerNodes間の矢印を描画（赤ノード間、Gray含む、青ノード間）
+    // 4. innerNodes間の矢印を描画（赤ノード間、青ノード間）
+    // 注: Grayは目印なので矢印不要
     for (let i = 0; i < innerNodes.length - 1; i++) {
         const currentNode = innerNodes[i];
         const nextNode = innerNodes[i + 1];
         const currentColor = window.getComputedStyle(currentNode).backgroundColor;
         const nextColor = window.getComputedStyle(nextNode).backgroundColor;
 
+        // Grayノードは矢印をスキップ（目印のため）
+        if (isGrayColor(currentColor) || isGrayColor(nextColor)) {
+            console.log(`[条件分岐] Gray検出のため矢印スキップ: ${currentNode.textContent} → ${nextNode.textContent}`);
+            continue;
+        }
+
         // 矢印の色を決定（現在と次のノードの色に基づく）
-        let arrowColor = '#000000'; // デフォルト
+        let arrowColor = null;
 
         // 青→青の場合
         if (isBlueColor(currentColor) && isBlueColor(nextColor)) {
-            arrowColor = 'rgb(200, 220, 255)'; // v1.0.187の仕様：薄い青
+            arrowColor = 'rgb(100, 150, 255)'; // 濃い青
         }
-        // 赤→赤またはGray関連の場合
-        else if ((isSalmonColor(currentColor) || isGrayColor(currentColor)) &&
-                 (isSalmonColor(nextColor) || isGrayColor(nextColor))) {
+        // 赤→赤の場合
+        else if (isSalmonColor(currentColor) && isSalmonColor(nextColor)) {
             arrowColor = 'rgb(250, 128, 114)'; // 赤色
         }
 
-        // 下向き矢印を描画
-        drawDownArrow(ctx, currentNode, nextNode, arrowColor);
-        console.log(`[条件分岐] innerNodes間矢印: ${currentNode.textContent} → ${nextNode.textContent} (色: ${arrowColor})`);
+        // 矢印を描画（色が決定された場合のみ）
+        if (arrowColor) {
+            drawDownArrow(ctx, currentNode, nextNode, arrowColor);
+            console.log(`[条件分岐] innerNodes間矢印: ${currentNode.textContent} → ${nextNode.textContent} (色: ${arrowColor})`);
+        }
     }
 
     // 5. 青（True分岐）→ 緑（終了）への下向き矢印
     if (blueNodes.length > 0) {
         const lastBlue = blueNodes[blueNodes.length - 1];
-        drawDownArrow(ctx, lastBlue, endNode, 'rgb(200, 220, 255)');  // v1.0.187の仕様：薄い青
+        drawDownArrow(ctx, lastBlue, endNode, 'rgb(100, 150, 255)');  // 濃い青
     }
 }
 
