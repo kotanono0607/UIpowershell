@@ -709,6 +709,25 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
             Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
         }
 
+        # $global:folderPath と $global:jsonパス を設定（IDでエントリを取得 で使用）
+        # メイン.json からフォルダパスを読み取る
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
+        if (Test-Path $mainJsonPath) {
+            try {
+                $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
+                $mainData = $mainContent | ConvertFrom-Json
+                $global:folderPath = $mainData.フォルダパス
+                $global:jsonパス = Join-Path $global:folderPath "コード.json"
+                Write-Host "[実行] フォルダパス: $global:folderPath" -ForegroundColor Gray
+                Write-Host "[実行] コード.json: $global:jsonパス" -ForegroundColor Gray
+            } catch {
+                Write-Host "[実行] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "[実行] ⚠️ メイン.jsonが見つかりません: $mainJsonPath" -ForegroundColor Yellow
+        }
+
         $body = $WebEvent.Data
 
         # ノード配列の検証
@@ -1538,6 +1557,21 @@ Add-PodeRoute -Method Post -Path "/api/id/generate" -ScriptBlock {
     if (-not (Get-Command IDを自動生成する -ErrorAction SilentlyContinue)) {
         $RootDir = Get-PodeState -Name 'RootDir'
         . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
+    }
+
+    # $global:jsonパス を設定（IDを自動生成する で使用）
+    $RootDir = Get-PodeState -Name 'RootDir'
+    $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
+    if (Test-Path $mainJsonPath) {
+        try {
+            $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
+            $mainData = $mainContent | ConvertFrom-Json
+            $global:folderPath = $mainData.フォルダパス
+            $global:jsonパス = Join-Path $global:folderPath "コード.json"
+        } catch {
+            Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
+        }
     }
 
     try {
@@ -1565,6 +1599,21 @@ Add-PodeRoute -Method Post -Path "/api/entry/add" -ScriptBlock {
     if (-not (Get-Command エントリを追加_指定ID -ErrorAction SilentlyContinue)) {
         $RootDir = Get-PodeState -Name 'RootDir'
         . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
+    }
+
+    # $global:jsonパス を設定（エントリを追加_指定ID で使用）
+    $RootDir = Get-PodeState -Name 'RootDir'
+    $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
+    if (Test-Path $mainJsonPath) {
+        try {
+            $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
+            $mainData = $mainContent | ConvertFrom-Json
+            $global:folderPath = $mainData.フォルダパス
+            $global:jsonパス = Join-Path $global:folderPath "コード.json"
+        } catch {
+            Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
+        }
     }
 
     try {
@@ -1601,6 +1650,21 @@ Add-PodeRoute -Method Get -Path "/api/entry/:id" -ScriptBlock {
     if (-not (Get-Command IDでエントリを取得 -ErrorAction SilentlyContinue)) {
         $RootDir = Get-PodeState -Name 'RootDir'
         . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
+        . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
+    }
+
+    # $global:jsonパス を設定（IDでエントリを取得 で使用）
+    $RootDir = Get-PodeState -Name 'RootDir'
+    $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
+    if (Test-Path $mainJsonPath) {
+        try {
+            $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
+            $mainData = $mainContent | ConvertFrom-Json
+            $global:folderPath = $mainData.フォルダパス
+            $global:jsonパス = Join-Path $global:folderPath "コード.json"
+        } catch {
+            Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
+        }
     }
 
     try {
