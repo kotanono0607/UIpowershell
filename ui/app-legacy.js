@@ -4868,37 +4868,7 @@ function validateNesting(movingNode, newY) {
     const allLoopRanges = getAllGroupRanges(layerNodes, 'LemonChiffon');
 
     // ============================
-    // 1. 単体ノードが腹に落ちるケースの即時チェック
-    // ============================
-
-    if (isYellow) {
-        // ループノードを条件分岐の腹の中に入れるのは禁止
-        for (const cr of allCondRanges) {
-            if (newY >= cr.topY && newY <= cr.bottomY) {
-                return {
-                    isProhibited: true,
-                    reason: 'ループノードを条件分岐の内部に配置することはできません',
-                    violationType: 'loop_in_conditional',
-                    conflictGroupId: cr.groupId
-                };
-            }
-        }
-    } else if (isGreen) {
-        // 条件分岐ノードをループの腹に刺すのは禁止
-        for (const lr of allLoopRanges) {
-            if (newY >= lr.topY && newY <= lr.bottomY) {
-                return {
-                    isProhibited: true,
-                    reason: '条件分岐ノードをループの内部に配置することはできません',
-                    violationType: 'conditional_in_loop',
-                    conflictGroupId: lr.groupId
-                };
-            }
-        }
-    }
-
-    // ============================
-    // 2. グループ分断チェック
+    // 1. グループ分断チェック
     // ============================
 
     if (isGreen) {
@@ -4942,10 +4912,12 @@ function validateNesting(movingNode, newY) {
     }
 
     // ============================
-    // 3. グループ全体としての整合性チェック
+    // 2. グループ全体としての整合性チェック
     // ============================
 
-    if (isGreen) {
+    let groupCheckPassed = false;
+
+    if (isGreen && movingNode.groupId) {
         // この条件分岐グループが移動後どういう縦範囲になるか
         const movedCondRange = getGroupRangeAfterMove(layerNodes, movingNode.id, newY);
 
@@ -4961,10 +4933,12 @@ function validateNesting(movingNode, newY) {
                     };
                 }
             }
+            // グループ全体のチェックをパスした
+            groupCheckPassed = true;
         }
     }
 
-    if (isYellow) {
+    if (isYellow && movingNode.groupId) {
         // このループグループが移動後どういう縦範囲になるか
         const movedLoopRange = getGroupRangeAfterMove(layerNodes, movingNode.id, newY);
 
@@ -4977,6 +4951,40 @@ function validateNesting(movingNode, newY) {
                         reason: 'ループと条件分岐の配置が不正です（交差または包含関係の違反）',
                         violationType: 'illegal_nesting',
                         conflictGroupId: cr.groupId
+                    };
+                }
+            }
+            // グループ全体のチェックをパスした
+            groupCheckPassed = true;
+        }
+    }
+
+    // ============================
+    // 3. 単体ノードチェック（グループチェックをパスしなかった場合のみ）
+    // ============================
+
+    if (!groupCheckPassed) {
+        if (isYellow) {
+            // ループノードを条件分岐の腹の中に入れるのは禁止
+            for (const cr of allCondRanges) {
+                if (newY >= cr.topY && newY <= cr.bottomY) {
+                    return {
+                        isProhibited: true,
+                        reason: 'ループノードを条件分岐の内部に配置することはできません',
+                        violationType: 'loop_in_conditional',
+                        conflictGroupId: cr.groupId
+                    };
+                }
+            }
+        } else if (isGreen) {
+            // 条件分岐ノードをループの腹に刺すのは禁止
+            for (const lr of allLoopRanges) {
+                if (newY >= lr.topY && newY <= lr.bottomY) {
+                    return {
+                        isProhibited: true,
+                        reason: '条件分岐ノードをループの内部に配置することはできません',
+                        violationType: 'conditional_in_loop',
+                        conflictGroupId: lr.groupId
                     };
                 }
             }
