@@ -1815,6 +1815,27 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         $runspace.SessionStateProxy.SetVariable('RootDir', $RootDir)
         $runspace.SessionStateProxy.SetVariable('scriptDir', $scriptDir)
 
+        # $global:folderPath と $global:jsonパス を設定（エントリを追加_指定ID で使用）
+        # メイン.json からフォルダパスを読み取る
+        $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
+        if (Test-Path $mainJsonPath) {
+            try {
+                $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
+                $mainData = $mainContent | ConvertFrom-Json
+                $folderPath = $mainData.フォルダパス
+                $jsonパス = Join-Path $folderPath "コード.json"
+
+                $runspace.SessionStateProxy.SetVariable('global:folderPath', $folderPath)
+                $runspace.SessionStateProxy.SetVariable('global:jsonパス', $jsonパス)
+                Write-Host "[ノード関数実行] 📁 フォルダパス設定: $folderPath" -ForegroundColor Gray
+                Write-Host "[ノード関数実行] 📄 コード.json パス: $jsonパス" -ForegroundColor Gray
+            } catch {
+                Write-Host "[ノード関数実行] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "[ノード関数実行] ⚠️ メイン.jsonが見つかりません: $mainJsonPath" -ForegroundColor Yellow
+        }
+
         # PowerShell インスタンスを作成
         $ps = [PowerShell]::Create()
         $ps.Runspace = $runspace
@@ -1912,6 +1933,13 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
                 $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
                 throw "関数実行中にエラーが発生しました: $errorMsg"
             }
+
+            # 配列を文字列に変換（$ps.Invoke() は Collection<PSObject> を返すため）
+            if ($code -is [System.Collections.ICollection] -and $code.Count -gt 0) {
+                $code = ($code | Out-String).Trim()
+            } elseif ($null -ne $code -and $code -isnot [string]) {
+                $code = $code.ToString()
+            }
         } finally {
             # クリーンアップ
             $ps.Dispose()
@@ -1945,11 +1973,18 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             # functionName を ノードID に変換（例: "4_1" -> "4"）
             # エントリを追加_指定ID は自動的に "-1" サフィックスを追加するため、親IDのみを渡す
             $parentId = ($functionName -replace '_.*$', '')
+
+            # 警告: コードに "---" が含まれる場合、複数エントリに分割される
+            if ($code -match '---') {
+                Write-Host "[ノード関数実行] ⚠️ コードに '---' セパレータが含まれています。複数エントリに分割されます" -ForegroundColor Yellow
+            }
+
             try {
-                エントリを追加_指定ID -文字列 $code -ID $parentId
-                Write-Host "[ノード関数実行] ✅ コードを保存しました: ID=$parentId-1" -ForegroundColor Green
+                $savedId = エントリを追加_指定ID -文字列 $code -ID $parentId
+                Write-Host "[ノード関数実行] ✅ コードを保存しました: 親ID=$parentId (エントリID=$parentId-1)" -ForegroundColor Green
             } catch {
                 Write-Host "[ノード関数実行] ⚠️ コードの保存に失敗しました: $($_.Exception.Message)" -ForegroundColor Yellow
+                Write-Host "[ノード関数実行] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
             }
         }
 
