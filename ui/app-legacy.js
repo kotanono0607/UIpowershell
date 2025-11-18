@@ -2464,7 +2464,19 @@ function handleDrop(e) {
         return false;
     }
 
-    // 2. ネスト禁止チェック
+    // 2. グループ内順序違反チェック
+    const groupOrderViolation = checkGroupOrderViolation(
+        draggedNodeData,
+        currentY,
+        newY
+    );
+
+    if (groupOrderViolation) {
+        alert('この位置には配置できません。\n同じグループ内のノードをまたぐことはできません。');
+        return false;
+    }
+
+    // 3. ネスト禁止チェック
     const nestingValidation = validateNesting(
         draggedNodeData,
         newY
@@ -4845,6 +4857,65 @@ function checkSameColorCollision(nodeColor, currentY, newY, movingNodeId) {
                 console.log(`[同色衝突] LemonChiffonノード "${node.text}" と衝突`);
                 return true;
             }
+        }
+    }
+
+    return false;
+}
+
+// ============================================
+// 同じグループ内のノード順序違反チェック
+// ============================================
+
+/**
+ * 同じgroupId内のノードの順序を保つためのチェック
+ * 条件分岐やループのグループ内で、ノードが他のメンバーをまたぐことを禁止する
+ */
+function checkGroupOrderViolation(movingNode, currentY, newY) {
+    // groupIdを持たないノードはチェック不要
+    if (!movingNode.groupId) {
+        return false;
+    }
+
+    const layerNodes = layerStructure[leftVisibleLayer].nodes;
+    const groupId = movingNode.groupId;
+
+    // 同じgroupIdを持つすべてのノードを取得
+    const sameGroupNodes = layerNodes.filter(n =>
+        n.groupId !== null &&
+        n.groupId !== undefined &&
+        n.groupId.toString() === groupId.toString()
+    );
+
+    // グループが1つのノードしか持たない場合はチェック不要
+    if (sameGroupNodes.length <= 1) {
+        return false;
+    }
+
+    // Y座標でソート
+    const sortedNodes = sameGroupNodes.sort((a, b) => a.y - b.y);
+
+    // 移動中のノードの現在の順序位置を取得
+    const currentIndex = sortedNodes.findIndex(n => n.id === movingNode.id);
+    if (currentIndex === -1) {
+        return false;
+    }
+
+    // 移動範囲を計算
+    const minY = Math.min(currentY, newY);
+    const maxY = Math.max(currentY, newY);
+
+    // 同じグループ内の他のノードをまたぐかチェック
+    for (let i = 0; i < sortedNodes.length; i++) {
+        const node = sortedNodes[i];
+
+        // 自分自身はスキップ
+        if (node.id === movingNode.id) continue;
+
+        // 他のノードが移動範囲内に存在する場合、順序違反
+        if (node.y > minY && node.y < maxY) {
+            console.log(`[グループ順序違反] ノード "${movingNode.text}" (groupId=${groupId}) が同じグループ内のノード "${node.text}" をまたぐため禁止`);
+            return true;
         }
     }
 
