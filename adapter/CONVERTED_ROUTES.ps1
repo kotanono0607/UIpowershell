@@ -1940,6 +1940,17 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
                 code = $code
                 functionName = $functionName
             }
+
+            # 生成されたコードを コード.json に保存（実行時に読み取るため）
+            # functionName を ノードID に変換（例: "4_1" -> "4"）
+            # エントリを追加_指定ID は自動的に "-1" サフィックスを追加するため、親IDのみを渡す
+            $parentId = ($functionName -replace '_.*$', '')
+            try {
+                エントリを追加_指定ID -文字列 $code -ID $parentId
+                Write-Host "[ノード関数実行] ✅ コードを保存しました: ID=$parentId-1" -ForegroundColor Green
+            } catch {
+                Write-Host "[ノード関数実行] ⚠️ コードの保存に失敗しました: $($_.Exception.Message)" -ForegroundColor Yellow
+            }
         }
 
         Write-PodeJsonResponse -Value $result -Depth 5
