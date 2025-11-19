@@ -100,6 +100,44 @@ function Get-CurrentProject {
 }
 
 
+function Get-CurrentFolderPath {
+    <#
+    .SYNOPSIS
+    現在のプロジェクトフォルダパスを取得
+
+    .DESCRIPTION
+    グローバル変数 $global:folderPath を返します。
+    設定されていない場合はデフォルトパスを返します。
+    #>
+
+    # $global:folderPath が設定されている場合はそれを返す
+    if ($global:folderPath) {
+        return $global:folderPath
+    }
+
+    # UIpowershellState からも取得を試みる
+    if ($global:UIpowershellState.CurrentProject.FolderPath) {
+        return $global:UIpowershellState.CurrentProject.FolderPath
+    }
+
+    # どちらも設定されていない場合はデフォルトパスを返す
+    # $PSScriptRoot は adapter/ ディレクトリなので、親ディレクトリがプロジェクトルート
+    $rootDir = Split-Path -Parent $PSScriptRoot
+    $defaultPath = Join-Path $rootDir "03_history\default"
+
+    # デフォルトパスが存在しない場合は作成
+    if (-not (Test-Path $defaultPath)) {
+        New-Item -ItemType Directory -Path $defaultPath -Force | Out-Null
+        Write-Host "[state-manager] デフォルトプロジェクトフォルダを作成しました: $defaultPath" -ForegroundColor Yellow
+    }
+
+    # グローバル変数にも設定
+    $global:folderPath = $defaultPath
+
+    return $defaultPath
+}
+
+
 function Set-CurrentProject {
     <#
     .SYNOPSIS
