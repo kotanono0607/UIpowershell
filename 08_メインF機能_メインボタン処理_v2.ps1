@@ -795,6 +795,7 @@ function 新規フォルダ作成 {
     $入力フォーム.Controls.Add($テキストボックス)
     $入力フォーム.Controls.Add($ボタン)
 
+    $入力フォーム.Topmost = $true
     $入力フォーム.ShowDialog()
 
     $フォルダ名 = $テキストボックス.Text
@@ -882,6 +883,7 @@ function フォルダ選択と保存 {
     $入力フォーム.Controls.Add($リストボックス)
     $入力フォーム.Controls.Add($ボタン)
 
+    $入力フォーム.Topmost = $true
     $入力フォーム.ShowDialog()
 
     if (-not $global:選択フォルダ) {

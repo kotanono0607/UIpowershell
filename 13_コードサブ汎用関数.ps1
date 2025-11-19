@@ -59,6 +59,7 @@ function リストから項目を選択 {
 
     # フォームの表示
     #Write-Host "フォームを表示します。"
+    $フォーム.Topmost = $true
     $ダイアログ結果 = $フォーム.ShowDialog()
 
     # フォームの結果に応じて処理
@@ -162,11 +163,12 @@ function 文字列を入力 {
  
 
             $テキストボックス.Text += $variableName1
- 
+
     })
 
     # フォームの表示
     #Write-Host "フォームを表示します。"
+    $フォーム.Topmost = $true
     $ダイアログ結果 = $フォーム.ShowDialog()
 
     # フォームの結果に応じて処理
@@ -237,6 +239,7 @@ function 数値を入力 {
     $フォーム.Controls.Add($キャンセルボタン)
 
     # フォームを表示
+    $フォーム.Topmost = $true
     $ダイアログ結果 = $フォーム.ShowDialog()
 
     # フォームの結果に応じて処理
@@ -375,6 +378,7 @@ function 複数行テキストを編集 {
     $フォーム.Controls.Add($キャンセルボタン)
 
     # フォームの表示
+    $フォーム.Topmost = $true
     $ダイアログ結果 = $フォーム.ShowDialog()
 
     # フォームの結果に応じて処理
@@ -622,6 +626,7 @@ function ノード設定を編集 {
     $フォーム.Controls.Add($キャンセルボタン)
 
     # フォームの表示
+    $フォーム.Topmost = $true
     $ダイアログ結果 = $フォーム.ShowDialog()
 
     # フォームの結果に応じて処理
@@ -855,6 +860,7 @@ function 変数管理を表示 {
     Update-VariableListView
 
     # ダイアログ表示
+    $フォーム.Topmost = $true
     $ダイアログ結果 = $フォーム.ShowDialog()
 
     Write-Host "[変数管理] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
@@ -943,6 +949,7 @@ function Show-AddVariableDialog {
     $ダイアログ.AcceptButton = $ボタン_OK
     $ダイアログ.CancelButton = $ボタン_キャンセル
 
+    $ダイアログ.Topmost = $true
     $result = $ダイアログ.ShowDialog()
 
     if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -1056,6 +1063,7 @@ function Show-EditVariableDialog {
     $ダイアログ.AcceptButton = $ボタン_OK
     $ダイアログ.CancelButton = $ボタン_キャンセル
 
+    $ダイアログ.Topmost = $true
     $result = $ダイアログ.ShowDialog()
 
     if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -1234,6 +1242,7 @@ function フォルダ切替を表示 {
         $入力フォーム.AcceptButton = $ボタン_OK
         $入力フォーム.CancelButton = $ボタン_キャンセル2
 
+        $入力フォーム.Topmost = $true
         $result = $入力フォーム.ShowDialog()
 
         if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -1284,6 +1293,7 @@ function フォルダ切替を表示 {
     Update-FolderListBox
 
     # ダイアログ表示
+    $フォーム.Topmost = $true
     $ダイアログ結果 = $フォーム.ShowDialog()
 
     Write-Host "[フォルダ切替] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
@@ -1487,6 +1497,7 @@ function コード結果を表示 {
     })
 
     # ダイアログ表示
+    $フォーム.Topmost = $true
     $ダイアログ結果 = $フォーム.ShowDialog()
 
     Write-Host "[コード結果] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray

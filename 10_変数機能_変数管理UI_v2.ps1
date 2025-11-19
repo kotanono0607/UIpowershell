@@ -865,6 +865,7 @@ function Show-VariableManagerForm {
         Refresh-VariableList | Out-Null
     }) | Out-Null
 
+    $form.Topmost = $true
     $dialogResult = $form.ShowDialog()
 
     # フォームが閉じた後、選択された変数名を取得
