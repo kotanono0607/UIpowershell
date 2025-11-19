@@ -64,9 +64,17 @@
             return $null
         }
 
+        # 空文字列の場合はデフォルトの条件分岐コードを生成
         if ($conditionCode.Trim() -eq "") {
-            Write-Host "[1_2] ⚠️ 戻り値が空文字列です" -ForegroundColor Yellow
-            return $null
+            Write-Host "[1_2] ⚠️ 戻り値が空文字列です。デフォルトの条件分岐を生成します" -ForegroundColor Yellow
+            $conditionCode = @"
+if (`$true) {
+    # True の場合の処理をここに記述
+} else {
+    # False の場合の処理をここに記述
+}
+"@
+            Write-Host "[1_2] ✅ デフォルトコードを生成しました" -ForegroundColor Green
         }
 
         # 生成されたコードを返す

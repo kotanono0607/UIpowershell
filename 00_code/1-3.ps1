@@ -64,9 +64,16 @@
             return $null
         }
 
+        # 空文字列の場合はデフォルトのループコードを生成
         if ($loopCode.Trim() -eq "") {
-            Write-Host "[1_3] ⚠️ 戻り値が空文字列です" -ForegroundColor Yellow
-            return $null
+            Write-Host "[1_3] ⚠️ 戻り値が空文字列です。デフォルトのループを生成します" -ForegroundColor Yellow
+            $loopCode = @"
+for (`$i = 1; `$i -le 1; `$i++) {
+    # ループ処理をここに記述
+    Write-Host "ループ実行回数: `$i"
+}
+"@
+            Write-Host "[1_3] ✅ デフォルトコードを生成しました" -ForegroundColor Green
         }
 
         # 生成されたコードを返す
