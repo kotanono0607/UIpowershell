@@ -199,6 +199,9 @@ Write-Host "[OK] 削除処理_v2" -ForegroundColor Green
 . "$script:RootDir\02-2_ネスト規制バリデーション_v2.ps1"
 Write-Host "[OK] ネスト規制バリデーション_v2" -ForegroundColor Green
 
+. "$script:RootDir\17_操作履歴管理.ps1"
+Write-Host "[OK] 操作履歴管理" -ForegroundColor Green
+
 # Phase 3 Adapterファイルを読み込み
 Write-Host ""
 Write-Host "Phase 3 Adapterファイルを読み込みます..." -ForegroundColor Cyan
@@ -711,6 +714,155 @@ New-PolarisRoute -Path "/api/menu/action/:actionId" -Method POST -ScriptBlock {
 
         $params = if ($body.parameters) { $body.parameters } else { @{} }
         $result = Execute-MenuAction_v2 -ActionId $actionId -Parameters $params
+
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# --------------------------------------------
+# 操作履歴API（17_操作履歴管理.ps1）
+# --------------------------------------------
+
+# 履歴状態取得
+New-PolarisRoute -Path "/api/history/status" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $folderPath = Get-CurrentFolderPath
+        $result = Get-HistoryStatus -FolderPath $folderPath
+
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# Undo実行
+New-PolarisRoute -Path "/api/history/undo" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $folderPath = Get-CurrentFolderPath
+        $result = Undo-Operation -FolderPath $folderPath
+
+        $json = $result | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# Redo実行
+New-PolarisRoute -Path "/api/history/redo" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $folderPath = Get-CurrentFolderPath
+        $result = Redo-Operation -FolderPath $folderPath
+
+        $json = $result | ConvertTo-Json -Compress -Depth 5
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# 操作を記録
+New-PolarisRoute -Path "/api/history/record" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $body = $Request.Body | ConvertFrom-Json
+        $folderPath = Get-CurrentFolderPath
+
+        $params = @{
+            FolderPath = $folderPath
+            OperationType = $body.operationType
+            Description = $body.description
+        }
+
+        if ($body.memoryBefore) { $params.MemoryBefore = $body.memoryBefore }
+        if ($body.memoryAfter) { $params.MemoryAfter = $body.memoryAfter }
+        if ($body.codeBefore) { $params.CodeBefore = $body.codeBefore }
+        if ($body.codeAfter) { $params.CodeAfter = $body.codeAfter }
+
+        $result = Record-Operation @params
+
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# 履歴クリア
+New-PolarisRoute -Path "/api/history/clear" -Method DELETE -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $folderPath = Get-CurrentFolderPath
+        $result = Clear-HistoryStack -FolderPath $folderPath
+
+        $json = $result | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    } catch {
+        $Response.SetStatusCode(500)
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        $json = $errorResult | ConvertTo-Json -Compress
+        $Response.SetContentType('application/json; charset=utf-8')
+        $Response.Send($json)
+    }
+}
+
+# 履歴初期化
+New-PolarisRoute -Path "/api/history/initialize" -Method POST -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    try {
+        $folderPath = Get-CurrentFolderPath
+        $result = Initialize-HistoryStack -FolderPath $folderPath
 
         $json = $result | ConvertTo-Json -Compress
         $Response.SetContentType('application/json; charset=utf-8')
@@ -2428,6 +2580,14 @@ try {
     Write-Host "【メニュー操作】" -ForegroundColor White
     Write-Host "  GET  /api/menu/structure            - メニュー構造取得" -ForegroundColor Gray
     Write-Host "  POST /api/menu/action/:actionId     - メニューアクション実行" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "【操作履歴（Undo/Redo）】" -ForegroundColor White
+    Write-Host "  GET  /api/history/status            - 履歴状態取得" -ForegroundColor Gray
+    Write-Host "  POST /api/history/undo              - Undo実行" -ForegroundColor Gray
+    Write-Host "  POST /api/history/redo              - Redo実行" -ForegroundColor Gray
+    Write-Host "  POST /api/history/record            - 操作記録" -ForegroundColor Gray
+    Write-Host "  POST /api/history/initialize        - 履歴初期化" -ForegroundColor Gray
+    Write-Host "  DELETE /api/history/clear           - 履歴クリア" -ForegroundColor Gray
     Write-Host ""
     Write-Host "【実行・フォルダ】" -ForegroundColor White
     Write-Host "  POST /api/execute/generate          - PowerShellコード生成" -ForegroundColor Gray

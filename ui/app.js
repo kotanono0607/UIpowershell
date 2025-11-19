@@ -42,6 +42,12 @@ let nodes = [];
 let edges = [];
 let sessionInfo = null;
 let nodeTypes = [];  // 動的に読み込むノードタイプ（ボタン設定.jsonから）
+let historyStatus = {  // 操作履歴の状態
+    canUndo: false,
+    canRedo: false,
+    position: 0,
+    totalCount: 0
+};
 
 // ノードタイプごとのパラメータ定義
 // 🔧 変更: ハードコードを削除し、ボタン設定.jsonから動的に読み込むように変更
@@ -286,6 +292,225 @@ async function executeMenuAction(actionId, parameters = {}) {
         body: JSON.stringify({ parameters })
     });
     return await response.json();
+}
+
+// ============================================
+// API通信関数 - 操作履歴（Undo/Redo）
+// ============================================
+
+/**
+ * 履歴状態を取得
+ */
+async function getHistoryStatus() {
+    try {
+        const response = await fetch(`${API_BASE}/history/status`);
+        const result = await response.json();
+
+        if (result.success) {
+            historyStatus = {
+                canUndo: result.canUndo,
+                canRedo: result.canRedo,
+                position: result.position,
+                totalCount: result.totalCount
+            };
+            updateUndoRedoButtons();
+        }
+
+        return result;
+    } catch (error) {
+        console.error('[履歴状態取得エラー]', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Undo実行
+ */
+async function undoOperation() {
+    try {
+        const response = await fetch(`${API_BASE}/history/undo`, {
+            method: 'POST'
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('[Undo成功]', result.operation);
+
+            // memory.jsonを再読み込みしてUIを更新
+            await reloadNodesFromMemory();
+
+            // 履歴状態を更新
+            await getHistoryStatus();
+        } else {
+            console.warn('[Undo失敗]', result.error);
+        }
+
+        return result;
+    } catch (error) {
+        console.error('[Undoエラー]', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Redo実行
+ */
+async function redoOperation() {
+    try {
+        const response = await fetch(`${API_BASE}/history/redo`, {
+            method: 'POST'
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('[Redo成功]', result.operation);
+
+            // memory.jsonを再読み込みしてUIを更新
+            await reloadNodesFromMemory();
+
+            // 履歴状態を更新
+            await getHistoryStatus();
+        } else {
+            console.warn('[Redo失敗]', result.error);
+        }
+
+        return result;
+    } catch (error) {
+        console.error('[Redoエラー]', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * 操作を記録
+ * @param {string} operationType - 操作タイプ（NodeAdd, NodeDelete, NodeMove, NodeUpdate, CodeUpdate）
+ * @param {string} description - 操作の説明
+ * @param {object} memoryBefore - 操作前のmemory.json
+ * @param {object} memoryAfter - 操作後のmemory.json
+ * @param {object} codeBefore - 操作前のコード.json（オプション）
+ * @param {object} codeAfter - 操作後のコード.json（オプション）
+ */
+async function recordOperation(operationType, description, memoryBefore, memoryAfter, codeBefore = null, codeAfter = null) {
+    try {
+        const response = await fetch(`${API_BASE}/history/record`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                operationType,
+                description,
+                memoryBefore,
+                memoryAfter,
+                codeBefore,
+                codeAfter
+            })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('[操作記録成功]', description);
+
+            // 履歴状態を更新
+            await getHistoryStatus();
+        }
+
+        return result;
+    } catch (error) {
+        console.error('[操作記録エラー]', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * 履歴を初期化
+ */
+async function initializeHistory() {
+    try {
+        const response = await fetch(`${API_BASE}/history/initialize`, {
+            method: 'POST'
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('[履歴初期化成功]');
+            await getHistoryStatus();
+        }
+
+        return result;
+    } catch (error) {
+        console.error('[履歴初期化エラー]', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * memory.jsonからノードを再読み込み
+ */
+async function reloadNodesFromMemory() {
+    try {
+        // 現在のノード一覧を取得
+        const response = await fetch(`${API_BASE}/nodes`);
+        const result = await response.json();
+
+        if (result.success) {
+            // nodesを更新
+            nodes = result.nodes.map(node => ({
+                id: node.id.toString(),
+                type: 'default',
+                className: getNodeClassName(node.color),
+                data: {
+                    label: node.text,
+                    color: node.color,
+                    groupId: node.groupId
+                },
+                position: {
+                    x: node.x,
+                    y: node.y
+                }
+            }));
+
+            // エッジを再生成
+            edges = generateEdgesFromNodes(nodes);
+
+            // React Flowを再初期化
+            initReactFlow();
+
+            console.log('[ノード再読み込み完了]', nodes.length);
+        }
+    } catch (error) {
+        console.error('[ノード再読み込みエラー]', error);
+    }
+}
+
+/**
+ * ノードのCSSクラスを取得
+ */
+function getNodeClassName(color) {
+    if (color === 'SpringGreen') {
+        return 'node-conditional';
+    } else if (color === 'LemonChiffon') {
+        return 'node-loop';
+    } else if (color === 'Gray') {
+        return 'node-start';
+    }
+    return '';
+}
+
+/**
+ * Undo/Redoボタンの有効/無効を更新
+ */
+function updateUndoRedoButtons() {
+    const undoBtn = document.getElementById('btn-undo');
+    const redoBtn = document.getElementById('btn-redo');
+
+    if (undoBtn) {
+        undoBtn.disabled = !historyStatus.canUndo;
+        undoBtn.style.opacity = historyStatus.canUndo ? '1' : '0.5';
+    }
+
+    if (redoBtn) {
+        redoBtn.disabled = !historyStatus.canRedo;
+        redoBtn.style.opacity = historyStatus.canRedo ? '1' : '0.5';
+    }
 }
 
 // ============================================
@@ -637,6 +862,11 @@ async function addNode(event) {
     }
 
     try {
+        // 操作前のmemory.jsonを取得（Undo/Redo用）
+        const memoryBeforeResp = await fetch(`${API_BASE}/nodes`);
+        const memoryBeforeData = await memoryBeforeResp.json();
+        const memoryBefore = memoryBeforeData.success ? memoryBeforeData.nodes : null;
+
         // 新しいIDを生成
         const idResp = await fetch(`${API_BASE}/id/generate`, { method: 'POST' });
         const idData = await idResp.json();
@@ -764,6 +994,21 @@ async function addNode(event) {
 
         // 再描画
         initReactFlow();
+
+        // 操作後のmemory.jsonを取得（Undo/Redo用）
+        const memoryAfterResp = await fetch(`${API_BASE}/nodes`);
+        const memoryAfterData = await memoryAfterResp.json();
+        const memoryAfter = memoryAfterData.success ? memoryAfterData.nodes : null;
+
+        // 操作を記録
+        if (memoryBefore && memoryAfter) {
+            await recordOperation(
+                'NodeAdd',
+                `ノード${newId}を追加: ${text}`,
+                memoryBefore,
+                memoryAfter
+            );
+        }
 
         alert(`ノードを追加しました！\nID: ${newId}\nタイプ: ${type}`);
     } catch (error) {
@@ -1599,6 +1844,42 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // ダイアログイベントリスナーを設定
     setupDialogEventListeners();
+
+    // 操作履歴を初期化
+    await initializeHistory();
+
+    // キーボードショートカット（Ctrl+Z / Ctrl+Y）を設定
+    document.addEventListener('keydown', async (e) => {
+        // Ctrl+Z: Undo
+        if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            console.log('[キーボード] Ctrl+Z - Undo');
+
+            if (historyStatus.canUndo) {
+                const result = await undoOperation();
+                if (result.success) {
+                    alert(`Undo成功: ${result.operation.description}`);
+                } else {
+                    alert(`Undo失敗: ${result.error}`);
+                }
+            }
+        }
+
+        // Ctrl+Y または Ctrl+Shift+Z: Redo
+        if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+            e.preventDefault();
+            console.log('[キーボード] Ctrl+Y / Ctrl+Shift+Z - Redo');
+
+            if (historyStatus.canRedo) {
+                const result = await redoOperation();
+                if (result.success) {
+                    alert(`Redo成功: ${result.operation.description}`);
+                } else {
+                    alert(`Redo失敗: ${result.error}`);
+                }
+            }
+        }
+    });
 
     // コントロールログ: 初期化完了、ノード生成可能
     await writeControlLog('[READY] 初期化完了 - ノード生成可能');

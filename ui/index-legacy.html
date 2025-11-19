@@ -19,6 +19,8 @@
             <div class="menu-item" onclick="deleteAllNodes()" style="color: #dc3545;">🗑️ 全削除</div>
             <div class="menu-item" onclick="createSnapshot()">📸 スナップショット</div>
             <div class="menu-item" onclick="restoreSnapshot()">↩️ 復元</div>
+            <div class="menu-item" id="btn-undo" onclick="undoOperation()" style="opacity: 0.5;">⬅️ Undo</div>
+            <div class="menu-item" id="btn-redo" onclick="redoOperation()" style="opacity: 0.5;">➡️ Redo</div>
         </div>
 
         <!-- ダークモード切り替え（Neumorphismデザインでは非対応のためコメントアウト）
