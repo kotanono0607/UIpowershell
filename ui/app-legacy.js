@@ -2529,31 +2529,38 @@ function reorderNodesInLayer(layer) {
 
     console.log(`[色変更] reorderNodesInLayer レイヤー${layer}: ${layerNodes.length}個のノード`);
 
-    // "条件分岐 開始"、"条件分岐 中間"、"条件分岐 終了"の位置を特定
-    let startIndex = -1;
-    let middleIndex = -1;
-    let endIndex = -1;
+    // 条件分岐グループをgroupIdごとに収集
+    const conditionGroups = {};
 
     for (let i = 0; i < layerNodes.length; i++) {
-        if (layerNodes[i].text === '条件分岐 開始') {
-            startIndex = i;
-            console.log(`[色変更] 条件分岐 開始 見つかった: index=${i}`);
-        }
-        if (layerNodes[i].text === '条件分岐 中間') {
-            middleIndex = i;
-            console.log(`[色変更] 条件分岐 中間 見つかった: index=${i}`);
-        }
-        if (layerNodes[i].text === '条件分岐 終了') {
-            endIndex = i;
-            console.log(`[色変更] 条件分岐 終了 見つかった: index=${i}`);
+        const node = layerNodes[i];
+
+        // 条件分岐ノード（SpringGreenまたはGray）かつgroupIdを持つ
+        if (node.groupId && (node.color === 'SpringGreen' || node.color === 'Gray')) {
+            const gid = node.groupId.toString();
+
+            if (!conditionGroups[gid]) {
+                conditionGroups[gid] = {
+                    startIndex: -1,
+                    middleIndex: -1,
+                    endIndex: -1
+                };
+            }
+
+            if (node.text === '条件分岐 開始') {
+                conditionGroups[gid].startIndex = i;
+                console.log(`[色変更] 条件分岐 開始 見つかった: groupId=${gid}, index=${i}`);
+            } else if (node.text === '条件分岐 中間') {
+                conditionGroups[gid].middleIndex = i;
+                console.log(`[色変更] 条件分岐 中間 見つかった: groupId=${gid}, index=${i}`);
+            } else if (node.text === '条件分岐 終了') {
+                conditionGroups[gid].endIndex = i;
+                console.log(`[色変更] 条件分岐 終了 見つかった: groupId=${gid}, index=${i}`);
+            }
         }
     }
 
-    console.log(`[色変更] インデックス: 開始=${startIndex}, 中間=${middleIndex}, 終了=${endIndex}`);
-
-    // 条件分岐が存在するかチェック
-    const hasConditionBranch = (startIndex !== -1 && middleIndex !== -1 && endIndex !== -1);
-    console.log(`[色変更] 条件分岐の存在: ${hasConditionBranch}`);
+    console.log(`[色変更] 検出された条件分岐グループ数: ${Object.keys(conditionGroups).length}`);
 
     let currentY = 10;
 
@@ -2561,34 +2568,62 @@ function reorderNodesInLayer(layer) {
         const buttonText = node.text;
         const beforeColor = node.color;
 
-        // 条件分岐が存在する場合のみ色変更を行う
-        if (hasConditionBranch) {
-            // ボタンの色を設定する条件分岐（PowerShellの実装に準拠）
+        // このノードがどの条件分岐グループに属するかチェック
+        let inFalseBranch = false;
+        let inTrueBranch = false;
+        let outsideAllBranches = true;
+
+        for (const gid in conditionGroups) {
+            const group = conditionGroups[gid];
+            const { startIndex, middleIndex, endIndex } = group;
+
+            // グループが完全かチェック
+            if (startIndex === -1 || middleIndex === -1 || endIndex === -1) {
+                continue;
+            }
+
+            // 開始〜中間の間: False分岐
             if (index > startIndex && index < middleIndex) {
-                // 開始〜中間の間: Salmon（False分岐）
-                // スクリプト化ノードは除外（Pinkのまま）
-                if (node.color !== 'Pink') {
-                    node.color = 'Salmon';
-                    console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → Salmon (False分岐)`);
-                }
-            } else if (index > middleIndex && index < endIndex) {
-                // 中間〜終了の間: LightBlue（True分岐）
-                // スクリプト化ノードは除外（Pinkのまま）
-                if (node.color !== 'Pink') {
-                    node.color = 'LightBlue';
-                    console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → LightBlue (True分岐)`);
-                }
-            } else {
-                // 条件分岐の外側：SalmonまたはLightBlueの場合はWhiteに戻す
-                if (node.color === 'Salmon' || node.color === 'LightBlue') {
-                    node.color = 'White';
-                    console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → White (外側)`);
-                }
-                // スクリプト化ノードはPinkのまま
+                inFalseBranch = true;
+                outsideAllBranches = false;
+                console.log(`[色変更] index=${index} "${node.text}" は groupId=${gid} の False分岐内`);
+                break;
+            }
+            // 中間〜終了の間: True分岐
+            else if (index > middleIndex && index < endIndex) {
+                inTrueBranch = true;
+                outsideAllBranches = false;
+                console.log(`[色変更] index=${index} "${node.text}" は groupId=${gid} の True分岐内`);
+                break;
+            }
+            // 開始〜終了の範囲内（開始、中間、終了自体）
+            else if (index >= startIndex && index <= endIndex) {
+                outsideAllBranches = false;
+            }
+        }
+
+        // 色を設定
+        if (inFalseBranch) {
+            // False分岐: Salmon
+            if (node.color !== 'Pink') {
+                node.color = 'Salmon';
+                console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → Salmon (False分岐)`);
+            }
+        } else if (inTrueBranch) {
+            // True分岐: LightBlue
+            if (node.color !== 'Pink') {
+                node.color = 'LightBlue';
+                console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → LightBlue (True分岐)`);
+            }
+        } else if (outsideAllBranches) {
+            // すべての条件分岐の外側：SalmonまたはLightBlueの場合はWhiteに戻す
+            if (node.color === 'Salmon' || node.color === 'LightBlue') {
+                node.color = 'White';
+                console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → White (外側)`);
             }
         } else {
-            // 条件分岐が存在しない場合は、色を保持（変更しない）
-            console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} のまま（条件分岐なし）`);
+            // 条件分岐の構成ノード（開始、中間、終了）自体
+            console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} のまま（構成ノード）`);
         }
 
         // ボタン間隔と高さの調整（"条件分岐 中間"の場合は特殊）
