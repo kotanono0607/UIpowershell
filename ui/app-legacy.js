@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.246';  // アプリバージョン
+const APP_VERSION = '1.0.247';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -26,7 +26,12 @@ const LOG_CONFIG = {
     breadcrumb: false,       // パンくずリストのログ
     pink: true,              // ピンクノード処理のログ（デバッグ用に有効化）
     initialization: false,   // 初期化処理のログ
-    history: true            // Undo/Redo履歴のログ
+    history: true,           // Undo/Redo履歴のログ
+    controlLog: false,       // コントロールログ（起動時のタイムスタンプ）
+    hoverPreview: false,     // ホバープレビューのログ
+    loopGroups: false,       // ループグループ検出のログ
+    apiTiming: false,        // API呼び出しタイミングのログ
+    memoryLoad: false        // memory.json読み込み警告
 };
 
 // フィルター付きログ関数
@@ -58,8 +63,10 @@ async function writeControlLog(message) {
 
     const logMessage = `🕒 [ControlLog] [${timeOnly}] ${message}`;
 
-    // ブラウザコンソールに表示（✅マーカーで重要ログとして表示）
-    console.log(logMessage);
+    // ブラウザコンソールに表示（LOG_CONFIG.controlLogがtrueの場合のみ）
+    if (LOG_CONFIG.controlLog) {
+        console.log(logMessage);
+    }
 
     try {
         await fetch(`${API_BASE}/control-log`, {
@@ -680,9 +687,13 @@ function drawPanelArrows(layerId) {
 
     // ループの矢印を描画
     const loopGroups = findLoopGroups(nodes);
-    console.log(`🔍 [drawPanelArrows] layerId=${layerId}, ループグループ数: ${loopGroups.length}`);
+    if (LOG_CONFIG.loopGroups) {
+        console.log(`🔍 [drawPanelArrows] layerId=${layerId}, ループグループ数: ${loopGroups.length}`);
+    }
     loopGroups.forEach(group => {
-        console.log(`🔍 [drawPanelArrows] ループ矢印描画: ${group.startNode.textContent} → ${group.endNode.textContent}`);
+        if (LOG_CONFIG.loopGroups) {
+            console.log(`🔍 [drawPanelArrows] ループ矢印描画: ${group.startNode.textContent} → ${group.endNode.textContent}`);
+        }
         drawLoopArrows(ctx, group.startNode, group.endNode, containerRect);
     });
 
@@ -897,10 +908,14 @@ function findLoopGroups(nodes) {
         const text = node.textContent.trim();
         const groupId = node.dataset.groupId;
 
-        console.log(`🔍 [findLoopGroups] ノード検証: text="${text}", color=${color}, isLemonChiffon=${isLemonChiffonColor(color)}, groupId=${groupId}`);
+        if (LOG_CONFIG.loopGroups) {
+            console.log(`🔍 [findLoopGroups] ノード検証: text="${text}", color=${color}, isLemonChiffon=${isLemonChiffonColor(color)}, groupId=${groupId}`);
+        }
 
         if (isLemonChiffonColor(color) && groupId) {
-            console.log(`🔍 [findLoopGroups] ✅ ループノード検出: text="${text}", groupId=${groupId}`);
+            if (LOG_CONFIG.loopGroups) {
+                console.log(`🔍 [findLoopGroups] ✅ ループノード検出: text="${text}", groupId=${groupId}`);
+            }
             if (!groupMap.has(groupId)) {
                 groupMap.set(groupId, []);
             }
@@ -909,9 +924,13 @@ function findLoopGroups(nodes) {
     });
 
     // 各グループで開始と終了を特定
-    console.log(`🔍 [findLoopGroups] groupMap.size=${groupMap.size}`);
+    if (LOG_CONFIG.loopGroups) {
+        console.log(`🔍 [findLoopGroups] groupMap.size=${groupMap.size}`);
+    }
     groupMap.forEach((groupNodes, groupId) => {
-        console.log(`🔍 [findLoopGroups] GroupID=${groupId}, ノード数=${groupNodes.length}`);
+        if (LOG_CONFIG.loopGroups) {
+            console.log(`🔍 [findLoopGroups] GroupID=${groupId}, ノード数=${groupNodes.length}`);
+        }
         if (groupNodes.length === 2) {
             const sorted = groupNodes.sort((a, b) => {
                 const aRect = a.getBoundingClientRect();
@@ -919,14 +938,20 @@ function findLoopGroups(nodes) {
                 return aRect.top - bRect.top;
             });
 
-            console.log(`🔍 [findLoopGroups] ✅ ループグループ追加: ${sorted[0].textContent} → ${sorted[1].textContent}`);
+            if (LOG_CONFIG.loopGroups) {
+                console.log(`🔍 [findLoopGroups] ✅ ループグループ追加: ${sorted[0].textContent} → ${sorted[1].textContent}`);
+            }
             groups.push({ startNode: sorted[0], endNode: sorted[1] });
         } else {
-            console.log(`🔍 [findLoopGroups] ⚠️ ノード数が2でない: ${groupNodes.length}`);
+            if (LOG_CONFIG.loopGroups) {
+                console.log(`🔍 [findLoopGroups] ⚠️ ノード数が2でない: ${groupNodes.length}`);
+            }
         }
     });
 
-    console.log(`🔍 [findLoopGroups] 最終結果: ${groups.length}グループ`);
+    if (LOG_CONFIG.loopGroups) {
+        console.log(`🔍 [findLoopGroups] 最終結果: ${groups.length}グループ`);
+    }
     return groups;
 }
 
@@ -7253,6 +7278,10 @@ async function redoOperation() {
  * 履歴を初期化
  */
 async function initializeHistory() {
+    if (LOG_CONFIG.history) {
+        console.log('[履歴] 初期化開始...');
+    }
+
     try {
         const response = await fetch(`${API_BASE}/history/init`, {
             method: 'POST',
@@ -7262,13 +7291,19 @@ async function initializeHistory() {
         const data = await response.json();
 
         if (data.success) {
-            console.log('[履歴] 初期化完了:', data);
+            if (LOG_CONFIG.history) {
+                console.log('[履歴] 初期化完了:', data);
+            }
             await updateUndoRedoButtons();
         } else {
-            console.warn('[履歴] 初期化失敗:', data.error);
+            if (LOG_CONFIG.history) {
+                console.warn('[履歴] 初期化失敗:', data.error);
+            }
         }
     } catch (error) {
-        console.error('[履歴] 初期化エラー:', error);
+        if (LOG_CONFIG.history) {
+            console.error('[履歴] 初期化エラー:', error);
+        }
     }
 }
 
