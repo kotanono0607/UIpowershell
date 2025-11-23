@@ -1283,6 +1283,14 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
 
         # 履歴記録: 保存後の状態を記録
         try {
+            # 履歴管理関数の初期化（未読み込みの場合のみ）
+            if (-not (Get-Command Record-Operation -ErrorAction SilentlyContinue)) {
+                $RootDir = Get-PodeState -Name 'RootDir'
+                . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
+                . (Join-Path $RootDir "17_操作履歴管理.ps1")
+                Write-Host "[履歴] ✅ 履歴管理関数を読み込みました" -ForegroundColor Green
+            }
+
             Record-Operation `
                 -FolderPath $folderPath `
                 -OperationType "NodeUpdate" `
@@ -2070,6 +2078,14 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
                 Write-Host "[ノード関数実行] ⚠️ コードに '---' セパレータが含まれています。複数エントリに分割されます" -ForegroundColor Yellow
             }
 
+            # コードID管理関数の初期化（未読み込みの場合のみ）
+            if (-not (Get-Command エントリを追加_指定ID -ErrorAction SilentlyContinue)) {
+                $RootDir = Get-PodeState -Name 'RootDir'
+                . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
+                . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
+                Write-Host "[ノード関数実行] ✅ コードID管理関数を読み込みました" -ForegroundColor Green
+            }
+
             try {
                 $savedId = エントリを追加_指定ID -文字列 $code -ID $parentId
                 Write-Host "[ノード関数実行] ✅ コードを保存しました: 親ID=$parentId (エントリID=$parentId-1)" -ForegroundColor Green
@@ -2477,6 +2493,13 @@ Add-PodeRoute -Method Get -Path "/ボタン設定.json" -ScriptBlock {
 # 履歴状態取得
 Add-PodeRoute -Method Get -Path "/api/history/status" -ScriptBlock {
     try {
+        # 履歴管理関数の初期化（未読み込みの場合のみ）
+        if (-not (Get-Command Initialize-HistoryStack -ErrorAction SilentlyContinue)) {
+            $RootDir = Get-PodeState -Name 'RootDir'
+            . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
+            . (Join-Path $RootDir "17_操作履歴管理.ps1")
+        }
+
         $RootDir = Get-PodeState -Name 'RootDir'
         $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
 
@@ -2523,6 +2546,13 @@ Add-PodeRoute -Method Get -Path "/api/history/status" -ScriptBlock {
 # Undo実行
 Add-PodeRoute -Method Post -Path "/api/history/undo" -ScriptBlock {
     try {
+        # 履歴管理関数の初期化（未読み込みの場合のみ）
+        if (-not (Get-Command Undo-Operation -ErrorAction SilentlyContinue)) {
+            $RootDir = Get-PodeState -Name 'RootDir'
+            . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
+            . (Join-Path $RootDir "17_操作履歴管理.ps1")
+        }
+
         $RootDir = Get-PodeState -Name 'RootDir'
         $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
 
@@ -2558,6 +2588,13 @@ Add-PodeRoute -Method Post -Path "/api/history/undo" -ScriptBlock {
 # Redo実行
 Add-PodeRoute -Method Post -Path "/api/history/redo" -ScriptBlock {
     try {
+        # 履歴管理関数の初期化（未読み込みの場合のみ）
+        if (-not (Get-Command Redo-Operation -ErrorAction SilentlyContinue)) {
+            $RootDir = Get-PodeState -Name 'RootDir'
+            . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
+            . (Join-Path $RootDir "17_操作履歴管理.ps1")
+        }
+
         $RootDir = Get-PodeState -Name 'RootDir'
         $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
 
@@ -2593,6 +2630,13 @@ Add-PodeRoute -Method Post -Path "/api/history/redo" -ScriptBlock {
 # 履歴の初期化
 Add-PodeRoute -Method Post -Path "/api/history/init" -ScriptBlock {
     try {
+        # 履歴管理関数の初期化（未読み込みの場合のみ）
+        if (-not (Get-Command Initialize-HistoryStack -ErrorAction SilentlyContinue)) {
+            $RootDir = Get-PodeState -Name 'RootDir'
+            . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
+            . (Join-Path $RootDir "17_操作履歴管理.ps1")
+        }
+
         $RootDir = Get-PodeState -Name 'RootDir'
         $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
 
