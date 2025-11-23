@@ -1261,6 +1261,17 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
 
         Write-Host "[API] 合計ノード数: $totalNodes" -ForegroundColor Yellow
 
+        # 履歴記録: 保存前の状態を取得
+        $memoryBefore = $null
+        if (Test-Path $memoryPath) {
+            try {
+                $memoryBeforeContent = Get-Content $memoryPath -Raw -Encoding UTF8
+                $memoryBefore = $memoryBeforeContent | ConvertFrom-Json
+            } catch {
+                Write-Host "[履歴] memory.json読み込みエラー（新規作成の可能性あり）" -ForegroundColor DarkGray
+            }
+        }
+
         # JSON形式で保存
         $json = $memoryData | ConvertTo-Json -Depth 10
         Write-Host "[API] JSON生成完了 (長さ: $($json.Length) 文字)" -ForegroundColor Gray
@@ -1269,6 +1280,18 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
         $utf8NoBom = New-Object System.Text.UTF8Encoding $false
         [System.IO.File]::WriteAllText($memoryPath, $json, $utf8NoBom)
         Write-Host "[API] UTF-8 (BOMなし) でファイルを保存しました" -ForegroundColor Green
+
+        # 履歴記録: 保存後の状態を記録
+        try {
+            Record-Operation `
+                -FolderPath $folderPath `
+                -OperationType "NodeUpdate" `
+                -Description "ノード配置を更新 ($totalNodes ノード)" `
+                -MemoryBefore $memoryBefore `
+                -MemoryAfter $memoryData
+        } catch {
+            Write-Host "[履歴] Record-Operationエラー: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
 
         # ファイル保存確認
         if (Test-Path $memoryPath) {

@@ -4549,6 +4549,9 @@ async function saveMemoryJson() {
 
         if (result.success) {
             console.log('memory.json保存成功:', result.message);
+
+            // Undo/Redoボタンの状態を更新
+            await updateUndoRedoButtons();
         } else {
             console.error('memory.json保存失敗:', result.error);
         }
