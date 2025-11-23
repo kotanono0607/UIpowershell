@@ -25,7 +25,8 @@ const DEBUG_FLAGS = {
 const LOG_CONFIG = {
     breadcrumb: false,       // パンくずリストのログ
     pink: true,              // ピンクノード処理のログ（デバッグ用に有効化）
-    initialization: false    // 初期化処理のログ
+    initialization: false,   // 初期化処理のログ
+    history: true            // Undo/Redo履歴のログ
 };
 
 // フィルター付きログ関数
