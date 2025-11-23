@@ -2081,8 +2081,8 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             # コードID管理関数の初期化（未読み込みの場合のみ）
             if (-not (Get-Command エントリを追加_指定ID -ErrorAction SilentlyContinue)) {
                 $RootDir = Get-PodeState -Name 'RootDir'
-                . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
                 . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
+                . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
                 Write-Host "[ノード関数実行] ✅ コードID管理関数を読み込みました" -ForegroundColor Green
             }
 
