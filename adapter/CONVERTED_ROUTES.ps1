@@ -25,7 +25,9 @@ $v2FilesToLoad = @(
     "07_メインF機能_ツールバー作成_v2.ps1",
     "08_メインF機能_メインボタン処理_v2.ps1",
     "02-6_削除処理_v2.ps1",
-    "02-2_ネスト規制バリデーション_v2.ps1"
+    "02-2_ネスト規制バリデーション_v2.ps1",
+    "16_スナップショット機能.ps1",
+    "17_操作履歴管理.ps1"
 )
 
 # 読み込み前の関数リストを取得
@@ -2441,6 +2443,161 @@ Add-PodeRoute -Method Get -Path "/ボタン設定.json" -ScriptBlock {
     } else {
         Set-PodeResponseStatus -Code 404
         $errorResult = @{ error = "ボタン設定.json not found" }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
+# ==============================================================================
+# Undo/Redo 操作履歴管理 APIエンドポイント
+# ==============================================================================
+
+# 履歴状態取得
+Add-PodeRoute -Method Get -Path "/api/history/status" -ScriptBlock {
+    try {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
+
+        if (Test-Path $mainJsonPath) {
+            $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
+            $mainData = $mainContent | ConvertFrom-Json
+            $folderPath = Join-Path $RootDir "03_history\$($mainData.新規フォルダ名)"
+
+            # 履歴スタックが未初期化の場合は初期化
+            if ($null -eq $global:HistoryStack) {
+                Initialize-HistoryStack -FolderPath $folderPath | Out-Null
+            }
+
+            $result = @{
+                success = $true
+                canUndo = $global:CurrentHistoryPosition -gt 0
+                canRedo = $global:CurrentHistoryPosition -lt $global:HistoryStack.Count
+                position = $global:CurrentHistoryPosition
+                count = $global:HistoryStack.Count
+            }
+
+            Write-PodeJsonResponse -Value $result
+        } else {
+            $result = @{
+                success = $false
+                canUndo = $false
+                canRedo = $false
+                error = "メイン.jsonが見つかりません"
+            }
+            Write-PodeJsonResponse -Value $result
+        }
+    } catch {
+        Set-PodeResponseStatus -Code 500
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+            canUndo = $false
+            canRedo = $false
+        }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
+# Undo実行
+Add-PodeRoute -Method Post -Path "/api/history/undo" -ScriptBlock {
+    try {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
+
+        if (-not (Test-Path $mainJsonPath)) {
+            Set-PodeResponseStatus -Code 404
+            $errorResult = @{
+                success = $false
+                error = "メイン.jsonが見つかりません"
+            }
+            Write-PodeJsonResponse -Value $errorResult
+            return
+        }
+
+        $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
+        $mainData = $mainContent | ConvertFrom-Json
+        $folderPath = Join-Path $RootDir "03_history\$($mainData.新規フォルダ名)"
+
+        # Undo実行
+        $result = Undo-Operation -FolderPath $folderPath
+
+        Write-PodeJsonResponse -Value $result
+
+    } catch {
+        Set-PodeResponseStatus -Code 500
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
+# Redo実行
+Add-PodeRoute -Method Post -Path "/api/history/redo" -ScriptBlock {
+    try {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
+
+        if (-not (Test-Path $mainJsonPath)) {
+            Set-PodeResponseStatus -Code 404
+            $errorResult = @{
+                success = $false
+                error = "メイン.jsonが見つかりません"
+            }
+            Write-PodeJsonResponse -Value $errorResult
+            return
+        }
+
+        $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
+        $mainData = $mainContent | ConvertFrom-Json
+        $folderPath = Join-Path $RootDir "03_history\$($mainData.新規フォルダ名)"
+
+        # Redo実行
+        $result = Redo-Operation -FolderPath $folderPath
+
+        Write-PodeJsonResponse -Value $result
+
+    } catch {
+        Set-PodeResponseStatus -Code 500
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
+# 履歴の初期化
+Add-PodeRoute -Method Post -Path "/api/history/init" -ScriptBlock {
+    try {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $mainJsonPath = Join-Path $RootDir "03_history\メイン.json"
+
+        if (-not (Test-Path $mainJsonPath)) {
+            Set-PodeResponseStatus -Code 404
+            $errorResult = @{
+                success = $false
+                error = "メイン.jsonが見つかりません"
+            }
+            Write-PodeJsonResponse -Value $errorResult
+            return
+        }
+
+        $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
+        $mainData = $mainContent | ConvertFrom-Json
+        $folderPath = Join-Path $RootDir "03_history\$($mainData.新規フォルダ名)"
+
+        # 履歴初期化
+        $result = Initialize-HistoryStack -FolderPath $folderPath
+
+        Write-PodeJsonResponse -Value $result
+
+    } catch {
+        Set-PodeResponseStatus -Code 500
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
         Write-PodeJsonResponse -Value $errorResult
     }
 }

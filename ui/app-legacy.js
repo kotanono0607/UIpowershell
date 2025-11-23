@@ -7075,9 +7075,157 @@ function initLayerNavigation() {
 
 // 注: drawDrilldownArrows関数は削除され、代わりに共通のdrawPanelArrows関数を使用するようになりました
 
+// ============================================================================
+// Undo/Redo 操作履歴機能
+// ============================================================================
+
+/**
+ * Undo/Redoボタンの状態を更新
+ */
+async function updateUndoRedoButtons() {
+    try {
+        const response = await fetch(`${API_BASE}/api/history/status`);
+        const data = await response.json();
+
+        const undoBtn = document.getElementById('btn-undo');
+        const redoBtn = document.getElementById('btn-redo');
+
+        if (data.success) {
+            // Undoボタンの状態
+            if (data.canUndo) {
+                undoBtn.style.opacity = '1.0';
+                undoBtn.style.pointerEvents = 'auto';
+                undoBtn.style.cursor = 'pointer';
+            } else {
+                undoBtn.style.opacity = '0.5';
+                undoBtn.style.pointerEvents = 'none';
+                undoBtn.style.cursor = 'not-allowed';
+            }
+
+            // Redoボタンの状態
+            if (data.canRedo) {
+                redoBtn.style.opacity = '1.0';
+                redoBtn.style.pointerEvents = 'auto';
+                redoBtn.style.cursor = 'pointer';
+            } else {
+                redoBtn.style.opacity = '0.5';
+                redoBtn.style.pointerEvents = 'none';
+                redoBtn.style.cursor = 'not-allowed';
+            }
+
+            if (LOG_CONFIG.history) {
+                console.log(`[履歴] ボタン状態更新: Undo=${data.canUndo}, Redo=${data.canRedo}, Position=${data.position}/${data.count}`);
+            }
+        }
+    } catch (error) {
+        console.error('[履歴] ボタン状態更新エラー:', error);
+    }
+}
+
+/**
+ * Undo操作を実行
+ */
+async function undoOperation() {
+    try {
+        const response = await fetch(`${API_BASE}/api/history/undo`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log('[履歴] Undo成功:', data.operation?.description);
+
+            // memory.jsonを再読み込み
+            await loadExistingNodesFromMemory();
+
+            // ボタン状態を更新
+            await updateUndoRedoButtons();
+
+            // 成功メッセージ
+            showMessage(`✅ Undo: ${data.operation?.description || '操作を戻しました'}`, 'success');
+        } else {
+            console.warn('[履歴] Undo失敗:', data.error);
+            showMessage(`⚠️ ${data.error || 'Undoできません'}`, 'warning');
+        }
+    } catch (error) {
+        console.error('[履歴] Undoエラー:', error);
+        showMessage('❌ Undoに失敗しました', 'error');
+    }
+}
+
+/**
+ * Redo操作を実行
+ */
+async function redoOperation() {
+    try {
+        const response = await fetch(`${API_BASE}/api/history/redo`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log('[履歴] Redo成功:', data.operation?.description);
+
+            // memory.jsonを再読み込み
+            await loadExistingNodesFromMemory();
+
+            // ボタン状態を更新
+            await updateUndoRedoButtons();
+
+            // 成功メッセージ
+            showMessage(`✅ Redo: ${data.operation?.description || '操作をやり直しました'}`, 'success');
+        } else {
+            console.warn('[履歴] Redo失敗:', data.error);
+            showMessage(`⚠️ ${data.error || 'Redoできません'}`, 'warning');
+        }
+    } catch (error) {
+        console.error('[履歴] Redoエラー:', error);
+        showMessage('❌ Redoに失敗しました', 'error');
+    }
+}
+
+/**
+ * 履歴を初期化
+ */
+async function initializeHistory() {
+    try {
+        const response = await fetch(`${API_BASE}/api/history/init`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log('[履歴] 初期化完了:', data);
+            await updateUndoRedoButtons();
+        } else {
+            console.warn('[履歴] 初期化失敗:', data.error);
+        }
+    } catch (error) {
+        console.error('[履歴] 初期化エラー:', error);
+    }
+}
+
 // DOMContentLoaded時に初期化
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initLayerNavigation);
+    document.addEventListener('DOMContentLoaded', () => {
+        initLayerNavigation();
+
+        // Undo/Redoボタンの初期状態を設定
+        setTimeout(() => {
+            initializeHistory();
+        }, 1000);
+    });
 } else {
     initLayerNavigation();
+
+    // Undo/Redoボタンの初期状態を設定
+    setTimeout(() => {
+        initializeHistory();
+    }, 1000);
 }
