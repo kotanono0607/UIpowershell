@@ -18,6 +18,8 @@ $adapterDir = Split-Path -Parent $PSCommandPath
 
 # Phase 2 v2ファイルを読み込み
 $v2FilesToLoad = @(
+    "00_共通ユーティリティ_JSON操作.ps1",
+    "09_変数機能_コードID管理JSON.ps1",
     "12_コードメイン_コード本文_v2.ps1",
     "10_変数機能_変数管理UI_v2.ps1",
     "07_メインF機能_ツールバー作成_v2.ps1",
