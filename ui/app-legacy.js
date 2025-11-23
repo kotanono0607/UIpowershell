@@ -7084,11 +7084,68 @@ function initLayerNavigation() {
 // ============================================================================
 
 /**
+ * ユーザーにメッセージを表示（トースト通知）
+ * @param {string} message - 表示するメッセージ
+ * @param {string} type - メッセージタイプ ('success', 'warning', 'error')
+ */
+function showMessage(message, type = 'info') {
+    // 既存の通知を削除
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    // トースト要素を作成
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+
+    // タイプに応じたスタイルを設定
+    const colors = {
+        success: '#4caf50',
+        warning: '#ff9800',
+        error: '#f44336',
+        info: '#2196f3'
+    };
+
+    toast.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        padding: 12px 20px;
+        background-color: ${colors[type] || colors.info};
+        color: white;
+        border-radius: 4px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        z-index: 10000;
+        font-size: 14px;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    `;
+
+    // DOMに追加
+    document.body.appendChild(toast);
+
+    // フェードイン
+    setTimeout(() => {
+        toast.style.opacity = '1';
+    }, 10);
+
+    // 3秒後にフェードアウトして削除
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
+
+/**
  * Undo/Redoボタンの状態を更新
  */
 async function updateUndoRedoButtons() {
     try {
-        const response = await fetch(`${API_BASE}/api/history/status`);
+        const response = await fetch(`${API_BASE}/history/status`);
         const data = await response.json();
 
         const undoBtn = document.getElementById('btn-undo');
@@ -7131,7 +7188,7 @@ async function updateUndoRedoButtons() {
  */
 async function undoOperation() {
     try {
-        const response = await fetch(`${API_BASE}/api/history/undo`, {
+        const response = await fetch(`${API_BASE}/history/undo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -7164,7 +7221,7 @@ async function undoOperation() {
  */
 async function redoOperation() {
     try {
-        const response = await fetch(`${API_BASE}/api/history/redo`, {
+        const response = await fetch(`${API_BASE}/history/redo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -7197,7 +7254,7 @@ async function redoOperation() {
  */
 async function initializeHistory() {
     try {
-        const response = await fetch(`${API_BASE}/api/history/init`, {
+        const response = await fetch(`${API_BASE}/history/init`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
