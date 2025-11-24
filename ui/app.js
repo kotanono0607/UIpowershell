@@ -820,7 +820,9 @@ function initReactFlow() {
         // ノード右クリック時のイベントハンドラー（コンテキストメニュー表示）
         const onNodeContextMenu = React.useCallback((event, node) => {
             event.preventDefault(); // デフォルトの右クリックメニューを無効化
+            event.stopPropagation(); // イベントの伝播を停止
             console.log('[React Flow] ノードが右クリックされました:', node.id);
+            console.log('[React Flow] マウス座標:', event.clientX, event.clientY);
 
             // コンテキストメニューを表示
             showContextMenu(event.clientX, event.clientY, node.id);
@@ -1863,12 +1865,24 @@ let selectedNodeId = null;  // 選択されたノードID
  * @param {string} nodeId - ノードID
  */
 function showContextMenu(x, y, nodeId) {
+    console.log(`[コンテキストメニュー] showContextMenu呼び出し: ノードID=${nodeId}, 位置=(${x}, ${y})`);
+
     const menu = document.getElementById('context-menu');
+
+    if (!menu) {
+        console.error('[コンテキストメニュー] メニュー要素が見つかりません');
+        return;
+    }
+
+    console.log('[コンテキストメニュー] メニュー要素:', menu);
 
     // メニューを表示
     menu.style.left = `${x}px`;
     menu.style.top = `${y}px`;
     menu.classList.add('show');
+
+    console.log('[コンテキストメニュー] メニュークラス:', menu.classList);
+    console.log('[コンテキストメニュー] メニュースタイル:', menu.style.cssText);
 
     // 選択されたノードを記録
     selectedNodeId = nodeId;
@@ -1881,15 +1895,21 @@ function showContextMenu(x, y, nodeId) {
         pasteItem.classList.add('disabled');
     }
 
-    console.log(`[コンテキストメニュー] 表示: ノードID=${nodeId}, 位置=(${x}, ${y})`);
+    console.log(`[コンテキストメニュー] ✅ 表示完了: ノードID=${nodeId}, クリップボード=${nodeClipboard ? 'あり' : 'なし'}`);
 }
 
 /**
  * 右クリックメニューを非表示
  */
 function hideContextMenu() {
+    console.log('[コンテキストメニュー] hideContextMenu呼び出し');
     const menu = document.getElementById('context-menu');
-    menu.classList.remove('show');
+    if (menu) {
+        menu.classList.remove('show');
+        console.log('[コンテキストメニュー] ✅ 非表示完了');
+    } else {
+        console.error('[コンテキストメニュー] メニュー要素が見つかりません');
+    }
 }
 
 /**
@@ -2002,8 +2022,22 @@ function setSelectedNode(nodeId) {
  * コンテキストメニューのイベントリスナーを設定
  */
 function setupContextMenuListeners() {
+    console.log('[コンテキストメニュー] setupContextMenuListeners開始');
+
+    const copyBtn = document.getElementById('ctx-copy');
+    const pasteBtn = document.getElementById('ctx-paste');
+    const deleteBtn = document.getElementById('ctx-delete');
+
+    if (!copyBtn || !pasteBtn || !deleteBtn) {
+        console.error('[コンテキストメニュー] メニューボタンが見つかりません:', {
+            copyBtn, pasteBtn, deleteBtn
+        });
+        return;
+    }
+
     // コピー
-    document.getElementById('ctx-copy').addEventListener('click', async () => {
+    copyBtn.addEventListener('click', async () => {
+        console.log('[コンテキストメニュー] コピーボタンがクリックされました');
         hideContextMenu();
         if (selectedNodeId) {
             await copyNode(selectedNodeId);
@@ -2011,8 +2045,10 @@ function setupContextMenuListeners() {
     });
 
     // 貼り付け
-    document.getElementById('ctx-paste').addEventListener('click', async (e) => {
+    pasteBtn.addEventListener('click', async (e) => {
+        console.log('[コンテキストメニュー] 貼り付けボタンがクリックされました');
         if (e.target.closest('.disabled')) {
+            console.log('[コンテキストメニュー] 貼り付けは無効です');
             return; // 無効な場合は何もしない
         }
         hideContextMenu();
@@ -2020,14 +2056,15 @@ function setupContextMenuListeners() {
     });
 
     // 削除
-    document.getElementById('ctx-delete').addEventListener('click', async () => {
+    deleteBtn.addEventListener('click', async () => {
+        console.log('[コンテキストメニュー] 削除ボタンがクリックされました');
         hideContextMenu();
         if (selectedNodeId) {
             await deleteSelectedNodes(selectedNodeId);
         }
     });
 
-    console.log('[コンテキストメニュー] イベントリスナーを設定しました');
+    console.log('[コンテキストメニュー] ✅ イベントリスナーを設定しました');
 }
 
 // ============================================
@@ -2095,8 +2132,25 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
     // 画面クリック時にコンテキストメニューを非表示
-    document.addEventListener('click', () => {
-        hideContextMenu();
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('context-menu');
+        // メニュー自体をクリックした場合は非表示にしない
+        if (menu && !menu.contains(e.target)) {
+            hideContextMenu();
+        }
+    });
+
+    // 右クリック時にもメニューを非表示（ノード以外を右クリックした場合）
+    document.addEventListener('contextmenu', (e) => {
+        const menu = document.getElementById('context-menu');
+        // メニュー外を右クリックした場合は非表示
+        if (menu && !menu.contains(e.target)) {
+            // React Flowのノード以外を右クリックした場合にメニューを閉じる
+            const reactFlowNode = e.target.closest('.react-flow__node');
+            if (!reactFlowNode) {
+                hideContextMenu();
+            }
+        }
     });
 
     // コントロールログ: 初期化完了、ノード生成可能
