@@ -811,6 +811,12 @@ function initReactFlow() {
             reactFlowInstance = instance;
         };
 
+        // ノードクリック時のイベントハンドラー（選択状態を記録）
+        const onNodeClick = React.useCallback((event, node) => {
+            console.log('[React Flow] ノードがクリックされました:', node.id);
+            setSelectedNode(node.id);
+        }, []);
+
         return React.createElement(
             'div',
             { style: { width: '100%', height: '100%' } },
@@ -821,6 +827,7 @@ function initReactFlow() {
                 onEdgesChange,
                 onConnect,
                 onNodeDragStop,
+                onNodeClick,
                 onInit,
                 fitView: true,
                 snapToGrid: true,
@@ -1821,6 +1828,118 @@ function setupDialogEventListeners() {
 }
 
 // ============================================
+// コピー/貼り付け機能
+// ============================================
+
+let nodeClipboard = null;  // コピーされたノードID
+let selectedNodeId = null;  // 選択されたノードID
+
+/**
+ * ノードをコピー
+ * @param {string} nodeId - コピーするノードID
+ */
+async function copyNode(nodeId) {
+    if (!nodeId) {
+        console.warn('[コピー] ノードIDが指定されていません');
+        return false;
+    }
+
+    console.log(`[コピー] ノードをコピー: ${nodeId}`);
+
+    // ノードが存在するか確認
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) {
+        console.error(`[コピー] ノードが見つかりません: ${nodeId}`);
+        alert('コピーするノードが見つかりません');
+        return false;
+    }
+
+    // クリップボードに保存
+    nodeClipboard = nodeId;
+    console.log(`[コピー] ✅ ノードをクリップボードにコピーしました: ${nodeId}`);
+    console.log(`[コピー] ノード情報:`, node);
+
+    return true;
+}
+
+/**
+ * ノードを貼り付け
+ */
+async function pasteNode() {
+    if (!nodeClipboard) {
+        console.warn('[貼り付け] クリップボードが空です');
+        alert('コピーされたノードがありません');
+        return false;
+    }
+
+    console.log(`[貼り付け] ノードを貼り付け: ${nodeClipboard}`);
+
+    try {
+        // 操作前のmemory.jsonを取得（Undo/Redo用）
+        const memoryBeforeResp = await fetch(`${API_BASE}/nodes`);
+        const memoryBeforeData = await memoryBeforeResp.json();
+        const memoryBefore = memoryBeforeData.success ? memoryBeforeData.nodes : null;
+
+        // APIを呼んでノードをコピー
+        const response = await fetch(`${API_BASE}/nodes/copy`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nodeId: nodeClipboard
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log(`[貼り付け] ✅ ノード貼り付け成功:`, result);
+
+            // ノードリストを再読み込み
+            await reloadNodesFromMemory();
+
+            // 操作後のmemory.jsonを取得（Undo/Redo用）
+            const memoryAfterResp = await fetch(`${API_BASE}/nodes`);
+            const memoryAfterData = await memoryAfterResp.json();
+            const memoryAfter = memoryAfterData.success ? memoryAfterData.nodes : null;
+
+            // 操作を記録
+            if (memoryBefore && memoryAfter) {
+                await recordOperation(
+                    'NodeCopy',
+                    `ノード${nodeClipboard}をコピー → ${result.newNodeId}`,
+                    memoryBefore,
+                    memoryAfter
+                );
+            }
+
+            alert(`ノードを貼り付けました\n新しいID: ${result.newNodeId}`);
+            return true;
+        } else {
+            throw new Error(result.error || '貼り付けに失敗しました');
+        }
+    } catch (error) {
+        console.error('[貼り付け] エラー:', error);
+        alert(`貼り付けエラー: ${error.message}`);
+        return false;
+    }
+}
+
+/**
+ * 選択中のノードを取得
+ */
+function getSelectedNodeId() {
+    return selectedNodeId;
+}
+
+/**
+ * ノードを選択
+ */
+function setSelectedNode(nodeId) {
+    selectedNodeId = nodeId;
+    console.log(`[選択] ノードを選択: ${nodeId}`);
+}
+
+// ============================================
 // 初期化
 // ============================================
 
@@ -1848,7 +1967,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     // 操作履歴を初期化
     await initializeHistory();
 
-    // キーボードショートカット（Ctrl+Z / Ctrl+Y）を設定
+    // キーボードショートカット（Ctrl+Z / Ctrl+Y / Ctrl+C / Ctrl+V）を設定
     document.addEventListener('keydown', async (e) => {
         // Ctrl+Z: Undo
         if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
@@ -1877,6 +1996,28 @@ window.addEventListener('DOMContentLoaded', async () => {
                 } else {
                     alert(`Redo失敗: ${result.error}`);
                 }
+            }
+        }
+
+        // Ctrl+C: コピー
+        if (e.ctrlKey && e.key === 'c') {
+            const nodeId = getSelectedNodeId();
+            if (nodeId) {
+                e.preventDefault();
+                console.log('[キーボード] Ctrl+C - コピー');
+                const success = await copyNode(nodeId);
+                if (success) {
+                    alert(`ノードをコピーしました\nID: ${nodeId}`);
+                }
+            }
+        }
+
+        // Ctrl+V: 貼り付け
+        if (e.ctrlKey && e.key === 'v') {
+            if (nodeClipboard) {
+                e.preventDefault();
+                console.log('[キーボード] Ctrl+V - 貼り付け');
+                await pasteNode();
             }
         }
     });

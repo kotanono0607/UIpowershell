@@ -385,6 +385,10 @@
             <h1>UIpowershell - Phase 4 <span id="app-version" style="font-size: 0.7em; color: #ccc; font-weight: normal;">v1.0.149</span></h1>
             <button onclick="showAddNodeModal()">➕ ノード追加</button>
             <button onclick="deleteSelectedNodes()" class="danger">🗑️ 削除</button>
+            <button id="btn-copy" onclick="copyNode(getSelectedNodeId())" title="選択したノードをコピー (Ctrl+C)">📋 コピー</button>
+            <button id="btn-paste" onclick="pasteNode()" title="コピーしたノードを貼り付け (Ctrl+V)">📄 貼り付け</button>
+            <button id="btn-undo" onclick="undoOperation()" title="元に戻す (Ctrl+Z)">↶ Undo</button>
+            <button id="btn-redo" onclick="redoOperation()" title="やり直し (Ctrl+Y)">↷ Redo</button>
             <button onclick="showVariableModal()">📊 変数管理</button>
             <button onclick="showFolderModal()">📁 フォルダ</button>
             <button onclick="generateCode()" class="success">▶️ コード生成</button>
