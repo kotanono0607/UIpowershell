@@ -281,13 +281,13 @@ function Undo-Operation {
 
         # memory.jsonを復元
         if ($currentOp.memory_before) {
-            Write-JsonSafe -Path $memoryPath -Data $currentOp.memory_before -Depth 10 -Silent $true
+            Write-JsonSafe -Path $memoryPath -Data $currentOp.memory_before -Depth 10 -Silent $true | Out-Null
             Write-Host "[操作履歴] memory.jsonを復元しました" -ForegroundColor Cyan
         }
 
         # コード.jsonを復元（存在する場合）
         if ($currentOp.code_before) {
-            Write-JsonSafe -Path $codePath -Data $currentOp.code_before -Depth 10 -Silent $true
+            Write-JsonSafe -Path $codePath -Data $currentOp.code_before -Depth 10 -Silent $true | Out-Null
             Write-Host "[操作履歴] コード.jsonを復元しました" -ForegroundColor Cyan
         }
 
@@ -300,7 +300,7 @@ function Undo-Operation {
             CurrentHistoryPosition = $currentPosition
             MaxHistoryCount = $maxCount
         }
-        Write-JsonSafe -Path $historyPath -Data $updatedHistoryData -Depth 10 -Silent $true
+        Write-JsonSafe -Path $historyPath -Data $updatedHistoryData -Depth 10 -Silent $true | Out-Null
 
         Write-Host "[操作履歴] Undo実行: $($currentOp.description) (位置: $currentPosition)" -ForegroundColor Green
 
@@ -396,13 +396,13 @@ function Redo-Operation {
 
         # memory.jsonを復元
         if ($nextOp.memory_after) {
-            Write-JsonSafe -Path $memoryPath -Data $nextOp.memory_after -Depth 10 -Silent $true
+            Write-JsonSafe -Path $memoryPath -Data $nextOp.memory_after -Depth 10 -Silent $true | Out-Null
             Write-Host "[操作履歴] memory.jsonを復元しました" -ForegroundColor Cyan
         }
 
         # コード.jsonを復元（存在する場合）
         if ($nextOp.code_after) {
-            Write-JsonSafe -Path $codePath -Data $nextOp.code_after -Depth 10 -Silent $true
+            Write-JsonSafe -Path $codePath -Data $nextOp.code_after -Depth 10 -Silent $true | Out-Null
             Write-Host "[操作履歴] コード.jsonを復元しました" -ForegroundColor Cyan
         }
 
@@ -415,7 +415,7 @@ function Redo-Operation {
             CurrentHistoryPosition = $currentPosition
             MaxHistoryCount = $maxCount
         }
-        Write-JsonSafe -Path $historyPath -Data $updatedHistoryData -Depth 10 -Silent $true
+        Write-JsonSafe -Path $historyPath -Data $updatedHistoryData -Depth 10 -Silent $true | Out-Null
 
         Write-Host "[操作履歴] Redo実行: $($nextOp.description) (位置: $currentPosition)" -ForegroundColor Green
 
