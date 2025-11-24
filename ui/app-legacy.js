@@ -7086,6 +7086,151 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================
+// コピー/貼り付け機能
+// ============================================
+// 使い方:
+//   1. ノードをクリックして選択
+//   2. Ctrl+C でコピー（または右クリックメニューから「コピー」）
+//   3. Ctrl+V で貼り付け（または右クリックメニューから「貼り付け」）
+// ※ 現在は手動で setSelectedNode() を呼び出す必要があります
+// ※ 今後、ノードクリックイベントに統合予定
+// ============================================
+
+// クリップボード（コピーされたノード情報を保持）
+let nodeClipboard = null;
+
+// 選択されたノードの状態を追跡
+let selectedNodeState = {
+    nodeId: null,           // 選択されたノードID
+    layerId: null,          // 選択されたノードのレイヤーID
+    lastClickTime: null     // 最後にクリックされた時刻
+};
+
+// ノードをコピー
+async function copyNode(nodeId) {
+    console.log(`[コピー] ノードをコピー: ${nodeId}`);
+
+    // レイヤー情報から元のノードを取得
+    const currentLayer = getCurrentLayerData();
+    const sourceNode = currentLayer.構成.find(n => n.ボタン名 === nodeId);
+
+    if (!sourceNode) {
+        console.error(`[コピー] ノードが見つかりません: ${nodeId}`);
+        return false;
+    }
+
+    // クリップボードに保存
+    nodeClipboard = {
+        nodeId: nodeId,
+        node: sourceNode
+    };
+
+    console.log(`[コピー] ✅ ノードをクリップボードにコピーしました:`, sourceNode);
+    showToast('ノードをコピーしました', 'success');
+    return true;
+}
+
+// ノードを貼り付け
+async function pasteNode() {
+    if (!nodeClipboard) {
+        console.warn('[貼り付け] クリップボードが空です');
+        showToast('コピーされたノードがありません', 'warning');
+        return false;
+    }
+
+    console.log(`[貼り付け] ノードを貼り付け:`, nodeClipboard);
+
+    try {
+        // APIを呼んでノードをコピー
+        const response = await fetch(`${API_BASE}/nodes/copy`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nodeId: nodeClipboard.nodeId
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log(`[貼り付け] ✅ ノード貼り付け成功:`, result);
+            showToast(`ノードを貼り付けました (${result.newNodeId})`, 'success');
+
+            // レイヤーデータを再読み込み
+            await loadCurrentLayerData();
+
+            return true;
+        } else {
+            throw new Error(result.error || '貼り付けに失敗しました');
+        }
+    } catch (error) {
+        console.error('[貼り付け] エラー:', error);
+        showToast(`貼り付けエラー: ${error.message}`, 'error');
+        return false;
+    }
+}
+
+// Ctrl+C / Ctrl+V キーボードショートカット
+document.addEventListener('keydown', (e) => {
+    // Ctrl+C: コピー
+    if (e.ctrlKey && e.key === 'c') {
+        // 選択中のノードを取得
+        const selectedNode = getSelectedNode();
+        if (selectedNode) {
+            e.preventDefault();
+            copyNode(selectedNode.ボタン名);
+        }
+    }
+
+    // Ctrl+V: 貼り付け
+    if (e.ctrlKey && e.key === 'v') {
+        if (nodeClipboard) {
+            e.preventDefault();
+            pasteNode();
+        }
+    }
+});
+
+// 選択中のノードを取得
+function getSelectedNode() {
+    if (!selectedNodeState.nodeId) {
+        console.log('[選択] 選択されたノードがありません');
+        return null;
+    }
+
+    // 選択されたレイヤーのデータを取得
+    const layerData = getCurrentLayerData();
+    if (!layerData || !layerData.構成) {
+        console.warn('[選択] レイヤーデータが見つかりません');
+        return null;
+    }
+
+    // ノードを検索
+    const node = layerData.構成.find(n => n.ボタン名 === selectedNodeState.nodeId);
+    if (node) {
+        console.log('[選択] 選択ノード:', node);
+        return node;
+    }
+
+    console.warn(`[選択] ノードID ${selectedNodeState.nodeId} が見つかりません`);
+    return null;
+}
+
+// ノードが選択されたことを記録（他の部分から呼び出す用）
+function setSelectedNode(nodeId, layerId) {
+    selectedNodeState.nodeId = nodeId;
+    selectedNodeState.layerId = layerId || leftVisibleLayer;
+    selectedNodeState.lastClickTime = Date.now();
+    console.log('[選択] ノードを選択:', nodeId);
+}
+
+// トースト通知を表示（簡易実装）
+function showToast(message, type = 'info') {
+    console.log(`[トースト ${type}] ${message}`);
+    alert(message); // 簡易実装：実際のUIでは適切な通知UIを使用
+}
+
+// ============================================
 // ポップアップウィンドウからのメッセージ受信
 // ============================================
 window.addEventListener('message', (event) => {
