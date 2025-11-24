@@ -2483,50 +2483,50 @@ Write-Host "静的ファイル提供を設定します..." -ForegroundColor Cyan
 $global:UiPathForPolaris = Join-Path $script:RootDir "ui"
 $global:RootDirForPolaris = $script:RootDir
 
-# ルートパス "/" - index-v2.html（新バージョン）を提供
+# ルートパス "/" - index-legacy.html（現行バージョン）を提供
 New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
     Set-CorsHeaders -Response $Response
     $uiPath = $global:UiPathForPolaris
-    $indexPath = Join-Path $uiPath "index-v2.html"
+    $indexPath = Join-Path $uiPath "index-legacy.html"
     if (Test-Path $indexPath) {
         $content = Get-Content $indexPath -Raw -Encoding UTF8
         $Response.SetContentType('text/html; charset=utf-8')
         $Response.Send($content)
     } else {
         $Response.SetStatusCode(404)
-        $Response.Send("index-v2.html not found")
+        $Response.Send("index-legacy.html not found")
     }
 }
 
-# index-v2.html（新バージョン）
-New-PolarisRoute -Path "/index-v2.html" -Method GET -ScriptBlock {
-    Set-CorsHeaders -Response $Response
-    $uiPath = $global:UiPathForPolaris
-    $indexPath = Join-Path $uiPath "index-v2.html"
-    if (Test-Path $indexPath) {
-        $content = Get-Content $indexPath -Raw -Encoding UTF8
-        $Response.SetContentType('text/html; charset=utf-8')
-        $Response.Send($content)
-    } else {
-        $Response.SetStatusCode(404)
-        $Response.Send("index-v2.html not found")
-    }
-}
+# index-v2.html（削除済み - React Flow版は未使用）
+# New-PolarisRoute -Path "/index-v2.html" -Method GET -ScriptBlock {
+#     Set-CorsHeaders -Response $Response
+#     $uiPath = $global:UiPathForPolaris
+#     $indexPath = Join-Path $uiPath "index-v2.html"
+#     if (Test-Path $indexPath) {
+#         $content = Get-Content $indexPath -Raw -Encoding UTF8
+#         $Response.SetContentType('text/html; charset=utf-8')
+#         $Response.Send($content)
+#     } else {
+#         $Response.SetStatusCode(404)
+#         $Response.Send("index-v2.html not found")
+#     }
+# }
 
-# app.js（新バージョン）
-New-PolarisRoute -Path "/app.js" -Method GET -ScriptBlock {
-    Set-CorsHeaders -Response $Response
-    $uiPath = $global:UiPathForPolaris
-    $jsPath = Join-Path $uiPath "app.js"
-    if (Test-Path $jsPath) {
-        $content = Get-Content $jsPath -Raw -Encoding UTF8
-        $Response.SetContentType('application/javascript; charset=utf-8')
-        $Response.Send($content)
-    } else {
-        $Response.SetStatusCode(404)
-        $Response.Send("app.js not found")
-    }
-}
+# app.js（削除済み - React Flow版は未使用）
+# New-PolarisRoute -Path "/app.js" -Method GET -ScriptBlock {
+#     Set-CorsHeaders -Response $Response
+#     $uiPath = $global:UiPathForPolaris
+#     $jsPath = Join-Path $uiPath "app.js"
+#     if (Test-Path $jsPath) {
+#         $content = Get-Content $jsPath -Raw -Encoding UTF8
+#         $Response.SetContentType('application/javascript; charset=utf-8')
+#         $Response.Send($content)
+#     } else {
+#         $Response.SetStatusCode(404)
+#         $Response.Send("app.js not found")
+#     }
+# }
 
 # index-legacy.html
 New-PolarisRoute -Path "/index-legacy.html" -Method GET -ScriptBlock {
