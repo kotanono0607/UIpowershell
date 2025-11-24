@@ -22,16 +22,20 @@ const DEBUG_FLAGS = {
 };
 
 // レイヤーナビゲーション用ログ設定
+// 注意: history以外はすべてfalseにして、履歴ログだけを表示
 const LOG_CONFIG = {
     breadcrumb: false,       // パンくずリストのログ
-    pink: true,              // ピンクノード処理のログ（デバッグ用に有効化）
+    pink: false,             // ピンクノード処理のログ
     initialization: false,   // 初期化処理のログ
-    history: true,           // Undo/Redo履歴のログ
+    history: true,           // ✅ Undo/Redo履歴のログ（これだけtrue）
     controlLog: false,       // コントロールログ（起動時のタイムスタンプ）
     hoverPreview: false,     // ホバープレビューのログ
     loopGroups: false,       // ループグループ検出のログ
     apiTiming: false,        // API呼び出しタイミングのログ
-    memoryLoad: false        // memory.json読み込み警告
+    memoryLoad: false,       // memory.json読み込み警告
+    buttonSettings: false,   // ボタン設定読み込みログ
+    folderInit: false,       // フォルダ初期化ログ
+    general: false           // その他の一般ログ
 };
 
 // フィルター付きログ関数
