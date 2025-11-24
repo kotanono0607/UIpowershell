@@ -2483,18 +2483,48 @@ Write-Host "静的ファイル提供を設定します..." -ForegroundColor Cyan
 $global:UiPathForPolaris = Join-Path $script:RootDir "ui"
 $global:RootDirForPolaris = $script:RootDir
 
-# ルートパス "/" - index-legacy.htmlを提供
+# ルートパス "/" - index-v2.html（新バージョン）を提供
 New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
     Set-CorsHeaders -Response $Response
     $uiPath = $global:UiPathForPolaris
-    $indexPath = Join-Path $uiPath "index-legacy.html"
+    $indexPath = Join-Path $uiPath "index-v2.html"
     if (Test-Path $indexPath) {
         $content = Get-Content $indexPath -Raw -Encoding UTF8
         $Response.SetContentType('text/html; charset=utf-8')
         $Response.Send($content)
     } else {
         $Response.SetStatusCode(404)
-        $Response.Send("index-legacy.html not found")
+        $Response.Send("index-v2.html not found")
+    }
+}
+
+# index-v2.html（新バージョン）
+New-PolarisRoute -Path "/index-v2.html" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $uiPath = $global:UiPathForPolaris
+    $indexPath = Join-Path $uiPath "index-v2.html"
+    if (Test-Path $indexPath) {
+        $content = Get-Content $indexPath -Raw -Encoding UTF8
+        $Response.SetContentType('text/html; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("index-v2.html not found")
+    }
+}
+
+# app.js（新バージョン）
+New-PolarisRoute -Path "/app.js" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $uiPath = $global:UiPathForPolaris
+    $jsPath = Join-Path $uiPath "app.js"
+    if (Test-Path $jsPath) {
+        $content = Get-Content $jsPath -Raw -Encoding UTF8
+        $Response.SetContentType('application/javascript; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("app.js not found")
     }
 }
 
@@ -2625,6 +2655,67 @@ New-PolarisRoute -Path "/ボタン設定.json" -Method GET -ScriptBlock {
     }
 }
 
+# React Flow ライブラリファイル（ui/libs/）
+# react.production.min.js
+New-PolarisRoute -Path "/libs/react.production.min.js" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $uiPath = $global:UiPathForPolaris
+    $jsPath = Join-Path $uiPath "libs\react.production.min.js"
+    if (Test-Path $jsPath) {
+        $content = Get-Content $jsPath -Raw -Encoding UTF8
+        $Response.SetContentType('application/javascript; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("react.production.min.js not found")
+    }
+}
+
+# react-dom.production.min.js
+New-PolarisRoute -Path "/libs/react-dom.production.min.js" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $uiPath = $global:UiPathForPolaris
+    $jsPath = Join-Path $uiPath "libs\react-dom.production.min.js"
+    if (Test-Path $jsPath) {
+        $content = Get-Content $jsPath -Raw -Encoding UTF8
+        $Response.SetContentType('application/javascript; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("react-dom.production.min.js not found")
+    }
+}
+
+# reactflow.min.js
+New-PolarisRoute -Path "/libs/reactflow.min.js" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $uiPath = $global:UiPathForPolaris
+    $jsPath = Join-Path $uiPath "libs\reactflow.min.js"
+    if (Test-Path $jsPath) {
+        $content = Get-Content $jsPath -Raw -Encoding UTF8
+        $Response.SetContentType('application/javascript; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("reactflow.min.js not found")
+    }
+}
+
+# reactflow.min.css
+New-PolarisRoute -Path "/libs/reactflow.min.css" -Method GET -ScriptBlock {
+    Set-CorsHeaders -Response $Response
+    $uiPath = $global:UiPathForPolaris
+    $cssPath = Join-Path $uiPath "libs\reactflow.min.css"
+    if (Test-Path $cssPath) {
+        $content = Get-Content $cssPath -Raw -Encoding UTF8
+        $Response.SetContentType('text/css; charset=utf-8')
+        $Response.Send($content)
+    } else {
+        $Response.SetStatusCode(404)
+        $Response.Send("reactflow.min.css not found")
+    }
+}
+
 Write-Host "[OK] 静的ファイル提供を設定しました" -ForegroundColor Green
 Write-Host ""
 
@@ -2635,7 +2726,8 @@ Write-Host ""
 Write-Host "Polarisサーバーを起動します..." -ForegroundColor Cyan
 Write-Host "  ポート: $Port" -ForegroundColor White
 Write-Host "  URL: http://localhost:$Port" -ForegroundColor White
-Write-Host "  フロントエンド: http://localhost:$Port/index-legacy.html" -ForegroundColor Cyan
+Write-Host "  フロントエンド（新版）: http://localhost:$Port/" -ForegroundColor Cyan
+Write-Host "  フロントエンド（旧版）: http://localhost:$Port/index-legacy.html" -ForegroundColor Gray
 Write-Host ""
 
 try {
