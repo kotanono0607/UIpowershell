@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.247';  // アプリバージョン
+const APP_VERSION = '1.0.248';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -146,14 +146,67 @@ function wrapConsoleMethod(method, level) {
                 return;
             }
 
-            // 重要なログのみを通過させる
-            const importantPrefixes = [
-                '❌', '✅', '⚠', '🕒', '🎉', '🔍'  // エラー・成功・警告・コントロールログ・完了・タイミングマーカー
+            // LOG_CONFIGに基づいてログを制御
+            // ⚠️ 警告は常に表示、❌ エラーも常に表示
+            const alwaysShowPrefixes = ['⚠', '❌'];
+            if (alwaysShowPrefixes.some(prefix => message.includes(prefix))) {
+                // 警告とエラーは常に表示
+                originalConsole[method].apply(console, args);
+                const logEntry = {
+                    level: level,
+                    timestamp: new Date().toISOString(),
+                    message: message
+                };
+                consoleLogBuffer.push(logEntry);
+                return;
+            }
+
+            // LOG_CONFIGで制御されるログ（アイコンがあっても制御対象）
+            const logPrefixConfig = [
+                { prefix: '🔍 [API Timing]', flag: 'apiTiming' },
+                { prefix: '[ボタン設定]', flag: 'buttonSettings' },
+                { prefix: '[ボタン生成]', flag: 'buttonSettings' },
+                { prefix: '[初期化]', flag: 'folderInit' },
+                { prefix: '│ ✅', flag: 'folderInit' },
+                { prefix: '[ボタン有効化]', flag: 'folderInit' },
+                { prefix: '[ボタンクリック]', flag: 'general' },
+                { prefix: '[addNodeToLayer]', flag: 'general' },
+                { prefix: '🕒 [ControlLog]', flag: 'controlLog' },
+                { prefix: '[横スクロール]', flag: 'general' },
+                { prefix: '[memory.json読み込み]', flag: 'memoryLoad' },
+                { prefix: '✅ UIpowershell 初期化完了', flag: 'general' }
             ];
 
-            // 重要なログ以外は抑制
-            if (!importantPrefixes.some(prefix => message.includes(prefix))) {
-                // サーバーにはログを送るが、ブラウザコンソールには表示しない
+            // LOG_CONFIGで無効化されているログは抑制
+            for (const config of logPrefixConfig) {
+                if (message.includes(config.prefix) && !LOG_CONFIG[config.flag]) {
+                    // サーバーにはログを送るが、ブラウザコンソールには表示しない
+                    const logEntry = {
+                        level: level,
+                        timestamp: new Date().toISOString(),
+                        message: message
+                    };
+                    consoleLogBuffer.push(logEntry);
+                    return; // ブラウザコンソールへの出力をスキップ
+                }
+            }
+
+            // 履歴ログは必ず表示（LOG_CONFIG.historyに関わらず）
+            if (message.includes('[履歴]')) {
+                originalConsole[method].apply(console, args);
+                const logEntry = {
+                    level: level,
+                    timestamp: new Date().toISOString(),
+                    message: message
+                };
+                consoleLogBuffer.push(logEntry);
+                return;
+            }
+
+            // その他のログ：アイコンがないログは抑制
+            const hasIcon = ['❌', '✅', '⚠', '🕒', '🎉', '🔍'].some(icon => message.includes(icon));
+            if (!hasIcon) {
+                // アイコンがないログは抑制
                 const logEntry = {
                     level: level,
                     timestamp: new Date().toISOString(),
