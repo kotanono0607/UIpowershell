@@ -2771,6 +2771,22 @@ function openNodeSettingsFromContextMenu() {
     hideContextMenu();
 }
 
+// コピー（右クリックメニューから）
+function copyNodeFromContextMenu() {
+    if (!contextMenuTarget) return;
+
+    console.log('[右クリック] ノードをコピー:', contextMenuTarget.text, 'Name:', contextMenuTarget.name);
+    copyNode(contextMenuTarget.name);
+    hideContextMenu();
+}
+
+// 貼り付け（右クリックメニューから）
+async function pasteNodeFromContextMenu() {
+    console.log('[右クリック] ノードを貼り付け');
+    await pasteNode();
+    hideContextMenu();
+}
+
 // 名前変更
 function renameNode() {
     if (!contextMenuTarget) return;
