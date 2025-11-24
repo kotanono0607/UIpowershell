@@ -67,12 +67,20 @@
 - `output.ps1` としてエクスポート
 - PowerShell ISEで即座に実行可能
 
-### 8. **スナップショット機能**（NEW! 2025-11-01）
+### 8. **Undo/Redo機能**（NEW! 2025-11-19）
+- 操作ごとに自動的に履歴を記録
+- Undoボタンで直前の操作を取り消し
+- Redoボタンで取り消した操作をやり直し
+- 最大50件の操作履歴を保持
+- ノード追加・削除・移動などすべての操作に対応
+- `history.json` に履歴データを自動保存
+
+### 9. **スナップショット機能**（2025-11-01）
 - 現在の状態をスナップショットとして保存
 - いつでもスナップショット作成時の状態に復元可能
 - 試行錯誤が安心してできる
 - オートセーブと併用可能
-- 将来的にUndo/Redo機能に拡張予定
+- Undo/Redo機能と併用可能
 
 ---
 
@@ -178,6 +186,31 @@
 
 詳しくは `スナップショット機能_使い方.md` を参照してください。
 
+### Undo/Redo機能（操作の取り消し/やり直し）
+
+1. **Undo（操作を取り消す）**
+   - 「編集」メニュー → 「↶ 元に戻す」
+   - または ツールバーの「↶」ボタン
+   - 直前の操作（ノード追加、削除、移動など）を取り消し
+
+2. **Redo（取り消した操作をやり直す）**
+   - 「編集」メニュー → 「↷ やり直し」
+   - または ツールバーの「↷」ボタン
+   - Undoで取り消した操作をやり直し
+
+3. **自動保存**
+   - すべての操作が自動的に `03_history/{フォルダ名}/history.json` に記録される
+   - プロジェクトを閉じても履歴は保持される
+   - 最大50件の操作履歴を保持（古い履歴は自動削除）
+
+4. **対応操作**
+   - ノード追加/削除
+   - ノード移動
+   - ノード設定変更
+   - 変数の追加/削除/変更
+
+**Tips**: Undo/Redoとスナップショット機能を組み合わせると、より柔軟な試行錯誤が可能です。
+
 ---
 
 ## 📁 ディレクトリ構造
@@ -185,7 +218,7 @@
 ```
 UIpowershell/
 ├── adapter/                              # REST APIレイヤー
-│   ├── api-server-v2.ps1                # Polaris HTTPサーバー（26エンドポイント）
+│   ├── api-server-v2.ps1                # Polaris HTTPサーバー（38エンドポイント）
 │   ├── state-manager.ps1                # グローバル状態管理
 │   └── node-operations.ps1              # ノード配列操作ユーティリティ
 ├── ui/                                   # フロントエンド（React + React Flow）
@@ -202,6 +235,8 @@ UIpowershell/
 ├── 08_メインF機能_メインボタン処理_v2.ps1 # 実行イベント処理（UI非依存）
 ├── 02-6_削除処理_v2.ps1                  # ノード削除処理（UI非依存）
 ├── 02-2_ネスト規制バリデーション_v2.ps1  # ネスト規制チェック（UI非依存）
+├── 16_スナップショット機能.ps1           # スナップショット管理（UI非依存）
+├── 17_操作履歴管理.ps1                   # Undo/Redo履歴管理（UI非依存）
 ├── quick-start.ps1                       # クイックスタートスクリプト
 ├── ボタン設定.json                        # ノード定義（19種類）
 ├── ARCHITECTURE_OVERVIEW.md              # アーキテクチャ概要
@@ -223,6 +258,7 @@ UIpowershell/
 │   │   ├── コード.json                    # 生成コードスニペット
 │   │   ├── memory.json                    # ノード配置情報
 │   │   ├── variables.json                 # 実行時変数
+│   │   ├── history.json                   # Undo/Redo履歴（NEW!）
 │   │   ├── memory_snapshot.json           # スナップショット
 │   │   ├── コード_snapshot.json           # スナップショット
 │   │   └── snapshot_info.json             # スナップショット情報
@@ -346,7 +382,7 @@ Excel/CSVから読み込んだデータを保存。
   React + React Flow
   ↓
 REST API（adapter/api-server-v2.ps1）
-  Polaris HTTPサーバー（26エンドポイント）
+  Polaris HTTPサーバー（38エンドポイント）
   ↓
 ビジネスロジック（v2関数群）
   - 12_コード本文_v2.ps1
@@ -355,6 +391,7 @@ REST API（adapter/api-server-v2.ps1）
   - 07_ツールバー_v2.ps1
   - 02-6_削除_v2.ps1
   - 02-2_ネスト規制_v2.ps1
+  - 17_操作履歴管理.ps1（Undo/Redo）
   ↓
 データ層（JSON操作）
   - 09_コードID管理JSON.ps1
@@ -400,6 +437,9 @@ REST API（adapter/api-server-v2.ps1）
 | `/api/execute/generate` | POST | コード生成 |
 | `/api/execute/run` | POST | コード実行 |
 | `/api/validate/nesting` | POST | ネスト規制チェック |
+| `/api/history/status` | GET | Undo/Redo状態取得 |
+| `/api/history/undo` | POST | Undo実行 |
+| `/api/history/redo` | POST | Redo実行 |
 
 ---
 
@@ -407,7 +447,6 @@ REST API（adapter/api-server-v2.ps1）
 
 ### ⚠️ 未実装機能
 
-- Undo/Redo機能（スナップショット機能で一部カバー）
 - ノードのコピー/貼り付け
 - ピンク選択の再利用機能（別ワークフローでの呼び出し）
 - ドラッグ&ドロップでのノード順序変更の完全対応
@@ -452,6 +491,9 @@ REST API（adapter/api-server-v2.ps1）
 | `実行イベント_v2` | 08_ボタン処理_v2.ps1 | コード生成処理 |
 | `IDでエントリを取得` | 09_コードID管理JSON.ps1 | コード取得 |
 | `ネスト規制チェック_v2` | 02-2_ネスト規制_v2.ps1 | バリデーション |
+| `Undo-Operation` | 17_操作履歴管理.ps1 | Undo実行 |
+| `Redo-Operation` | 17_操作履歴管理.ps1 | Redo実行 |
+| `Record-Operation` | 17_操作履歴管理.ps1 | 操作履歴記録 |
 
 ### デバッグ方法
 
@@ -491,11 +533,12 @@ REST API（adapter/api-server-v2.ps1）
 
 ## 📊 プロジェクト統計
 
-- **総ファイル数**: 70+ファイル
-- **PowerShellスクリプト**: 60+ファイル
-- **主要コード行数**: 約7,700行（ルートディレクトリ）
+- **総ファイル数**: 83ファイル（PowerShellスクリプト）
+- **主要コード行数**: 約10,131行（PowerShell）
+- **REST APIエンドポイント**: 38個（うちUndo/Redo関連: 6個）
 - **主要言語**: PowerShell, JavaScript, HTML/CSS
 - **対応プラットフォーム**: Windows 10/11
+- **最大操作履歴保持数**: 50件（Undo/Redo）
 
 ---
 
@@ -512,6 +555,26 @@ REST API（adapter/api-server-v2.ps1）
 ---
 
 ## 🔄 更新履歴
+
+### 2025-11-19
+- **Undo/Redo機能実装**（NEW! 重要機能）
+  - 操作履歴管理システムの完全実装（`17_操作履歴管理.ps1` - 586行）
+  - 最大50件の操作履歴を保持
+  - ノード追加・削除・移動・設定変更に対応
+  - `history.json` による永続化
+  - REST API実装：
+    - `GET /api/history/status` - Undo/Redo状態取得
+    - `POST /api/history/undo` - Undo実行
+    - `POST /api/history/redo` - Redo実行
+  - UIにUndo/Redoボタンを追加（編集メニュー & ツールバー）
+- **バグ修正**
+  - memory.json再読み込み関数名の修正
+  - Undo/Redo関数の戻り値問題を修正
+  - 履歴API全エンドポイントのフォルダパス取得を修正
+  - Pode Runspace分離問題を解決
+- **ログ改善**
+  - デバッグログの詳細化
+  - LOG_CONFIGによるログ制御強化
 
 ### 2025-11-09
 - **デザイン統合完了**
@@ -561,4 +624,4 @@ REST API（adapter/api-server-v2.ps1）
 
 ---
 
-**開発者メモ**: このREADMEは、Windows Forms → React移行完了後（2025年11月）の最新情報を反映しています。
+**開発者メモ**: このREADMEは、Undo/Redo機能実装完了後（2025年11月19日）の最新情報を反映しています。
