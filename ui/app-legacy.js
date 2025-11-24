@@ -7182,16 +7182,36 @@ async function pasteNode() {
     }
 
     console.log(`[貼り付け] ノードを貼り付け:`, nodeClipboard);
-    console.log(`[貼り付け] 送信するnodeId: ${nodeClipboard.nodeId}`);
+    const sourceNode = nodeClipboard.node;
 
     try {
-        // APIを呼んでノードをコピー
-        const response = await fetch(`${API_BASE}/nodes/copy`, {
+        // 新しいノードを作成（フロントエンド側で処理）
+        // Y座標を30px下にオフセット
+        const offsetY = 30;
+        const newY = sourceNode.y + offsetY;
+
+        // 新しいノードデータを作成（元のノードのコピー）
+        const newNodeData = {
+            text: sourceNode.text,
+            color: sourceNode.color,
+            layer: sourceNode.layer,
+            y: newY,
+            x: sourceNode.x,
+            width: sourceNode.width,
+            height: sourceNode.height,
+            groupId: sourceNode.groupId,
+            処理番号: sourceNode.処理番号 || '',
+            script: sourceNode.script || '',
+            関数名: sourceNode.関数名 || ''
+        };
+
+        console.log(`[貼り付け] 新しいノードデータを作成:`, newNodeData);
+
+        // サーバーに新しいノードを追加
+        const response = await fetch(`${API_BASE}/nodes`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                nodeId: nodeClipboard.nodeId
-            })
+            body: JSON.stringify(newNodeData)
         });
 
         console.log(`[貼り付け] APIレスポンスステータス: ${response.status} ${response.statusText}`);
@@ -7206,7 +7226,7 @@ async function pasteNode() {
 
         if (result.success) {
             console.log(`[貼り付け] ✅ ノード貼り付け成功:`, result);
-            showToast(`ノードを貼り付けました (${result.newNodeId})`, 'success');
+            showToast(`ノードを貼り付けました`, 'success');
 
             // レイヤーデータを再読み込み
             await loadCurrentLayerData();

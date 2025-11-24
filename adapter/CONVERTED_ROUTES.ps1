@@ -225,24 +225,35 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
 
         Write-Host "[API] コピー元ノードID: $originalNodeId" -ForegroundColor Gray
 
-        # デバッグ: 現在のノード一覧を表示
-        $nodeCount = if ($global:UIpowershellState -and $global:UIpowershellState.Nodes) {
-            $global:UIpowershellState.Nodes.Count
-        } else {
-            0
+        # 元のノードを取得（直接検索）
+        Write-Host "[API] ノードを検索中..." -ForegroundColor Gray
+
+        # Get-AllNodes を使用してすべてのノードを取得
+        $allNodesResult = Get-AllNodes
+        if (-not $allNodesResult -or -not $allNodesResult.success) {
+            Write-Host "[API] ❌ ノード一覧の取得に失敗しました" -ForegroundColor Red
+            Set-PodeResponseStatus -Code 500
+            $errorResult = @{
+                success = $false
+                error = "ノード一覧の取得に失敗しました"
+            }
+            Write-PodeJsonResponse -Value $errorResult
+            return
         }
+
+        $allNodes = $allNodesResult.nodes
+        $nodeCount = $allNodes.Count
         Write-Host "[API] 現在のノード数: $nodeCount" -ForegroundColor Gray
+
         if ($nodeCount -gt 0) {
-            $nodeIds = $global:UIpowershellState.Nodes | Select-Object -First 5 | ForEach-Object { $_.id }
+            $nodeIds = $allNodes | Select-Object -First 5 | ForEach-Object { $_.id }
             Write-Host "[API] ノードID一覧（最初の5件）: $($nodeIds -join ', ')" -ForegroundColor Gray
         }
 
-        # 元のノードを取得
-        Write-Host "[API] Get-NodeById を呼び出します..." -ForegroundColor Gray
-        $originalNode = Get-NodeById -NodeId $originalNodeId
-        Write-Host "[API] Get-NodeById の結果: success=$($originalNode.success)" -ForegroundColor Gray
+        # 元のノードを検索
+        $sourceNode = $allNodes | Where-Object { $_.id -eq $originalNodeId }
 
-        if (-not $originalNode -or -not $originalNode.success) {
+        if (-not $sourceNode) {
             Write-Host "[API] ❌ ノードが見つかりません: $originalNodeId" -ForegroundColor Red
             Set-PodeResponseStatus -Code 404
             $errorResult = @{
@@ -253,8 +264,7 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
             return
         }
 
-        $sourceNode = $originalNode.node
-        Write-Host "[API] 元のノード取得成功: $($sourceNode.id)" -ForegroundColor Green
+        Write-Host "[API] 元のノード取得成功: ID=$($sourceNode.id), Name=$($sourceNode.name)" -ForegroundColor Green
 
         # 新しいIDを生成
         Write-Host "[API] IDを自動生成する を呼び出します..." -ForegroundColor Gray
