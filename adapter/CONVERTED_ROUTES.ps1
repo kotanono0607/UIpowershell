@@ -201,6 +201,99 @@ Add-PodeRoute -Method Post -Path "/api/nodes" -ScriptBlock {
 }
 
 # ------------------------------
+# ノードをコピー（新しいIDで複製）
+# ------------------------------
+Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
+    try {
+        Write-Host "[API] POST /api/nodes/copy - ノードコピーリクエスト受信" -ForegroundColor Cyan
+
+        $body = $WebEvent.Data
+        $originalNodeId = $body.nodeId
+
+        if (-not $originalNodeId) {
+            throw "nodeId パラメータが必要です"
+        }
+
+        Write-Host "[API] コピー元ノードID: $originalNodeId" -ForegroundColor Gray
+
+        # 元のノードを取得
+        $originalNode = Get-NodeById -NodeId $originalNodeId
+        if (-not $originalNode -or -not $originalNode.success) {
+            throw "ノードID $originalNodeId が見つかりません"
+        }
+
+        $sourceNode = $originalNode.node
+        Write-Host "[API] 元のノード取得成功: $($sourceNode.id)" -ForegroundColor Green
+
+        # 新しいIDを生成
+        $newId = IDを自動生成する
+        if (-not $newId) {
+            throw "新しいIDの生成に失敗しました"
+        }
+
+        $newNodeId = "$newId-1"
+        Write-Host "[API] 新しいノードID生成: $newNodeId" -ForegroundColor Green
+
+        # Y座標をオフセット（30px下に配置）
+        $offsetY = 30
+        $newY = $sourceNode.y + $offsetY
+
+        # 新しいノードを作成（元のノードの全プロパティをコピー）
+        $newNode = @{}
+        foreach ($prop in $sourceNode.PSObject.Properties) {
+            $newNode[$prop.Name] = $prop.Value
+        }
+
+        # IDと座標を上書き
+        $newNode.id = $newNodeId
+        $newNode.y = $newY
+
+        Write-Host "[API] 新しいノード作成: ID=$newNodeId, Y=$newY" -ForegroundColor Green
+
+        # コードエントリもコピー（元のノードにコードがある場合）
+        try {
+            $元のコード = IDでエントリを取得 -ID $originalNodeId
+            if ($元のコード) {
+                Write-Host "[API] 元のノードのコードをコピーします" -ForegroundColor Cyan
+                $コード追加結果 = エントリを追加_指定ID -文字列 $元のコード -ID $newNodeId
+                if ($コード追加結果) {
+                    Write-Host "[API] コードエントリのコピー成功" -ForegroundColor Green
+                }
+            }
+        } catch {
+            Write-Host "[API] ⚠️ コードエントリのコピーに失敗（スキップ）: $_" -ForegroundColor Yellow
+        }
+
+        # ノードを追加
+        $result = Add-Node -Node $newNode
+
+        if ($result.success) {
+            Write-Host "[API] ✅ ノードコピー成功: $newNodeId" -ForegroundColor Green
+
+            $response = @{
+                success = $true
+                message = "ノードをコピーしました"
+                originalNodeId = $originalNodeId
+                newNodeId = $newNodeId
+                newNode = $newNode
+            }
+            Write-PodeJsonResponse -Value $response
+        } else {
+            throw "ノードの追加に失敗しました: $($result.message)"
+        }
+
+    } catch {
+        Write-Host "[API] ❌ エラー: $_" -ForegroundColor Red
+        Set-PodeResponseStatus -Code 500
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
+# ------------------------------
 # すべてのノードを削除
 # ------------------------------
 Add-PodeRoute -Method Delete -Path "/api/nodes/all" -ScriptBlock {
