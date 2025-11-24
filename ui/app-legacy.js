@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.248';  // アプリバージョン
+const APP_VERSION = '1.0.249';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -1550,8 +1550,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const overflow = totalChildWidth - availableWidth;
 
-            if (overflow > 0) {
-                console.warn(`[横スクロール] はみ出し +${overflow}px（推奨: コンテナ ${containerWidth - overflow - 5}px以下）`);
+            if (overflow > 0 && LOG_CONFIG.general) {
+                console.log(`⚠️ [横スクロール] はみ出し +${overflow}px（推奨: コンテナ ${containerWidth - overflow - 5}px以下）`);
             }
         }
     }, 500);
@@ -4539,10 +4539,14 @@ async function loadExistingNodes() {
                 let nodeId;
                 if (nodeData.ID) {
                     nodeId = nodeData.ID;
-                    console.log(`[memory.json読み込み] ノードID復元: ${nodeId}`);
+                    if (LOG_CONFIG.memoryLoad) {
+                        console.log(`[memory.json読み込み] ノードID復元: ${nodeId}`);
+                    }
                 } else {
                     nodeId = `node-${nodeCounter++}`;
-                    console.warn(`[memory.json読み込み] ノードIDが保存されていないため新規生成: ${nodeId}`);
+                    if (LOG_CONFIG.memoryLoad) {
+                        console.log(`⚠️ [memory.json読み込み] ノードIDが保存されていないため新規生成: ${nodeId}`);
+                    }
                 }
 
                 const node = {
