@@ -2578,7 +2578,11 @@ Add-PodeRoute -Method Post -Path "/api/history/undo" -ScriptBlock {
         # Undo実行
         $result = Undo-Operation -FolderPath $folderPath
 
+        Write-Host "[履歴API] Undo結果: success=$($result.success), position=$($result.position)" -ForegroundColor Cyan
+
         Write-PodeJsonResponse -Value $result
+
+        Write-Host "[履歴API] Undoレスポンス送信完了" -ForegroundColor Green
 
     } catch {
         Set-PodeResponseStatus -Code 500
@@ -2620,7 +2624,11 @@ Add-PodeRoute -Method Post -Path "/api/history/redo" -ScriptBlock {
         # Redo実行
         $result = Redo-Operation -FolderPath $folderPath
 
+        Write-Host "[履歴API] Redo結果: success=$($result.success), position=$($result.position)" -ForegroundColor Cyan
+
         Write-PodeJsonResponse -Value $result
+
+        Write-Host "[履歴API] Redoレスポンス送信完了" -ForegroundColor Green
 
     } catch {
         Set-PodeResponseStatus -Code 500

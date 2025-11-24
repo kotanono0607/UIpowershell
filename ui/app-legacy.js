@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.250';  // アプリバージョン
+const APP_VERSION = '1.0.251';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -7274,12 +7274,24 @@ async function updateUndoRedoButtons() {
  */
 async function undoOperation() {
     try {
+        if (LOG_CONFIG.history) {
+            console.log('[履歴] Undo実行開始...');
+        }
+
         const response = await fetch(`${API_BASE}/history/undo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
 
+        if (LOG_CONFIG.history) {
+            console.log('[履歴] レスポンス受信:', response.status, response.statusText);
+        }
+
         const data = await response.json();
+
+        if (LOG_CONFIG.history) {
+            console.log('[履歴] レスポンスデータ:', JSON.stringify(data));
+        }
 
         if (data.success) {
             console.log('[履歴] Undo成功:', data.operation?.description);
@@ -7307,12 +7319,24 @@ async function undoOperation() {
  */
 async function redoOperation() {
     try {
+        if (LOG_CONFIG.history) {
+            console.log('[履歴] Redo実行開始...');
+        }
+
         const response = await fetch(`${API_BASE}/history/redo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
 
+        if (LOG_CONFIG.history) {
+            console.log('[履歴] レスポンス受信:', response.status, response.statusText);
+        }
+
         const data = await response.json();
+
+        if (LOG_CONFIG.history) {
+            console.log('[履歴] レスポンスデータ:', JSON.stringify(data));
+        }
 
         if (data.success) {
             console.log('[履歴] Redo成功:', data.operation?.description);
