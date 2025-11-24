@@ -2508,20 +2508,19 @@ Add-PodeRoute -Method Get -Path "/api/history/status" -ScriptBlock {
             $mainData = $mainContent | ConvertFrom-Json
             $folderPath = Join-Path $RootDir "03_history\$($mainData.新規フォルダ名)"
 
-            # 履歴スタックが未初期化の場合は初期化
-            if ($null -eq $global:HistoryStack) {
-                Initialize-HistoryStack -FolderPath $folderPath | Out-Null
+            # Get-HistoryStatus関数を使用（Pode Runspace分離対策）
+            $result = Get-HistoryStatus -FolderPath $folderPath
+
+            # レスポンス形式をフロントエンドに合わせる
+            $responseData = @{
+                success = $result.success
+                canUndo = $result.canUndo
+                canRedo = $result.canRedo
+                position = $result.position
+                count = $result.totalCount
             }
 
-            $result = @{
-                success = $true
-                canUndo = $global:CurrentHistoryPosition -gt 0
-                canRedo = $global:CurrentHistoryPosition -lt $global:HistoryStack.Count
-                position = $global:CurrentHistoryPosition
-                count = $global:HistoryStack.Count
-            }
-
-            Write-PodeJsonResponse -Value $result
+            Write-PodeJsonResponse -Value $responseData
         } else {
             $result = @{
                 success = $false
