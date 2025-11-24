@@ -187,14 +187,57 @@ Add-PodeRoute -Method Put -Path "/api/nodes" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/nodes" -ScriptBlock {
     try {
+        Write-Host "[API] POST /api/nodes - ノード追加リクエスト受信" -ForegroundColor Cyan
+
         $body = $WebEvent.Data
-        $result = Add-Node -Node $body
+        Write-Host "[API] リクエストボディの型: $($body.GetType().FullName)" -ForegroundColor Gray
+        Write-Host "[API] リクエストボディ: $($body | ConvertTo-Json -Compress)" -ForegroundColor Gray
+
+        # PSCustomObject を hashtable に変換
+        Write-Host "[API] PSCustomObject を hashtable に変換中..." -ForegroundColor Gray
+        $nodeHashtable = @{}
+        foreach ($prop in $body.PSObject.Properties) {
+            $nodeHashtable[$prop.Name] = $prop.Value
+        }
+
+        # idが存在しない場合は新規生成
+        if (-not $nodeHashtable.ContainsKey('id') -or -not $nodeHashtable['id']) {
+            Write-Host "[API] IDが指定されていないため、新規生成します..." -ForegroundColor Gray
+            $newId = IDを自動生成する
+            if (-not $newId) {
+                throw "新しいIDの生成に失敗しました"
+            }
+            $nodeHashtable['id'] = "$newId-1"
+            Write-Host "[API] 生成されたID: $($nodeHashtable['id'])" -ForegroundColor Green
+        }
+
+        # nameが存在しない場合は、idから生成
+        if (-not $nodeHashtable.ContainsKey('name') -or -not $nodeHashtable['name']) {
+            $nodeHashtable['name'] = $nodeHashtable['id']
+            Write-Host "[API] name が指定されていないため、id を使用: $($nodeHashtable['name'])" -ForegroundColor Gray
+        }
+
+        Write-Host "[API] 変換後のhashtable: $($nodeHashtable | ConvertTo-Json -Compress)" -ForegroundColor Gray
+
+        Write-Host "[API] Add-Node を呼び出します..." -ForegroundColor Gray
+        $result = Add-Node -Node $nodeHashtable
+
+        Write-Host "[API] Add-Node の結果: success=$($result.success)" -ForegroundColor Gray
+        if ($result.success) {
+            Write-Host "[API] ✅ ノード追加成功: $($result.nodeId)" -ForegroundColor Green
+        } else {
+            Write-Host "[API] ⚠️ ノード追加失敗: $($result.error)" -ForegroundColor Yellow
+        }
+
         Write-PodeJsonResponse -Value $result
     } catch {
+        Write-Host "[API] ❌ エラー: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "[API] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
             error = $_.Exception.Message
+            stackTrace = $_.ScriptStackTrace
         }
         Write-PodeJsonResponse -Value $errorResult
     }
