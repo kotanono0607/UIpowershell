@@ -226,9 +226,19 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
         Write-Host "[API] 元のノード取得成功: $($sourceNode.id)" -ForegroundColor Green
 
         # 新しいIDを生成
+        Write-Host "[API] IDを自動生成する を呼び出します..." -ForegroundColor Gray
         $newId = IDを自動生成する
+        Write-Host "[API] 生成されたID: $newId" -ForegroundColor Gray
+
         if (-not $newId) {
-            throw "新しいIDの生成に失敗しました"
+            Write-Host "[API] ❌ IDの生成に失敗しました" -ForegroundColor Red
+            Set-PodeResponseStatus -Code 500
+            $errorResult = @{
+                success = $false
+                error = "新しいIDの生成に失敗しました"
+            }
+            Write-PodeJsonResponse -Value $errorResult
+            return
         }
 
         $newNodeId = "$newId-1"
@@ -236,19 +246,30 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
 
         # Y座標をオフセット（30px下に配置）
         $offsetY = 30
-        $newY = $sourceNode.y + $offsetY
+        $originalY = [int]$sourceNode.y
+        $newY = $originalY + $offsetY
 
-        # 新しいノードを作成（元のノードの全プロパティをコピー）
-        $newNode = @{}
-        foreach ($prop in $sourceNode.PSObject.Properties) {
-            $newNode[$prop.Name] = $prop.Value
+        # 新しいノードを作成（元のノードのプロパティをコピー）
+        Write-Host "[API] ノードをコピー中..." -ForegroundColor Gray
+
+        # hashtableとして新しいノードを作成
+        $newNode = @{
+            id = $newNodeId
+            name = $sourceNode.name
+            text = $sourceNode.text
+            color = $sourceNode.color
+            layer = $sourceNode.layer
+            y = $newY
+            x = $sourceNode.x
+            width = $sourceNode.width
+            height = $sourceNode.height
+            groupId = $sourceNode.groupId
+            処理番号 = $sourceNode.処理番号
+            script = $sourceNode.script
+            関数名 = $sourceNode.関数名
         }
 
-        # IDと座標を上書き
-        $newNode.id = $newNodeId
-        $newNode.y = $newY
-
-        Write-Host "[API] 新しいノード作成: ID=$newNodeId, Y=$newY" -ForegroundColor Green
+        Write-Host "[API] 新しいノード作成: ID=$newNodeId, Y=$newY, Name=$($newNode.name)" -ForegroundColor Green
 
         # コードエントリもコピー（元のノードにコードがある場合）
         try {
