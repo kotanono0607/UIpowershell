@@ -2508,8 +2508,12 @@ Add-PodeRoute -Method Get -Path "/api/history/status" -ScriptBlock {
             $mainData = $mainContent | ConvertFrom-Json
             $folderPath = Join-Path $RootDir "03_history\$($mainData.新規フォルダ名)"
 
+            Write-Host "[履歴API] フォルダパス: $folderPath" -ForegroundColor Cyan
+
             # Get-HistoryStatus関数を使用（Pode Runspace分離対策）
             $result = Get-HistoryStatus -FolderPath $folderPath
+
+            Write-Host "[履歴API] Get-HistoryStatus結果: totalCount=$($result.totalCount), position=$($result.position), canUndo=$($result.canUndo)" -ForegroundColor Cyan
 
             # レスポンス形式をフロントエンドに合わせる
             $responseData = @{
@@ -2519,6 +2523,8 @@ Add-PodeRoute -Method Get -Path "/api/history/status" -ScriptBlock {
                 position = $result.position
                 count = $result.totalCount
             }
+
+            Write-Host "[履歴API] レスポンス: count=$($responseData.count), position=$($responseData.position)" -ForegroundColor Cyan
 
             Write-PodeJsonResponse -Value $responseData
         } else {
