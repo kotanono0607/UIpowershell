@@ -327,6 +327,52 @@
             stroke-width: 3;
         }
 
+        /* 右クリックメニュー */
+        #context-menu {
+            display: none;
+            position: fixed;
+            background: #2d2d2d;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            min-width: 180px;
+            padding: 5px 0;
+        }
+
+        #context-menu.show {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: #ffffff;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .context-menu-item:hover {
+            background: #3e3e42;
+        }
+
+        .context-menu-item.disabled {
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        .context-menu-item.disabled:hover {
+            background: transparent;
+        }
+
+        .context-menu-separator {
+            height: 1px;
+            background: #3e3e42;
+            margin: 5px 0;
+        }
+
         /* プログレス表示 */
         .progress-container {
             background: #3e3e42;
@@ -385,8 +431,6 @@
             <h1>UIpowershell - Phase 4 <span id="app-version" style="font-size: 0.7em; color: #ccc; font-weight: normal;">v1.0.149</span></h1>
             <button onclick="showAddNodeModal()">➕ ノード追加</button>
             <button onclick="deleteSelectedNodes()" class="danger">🗑️ 削除</button>
-            <button id="btn-copy" onclick="copyNode(getSelectedNodeId())" title="選択したノードをコピー (Ctrl+C)">📋 コピー</button>
-            <button id="btn-paste" onclick="pasteNode()" title="コピーしたノードを貼り付け (Ctrl+V)">📄 貼り付け</button>
             <button id="btn-undo" onclick="undoOperation()" title="元に戻す (Ctrl+Z)">↶ Undo</button>
             <button id="btn-redo" onclick="redoOperation()" title="やり直し (Ctrl+Y)">↷ Redo</button>
             <button onclick="showVariableModal()">📊 変数管理</button>
@@ -613,6 +657,23 @@
                 <button id="btn-loop-save" class="button">保存</button>
                 <button id="btn-loop-cancel" class="button">キャンセル</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 右クリックメニュー -->
+    <div id="context-menu">
+        <div class="context-menu-item" id="ctx-copy">
+            <span>📋</span>
+            <span>コピー</span>
+        </div>
+        <div class="context-menu-item" id="ctx-paste">
+            <span>📄</span>
+            <span>貼り付け</span>
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" id="ctx-delete">
+            <span>🗑️</span>
+            <span>削除</span>
         </div>
     </div>
 

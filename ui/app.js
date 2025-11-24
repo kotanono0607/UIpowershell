@@ -817,6 +817,15 @@ function initReactFlow() {
             setSelectedNode(node.id);
         }, []);
 
+        // ノード右クリック時のイベントハンドラー（コンテキストメニュー表示）
+        const onNodeContextMenu = React.useCallback((event, node) => {
+            event.preventDefault(); // デフォルトの右クリックメニューを無効化
+            console.log('[React Flow] ノードが右クリックされました:', node.id);
+
+            // コンテキストメニューを表示
+            showContextMenu(event.clientX, event.clientY, node.id);
+        }, []);
+
         return React.createElement(
             'div',
             { style: { width: '100%', height: '100%' } },
@@ -828,6 +837,7 @@ function initReactFlow() {
                 onConnect,
                 onNodeDragStop,
                 onNodeClick,
+                onNodeContextMenu,
                 onInit,
                 fitView: true,
                 snapToGrid: true,
@@ -1023,14 +1033,26 @@ async function addNode(event) {
     }
 }
 
-async function deleteSelectedNodes() {
+async function deleteSelectedNodes(nodeId = null) {
     if (nodes.length === 0) {
         alert('削除するノードがありません');
         return;
     }
 
-    // 選択されたノードを取得（簡易実装：最後のノード）
-    const selectedNode = nodes[nodes.length - 1];
+    // 選択されたノードを取得
+    let selectedNode;
+    if (nodeId) {
+        // 指定されたノードID
+        selectedNode = nodes.find(n => n.id === nodeId);
+    } else {
+        // 最後のノード（デフォルト）
+        selectedNode = nodes[nodes.length - 1];
+    }
+
+    if (!selectedNode) {
+        alert('削除するノードが見つかりません');
+        return;
+    }
 
     if (!confirm(`ノード「${selectedNode.data.label}」を削除しますか？\n※セット削除が適用される場合があります`)) {
         return;
@@ -1835,6 +1857,42 @@ let nodeClipboard = null;  // コピーされたノードID
 let selectedNodeId = null;  // 選択されたノードID
 
 /**
+ * 右クリックメニューを表示
+ * @param {number} x - X座標
+ * @param {number} y - Y座標
+ * @param {string} nodeId - ノードID
+ */
+function showContextMenu(x, y, nodeId) {
+    const menu = document.getElementById('context-menu');
+
+    // メニューを表示
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    menu.classList.add('show');
+
+    // 選択されたノードを記録
+    selectedNodeId = nodeId;
+
+    // 貼り付けメニューの有効/無効を切り替え
+    const pasteItem = document.getElementById('ctx-paste');
+    if (nodeClipboard) {
+        pasteItem.classList.remove('disabled');
+    } else {
+        pasteItem.classList.add('disabled');
+    }
+
+    console.log(`[コンテキストメニュー] 表示: ノードID=${nodeId}, 位置=(${x}, ${y})`);
+}
+
+/**
+ * 右クリックメニューを非表示
+ */
+function hideContextMenu() {
+    const menu = document.getElementById('context-menu');
+    menu.classList.remove('show');
+}
+
+/**
  * ノードをコピー
  * @param {string} nodeId - コピーするノードID
  */
@@ -1859,6 +1917,7 @@ async function copyNode(nodeId) {
     console.log(`[コピー] ✅ ノードをクリップボードにコピーしました: ${nodeId}`);
     console.log(`[コピー] ノード情報:`, node);
 
+    alert(`ノードをコピーしました\nID: ${nodeId}`);
     return true;
 }
 
@@ -1939,6 +1998,38 @@ function setSelectedNode(nodeId) {
     console.log(`[選択] ノードを選択: ${nodeId}`);
 }
 
+/**
+ * コンテキストメニューのイベントリスナーを設定
+ */
+function setupContextMenuListeners() {
+    // コピー
+    document.getElementById('ctx-copy').addEventListener('click', async () => {
+        hideContextMenu();
+        if (selectedNodeId) {
+            await copyNode(selectedNodeId);
+        }
+    });
+
+    // 貼り付け
+    document.getElementById('ctx-paste').addEventListener('click', async (e) => {
+        if (e.target.closest('.disabled')) {
+            return; // 無効な場合は何もしない
+        }
+        hideContextMenu();
+        await pasteNode();
+    });
+
+    // 削除
+    document.getElementById('ctx-delete').addEventListener('click', async () => {
+        hideContextMenu();
+        if (selectedNodeId) {
+            await deleteSelectedNodes(selectedNodeId);
+        }
+    });
+
+    console.log('[コンテキストメニュー] イベントリスナーを設定しました');
+}
+
 // ============================================
 // 初期化
 // ============================================
@@ -1967,7 +2058,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     // 操作履歴を初期化
     await initializeHistory();
 
-    // キーボードショートカット（Ctrl+Z / Ctrl+Y / Ctrl+C / Ctrl+V）を設定
+    // コンテキストメニューのイベントリスナーを設定
+    setupContextMenuListeners();
+
+    // キーボードショートカット（Ctrl+Z / Ctrl+Y）を設定
     document.addEventListener('keydown', async (e) => {
         // Ctrl+Z: Undo
         if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
@@ -1998,28 +2092,11 @@ window.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         }
+    });
 
-        // Ctrl+C: コピー
-        if (e.ctrlKey && e.key === 'c') {
-            const nodeId = getSelectedNodeId();
-            if (nodeId) {
-                e.preventDefault();
-                console.log('[キーボード] Ctrl+C - コピー');
-                const success = await copyNode(nodeId);
-                if (success) {
-                    alert(`ノードをコピーしました\nID: ${nodeId}`);
-                }
-            }
-        }
-
-        // Ctrl+V: 貼り付け
-        if (e.ctrlKey && e.key === 'v') {
-            if (nodeClipboard) {
-                e.preventDefault();
-                console.log('[キーボード] Ctrl+V - 貼り付け');
-                await pasteNode();
-            }
-        }
+    // 画面クリック時にコンテキストメニューを非表示
+    document.addEventListener('click', () => {
+        hideContextMenu();
     });
 
     // コントロールログ: 初期化完了、ノード生成可能
