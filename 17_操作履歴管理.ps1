@@ -232,24 +232,48 @@ function Undo-Operation {
     )
 
     try {
-        # 履歴スタックが未初期化の場合は初期化
-        if ($null -eq $global:HistoryStack) {
-            Initialize-HistoryStack -FolderPath $FolderPath | Out-Null
+        # Pode Runspace分離対策: 毎回history.jsonを直接読み込む
+        $historyPath = Join-Path $FolderPath 'history.json'
+
+        if (-not (Test-Path $historyPath)) {
+            Write-Host "[操作履歴] history.jsonが見つかりません" -ForegroundColor Yellow
+            return @{
+                success = $false
+                error = "履歴ファイルが見つかりません"
+                canUndo = $false
+                canRedo = $false
+            }
         }
 
+        # history.jsonを直接読み込み
+        $historyData = Read-JsonSafe -Path $historyPath -Required $false -Silent $true
+
+        if ($null -eq $historyData) {
+            return @{
+                success = $false
+                error = "履歴データが読み込めません"
+                canUndo = $false
+                canRedo = $false
+            }
+        }
+
+        $historyStack = $historyData.HistoryStack
+        $currentPosition = $historyData.CurrentHistoryPosition
+        $maxCount = if ($historyData.MaxHistoryCount) { $historyData.MaxHistoryCount } else { 50 }
+
         # Undo可能かチェック
-        if ($global:CurrentHistoryPosition -le 0) {
+        if ($currentPosition -le 0) {
             Write-Host "[操作履歴] これ以上Undoできません" -ForegroundColor Yellow
             return @{
                 success = $false
                 error = "Undo不可: 履歴の最初です"
                 canUndo = $false
-                canRedo = $global:CurrentHistoryPosition -lt $global:HistoryStack.Count
+                canRedo = $currentPosition -lt $historyStack.Count
             }
         }
 
         # 1つ前の操作を取得
-        $currentOp = $global:HistoryStack[$global:CurrentHistoryPosition - 1]
+        $currentOp = $historyStack[$currentPosition - 1]
 
         # 操作前の状態に復元
         $memoryPath = Join-Path $FolderPath 'memory.json'
@@ -268,18 +292,17 @@ function Undo-Operation {
         }
 
         # 履歴位置を1つ戻す
-        $global:CurrentHistoryPosition--
+        $currentPosition--
 
         # history.jsonを更新
-        $historyPath = Join-Path $FolderPath 'history.json'
-        $historyData = @{
-            HistoryStack = $global:HistoryStack
-            CurrentHistoryPosition = $global:CurrentHistoryPosition
-            MaxHistoryCount = $global:MaxHistoryCount
+        $updatedHistoryData = @{
+            HistoryStack = $historyStack
+            CurrentHistoryPosition = $currentPosition
+            MaxHistoryCount = $maxCount
         }
-        Write-JsonSafe -Path $historyPath -Data $historyData -Depth 10 -Silent $true
+        Write-JsonSafe -Path $historyPath -Data $updatedHistoryData -Depth 10 -Silent $true
 
-        Write-Host "[操作履歴] Undo実行: $($currentOp.description) (位置: $global:CurrentHistoryPosition)" -ForegroundColor Green
+        Write-Host "[操作履歴] Undo実行: $($currentOp.description) (位置: $currentPosition)" -ForegroundColor Green
 
         return @{
             success = $true
@@ -288,9 +311,9 @@ function Undo-Operation {
                 description = $currentOp.description
                 timestamp = $currentOp.timestamp
             }
-            position = $global:CurrentHistoryPosition
-            canUndo = $global:CurrentHistoryPosition -gt 0
-            canRedo = $global:CurrentHistoryPosition -lt $global:HistoryStack.Count
+            position = $currentPosition
+            canUndo = $currentPosition -gt 0
+            canRedo = $currentPosition -lt $historyStack.Count
         }
 
     } catch {
@@ -324,24 +347,48 @@ function Redo-Operation {
     )
 
     try {
-        # 履歴スタックが未初期化の場合は初期化
-        if ($null -eq $global:HistoryStack) {
-            Initialize-HistoryStack -FolderPath $FolderPath | Out-Null
+        # Pode Runspace分離対策: 毎回history.jsonを直接読み込む
+        $historyPath = Join-Path $FolderPath 'history.json'
+
+        if (-not (Test-Path $historyPath)) {
+            Write-Host "[操作履歴] history.jsonが見つかりません" -ForegroundColor Yellow
+            return @{
+                success = $false
+                error = "履歴ファイルが見つかりません"
+                canUndo = $false
+                canRedo = $false
+            }
         }
 
+        # history.jsonを直接読み込み
+        $historyData = Read-JsonSafe -Path $historyPath -Required $false -Silent $true
+
+        if ($null -eq $historyData) {
+            return @{
+                success = $false
+                error = "履歴データが読み込めません"
+                canUndo = $false
+                canRedo = $false
+            }
+        }
+
+        $historyStack = $historyData.HistoryStack
+        $currentPosition = $historyData.CurrentHistoryPosition
+        $maxCount = if ($historyData.MaxHistoryCount) { $historyData.MaxHistoryCount } else { 50 }
+
         # Redo可能かチェック
-        if ($global:CurrentHistoryPosition -ge $global:HistoryStack.Count) {
+        if ($currentPosition -ge $historyStack.Count) {
             Write-Host "[操作履歴] これ以上Redoできません" -ForegroundColor Yellow
             return @{
                 success = $false
                 error = "Redo不可: 履歴の最後です"
-                canUndo = $global:CurrentHistoryPosition -gt 0
+                canUndo = $currentPosition -gt 0
                 canRedo = $false
             }
         }
 
         # 次の操作を取得
-        $nextOp = $global:HistoryStack[$global:CurrentHistoryPosition]
+        $nextOp = $historyStack[$currentPosition]
 
         # 操作後の状態に復元
         $memoryPath = Join-Path $FolderPath 'memory.json'
@@ -360,18 +407,17 @@ function Redo-Operation {
         }
 
         # 履歴位置を1つ進める
-        $global:CurrentHistoryPosition++
+        $currentPosition++
 
         # history.jsonを更新
-        $historyPath = Join-Path $FolderPath 'history.json'
-        $historyData = @{
-            HistoryStack = $global:HistoryStack
-            CurrentHistoryPosition = $global:CurrentHistoryPosition
-            MaxHistoryCount = $global:MaxHistoryCount
+        $updatedHistoryData = @{
+            HistoryStack = $historyStack
+            CurrentHistoryPosition = $currentPosition
+            MaxHistoryCount = $maxCount
         }
-        Write-JsonSafe -Path $historyPath -Data $historyData -Depth 10 -Silent $true
+        Write-JsonSafe -Path $historyPath -Data $updatedHistoryData -Depth 10 -Silent $true
 
-        Write-Host "[操作履歴] Redo実行: $($nextOp.description) (位置: $global:CurrentHistoryPosition)" -ForegroundColor Green
+        Write-Host "[操作履歴] Redo実行: $($nextOp.description) (位置: $currentPosition)" -ForegroundColor Green
 
         return @{
             success = $true
@@ -380,9 +426,9 @@ function Redo-Operation {
                 description = $nextOp.description
                 timestamp = $nextOp.timestamp
             }
-            position = $global:CurrentHistoryPosition
-            canUndo = $global:CurrentHistoryPosition -gt 0
-            canRedo = $global:CurrentHistoryPosition -lt $global:HistoryStack.Count
+            position = $currentPosition
+            canUndo = $currentPosition -gt 0
+            canRedo = $currentPosition -lt $historyStack.Count
         }
 
     } catch {
@@ -416,22 +462,45 @@ function Get-HistoryStatus {
     )
 
     try {
-        # 履歴スタックが未初期化の場合は初期化
-        if ($null -eq $global:HistoryStack) {
+        # Pode Runspace分離対策: 毎回history.jsonを直接読み込む
+        $historyPath = Join-Path $FolderPath 'history.json'
+
+        if (-not (Test-Path $historyPath)) {
+            # history.jsonが存在しない場合は新規作成
             Initialize-HistoryStack -FolderPath $FolderPath | Out-Null
         }
 
-        $canUndo = $global:CurrentHistoryPosition -gt 0
-        $canRedo = $global:CurrentHistoryPosition -lt $global:HistoryStack.Count
+        # history.jsonを直接読み込み（$global変数に依存しない）
+        $historyData = Read-JsonSafe -Path $historyPath -Required $false -Silent $true
+
+        if ($null -eq $historyData) {
+            # データが空の場合
+            return @{
+                success = $true
+                canUndo = $false
+                canRedo = $false
+                position = 0
+                totalCount = 0
+                maxCount = 50
+                recentOperations = @()
+            }
+        }
+
+        $historyStack = $historyData.HistoryStack
+        $currentPosition = $historyData.CurrentHistoryPosition
+        $maxCount = if ($historyData.MaxHistoryCount) { $historyData.MaxHistoryCount } else { 50 }
+
+        $canUndo = $currentPosition -gt 0
+        $canRedo = $currentPosition -lt $historyStack.Count
 
         # 直近の操作履歴（最大5件）
         $recentOperations = @()
-        $startIndex = [Math]::Max(0, $global:CurrentHistoryPosition - 5)
-        $endIndex = [Math]::Min($global:HistoryStack.Count - 1, $global:CurrentHistoryPosition - 1)
+        $startIndex = [Math]::Max(0, $currentPosition - 5)
+        $endIndex = [Math]::Min($historyStack.Count - 1, $currentPosition - 1)
 
         if ($startIndex -le $endIndex) {
             for ($i = $startIndex; $i -le $endIndex; $i++) {
-                $op = $global:HistoryStack[$i]
+                $op = $historyStack[$i]
                 $recentOperations += @{
                     type = $op.operationType
                     description = $op.description
@@ -444,9 +513,9 @@ function Get-HistoryStatus {
             success = $true
             canUndo = $canUndo
             canRedo = $canRedo
-            position = $global:CurrentHistoryPosition
-            totalCount = $global:HistoryStack.Count
-            maxCount = $global:MaxHistoryCount
+            position = $currentPosition
+            totalCount = $historyStack.Count
+            maxCount = $maxCount
             recentOperations = $recentOperations
         }
 
