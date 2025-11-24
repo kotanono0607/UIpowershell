@@ -203,11 +203,12 @@ Add-PodeRoute -Method Post -Path "/api/nodes" -ScriptBlock {
         # idが存在しない場合は新規生成
         if (-not $nodeHashtable.ContainsKey('id') -or -not $nodeHashtable['id']) {
             Write-Host "[API] IDが指定されていないため、新規生成します..." -ForegroundColor Gray
-            $newId = IDを自動生成する
-            if (-not $newId) {
-                throw "新しいIDの生成に失敗しました"
-            }
-            $nodeHashtable['id'] = "$newId-1"
+
+            # タイムスタンプベースのユニークIDを生成
+            $timestamp = [DateTime]::Now.ToString("yyyyMMddHHmmssfff")
+            $random = Get-Random -Minimum 100 -Maximum 999
+            $nodeHashtable['id'] = "node-$timestamp-$random"
+
             Write-Host "[API] 生成されたID: $($nodeHashtable['id'])" -ForegroundColor Green
         }
 
