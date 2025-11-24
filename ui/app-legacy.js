@@ -7160,15 +7160,20 @@ async function copyNode(nodeId) {
         return false;
     }
 
+    // コード.json から最新のスクリプトを取得
+    const script = getCodeEntry(sourceNode.id);
+    console.log(`[コピー] コード.jsonからスクリプトを取得: ${script ? script.length : 0}文字`);
+
     // クリップボードに保存（サーバー側で検索するために id プロパティを使用）
     nodeClipboard = {
         nodeId: sourceNode.id,  // name ではなく id を保存
         nodeName: nodeId,       // name も保持しておく
-        node: sourceNode
+        node: sourceNode,
+        script: script          // コード.jsonから取得したスクリプトを保存
     };
 
     console.log(`[コピー] ✅ ノードをクリップボードにコピーしました:`, sourceNode);
-    console.log(`[コピー] ID=${sourceNode.id}, Name=${nodeId}`);
+    console.log(`[コピー] ID=${sourceNode.id}, Name=${nodeId}, Script長=${script ? script.length : 0}`);
     showToast('ノードをコピーしました', 'success');
     return true;
 }
@@ -7183,6 +7188,7 @@ async function pasteNode() {
 
     console.log(`[貼り付け] ノードを貼り付け:`, nodeClipboard);
     const sourceNode = nodeClipboard.node;
+    const sourceScript = nodeClipboard.script || '';
 
     try {
         // 新しいノードIDを生成（タイムスタンプベース）
@@ -7207,17 +7213,23 @@ async function pasteNode() {
             height: sourceNode.height,
             groupId: sourceNode.groupId,
             処理番号: sourceNode.処理番号 || '',
-            script: sourceNode.script || '',
+            script: sourceScript,
             関数名: sourceNode.関数名 || ''
         };
 
-        console.log(`[貼り付け] 新しいノードを作成: ID=${newNodeId}, Y=${newY}`);
+        console.log(`[貼り付け] 新しいノードを作成: ID=${newNodeId}, Y=${newY}, Script長=${sourceScript ? sourceScript.length : 0}`);
 
         // layerStructure に新しいノードを追加
         layerStructure[newNode.layer].nodes.push(newNode);
         nodes.push(newNode);
 
         console.log(`[貼り付け] レイヤー${newNode.layer}に追加完了`);
+
+        // スクリプトがある場合は、コード.jsonにも保存
+        if (sourceScript && sourceScript.trim() !== '') {
+            console.log(`[貼り付け] コード.jsonにスクリプトを保存: ID=${newNodeId}, Script長=${sourceScript.length}`);
+            await setCodeEntry(newNodeId, sourceScript);
+        }
 
         // memory.json に保存
         await saveMemoryJson();
