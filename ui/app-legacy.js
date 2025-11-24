@@ -7160,13 +7160,15 @@ async function copyNode(nodeId) {
         return false;
     }
 
-    // クリップボードに保存
+    // クリップボードに保存（サーバー側で検索するために id プロパティを使用）
     nodeClipboard = {
-        nodeId: nodeId,
+        nodeId: sourceNode.id,  // name ではなく id を保存
+        nodeName: nodeId,       // name も保持しておく
         node: sourceNode
     };
 
     console.log(`[コピー] ✅ ノードをクリップボードにコピーしました:`, sourceNode);
+    console.log(`[コピー] ID=${sourceNode.id}, Name=${nodeId}`);
     showToast('ノードをコピーしました', 'success');
     return true;
 }
@@ -7180,6 +7182,7 @@ async function pasteNode() {
     }
 
     console.log(`[貼り付け] ノードを貼り付け:`, nodeClipboard);
+    console.log(`[貼り付け] 送信するnodeId: ${nodeClipboard.nodeId}`);
 
     try {
         // APIを呼んでノードをコピー
@@ -7190,6 +7193,14 @@ async function pasteNode() {
                 nodeId: nodeClipboard.nodeId
             })
         });
+
+        console.log(`[貼り付け] APIレスポンスステータス: ${response.status} ${response.statusText}`);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`[貼り付け] APIエラーレスポンス:`, errorText);
+            throw new Error(`HTTPエラー ${response.status}: ${errorText.substring(0, 100)}`);
+        }
 
         const result = await response.json();
 

@@ -208,18 +208,49 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
         Write-Host "[API] POST /api/nodes/copy - ノードコピーリクエスト受信" -ForegroundColor Cyan
 
         $body = $WebEvent.Data
+        Write-Host "[API] リクエストボディ: $($body | ConvertTo-Json -Compress)" -ForegroundColor Gray
+
         $originalNodeId = $body.nodeId
 
         if (-not $originalNodeId) {
-            throw "nodeId パラメータが必要です"
+            Write-Host "[API] ❌ nodeIdが指定されていません" -ForegroundColor Red
+            Set-PodeResponseStatus -Code 400
+            $errorResult = @{
+                success = $false
+                error = "nodeId パラメータが必要です"
+            }
+            Write-PodeJsonResponse -Value $errorResult
+            return
         }
 
         Write-Host "[API] コピー元ノードID: $originalNodeId" -ForegroundColor Gray
 
+        # デバッグ: 現在のノード一覧を表示
+        $nodeCount = if ($global:UIpowershellState -and $global:UIpowershellState.Nodes) {
+            $global:UIpowershellState.Nodes.Count
+        } else {
+            0
+        }
+        Write-Host "[API] 現在のノード数: $nodeCount" -ForegroundColor Gray
+        if ($nodeCount -gt 0) {
+            $nodeIds = $global:UIpowershellState.Nodes | Select-Object -First 5 | ForEach-Object { $_.id }
+            Write-Host "[API] ノードID一覧（最初の5件）: $($nodeIds -join ', ')" -ForegroundColor Gray
+        }
+
         # 元のノードを取得
+        Write-Host "[API] Get-NodeById を呼び出します..." -ForegroundColor Gray
         $originalNode = Get-NodeById -NodeId $originalNodeId
+        Write-Host "[API] Get-NodeById の結果: success=$($originalNode.success)" -ForegroundColor Gray
+
         if (-not $originalNode -or -not $originalNode.success) {
-            throw "ノードID $originalNodeId が見つかりません"
+            Write-Host "[API] ❌ ノードが見つかりません: $originalNodeId" -ForegroundColor Red
+            Set-PodeResponseStatus -Code 404
+            $errorResult = @{
+                success = $false
+                error = "ノードID $originalNodeId が見つかりません (現在のノード数: $nodeCount)"
+            }
+            Write-PodeJsonResponse -Value $errorResult
+            return
         }
 
         $sourceNode = $originalNode.node
