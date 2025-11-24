@@ -7122,13 +7122,38 @@ let selectedNodeState = {
     lastClickTime: null     // 最後にクリックされた時刻
 };
 
+// 現在のレイヤーデータを取得
+function getCurrentLayerData() {
+    if (!layerStructure[leftVisibleLayer]) {
+        console.warn('[レイヤー] レイヤーデータが見つかりません:', leftVisibleLayer);
+        return { 構成: [] };
+    }
+
+    return {
+        構成: layerStructure[leftVisibleLayer].nodes
+    };
+}
+
+// 現在のレイヤーデータを再読み込み
+async function loadCurrentLayerData() {
+    console.log('[レイヤー] レイヤーデータを再読み込み中...');
+    try {
+        await loadExistingNodes();
+        console.log('[レイヤー] ✅ レイヤーデータの再読み込み完了');
+    } catch (error) {
+        console.error('[レイヤー] レイヤーデータの再読み込み失敗:', error);
+        throw error;
+    }
+}
+
 // ノードをコピー
 async function copyNode(nodeId) {
     console.log(`[コピー] ノードをコピー: ${nodeId}`);
 
     // レイヤー情報から元のノードを取得
     const currentLayer = getCurrentLayerData();
-    const sourceNode = currentLayer.構成.find(n => n.ボタン名 === nodeId);
+    // ノードは name プロパティで識別される（ボタン名に対応）
+    const sourceNode = currentLayer.構成.find(n => n.name === nodeId);
 
     if (!sourceNode) {
         console.error(`[コピー] ノードが見つかりません: ${nodeId}`);
@@ -7194,7 +7219,7 @@ document.addEventListener('keydown', (e) => {
         const selectedNode = getSelectedNode();
         if (selectedNode) {
             e.preventDefault();
-            copyNode(selectedNode.ボタン名);
+            copyNode(selectedNode.name);
         }
     }
 
@@ -7221,8 +7246,8 @@ function getSelectedNode() {
         return null;
     }
 
-    // ノードを検索
-    const node = layerData.構成.find(n => n.ボタン名 === selectedNodeState.nodeId);
+    // ノードを検索（name プロパティはボタン名に対応）
+    const node = layerData.構成.find(n => n.name === selectedNodeState.nodeId);
     if (node) {
         console.log('[選択] 選択ノード:', node);
         return node;
