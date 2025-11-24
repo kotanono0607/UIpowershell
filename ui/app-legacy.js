@@ -7185,13 +7185,19 @@ async function pasteNode() {
     const sourceNode = nodeClipboard.node;
 
     try {
-        // 新しいノードを作成（フロントエンド側で処理）
+        // 新しいノードIDを生成（タイムスタンプベース）
+        const timestamp = Date.now();
+        const random = Math.floor(Math.random() * 900) + 100;
+        const newNodeId = `node-${timestamp}-${random}`;
+
         // Y座標を30px下にオフセット
         const offsetY = 30;
         const newY = sourceNode.y + offsetY;
 
-        // 新しいノードデータを作成（元のノードのコピー）
-        const newNodeData = {
+        // 新しいノードを作成（元のノードの全プロパティをコピー）
+        const newNode = {
+            id: newNodeId,
+            name: newNodeId,
             text: sourceNode.text,
             color: sourceNode.color,
             layer: sourceNode.layer,
@@ -7205,36 +7211,24 @@ async function pasteNode() {
             関数名: sourceNode.関数名 || ''
         };
 
-        console.log(`[貼り付け] 新しいノードデータを作成:`, newNodeData);
+        console.log(`[貼り付け] 新しいノードを作成: ID=${newNodeId}, Y=${newY}`);
 
-        // サーバーに新しいノードを追加
-        const response = await fetch(`${API_BASE}/nodes`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newNodeData)
-        });
+        // layerStructure に新しいノードを追加
+        layerStructure[newNode.layer].nodes.push(newNode);
+        nodes.push(newNode);
 
-        console.log(`[貼り付け] APIレスポンスステータス: ${response.status} ${response.statusText}`);
+        console.log(`[貼り付け] レイヤー${newNode.layer}に追加完了`);
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`[貼り付け] APIエラーレスポンス:`, errorText);
-            throw new Error(`HTTPエラー ${response.status}: ${errorText.substring(0, 100)}`);
-        }
+        // memory.json に保存
+        await saveMemoryJson();
 
-        const result = await response.json();
+        // UIを再描画
+        renderNodesInLayer(leftVisibleLayer, 'left');
 
-        if (result.success) {
-            console.log(`[貼り付け] ✅ ノード貼り付け成功:`, result);
-            showToast(`ノードを貼り付けました`, 'success');
+        console.log(`[貼り付け] ✅ ノード貼り付け成功`);
+        showToast(`ノードを貼り付けました`, 'success');
 
-            // レイヤーデータを再読み込み
-            await loadCurrentLayerData();
-
-            return true;
-        } else {
-            throw new Error(result.error || '貼り付けに失敗しました');
-        }
+        return true;
     } catch (error) {
         console.error('[貼り付け] エラー:', error);
         showToast(`貼り付けエラー: ${error.message}`, 'error');
