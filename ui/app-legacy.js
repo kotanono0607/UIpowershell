@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.251';  // アプリバージョン
+const APP_VERSION = '1.0.252';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -7297,7 +7297,7 @@ async function undoOperation() {
             console.log('[履歴] Undo成功:', data.operation?.description);
 
             // memory.jsonを再読み込み
-            await loadExistingNodesFromMemory();
+            await loadExistingNodes();
 
             // ボタン状態を更新
             await updateUndoRedoButtons();
@@ -7342,7 +7342,7 @@ async function redoOperation() {
             console.log('[履歴] Redo成功:', data.operation?.description);
 
             // memory.jsonを再読み込み
-            await loadExistingNodesFromMemory();
+            await loadExistingNodes();
 
             // ボタン状態を更新
             await updateUndoRedoButtons();
