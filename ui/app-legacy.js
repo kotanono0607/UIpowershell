@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.249';  // アプリバージョン
+const APP_VERSION = '1.0.250';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -7375,7 +7375,7 @@ if (document.readyState === 'loading') {
 
         // Undo/Redoボタンの初期状態を設定
         setTimeout(() => {
-            initializeHistory();
+            updateUndoRedoButtons();  // initializeHistory()の代わりに直接ボタン状態を更新
         }, 1000);
     });
 } else {
@@ -7383,6 +7383,6 @@ if (document.readyState === 'loading') {
 
     // Undo/Redoボタンの初期状態を設定
     setTimeout(() => {
-        initializeHistory();
+        updateUndoRedoButtons();  // initializeHistory()の代わりに直接ボタン状態を更新
     }, 1000);
 }
