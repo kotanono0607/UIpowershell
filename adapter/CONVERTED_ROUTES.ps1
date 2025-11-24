@@ -2506,7 +2506,7 @@ Add-PodeRoute -Method Get -Path "/api/history/status" -ScriptBlock {
         if (Test-Path $mainJsonPath) {
             $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
             $mainData = $mainContent | ConvertFrom-Json
-            $folderPath = Join-Path $RootDir "03_history\$($mainData.新規フォルダ名)"
+            $folderPath = $mainData.フォルダパス
 
             Write-Host "[履歴API] フォルダパス: $folderPath" -ForegroundColor Cyan
 
@@ -2573,7 +2573,7 @@ Add-PodeRoute -Method Post -Path "/api/history/undo" -ScriptBlock {
 
         $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
         $mainData = $mainContent | ConvertFrom-Json
-        $folderPath = Join-Path $RootDir "03_history\$($mainData.新規フォルダ名)"
+        $folderPath = $mainData.フォルダパス
 
         # Undo実行
         $result = Undo-Operation -FolderPath $folderPath
@@ -2615,7 +2615,7 @@ Add-PodeRoute -Method Post -Path "/api/history/redo" -ScriptBlock {
 
         $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
         $mainData = $mainContent | ConvertFrom-Json
-        $folderPath = Join-Path $RootDir "03_history\$($mainData.新規フォルダ名)"
+        $folderPath = $mainData.フォルダパス
 
         # Redo実行
         $result = Redo-Operation -FolderPath $folderPath
@@ -2657,7 +2657,7 @@ Add-PodeRoute -Method Post -Path "/api/history/init" -ScriptBlock {
 
         $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
         $mainData = $mainContent | ConvertFrom-Json
-        $folderPath = Join-Path $RootDir "03_history\$($mainData.新規フォルダ名)"
+        $folderPath = $mainData.フォルダパス
 
         # 履歴初期化
         $result = Initialize-HistoryStack -FolderPath $folderPath
