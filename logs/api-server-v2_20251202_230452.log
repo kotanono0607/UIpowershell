@@ -1,12 +1,12 @@
 ﻿**********************
 Windows PowerShell トランスクリプト開始
-開始時刻: 20251202183840
+開始時刻: 20251202230452
 ユーザー名: A-01\hello
 RunAs ユーザー: A-01\hello
 構成名: 
 コンピューター: A-01 (Microsoft Windows NT 10.0.26100.0)
 ホスト アプリケーション: powershell -NoExit -ExecutionPolicy Bypass -File .\adapter\api-server-v2-pode-complete.ps1 -AutoOpenBrowser
-プロセス ID: 22108
+プロセス ID: 21184
 PSVersion: 5.1.26100.7019
 PSEdition: Desktop
 PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7019
@@ -16,11 +16,11 @@ WSManStackVersion: 3.0
 PSRemotingProtocolVersion: 2.3
 SerializationVersion: 1.1.0.1
 **********************
-トランスクリプトが開始されました。出力ファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251202_183840.log
-[ログ] ログファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251202_183840.log
-[ログ] コントロールログ: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\control-log_20251202_183840.log
+トランスクリプトが開始されました。出力ファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251202_230452.log
+[ログ] ログファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251202_230452.log
+[ログ] コントロールログ: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\control-log_20251202_230452.log
 
-[2025-12-02 18:38:40.211] [START] UIpowershell 起動開始（Pode版）
+[2025-12-02 23:04:52.663] [START] UIpowershell 起動開始（Pode版）
 ==================================
 UIpowershell - Pode API Server V2
 Version: 2.0.0 (Pode移行版)
@@ -31,8 +31,8 @@ Version: 2.0.0 (Pode移行版)
 PowerShell 5.1環境用にPodeモジュールを最適化しています...
 [情報] Podeモジュールが未インストールです（自動インストールされます）
 [OK] Podeモジュールを読み込みました (Version: 2.11.0)
-[2025-12-02 18:38:42.858] [MODULE] Podeモジュール読み込み完了
-[2025-12-02 18:38:42.860] [MODULE] モジュール読み込み完了
+[2025-12-02 23:04:53.428] [MODULE] Podeモジュール読み込み完了
+[2025-12-02 23:04:53.429] [MODULE] モジュール読み込み完了
 
 既存のPowerShell関数を読み込みます...
 [OK] 00_共通ユーティリティ_JSON操作.ps1
@@ -40,17 +40,17 @@ PowerShell 5.1環境用にPodeモジュールを最適化しています...
 
 ==================================
 
-[2025-12-02 18:38:43.015] [MODULE] 基本モジュール読み込み完了
+[2025-12-02 23:04:53.473] [MODULE] 基本モジュール読み込み完了
 Podeサーバーを起動します...
   ポート: 8080
   URL: http://localhost:8080
   フロントエンド: http://localhost:8080/index-legacy.html
 
 PS>終了エラー(Get-Item): "ユーザー設定変数 "ErrorActionPreference" または共通パラメーターが Stop に設定されているため、実行中のコマンドが停止しました。パス 'C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\adapter\server.psd1' が存在しないため検出できません。"
-Pode v2.11.0 (PID: 22108)
-[2025-12-02 18:38:43.430] [SERVER] Podeサーバーエンドポイント設定完了 (ポート: 8080)
-[2025-12-02 18:38:43.442] [CORS] CORS設定完了（ミドルウェア方式）
-[2025-12-02 18:38:43.502] [CORS] OPTIONSプリフライトハンドラー設定完了
+Pode v2.11.0 (PID: 21184)
+[2025-12-02 23:04:53.743] [SERVER] Podeサーバーエンドポイント設定完了 (ポート: 8080)
+[2025-12-02 23:04:53.755] [CORS] CORS設定完了（ミドルウェア方式）
+[2025-12-02 23:04:53.808] [CORS] OPTIONSプリフライトハンドラー設定完了
 APIエンドポイントを設定します...
 [CONVERTED_ROUTES.ps1] v2ファイルとAdapterファイルを読み込みます...
   [OK] 00_共通ユーティリティ_JSON操作.ps1
@@ -63,7 +63,7 @@ APIエンドポイントを設定します...
   [OK] 02-2_ネスト規制バリデーション_v2.ps1
   [OK] 16_スナップショット機能.ps1
   [OK] 17_操作履歴管理.ps1
-[OK] UIpowershell状態を初期化しました (SessionId: 8da4694c-d1bb-48f2-92db-2d8ed6ef45e1)
+[OK] UIpowershell状態を初期化しました (SessionId: bdfddbc4-b211-48c8-89c5-3814bb535c7b)
   [OK] state-manager.ps1
   [OK] node-operations.ps1
   [デバッグ] 読み込み前の関数数: 1563
@@ -76,9 +76,9 @@ APIエンドポイントを設定します...
 [情報] Podeランスペース用の共通初期化コードを準備しました
 
 [OK] CONVERTED_ROUTES.ps1 から50個のルートを読み込みました
-[2025-12-02 18:38:44.540] [ROUTES] 全APIルート設定完了（50個）
+[2025-12-02 23:04:54.511] [ROUTES] 全APIルート設定完了（50個）
 [OK] 静的ファイル配信を設定しました: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\ui
-[2025-12-02 18:38:44.653] [STATIC] 静的ファイル配信設定完了
+[2025-12-02 23:04:54.567] [STATIC] 静的ファイル配信設定完了
 
 ==================================
 ✓ Podeサーバー起動成功！
@@ -86,7 +86,7 @@ APIエンドポイントを設定します...
 
 アクセス先: http://localhost:8080
 
-[2025-12-02 18:38:44.659] [SERVER] Podeサーバー起動成功 (ポート: 8080)
+[2025-12-02 23:04:54.571] [SERVER] Podeサーバー起動成功 (ポート: 8080)
 APIエンドポイント（Phase 3対応）:
 
 【基本】
