@@ -2502,6 +2502,11 @@ $global:RootDirForPolaris = $script:RootDir
 # ルートパス "/" - index-legacy.html（現行バージョン）を提供
 New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
     Set-CorsHeaders -Response $Response
+    # キャッシュ無効化ヘッダー
+    $Response.SetHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+    $Response.SetHeader("Pragma", "no-cache")
+    $Response.SetHeader("Expires", "0")
+
     $uiPath = $global:UiPathForPolaris
     $indexPath = Join-Path $uiPath "index-legacy.html"
     if (Test-Path $indexPath) {
@@ -2547,6 +2552,11 @@ New-PolarisRoute -Path "/" -Method GET -ScriptBlock {
 # index-legacy.html
 New-PolarisRoute -Path "/index-legacy.html" -Method GET -ScriptBlock {
     Set-CorsHeaders -Response $Response
+    # キャッシュ無効化ヘッダー
+    $Response.SetHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+    $Response.SetHeader("Pragma", "no-cache")
+    $Response.SetHeader("Expires", "0")
+
     $uiPath = $global:UiPathForPolaris
     $indexPath = Join-Path $uiPath "index-legacy.html"
     if (Test-Path $indexPath) {
@@ -2562,6 +2572,11 @@ New-PolarisRoute -Path "/index-legacy.html" -Method GET -ScriptBlock {
 # style-legacy.css
 New-PolarisRoute -Path "/style-legacy.css" -Method GET -ScriptBlock {
     Set-CorsHeaders -Response $Response
+    # キャッシュ無効化ヘッダー
+    $Response.SetHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+    $Response.SetHeader("Pragma", "no-cache")
+    $Response.SetHeader("Expires", "0")
+
     $uiPath = $global:UiPathForPolaris
     $cssPath = Join-Path $uiPath "style-legacy.css"
     if (Test-Path $cssPath) {
@@ -2577,6 +2592,11 @@ New-PolarisRoute -Path "/style-legacy.css" -Method GET -ScriptBlock {
 # app-legacy.js
 New-PolarisRoute -Path "/app-legacy.js" -Method GET -ScriptBlock {
     Set-CorsHeaders -Response $Response
+    # キャッシュ無効化ヘッダー
+    $Response.SetHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+    $Response.SetHeader("Pragma", "no-cache")
+    $Response.SetHeader("Expires", "0")
+
     $uiPath = $global:UiPathForPolaris
     $jsPath = Join-Path $uiPath "app-legacy.js"
     if (Test-Path $jsPath) {
