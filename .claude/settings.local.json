@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(cmd /c \"dir ui\\app-legacy.js\")",
+      "Bash(powershell -Command \"Get-Item ''C:\\Users\\hello\\.claude-worktrees\\RPA-UI2\\admiring-franklin\\ui\\app-legacy.js'' | Select-Object LastWriteTime\")",
+      "Bash(powershell:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

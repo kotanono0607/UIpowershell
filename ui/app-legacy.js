@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.252';  // アプリバージョン
+const APP_VERSION = '1.0.260';  // アプリバージョン
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -35,7 +35,8 @@ const LOG_CONFIG = {
     memoryLoad: false,       // memory.json読み込み警告
     buttonSettings: false,   // ボタン設定読み込みログ
     folderInit: false,       // フォルダ初期化ログ
-    general: false           // その他の一般ログ
+    general: false,          // その他の一般ログ
+    scriptDebug: false       // スクリプト化デバッグログ（問題調査用）
 };
 
 // フィルター付きログ関数
@@ -174,20 +175,42 @@ function wrapConsoleMethod(method, level) {
                 { prefix: '🕒 [ControlLog]', flag: 'controlLog' },
                 { prefix: '[横スクロール]', flag: 'general' },
                 { prefix: '[memory.json読み込み]', flag: 'memoryLoad' },
-                { prefix: '✅ UIpowershell 初期化完了', flag: 'general' }
+                { prefix: '✅ UIpowershell 初期化完了', flag: 'general' },
+                // スクリプト化デバッグログ
+                { prefix: '┌─ [memory.json', flag: 'scriptDebug' },
+                { prefix: '│ [L', flag: 'scriptDebug' },
+                { prefix: '│   ★', flag: 'scriptDebug' },
+                { prefix: '└─ [memory.json', flag: 'scriptDebug' },
+                { prefix: '┌─ [コード.json', flag: 'scriptDebug' },
+                { prefix: '│ エントリ', flag: 'scriptDebug' },
+                { prefix: '│ 最後のID', flag: 'scriptDebug' },
+                { prefix: '│   [', flag: 'scriptDebug' },
+                { prefix: '└────', flag: 'scriptDebug' }
             ];
 
-            // LOG_CONFIGで無効化されているログは抑制
+            // LOG_CONFIGで制御されるログの処理
             for (const config of logPrefixConfig) {
-                if (message.includes(config.prefix) && !LOG_CONFIG[config.flag]) {
-                    // サーバーにはログを送るが、ブラウザコンソールには表示しない
-                    const logEntry = {
-                        level: level,
-                        timestamp: new Date().toISOString(),
-                        message: message
-                    };
-                    consoleLogBuffer.push(logEntry);
-                    return; // ブラウザコンソールへの出力をスキップ
+                if (message.includes(config.prefix)) {
+                    if (LOG_CONFIG[config.flag]) {
+                        // フラグがtrueの場合は表示
+                        originalConsole[method].apply(console, args);
+                        const logEntry = {
+                            level: level,
+                            timestamp: new Date().toISOString(),
+                            message: message
+                        };
+                        consoleLogBuffer.push(logEntry);
+                        return;
+                    } else {
+                        // フラグがfalseの場合はサーバーにはログを送るが、ブラウザコンソールには表示しない
+                        const logEntry = {
+                            level: level,
+                            timestamp: new Date().toISOString(),
+                            message: message
+                        };
+                        consoleLogBuffer.push(logEntry);
+                        return; // ブラウザコンソールへの出力をスキップ
+                    }
                 }
             }
 
@@ -497,51 +520,41 @@ function drawArrowHead(ctx, fromX, fromY, toX, toY, arrowSize = 7, arrowAngle = 
 
 // 基本的な下向き矢印を描画（白→白のノード間）
 function drawDownArrow(ctx, fromNode, toNode, color = '#000000') {
-    const fromRect = fromNode.getBoundingClientRect();
-    const toRect = toNode.getBoundingClientRect();
-    const containerRect = fromNode.closest('.node-list-container').getBoundingClientRect();
+    // ★修正: getBoundingClientRect()ではなく、ノードのstyle.topを直接使用
+    // これによりスクロール位置やビューポートに依存しない正確な座標が得られる
+    const fromTop = parseInt(fromNode.style.top, 10) || 0;
+    const fromLeft = parseInt(fromNode.style.left, 10) || 90;
+    const fromHeight = fromNode.offsetHeight || 40;
+    const fromWidth = fromNode.offsetWidth || 120;
 
-    // 相対座標に変換
-    const startX = fromRect.left + fromRect.width / 2 - containerRect.left;
-    const startY = fromRect.bottom - containerRect.top;
-    const endX = toRect.left + toRect.width / 2 - containerRect.left;
-    const endY = toRect.top - containerRect.top;
+    const toTop = parseInt(toNode.style.top, 10) || 0;
+    const toLeft = parseInt(toNode.style.left, 10) || 90;
+
+    // 開始点: fromNodeの下端中央（0.5pxオフセットでシャープな線に）
+    const startX = Math.floor(fromLeft + fromWidth / 2) + 0.5;
+    const startY = Math.floor(fromTop + fromHeight) + 0.5;
+
+    // 終了点: toNodeの上端中央
+    const endX = Math.floor(toLeft + fromWidth / 2) + 0.5;
+    const endY = Math.floor(toTop) + 0.5;
 
     // 詳細デバッグログ
-    console.log(`[座標デバッグ] fromRect:`, {
-        left: fromRect.left,
-        right: fromRect.right,
-        top: fromRect.top,
-        bottom: fromRect.bottom,
-        width: fromRect.width,
-        height: fromRect.height
-    });
-    console.log(`[座標デバッグ] toRect:`, {
-        left: toRect.left,
-        right: toRect.right,
-        top: toRect.top,
-        bottom: toRect.bottom,
-        width: toRect.width,
-        height: toRect.height
-    });
-    console.log(`[座標デバッグ] containerRect:`, {
-        left: containerRect.left,
-        top: containerRect.top,
-        width: containerRect.width,
-        height: containerRect.height
-    });
+    console.log(`[座標デバッグ] fromNode: top=${fromTop}, left=${fromLeft}, height=${fromHeight}, width=${fromWidth}`);
+    console.log(`[座標デバッグ] toNode: top=${toTop}, left=${toLeft}`);
     console.log(`[座標デバッグ] 計算された矢印座標: (${startX}, ${startY}) → (${endX}, ${endY}), color=${color}`);
     console.log(`[座標デバッグ] Canvas dimensions: ${ctx.canvas.width} x ${ctx.canvas.height}`);
 
     // 線を描画
+    console.log(`[矢印色デバッグ] 指定色: ${color}, ctx.strokeStyle設定前: ${ctx.strokeStyle}`);
     ctx.strokeStyle = color;
+    console.log(`[矢印色デバッグ] ctx.strokeStyle設定後: ${ctx.strokeStyle}`);
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.stroke();
 
-    console.log(`[座標デバッグ] stroke() 実行完了`);
+    console.log(`[座標デバッグ] stroke() 実行完了, 最終strokeStyle: ${ctx.strokeStyle}`);
 
     // Canvas画像データを確認（実際に描画されたか検証）
     try {
@@ -592,6 +605,7 @@ function drawCrossPanelPinkArrows() {
     }
 
     const ctx = leftCanvas.getContext('2d', { willReadFrequently: true });
+    ctx.imageSmoothingEnabled = false;
     const containerRect = leftContainer.getBoundingClientRect();
     const pinkRect = pinkNode.getBoundingClientRect();
 
@@ -601,7 +615,7 @@ function drawCrossPanelPinkArrows() {
     const endX = leftContainer.offsetWidth;
     const endY = startY;
 
-    ctx.strokeStyle = 'rgb(255, 105, 180)'; // HotPink
+    ctx.strokeStyle = '#ffb6c1'; // LightPink (パステル)
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(startX, startY);
@@ -656,11 +670,19 @@ function drawPanelArrows(layerId) {
 
         // 親要素の実際のサイズを取得（clientWidth/offsetWidthを優先）
         const parentWidth = Math.max(nodeListContainer.clientWidth, nodeListContainer.offsetWidth, nodeListContainer.scrollWidth, 299);
-        const parentHeight = Math.max(nodeListContainer.clientHeight, nodeListContainer.offsetHeight, nodeListContainer.scrollHeight, 700);
+
+        // ★修正: min-heightスタイルから高さを取得（ノード配置に合わせて動的に設定されている）
+        const minHeightStyle = nodeListContainer.style.minHeight;
+        const minHeight = minHeightStyle ? parseInt(minHeightStyle, 10) : 700;
+        const parentHeight = Math.max(nodeListContainer.clientHeight, nodeListContainer.offsetHeight, nodeListContainer.scrollHeight, minHeight, 700);
 
         // Canvasの内部描画サイズのみ更新（CSS で表示サイズは 100% に設定済み）
         canvas.width = parentWidth;
         canvas.height = parentHeight;
+
+        // ★修正: CSSスタイルも更新（Canvas表示サイズをコンテナに合わせる）
+        canvas.style.width = parentWidth + 'px';
+        canvas.style.height = parentHeight + 'px';
 
         if (canvas.width !== oldWidth || canvas.height !== oldHeight) {
             console.log(`[Canvas デバッグ] Canvas サイズ調整: ${oldWidth}x${oldHeight} → ${canvas.width}x${canvas.height}`);
@@ -678,7 +700,7 @@ function drawPanelArrows(layerId) {
     console.log(`[Canvas デバッグ] Context:`, ctx);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     console.log(`[Canvas デバッグ] clearRect完了: (0, 0, ${canvas.width}, ${canvas.height})`);
-    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingEnabled = false;  // シャープな線のためにスムージングを無効化
 
     const nodes = Array.from(layerPanel.querySelectorAll('.node-button'));
     // console.log(`[デバッグ] 取得したノード数: ${nodes.length}`);
@@ -734,12 +756,14 @@ function drawPanelArrows(layerId) {
     }
     // console.log(`[デバッグ] 描画した通常矢印数: ${arrowCount}`);
 
-    // コンテナの矩形を取得（条件分岐とループで共通使用）
+    // コンテナの矩形とスクロール位置を取得（条件分岐とループで共通使用）
     const containerRect = nodeListContainer.getBoundingClientRect();
+    const scrollTop = nodeListContainer.scrollTop || 0;
+    const scrollLeft = nodeListContainer.scrollLeft || 0;
 
     // 条件分岐の特別な矢印を描画
     conditionGroups.forEach(group => {
-        drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect);
+        drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect, scrollTop, scrollLeft);
     });
 
     // ループの矢印を描画
@@ -751,7 +775,7 @@ function drawPanelArrows(layerId) {
         if (LOG_CONFIG.loopGroups) {
             console.log(`🔍 [drawPanelArrows] ループ矢印描画: ${group.startNode.textContent} → ${group.endNode.textContent}`);
         }
-        drawLoopArrows(ctx, group.startNode, group.endNode, containerRect);
+        drawLoopArrows(ctx, group.startNode, group.endNode, containerRect, scrollTop, scrollLeft);
     });
 
     // console.log(`[デバッグ] drawPanelArrows() 完了: ${layerId}`);
@@ -821,11 +845,19 @@ function findConditionGroups(nodes) {
 }
 
 // 条件分岐の複雑な矢印を描画
-function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, containerRect) {
-    const startRect = startNode.getBoundingClientRect();
-    const endRect = endNode.getBoundingClientRect();
+function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, containerRect, scrollTop = 0, scrollLeft = 0) {
+    // ★修正: style.topを直接使用（getBoundingClientRectはビューポート依存のため不正確）
+    const startTop = parseInt(startNode.style.top, 10) || 0;
+    const startLeft = parseInt(startNode.style.left, 10) || 90;
+    const startHeight = startNode.offsetHeight || 40;
+    const startWidth = startNode.offsetWidth || 120;
 
-    // 内部ノードを赤、Gray、青に分類
+    const endTop = parseInt(endNode.style.top, 10) || 0;
+    const endLeft = parseInt(endNode.style.left, 10) || 90;
+    const endHeight = endNode.offsetHeight || 40;
+    const endWidth = endNode.offsetWidth || 120;
+
+    // 内部ノードを赤、Gray、青、Pinkに分類
     console.log(`[条件分岐デバッグ] innerNodes数: ${innerNodes.length}`);
     innerNodes.forEach((node, index) => {
         const computedColor = window.getComputedStyle(node).backgroundColor;
@@ -835,86 +867,116 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
     const redNodes = innerNodes.filter(node => isSalmonColor(window.getComputedStyle(node).backgroundColor));
     const grayNodes = innerNodes.filter(node => isGrayColor(window.getComputedStyle(node).backgroundColor));
     const blueNodes = innerNodes.filter(node => isBlueColor(window.getComputedStyle(node).backgroundColor));
+    const pinkNodes = innerNodes.filter(node => isPinkColor(window.getComputedStyle(node).backgroundColor));
 
-    console.log(`[条件分岐] 赤ノード数: ${redNodes.length}, Grayノード数: ${grayNodes.length}, 青ノード数: ${blueNodes.length}`);
+    // Grayノードのインデックスを取得（False分岐とTrue分岐の境界）
+    const grayIndex = innerNodes.findIndex(node => isGrayColor(window.getComputedStyle(node).backgroundColor));
 
-    // 1. 緑（開始）→ 赤（False分岐）への下向き矢印
-    if (redNodes.length > 0) {
-        const firstRed = redNodes[0];
-        drawDownArrow(ctx, startNode, firstRed, 'rgb(250, 128, 114)');
+    // False分岐のノード（Gray以前、赤またはPink）
+    const falseBranchNodes = innerNodes.filter((node, index) => {
+        if (grayIndex === -1) return false;
+        if (index >= grayIndex) return false;
+        const color = window.getComputedStyle(node).backgroundColor;
+        return isSalmonColor(color) || isPinkColor(color);
+    });
+
+    // True分岐のノード（Gray以降、青またはPink）
+    const trueBranchNodes = innerNodes.filter((node, index) => {
+        if (grayIndex === -1) return false;
+        if (index <= grayIndex) return false;
+        const color = window.getComputedStyle(node).backgroundColor;
+        return isBlueColor(color) || isPinkColor(color);
+    });
+
+    console.log(`[条件分岐] 赤ノード数: ${redNodes.length}, Grayノード数: ${grayNodes.length}, 青ノード数: ${blueNodes.length}, Pinkノード数: ${pinkNodes.length}`);
+    console.log(`[条件分岐] False分岐ノード数: ${falseBranchNodes.length}, True分岐ノード数: ${trueBranchNodes.length}`);
+
+    // 1. 緑（開始）→ False分岐の最初のノード（赤またはPink）への下向き矢印
+    if (falseBranchNodes.length > 0) {
+        const firstFalse = falseBranchNodes[0];
+        drawDownArrow(ctx, startNode, firstFalse, 'rgb(250, 128, 114)');
     }
 
-    // 2. 緑（開始）→ 青（True分岐）への複雑な矢印（右→下）
-    if (blueNodes.length > 0) {
-        const firstBlue = blueNodes[0];
-        const firstBlueRect = firstBlue.getBoundingClientRect();
+    // 2. 緑（開始）→ True分岐の最初のノード（青またはPink）への複雑な矢印（右→下）
+    if (trueBranchNodes.length > 0) {
+        const firstTrue = trueBranchNodes[0];
+        const trueTop = parseInt(firstTrue.style.top, 10) || 0;
+        const trueLeft = parseInt(firstTrue.style.left, 10) || 90;
+        const trueHeight = firstTrue.offsetHeight || 40;
+        const trueWidth = firstTrue.offsetWidth || 120;
 
-        const startX = startRect.right - containerRect.left;
-        const startY = startRect.top + startRect.height / 2 - containerRect.top;
-        const horizontalEndX = startX + 20;
-        const blueY = firstBlueRect.top + firstBlueRect.height / 2 - containerRect.top;
+        // 開始ノードの右端中央
+        const lineStartX = startLeft + startWidth;
+        const lineStartY = startTop + startHeight / 2;
+        const horizontalEndX = lineStartX + 20;
+        // True分岐ノードの中央Y座標
+        const trueY = trueTop + trueHeight / 2;
 
-        ctx.strokeStyle = 'rgb(200, 220, 255)';  // v1.0.187の仕様：薄い青
+        ctx.strokeStyle = '#1e90ff';  // DodgerBlue
         ctx.lineWidth = 2;
 
         // 右への横線
         ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(horizontalEndX, startY);
+        ctx.moveTo(lineStartX, lineStartY);
+        ctx.lineTo(horizontalEndX, lineStartY);
         ctx.stroke();
 
         // 下への縦線
         ctx.beginPath();
-        ctx.moveTo(horizontalEndX, startY);
-        ctx.lineTo(horizontalEndX, blueY);
+        ctx.moveTo(horizontalEndX, lineStartY);
+        ctx.lineTo(horizontalEndX, trueY);
         ctx.stroke();
 
-        // 青ボタンへの横線
-        const blueRightX = firstBlueRect.right - containerRect.left;
+        // True分岐ノードへの横線
+        const trueRightX = trueLeft + trueWidth;
         ctx.beginPath();
-        ctx.moveTo(horizontalEndX, blueY);
-        ctx.lineTo(blueRightX, blueY);
+        ctx.moveTo(horizontalEndX, trueY);
+        ctx.lineTo(trueRightX, trueY);
         ctx.stroke();
     }
 
-    // 3. 赤（False分岐）→ 緑（終了）への複雑な矢印（左→下→右）
-    // v1.0.187の仕様：青ノードの有無に関係なく常に描画
-    if (redNodes.length > 0) {
-        const lastRed = redNodes[redNodes.length - 1];
-        const lastRedRect = lastRed.getBoundingClientRect();
+    // 3. False分岐の最後のノード（赤またはPink）→ 緑（終了）への複雑な矢印（左→下→右）
+    // v1.0.187の仕様：True分岐の有無に関係なく常に描画
+    if (falseBranchNodes.length > 0) {
+        const lastFalse = falseBranchNodes[falseBranchNodes.length - 1];
+        const lastFalseTop = parseInt(lastFalse.style.top, 10) || 0;
+        const lastFalseLeft = parseInt(lastFalse.style.left, 10) || 90;
+        const lastFalseHeight = lastFalse.offsetHeight || 40;
 
-        const startX = lastRedRect.left - containerRect.left;
-        const startY = lastRedRect.top + lastRedRect.height / 2 - containerRect.top;
-        const horizontalEndX = Math.max(startX - 20, 0);
-        const endY = endRect.top + endRect.height / 2 - containerRect.top;
+        // 最後のFalse分岐ノードの左端中央
+        const lineStartX = lastFalseLeft;
+        const lineStartY = lastFalseTop + lastFalseHeight / 2;
+        const horizontalEndX = Math.max(lineStartX - 20, 0);
+        // 終了ノードの中央Y座標
+        const lineEndY = endTop + endHeight / 2;
 
         ctx.strokeStyle = 'rgb(250, 128, 114)';
         ctx.lineWidth = 2;
 
         // 左への横線
         ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(horizontalEndX, startY);
+        ctx.moveTo(lineStartX, lineStartY);
+        ctx.lineTo(horizontalEndX, lineStartY);
         ctx.stroke();
 
         // 下への縦線
         ctx.beginPath();
-        ctx.moveTo(horizontalEndX, startY);
-        ctx.lineTo(horizontalEndX, endY);
+        ctx.moveTo(horizontalEndX, lineStartY);
+        ctx.lineTo(horizontalEndX, lineEndY);
         ctx.stroke();
 
         // 終了ノードへの横線と矢印
-        const endLeftX = endRect.left - containerRect.left;
+        const endLeftX = endLeft;
         ctx.beginPath();
-        ctx.moveTo(horizontalEndX, endY);
-        ctx.lineTo(endLeftX, endY);
+        ctx.moveTo(horizontalEndX, lineEndY);
+        ctx.lineTo(endLeftX, lineEndY);
         ctx.stroke();
 
         // 矢印ヘッド
-        drawArrowHead(ctx, horizontalEndX, endY, endLeftX, endY);
+        drawArrowHead(ctx, horizontalEndX, lineEndY, endLeftX, lineEndY);
     }
 
-    // 4. innerNodes間の矢印を描画（赤ノード間、青ノード間）
+    // 4. innerNodes間の矢印を描画（赤ノード間、青ノード間、Pinkノード含む）
     // 注: Grayは目印なので矢印不要
     for (let i = 0; i < innerNodes.length - 1; i++) {
         const currentNode = innerNodes[i];
@@ -928,16 +990,47 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
             continue;
         }
 
+        // 色の判定（Pinkノードは分岐の色を継承）
+        const isCurrentBlue = isBlueColor(currentColor);
+        const isCurrentRed = isSalmonColor(currentColor);
+        const isCurrentPink = isPinkColor(currentColor);
+        const isNextBlue = isBlueColor(nextColor);
+        const isNextRed = isSalmonColor(nextColor);
+        const isNextPink = isPinkColor(nextColor);
+
         // 矢印の色を決定（現在と次のノードの色に基づく）
         let arrowColor = null;
 
-        // 青→青の場合
-        if (isBlueColor(currentColor) && isBlueColor(nextColor)) {
-            arrowColor = 'rgb(100, 150, 255)'; // 濃い青
+        // 青系の矢印（青→青、青→Pink、Pink→青、Pink→Pink（青分岐内））
+        if ((isCurrentBlue || isCurrentPink) && (isNextBlue || isNextPink)) {
+            // 両方Pinkの場合は、どちらの分岐にいるか判定が必要
+            // ここでは青分岐内かどうかをblueNodesの存在で判定
+            if (isCurrentBlue || isNextBlue) {
+                arrowColor = '#1e90ff'; // DodgerBlue
+            } else if (blueNodes.length > 0) {
+                // 両方Pinkで、青ノードが存在する場合は青分岐内の可能性
+                // innerNodesの位置関係で判定
+                const currentIndex = innerNodes.indexOf(currentNode);
+                const grayIndex = innerNodes.findIndex(n => isGrayColor(window.getComputedStyle(n).backgroundColor));
+                if (grayIndex !== -1 && currentIndex > grayIndex) {
+                    arrowColor = '#1e90ff'; // DodgerBlue（Gray以降 = True分岐）
+                } else {
+                    arrowColor = 'rgb(250, 128, 114)'; // 赤色（Gray以前 = False分岐）
+                }
+            }
         }
-        // 赤→赤の場合
-        else if (isSalmonColor(currentColor) && isSalmonColor(nextColor)) {
-            arrowColor = 'rgb(250, 128, 114)'; // 赤色
+        // 赤系の矢印（赤→赤、赤→Pink、Pink→赤）
+        else if ((isCurrentRed || isCurrentPink) && (isNextRed || isNextPink)) {
+            if (isCurrentRed || isNextRed) {
+                arrowColor = 'rgb(250, 128, 114)'; // 赤色
+            } else {
+                // 両方Pinkの場合、位置で判定
+                const currentIndex = innerNodes.indexOf(currentNode);
+                const grayIndex = innerNodes.findIndex(n => isGrayColor(window.getComputedStyle(n).backgroundColor));
+                if (grayIndex !== -1 && currentIndex < grayIndex) {
+                    arrowColor = 'rgb(250, 128, 114)'; // 赤色（Gray以前 = False分岐）
+                }
+            }
         }
 
         // 矢印を描画（色が決定された場合のみ）
@@ -947,10 +1040,10 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         }
     }
 
-    // 5. 青（True分岐）→ 緑（終了）への下向き矢印
-    if (blueNodes.length > 0) {
-        const lastBlue = blueNodes[blueNodes.length - 1];
-        drawDownArrow(ctx, lastBlue, endNode, 'rgb(100, 150, 255)');  // 濃い青
+    // 5. True分岐の最後のノード（青またはPink）→ 緑（終了）への下向き矢印
+    if (trueBranchNodes.length > 0) {
+        const lastTrue = trueBranchNodes[trueBranchNodes.length - 1];
+        drawDownArrow(ctx, lastTrue, endNode, '#1e90ff');  // DodgerBlue
     }
 }
 
@@ -1013,17 +1106,23 @@ function findLoopGroups(nodes) {
 }
 
 // ループの矢印を描画
-function drawLoopArrows(ctx, startNode, endNode, containerRect) {
-    const startRect = startNode.getBoundingClientRect();
-    const endRect = endNode.getBoundingClientRect();
+function drawLoopArrows(ctx, startNode, endNode, containerRect, scrollTop = 0, scrollLeft = 0) {
+    // ★修正: style.topを直接使用（getBoundingClientRectはビューポート依存のため不正確）
+    const startTop = parseInt(startNode.style.top, 10) || 0;
+    const startLeft = parseInt(startNode.style.left, 10) || 90;
+    const startHeight = startNode.offsetHeight || 40;
+
+    const endTop = parseInt(endNode.style.top, 10) || 0;
+    const endLeft = parseInt(endNode.style.left, 10) || 90;
+    const endHeight = endNode.offsetHeight || 40;
 
     // 開始ノードの左端から左に出る
-    const startX = startRect.left - containerRect.left;
-    const startY = startRect.top + startRect.height / 2 - containerRect.top;
+    const startX = startLeft;
+    const startY = startTop + startHeight / 2;
     const horizontalEndX = startX - 30;
 
-    // 終了ノードの高さ
-    const endY = endRect.top + endRect.height / 2 - containerRect.top;
+    // 終了ノードの中央Y座標
+    const endY = endTop + endHeight / 2;
 
     ctx.strokeStyle = 'rgb(255, 165, 0)'; // オレンジ色
     ctx.lineWidth = 2;
@@ -1038,7 +1137,7 @@ function drawLoopArrows(ctx, startNode, endNode, containerRect) {
     drawArrowHead(ctx, horizontalEndX, startY, startX, startY);
 
     // 2. 左への横線（終了ノードから）
-    const endStartX = endRect.left - containerRect.left;
+    const endStartX = endLeft;
     ctx.beginPath();
     ctx.moveTo(endStartX, endY);
     ctx.lineTo(horizontalEndX, endY);
@@ -1111,8 +1210,8 @@ function isBlueColor(colorString) {
         const r = parseInt(match[1]);
         const g = parseInt(match[2]);
         const b = parseInt(match[3]);
-        // FromArgb(200, 220, 255)
-        const isMatch = r === 200 && g === 220 && b === 255;
+        // rgb(200, 220, 255) 薄い青
+        const isMatch = (r === 200 && g === 220 && b === 255);
         console.log(`[isBlueColor] 検証: r=${r}, g=${g}, b=${b}, match=${isMatch}, input="${colorString}"`);
         return isMatch;
     }
@@ -1141,10 +1240,13 @@ function isPinkColor(colorString) {
         const r = parseInt(match[1]);
         const g = parseInt(match[2]);
         const b = parseInt(match[3]);
-        // Pink, ピンク青色 (227, 206, 229), ピンク赤色 (252, 160, 158)
-        const isPink = (r === 255 && g === 192 && b === 203) || // Standard Pink
+        // #ffb6c1 = rgb(255, 182, 193) LightPink (パステル)
+        // 旧色も互換性のため残す: (252, 160, 158), (227, 206, 229), (255, 192, 203), (255, 20, 147)
+        const isPink = (r === 255 && g === 182 && b === 193) ||  // LightPink #ffb6c1 (パステル)
+               (r === 255 && g === 20 && b === 147) ||  // DeepPink #ff1493 (旧色)
+               (r === 255 && g === 192 && b === 203) || // Standard Pink
                (r === 227 && g === 206 && b === 229) || // ピンク青色
-               (r === 252 && g === 160 && b === 158);   // ピンク赤色
+               (r === 252 && g === 160 && b === 158);   // ピンク赤色（旧色）
 
         if (LOG_CONFIG.pink) {
             console.log(`[ピンク検出] 色: ${colorString}, RGB: (${r},${g},${b}), ピンク判定: ${isPink}`);
@@ -1160,6 +1262,7 @@ function drawCrossPanelArrows() {
     if (!mainCanvas) return;
 
     const ctx = mainCanvas.getContext('2d', { willReadFrequently: true });
+    ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
 
     // ピンク選択中でない場合は何も描画しない
@@ -1210,7 +1313,7 @@ function drawCrossPanelArrows() {
     const leftButtonCenterY = pinkNodeRect.top + pinkNodeRect.height / 2 - mainContainerRect.top;
 
     // 鮮やかなピンク色の線
-    ctx.strokeStyle = 'rgb(255, 105, 180)'; // HotPink
+    ctx.strokeStyle = '#ffb6c1'; // LightPink (パステル)
     ctx.lineWidth = 3;
 
     if (scriptPanel && scriptPanelFirstNode) {
@@ -1499,6 +1602,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // カテゴリーパネルにノード追加ボタンを生成（初期は無効化）
     generateAddNodeButtons();
 
+    // 初期カテゴリーの色を設定
+    switchCategory(1);
+
     // イベントリスナー設定
     setupEventListeners();
 
@@ -1769,9 +1875,9 @@ function getColorCode(colorName) {
         'White': '#FFFFFF',
         'SpringGreen': 'rgb(0, 255, 127)',
         'LemonChiffon': 'rgb(255, 250, 205)',
-        'Pink': 'rgb(252, 160, 158)',
+        'Pink': '#ffb6c1',                       // LightPink (パステル)
         'Salmon': 'rgb(250, 128, 114)',          // 条件分岐 False分岐（赤）
-        'LightBlue': 'rgb(200, 220, 255)',       // 条件分岐 True分岐（青）PowerShellの$global:青色に対応
+        'LightBlue': 'rgb(200, 220, 255)',       // 条件分岐 True分岐（青）薄い青
         'Gray': 'rgb(128, 128, 128)'             // 条件分岐 中間ライン
     };
     return colorMap[colorName] || colorName;
@@ -1791,6 +1897,22 @@ function switchCategory(categoryNum) {
 
     // 選択したパネルを表示
     document.getElementById(`category-panel-${categoryNum}`).classList.add('active');
+
+    // カテゴリーボタンの選択状態を更新
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    categoryBtns.forEach(btn => {
+        btn.classList.remove('active');
+    });
+    const selectedBtn = document.querySelector(`.category-btn[data-category="${categoryNum}"]`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('active');
+        // ノード追加ボタンパネルの背景色を選択されたカテゴリーの色に変更
+        const categoryColor = selectedBtn.dataset.color;
+        const container = document.getElementById('node-buttons-container');
+        if (container && categoryColor) {
+            container.style.backgroundColor = categoryColor;
+        }
+    }
 }
 
 // ============================================
@@ -2279,6 +2401,12 @@ function renderNodesInLayer(layer, panelSide = 'left') {
                         e.stopPropagation();
                         console.log(`[ピンクノード検出] handlePinkNodeClick を呼び出します`);
                         handlePinkNodeClick(node);
+                    } else {
+                        // Pinkノード以外がクリックされたらドリルダウンパネルを閉じる
+                        if (drilldownState.active) {
+                            console.log(`[クリック] 非Pinkノードクリック → ドリルダウンパネルを閉じます`);
+                            closeDrilldownPanel();
+                        }
                     }
                 }
             });
@@ -2308,6 +2436,21 @@ function renderNodesInLayer(layer, panelSide = 'left') {
         container.appendChild(btn);
     });
 
+    // ノード数が多い場合にコンテナの高さを動的に調整
+    if (layerNodes.length > 0) {
+        const maxY = Math.max(...layerNodes.map(n => n.y)) + 80; // ノード高さ(40px) + 余白(40px)
+        container.style.minHeight = `${Math.max(700, maxY)}px`;
+        console.log(`[レンダリング] コンテナ高さを調整: ${Math.max(700, maxY)}px (最大Y座標: ${maxY - 80}px)`);
+    }
+
+    // ボード（コンテナ空白部分）の右クリックメニューを設定
+    container.removeEventListener('contextmenu', handleBoardContextMenu);  // 重複防止
+    container.addEventListener('contextmenu', handleBoardContextMenu);
+
+    // ボード（コンテナ空白部分）のクリックでドリルダウンパネルを閉じる
+    container.removeEventListener('click', handleBoardClick);  // 重複防止
+    container.addEventListener('click', handleBoardClick);
+
     // グローエフェクトはapplyGlowEffects()で一括適用
 
     // 矢印を再描画
@@ -2319,6 +2462,29 @@ function renderNodesInLayer(layer, panelSide = 'left') {
         }, 10);
     } else {
         console.error('[デバッグ] window.arrowDrawing が存在しません！');
+    }
+}
+
+// ボードの右クリックイベントハンドラ
+function handleBoardContextMenu(e) {
+    // ノードボタン上でのクリックは無視（ノード用メニューが表示される）
+    if (e.target.closest('.node-button')) {
+        return;
+    }
+    // ボード用メニューを表示
+    showBoardContextMenu(e);
+}
+
+// ボードのクリックイベントハンドラ（左クリック）
+function handleBoardClick(e) {
+    // ノードボタン上でのクリックは無視
+    if (e.target.closest('.node-button')) {
+        return;
+    }
+    // ボード（空白部分）がクリックされたらドリルダウンパネルを閉じる
+    if (drilldownState.active) {
+        console.log(`[ボードクリック] 背景クリック → ドリルダウンパネルを閉じます`);
+        closeDrilldownPanel();
     }
 }
 
@@ -2759,7 +2925,136 @@ function showContextMenu(e, node) {
 
 function hideContextMenu() {
     document.getElementById('context-menu').classList.remove('show');
+    document.getElementById('board-context-menu').classList.remove('show');
     document.removeEventListener('click', hideContextMenu);
+}
+
+// ============================================
+// ボード用右クリックメニュー
+// ============================================
+
+// ボード右クリック時のクリック位置を保存
+let boardClickPosition = { x: 0, y: 0 };
+
+// ボード用右クリックメニューを表示
+function showBoardContextMenu(e) {
+    e.preventDefault();
+
+    // ノード用メニューを非表示
+    document.getElementById('context-menu').classList.remove('show');
+
+    const menu = document.getElementById('board-context-menu');
+    menu.style.left = `${e.pageX}px`;
+    menu.style.top = `${e.pageY}px`;
+    menu.classList.add('show');
+
+    // クリック位置を保存（ノード作成時に使用）
+    const container = e.target.closest('.node-list-container');
+    if (container) {
+        const rect = container.getBoundingClientRect();
+        boardClickPosition = {
+            x: e.clientX - rect.left + container.scrollLeft,
+            y: e.clientY - rect.top + container.scrollTop
+        };
+    }
+
+    console.log('[ボード右クリック] 位置:', boardClickPosition);
+
+    // メニュー外クリックで閉じる
+    setTimeout(() => {
+        document.addEventListener('click', hideContextMenu);
+    }, 100);
+}
+
+// ボードメニューから貼り付け（クリック位置に貼り付け）
+async function pasteNodeFromBoardMenu() {
+    if (!nodeClipboard) {
+        console.warn('[貼り付け] クリップボードが空です');
+        showToast('コピーされたノードがありません', 'warning');
+        hideContextMenu();
+        return false;
+    }
+
+    console.log(`[ボード貼り付け] クリック位置に貼り付け:`, boardClickPosition);
+    const sourceNode = nodeClipboard.node;
+    const sourceScript = nodeClipboard.script || '';
+
+    try {
+        // 新しいノードIDを生成
+        const timestamp = Date.now();
+        const random = Math.floor(Math.random() * 900) + 100;
+        const newNodeId = `node-${timestamp}-${random}`;
+
+        // クリック位置を基準に重複しない位置を探す
+        const newY = findNonOverlappingY(leftVisibleLayer, boardClickPosition.y);
+
+        // 新しいノードを作成
+        const newNode = {
+            id: newNodeId,
+            name: newNodeId,
+            text: sourceNode.text,
+            color: sourceNode.color,
+            layer: leftVisibleLayer,  // 現在のレイヤーに貼り付け
+            y: newY,
+            x: sourceNode.x,
+            width: sourceNode.width,
+            height: sourceNode.height,
+            groupId: sourceNode.groupId,
+            処理番号: sourceNode.処理番号 || '',
+            script: sourceScript,
+            関数名: sourceNode.関数名 || ''
+        };
+
+        console.log(`[ボード貼り付け] 新しいノード: ID=${newNodeId}, Y=${newY}`);
+
+        // layerStructure に追加
+        layerStructure[newNode.layer].nodes.push(newNode);
+        nodes.push(newNode);
+
+        // スクリプトがある場合はコード.jsonにも保存
+        if (sourceScript && sourceScript.trim() !== '') {
+            await setCodeEntry(newNodeId, sourceScript);
+        }
+
+        // memory.json に保存
+        await saveMemoryJson();
+
+        // UIを再描画
+        renderNodesInLayer(leftVisibleLayer, 'left');
+
+        console.log(`[ボード貼り付け] ✅ 成功`);
+        showToast(`ノードを貼り付けました`, 'success');
+
+        hideContextMenu();
+        return true;
+    } catch (error) {
+        console.error('[ボード貼り付け] エラー:', error);
+        showToast(`貼り付けエラー: ${error.message}`, 'error');
+        hideContextMenu();
+        return false;
+    }
+}
+
+// 全ての赤枠を解除
+function clearAllRedBorders() {
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    let clearedCount = 0;
+
+    currentLayerNodes.forEach(node => {
+        if (node.redBorder) {
+            node.redBorder = false;
+            clearedCount++;
+        }
+    });
+
+    if (clearedCount > 0) {
+        renderNodesInLayer(leftVisibleLayer, 'left');
+        showToast(`${clearedCount}個の赤枠を解除しました`, 'success');
+    } else {
+        showToast('赤枠のノードはありません', 'info');
+    }
+
+    hideContextMenu();
 }
 
 // ノード設定（右クリックメニューから）
@@ -2993,7 +3288,9 @@ async function layerizeNode() {
     console.log(`[レイヤー化] ✅ ${sortedRedNodes.length}個のノードを削除しました`);
 
     // 新しいピンクノードを作成
-    const newNodeId = nodeCounter++;
+    // ID形式を addSingleNode と統一（数値-1 形式）
+    const newNodeIdNum = nodeCounter++;
+    const newNodeId = `${newNodeIdNum}-1`;
     const newNode = {
         id: newNodeId,
         text: 'スクリプト',
@@ -3311,7 +3608,9 @@ async function handlePinkNodeClick(node) {
         const nodeY = baseY + interval;
 
         // 新しいノードを作成
-        const newNodeId = nodeCounter++;
+        // ID形式を addSingleNode と統一（数値-1 形式）
+        const newNodeIdNum = nodeCounter++;
+        const newNodeId = `${newNodeIdNum}-1`;
         const newNode = {
             id: newNodeId,
             text: text,
@@ -3524,7 +3823,9 @@ async function handlePinkNodeClickPopup(node) {
         const nodeY = baseY + interval;
 
         // 新しいノードを作成
-        const newNodeId = nodeCounter++;
+        // ID形式を addSingleNode と統一（数値-1 形式）
+        const newNodeIdNum = nodeCounter++;
+        const newNodeId = `${newNodeIdNum}-1`;
         const newNode = {
             id: newNodeId,
             text: text,
@@ -4301,13 +4602,14 @@ async function executeCode() {
                 text: n.text,
                 color: n.color,
                 y: n.y,
-                処理番号: n.処理番号
+                処理番号: n.処理番号,
+                script: n.script || ''  // Pinkノードの子ノード情報
             })),
             outputPath: null,
             openFile: false
         };
 
-        // console.log('[実行] API送信:', requestData);
+        console.log('[実行] API送信データ:', JSON.stringify(requestData, null, 2));
 
         // 現在のレイヤーのノードを送信
         const apiStartTime = performance.now();
@@ -4353,6 +4655,536 @@ async function executeCode() {
         console.log('═══════════════════════════════════════════════');
         console.log('');
         alert(`コード生成中にエラーが発生しました: ${error.message}`);
+    }
+}
+
+// ============================================
+// 部分実行機能（紫の横棒UI版）
+// ============================================
+
+// 部分実行モードの状態
+let partialExecuteMode = {
+    active: false,
+    startY: null,      // 開始バーのY座標
+    endY: null,        // 終了バーのY座標
+    startNodeIndex: 0, // 開始ノードのインデックス（0-indexed）
+    endNodeIndex: null // 終了ノードのインデックス（0-indexed）
+};
+
+// 部分実行モードを開始/終了
+function openPartialExecuteDialog() {
+    if (partialExecuteMode.active) {
+        // すでにアクティブなら終了
+        closePartialExecuteMode();
+        return;
+    }
+
+    // 現在のレイヤーのノードを取得
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+
+    if (currentLayerNodes.length === 0) {
+        alert('現在のレイヤーにノードがありません。');
+        return;
+    }
+
+    // ノードをY座標でソート
+    const sortedNodes = [...currentLayerNodes].sort((a, b) => a.y - b.y);
+
+    // 初期位置を設定（最初と最後のノード）
+    const firstNode = sortedNodes[0];
+    const lastNode = sortedNodes[sortedNodes.length - 1];
+
+    partialExecuteMode.active = true;
+    partialExecuteMode.startY = firstNode.y - 5;  // ノードの少し上
+    partialExecuteMode.endY = lastNode.y + 45;    // ノードの少し下（ノード高さ40px）
+    partialExecuteMode.startNodeIndex = 0;
+    partialExecuteMode.endNodeIndex = sortedNodes.length - 1;
+
+    // 紫の横棒を描画
+    renderPartialExecuteBars();
+
+    // 実行ボタンを表示
+    showPartialExecuteControls();
+
+    console.log('[部分実行] モード開始');
+}
+
+// 部分実行モードを終了
+function closePartialExecuteMode() {
+    partialExecuteMode.active = false;
+
+    // 横棒を削除
+    const startBar = document.getElementById('partial-start-bar');
+    const endBar = document.getElementById('partial-end-bar');
+    const controls = document.getElementById('partial-execute-controls');
+    const overlay = document.getElementById('partial-execute-overlay-area');
+
+    if (startBar) startBar.remove();
+    if (endBar) endBar.remove();
+    if (controls) controls.remove();
+    if (overlay) overlay.remove();
+
+    // ノードのハイライトを解除
+    clearPartialExecuteHighlight();
+
+    console.log('[部分実行] モード終了');
+}
+
+// 紫の横棒を描画
+function renderPartialExecuteBars() {
+    const container = document.querySelector(`#layer-${leftVisibleLayer} .node-list-container`);
+    if (!container) return;
+
+    // 既存のバーを削除
+    const existingStart = document.getElementById('partial-start-bar');
+    const existingEnd = document.getElementById('partial-end-bar');
+    if (existingStart) existingStart.remove();
+    if (existingEnd) existingEnd.remove();
+
+    // 開始バー
+    const startBar = document.createElement('div');
+    startBar.id = 'partial-start-bar';
+    startBar.className = 'partial-execute-bar';
+    startBar.innerHTML = '<span class="bar-label">▶ 開始</span>';
+    startBar.style.cssText = `
+        position: absolute;
+        left: 0;
+        top: ${partialExecuteMode.startY}px;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #3498db, #2980b9);
+        cursor: ns-resize;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.5);
+    `;
+    startBar.querySelector('.bar-label').style.cssText = `
+        position: absolute;
+        left: 5px;
+        top: -18px;
+        font-size: 11px;
+        color: #2980b9;
+        font-weight: bold;
+        background: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    `;
+
+    // 終了バー
+    const endBar = document.createElement('div');
+    endBar.id = 'partial-end-bar';
+    endBar.className = 'partial-execute-bar';
+    endBar.innerHTML = '<span class="bar-label">■ 終了</span>';
+    endBar.style.cssText = `
+        position: absolute;
+        left: 0;
+        top: ${partialExecuteMode.endY}px;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #2980b9, #3498db);
+        cursor: ns-resize;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.5);
+    `;
+    endBar.querySelector('.bar-label').style.cssText = `
+        position: absolute;
+        left: 5px;
+        top: 6px;
+        font-size: 11px;
+        color: #2980b9;
+        font-weight: bold;
+        background: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    `;
+
+    container.appendChild(startBar);
+    container.appendChild(endBar);
+
+    // ドラッグイベントを設定
+    setupBarDrag(startBar, 'start');
+    setupBarDrag(endBar, 'end');
+
+    // 紫の膜を描画
+    updatePartialExecuteOverlay();
+
+    // ハイライトを更新
+    updatePartialExecuteHighlight();
+}
+
+// 紫の膜（オーバーレイ）を更新
+function updatePartialExecuteOverlay() {
+    const container = document.querySelector(`#layer-${leftVisibleLayer} .node-list-container`);
+    if (!container) return;
+
+    // 既存のオーバーレイを削除
+    const existingOverlay = document.getElementById('partial-execute-overlay-area');
+    if (existingOverlay) existingOverlay.remove();
+
+    // オーバーレイを作成
+    const overlay = document.createElement('div');
+    overlay.id = 'partial-execute-overlay-area';
+
+    const top = partialExecuteMode.startY + 4;  // 開始バーの下端から
+    const height = partialExecuteMode.endY - partialExecuteMode.startY - 4;  // 終了バーの上端まで
+
+    overlay.style.cssText = `
+        position: absolute;
+        left: 0;
+        top: ${top}px;
+        width: 100%;
+        height: ${height}px;
+        background: linear-gradient(180deg,
+            rgba(64, 224, 208, 0.2) 0%,
+            rgba(0, 206, 209, 0.15) 50%,
+            rgba(64, 224, 208, 0.2) 100%);
+        pointer-events: none;
+        z-index: 500;
+        border-left: 2px solid rgba(0, 206, 209, 0.4);
+        border-right: 2px solid rgba(0, 206, 209, 0.4);
+    `;
+
+    container.appendChild(overlay);
+}
+
+// バーのドラッグを設定
+function setupBarDrag(bar, type) {
+    let isDragging = false;
+    let startMouseY = 0;
+    let startBarY = 0;
+
+    bar.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startMouseY = e.clientY;
+        startBarY = type === 'start' ? partialExecuteMode.startY : partialExecuteMode.endY;
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        const container = document.querySelector(`#layer-${leftVisibleLayer} .node-list-container`);
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const deltaY = e.clientY - startMouseY;
+        let newY = startBarY + deltaY;
+
+        // 範囲制限
+        const minY = 0;
+        const maxY = container.scrollHeight - 10;
+        newY = Math.max(minY, Math.min(maxY, newY));
+
+        // 開始・終了の順序を維持
+        if (type === 'start') {
+            if (newY < partialExecuteMode.endY - 20) {
+                partialExecuteMode.startY = newY;
+                bar.style.top = `${newY}px`;
+            }
+        } else {
+            if (newY > partialExecuteMode.startY + 20) {
+                partialExecuteMode.endY = newY;
+                bar.style.top = `${newY}px`;
+            }
+        }
+
+        // ハイライトと膜を更新
+        updatePartialExecuteHighlight();
+        updatePartialExecuteOverlay();
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            // ノード位置にスナップ
+            snapBarToNodePosition(type);
+            // ノードインデックスを更新
+            updatePartialExecuteNodeIndices();
+        }
+    });
+}
+
+// バーをノード位置にスナップ
+function snapBarToNodePosition(type) {
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    const sortedNodes = [...currentLayerNodes].sort((a, b) => a.y - b.y);
+
+    if (sortedNodes.length === 0) return;
+
+    const bar = document.getElementById(type === 'start' ? 'partial-start-bar' : 'partial-end-bar');
+    if (!bar) return;
+
+    const currentY = type === 'start' ? partialExecuteMode.startY : partialExecuteMode.endY;
+
+    // 最も近いノードを探す
+    let closestNode = null;
+    let closestDistance = Infinity;
+
+    sortedNodes.forEach(node => {
+        // 開始バーはノードの上端、終了バーはノードの下端を基準
+        const targetY = type === 'start' ? node.y - 5 : node.y + 45;
+        const distance = Math.abs(currentY - targetY);
+
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestNode = node;
+        }
+    });
+
+    if (closestNode) {
+        // スナップ位置を設定
+        const snapY = type === 'start' ? closestNode.y - 5 : closestNode.y + 45;
+
+        if (type === 'start') {
+            // 終了バーより上にスナップ
+            if (snapY < partialExecuteMode.endY - 20) {
+                partialExecuteMode.startY = snapY;
+                bar.style.top = `${snapY}px`;
+            }
+        } else {
+            // 開始バーより下にスナップ
+            if (snapY > partialExecuteMode.startY + 20) {
+                partialExecuteMode.endY = snapY;
+                bar.style.top = `${snapY}px`;
+            }
+        }
+
+        // ハイライトと膜を更新
+        updatePartialExecuteHighlight();
+        updatePartialExecuteOverlay();
+
+        console.log(`[部分実行] ${type}バーをノード「${closestNode.text}」にスナップ: Y=${type === 'start' ? partialExecuteMode.startY : partialExecuteMode.endY}`);
+    }
+}
+
+// 範囲内のノードをハイライト
+function updatePartialExecuteHighlight() {
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    const sortedNodes = [...currentLayerNodes].sort((a, b) => a.y - b.y);
+
+    // すべてのノードボタンを取得
+    const container = document.querySelector(`#layer-${leftVisibleLayer} .node-list-container`);
+    if (!container) return;
+
+    const nodeButtons = container.querySelectorAll('.node-button');
+
+    nodeButtons.forEach(btn => {
+        const nodeId = btn.dataset.nodeId;
+        const node = sortedNodes.find(n => String(n.id) === nodeId);
+
+        if (node) {
+            const nodeY = node.y;
+            const nodeBottom = nodeY + 40;
+
+            // バーの範囲内かチェック
+            if (nodeY >= partialExecuteMode.startY - 20 && nodeBottom <= partialExecuteMode.endY + 20) {
+                // 範囲内: 紫のハイライト
+                btn.style.outline = '3px solid rgba(155, 89, 182, 0.7)';
+                btn.style.outlineOffset = '-3px';
+                btn.style.boxShadow = '0 0 10px rgba(155, 89, 182, 0.4)';
+            } else {
+                // 範囲外: ハイライト解除
+                btn.style.outline = '';
+                btn.style.outlineOffset = '';
+                btn.style.boxShadow = '';
+            }
+        }
+    });
+}
+
+// ハイライトを解除
+function clearPartialExecuteHighlight() {
+    const container = document.querySelector(`#layer-${leftVisibleLayer} .node-list-container`);
+    if (!container) return;
+
+    const nodeButtons = container.querySelectorAll('.node-button');
+    nodeButtons.forEach(btn => {
+        btn.style.outline = '';
+        btn.style.outlineOffset = '';
+        btn.style.boxShadow = '';
+    });
+}
+
+// ノードインデックスを更新
+function updatePartialExecuteNodeIndices() {
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    const sortedNodes = [...currentLayerNodes].sort((a, b) => a.y - b.y);
+
+    let startIndex = 0;
+    let endIndex = sortedNodes.length - 1;
+
+    sortedNodes.forEach((node, index) => {
+        const nodeY = node.y;
+        const nodeBottom = nodeY + 40;
+
+        if (nodeY >= partialExecuteMode.startY - 20 && startIndex === 0) {
+            startIndex = index;
+        }
+        if (nodeBottom <= partialExecuteMode.endY + 20) {
+            endIndex = index;
+        }
+    });
+
+    partialExecuteMode.startNodeIndex = startIndex;
+    partialExecuteMode.endNodeIndex = endIndex;
+
+    // コントロールの表示を更新
+    updatePartialExecuteControlsInfo();
+
+    console.log(`[部分実行] 範囲更新: ${startIndex + 1}〜${endIndex + 1}`);
+}
+
+// 実行コントロールを表示
+function showPartialExecuteControls() {
+    // 既存のコントロールを削除
+    const existing = document.getElementById('partial-execute-controls');
+    if (existing) existing.remove();
+
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    const sortedNodes = [...currentLayerNodes].sort((a, b) => a.y - b.y);
+
+    const controls = document.createElement('div');
+    controls.id = 'partial-execute-controls';
+    controls.style.cssText = `
+        position: fixed;
+        bottom: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 20px;
+        z-index: 10000;
+        box-shadow: 0 4px 20px rgba(52, 152, 219, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    `;
+
+    controls.innerHTML = `
+        <span style="color: #2980b9; font-weight: bold;">部分実行モード</span>
+        <span id="partial-range-info" style="color: #666; font-size: 0.9em;">
+            範囲: 1〜${sortedNodes.length}
+        </span>
+        <button onclick="executePartialCode()" style="
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        ">▶ 実行</button>
+        <button onclick="closePartialExecuteMode()" style="
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #f5f5f5;
+            cursor: pointer;
+        ">閉じる</button>
+    `;
+
+    document.body.appendChild(controls);
+}
+
+// コントロールの情報を更新
+function updatePartialExecuteControlsInfo() {
+    const info = document.getElementById('partial-range-info');
+    if (info) {
+        info.textContent = `範囲: ${partialExecuteMode.startNodeIndex + 1}〜${partialExecuteMode.endNodeIndex + 1}`;
+    }
+}
+
+// 部分実行を実行
+async function executePartialCode() {
+    if (!partialExecuteMode.active) {
+        alert('部分実行モードがアクティブではありません。');
+        return;
+    }
+
+    const startIndex = partialExecuteMode.startNodeIndex;
+    const endIndex = partialExecuteMode.endNodeIndex;
+
+    console.log(`[部分実行] 実行開始: インデックス ${startIndex}〜${endIndex}`);
+
+    try {
+        // 現在のレイヤーのノードを取得
+        const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+
+        // ノードをY座標でソート
+        const sortedNodes = [...currentLayerNodes].sort((a, b) => a.y - b.y);
+
+        // 範囲内のノードを抽出
+        const selectedNodes = sortedNodes.slice(startIndex, endIndex + 1);
+
+        console.log(`[部分実行] 選択されたノード数: ${selectedNodes.length}個`);
+        console.log('[部分実行] 選択されたノード:', selectedNodes.map(n => n.text));
+
+        if (selectedNodes.length === 0) {
+            alert('選択された範囲にノードがありません。');
+            return;
+        }
+
+        // 送信データを準備
+        const requestData = {
+            nodes: selectedNodes.map(n => ({
+                id: n.id,
+                text: n.text,
+                color: n.color,
+                y: n.y,
+                処理番号: n.処理番号,
+                script: n.script || ''
+            })),
+            outputPath: null,
+            openFile: false,
+            partialExecution: true,
+            startLine: startIndex + 1,
+            endLine: endIndex + 1
+        };
+
+        console.log('[部分実行] API送信データ:', JSON.stringify(requestData, null, 2));
+
+        // APIを呼び出し
+        const result = await callApi('/execute/generate', 'POST', requestData);
+
+        if (result.success) {
+            console.log(`✅ [部分実行] 成功 - ノード数: ${result.nodeCount}個, コード長: ${result.code?.length || 0}文字`);
+
+            // PowerShell Windows Formsでコード結果を表示
+            try {
+                const showResultResponse = await fetch(`${API_BASE}/code-result/show`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        code: result.code,
+                        nodeCount: result.nodeCount,
+                        outputPath: result.outputPath,
+                        timestamp: new Date().toLocaleString('ja-JP'),
+                        partialExecution: true,
+                        range: `${startIndex + 1}〜${endIndex + 1}`
+                    })
+                });
+
+                const showResultData = await showResultResponse.json();
+
+                if (showResultData.success) {
+                    console.log('✅ [部分実行] コード結果ダイアログを表示しました');
+                } else {
+                    console.error('❌ [部分実行] コード結果ダイアログ表示エラー:', showResultData.error);
+                }
+            } catch (error) {
+                console.error('❌ [部分実行] コード結果ダイアログ表示エラー:', error);
+            }
+        } else {
+            console.error(`❌ [部分実行] 失敗: ${result.error}`);
+            alert(`部分実行失敗: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('❌ [部分実行] エラー:', error);
+        alert(`部分実行中にエラーが発生しました: ${error.message}`);
     }
 }
 
@@ -4546,23 +5378,34 @@ async function loadExistingNodes() {
         }
 
         // memory.jsonからノードを復元
+        console.log('┌─ [memory.json復元] 開始 ─────────────────────');
         for (let layerNum = 1; layerNum <= 6; layerNum++) {
             const layerData = memoryData[layerNum.toString()];
             if (!layerData || !layerData.構成) continue;
 
-            layerData.構成.forEach(nodeData => {
-                // IDが保存されていればそれを使用、なければ新規生成（後方互換性）
+            layerData.構成.forEach((nodeData, index) => {
+                // IDが保存されていればそれを使用、なければボタン名またはレイヤー+インデックスから生成
                 let nodeId;
                 if (nodeData.ID) {
+                    // 新形式: IDフィールドがある
                     nodeId = nodeData.ID;
-                    if (LOG_CONFIG.memoryLoad) {
-                        console.log(`[memory.json読み込み] ノードID復元: ${nodeId}`);
-                    }
+                    console.log(`│ [L${layerNum}] ノード${index + 1}: ID復元 = ${nodeId}`);
+                } else if (nodeData.ボタン名 && nodeData.ボタン名.includes('-')) {
+                    // 旧形式互換: ボタン名が「13-1」などのID形式の場合はそれを使用
+                    nodeId = nodeData.ボタン名;
+                    console.log(`│ [L${layerNum}] ノード${index + 1}: ボタン名からID復元 = ${nodeId}`);
                 } else {
-                    nodeId = `node-${nodeCounter++}`;
-                    if (LOG_CONFIG.memoryLoad) {
-                        console.log(`⚠️ [memory.json読み込み] ノードIDが保存されていないため新規生成: ${nodeId}`);
-                    }
+                    // ID形式を addSingleNode と統一（数値-1 形式）
+                    const newIdNum = nodeCounter++;
+                    nodeId = `${newIdNum}-1`;
+                    console.log(`│ [L${layerNum}] ノード${index + 1}: ID新規生成 = ${nodeId} (⚠️ IDフィールドなし)`);
+                }
+
+                // デバッグ: Pinkノードのscript内容を詳細出力
+                if (nodeData.ボタン色 === 'Pink') {
+                    console.log(`│   ★ Pinkノード検出: テキスト="${nodeData.テキスト}"`);
+                    console.log(`│   ★ script内容: "${nodeData.script || '(空)'}"`);
+                    console.log(`│   ★ nodeData全体:`, JSON.stringify(nodeData, null, 2));
                 }
 
                 const node = {
@@ -4585,8 +5428,10 @@ async function loadExistingNodes() {
                 layerStructure[layerNum].nodes.push(node);
             });
         }
+        console.log('└─ [memory.json復元] 完了 ─────────────────────');
 
         // nodeCounter を更新（既存ノードの最大ID + 1）
+        let needsSave = false;
         nodes.forEach(node => {
             const match = node.id.match(/^(\d+)-/);
             if (match) {
@@ -4597,6 +5442,23 @@ async function loadExistingNodes() {
             }
         });
         console.log(`[memory.json読み込み] nodeCounter を ${nodeCounter} に更新しました`);
+
+        // IDフィールドがなかった場合は、新しいIDでmemory.jsonを再保存
+        // これにより、次回起動時にIDが維持される
+        for (let layerNum = 1; layerNum <= 6; layerNum++) {
+            const layerData = memoryData[layerNum.toString()];
+            if (!layerData || !layerData.構成) continue;
+            layerData.構成.forEach((nodeData) => {
+                if (!nodeData.ID) {
+                    needsSave = true;
+                }
+            });
+        }
+        if (needsSave) {
+            console.log('[memory.json復元] IDフィールドがないノードがあるため、memory.jsonを再保存します');
+            // 非同期で保存（await不要、バックグラウンドで実行）
+            setTimeout(() => saveMemoryJson(), 500);
+        }
 
         // 左パネルのみを再描画（起動時は右パネルを非表示）
         renderNodesInLayer(leftVisibleLayer, 'left');
@@ -4625,6 +5487,7 @@ async function saveMemoryJson() {
         // 各レイヤーのノードに順番を付ける
         const formattedLayerStructure = {};
 
+        console.log('┌─ [memory.json保存] 開始 ─────────────────────');
         for (let i = 0; i <= 6; i++) {
             const layerNodes = layerStructure[i].nodes || [];
             // Y座標でソート
@@ -4640,7 +5503,15 @@ async function saveMemoryJson() {
                 visible: layerStructure[i].visible,
                 nodes: nodesWithIndex
             };
+
+            // デバッグ: Pinkノードの情報を出力
+            nodesWithIndex.forEach(node => {
+                if (node.color === 'Pink') {
+                    console.log(`│ [L${i}] Pinkノード保存: ID=${node.id}, script="${node.script || '(空)'}"`);
+                }
+            });
         }
+        console.log('└─ [memory.json保存] API呼び出し ────────────────');
 
         const response = await fetch(`${API_BASE}/folders/${currentFolder}/memory`, {
             method: 'POST',
@@ -4687,7 +5558,17 @@ async function loadCodeJson() {
             if (typeof codeData["最後のID"] !== 'number') {
                 codeData["最後のID"] = 0;
             }
-            console.log('コード.json読み込み成功:', codeData);
+            // デバッグ: コード.jsonのエントリ一覧を出力
+            console.log('┌─ [コード.json読み込み] 成功 ─────────────────');
+            console.log('│ エントリ数:', Object.keys(codeData["エントリ"]).length);
+            console.log('│ 最後のID:', codeData["最後のID"]);
+            console.log('│ エントリキー一覧:', Object.keys(codeData["エントリ"]).join(', '));
+            // 各エントリの先頭50文字を出力
+            Object.entries(codeData["エントリ"]).forEach(([key, value]) => {
+                const preview = value ? value.substring(0, 50).replace(/\r?\n/g, '\\n') : '(空)';
+                console.log(`│   [${key}]: "${preview}${value && value.length > 50 ? '...' : ''}"`);
+            });
+            console.log('└─────────────────────────────────────────────');
         } else {
             console.error('コード.json読み込み失敗:', result.error);
             // 空のデータで初期化
@@ -4846,7 +5727,7 @@ let currentSettingsNode = null;
 
 // ノード設定（PowerShell Windows Forms版）
 async function openNodeSettings(node) {
-    console.log('✅ [ノード設定] モーダルを開く:', node.text, 'ID:', node.id);
+    if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] モーダルを開く:', node.text, 'ID:', node.id);
 
     // ノードIDで最新の情報を取得（layerStructureから）
     let actualNode = null;
@@ -4854,7 +5735,6 @@ async function openNodeSettings(node) {
         const found = layerStructure[layer].nodes.find(n => n.id === node.id);
         if (found) {
             actualNode = found;
-            console.log('✅ [ノード設定] レイヤー', layer, 'から最新ノード情報を取得しました');
             break;
         }
     }
@@ -4866,8 +5746,16 @@ async function openNodeSettings(node) {
     }
 
     // コード.jsonからスクリプトを取得
-    const scriptContent = getCodeEntry(actualNode.id);
-    console.log('✅ [ノード設定] スクリプト取得:', scriptContent ? scriptContent.length : 0, '文字');
+    let scriptContent = getCodeEntry(actualNode.id);
+
+    // Pinkノードの場合、コード.jsonにエントリがなければscriptプロパティから子ノード情報を使用
+    if (!scriptContent && actualNode.color === 'Pink' && actualNode.script) {
+        if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] Pinkノード: scriptプロパティから子ノード情報を取得');
+        // Pinkノードのscriptは子ノードのメタ情報（ID;色;テキスト;groupId）
+        // これをAAA形式に変換してダイアログに表示
+        scriptContent = 'AAAA\n' + actualNode.script.replace(/_/g, '\n');
+    }
+    if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] スクリプト取得:', scriptContent ? scriptContent.length : 0, '文字');
 
     // リクエストボディを作成
     const requestBody = {
@@ -4893,11 +5781,11 @@ async function openNodeSettings(node) {
         requestBody.loopVariable = actualNode.loopVariable;
     }
 
-    console.log('✅ [ノード設定] APIリクエストボディ:', JSON.stringify(requestBody, null, 2));
+    if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] APIリクエストボディ:', JSON.stringify(requestBody, null, 2));
 
     try {
         // PowerShell Windows Formsダイアログを呼び出し
-        console.log('✅ [ノード設定] PowerShell設定ダイアログを呼び出します...');
+        if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] PowerShell設定ダイアログを呼び出します...');
         const response = await fetch(`${API_BASE}/node/settings`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -4913,12 +5801,11 @@ async function openNodeSettings(node) {
         }
 
         if (result.cancelled) {
-            console.log('⚠ [ノード設定] ユーザーがキャンセルしました');
             return;
         }
 
         if (result.success && result.settings) {
-            console.log('✅ [ノード設定] 編集完了:', result.settings);
+            if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] 編集完了:', result.settings);
 
             // ノード情報を更新
             actualNode.text = result.settings.text;
@@ -4945,8 +5832,6 @@ async function openNodeSettings(node) {
             // 画面を再描画
             renderNodesInLayer(leftVisibleLayer);
             await saveMemoryJson();
-
-            console.log('✅ [ノード設定] ✅ ノード設定を保存しました');
         }
 
     } catch (error) {
@@ -4957,12 +5842,10 @@ async function openNodeSettings(node) {
 
 function closeNodeSettingsModal() {
     // Web UIモーダルは廃止（PowerShell Windows Forms版を使用）
-    console.log('[ノード設定] closeNodeSettingsModal() は廃止されました');
 }
 
 async function saveNodeSettings() {
     // Web UIモーダルは廃止（PowerShell Windows Forms版を使用）
-    console.log('[ノード設定] saveNodeSettings() は廃止されました');
 }
 
 // ============================================
@@ -6783,17 +7666,26 @@ function showLayerInDrilldownPanel(parentNodeData) {
             color: white;
             font-weight: bold;
             font-size: 14px;
-        ">
+            cursor: pointer;
+        " title="クリックで編集モードに入る">
             <span>レイヤー${targetLayer} - ${layerName}</span>
-            <button class="drilldown-edit-btn" onclick="enterEditMode(${targetLayer})" title="このレイヤーを編集">
-                ✏️ 編集
-            </button>
+            <span style="font-size: 12px; opacity: 0.8;">✏️ クリックで編集</span>
         </div>
         <div class="layer-indicator">L${targetLayer}</div>
-        <div class="node-list-container" id="drilldown-nodes" style="position: relative;">
+        <div class="node-list-container" id="drilldown-nodes" style="position: relative; cursor: pointer;" title="クリックで編集モードに入る">
             <!-- ノードがここに表示される -->
         </div>
     `;
+
+    // ドリルダウンパネル全体のクリックで編集モードに入る
+    rightPanel.addEventListener('click', function drilldownPanelClickHandler(e) {
+        // ノードボタンのクリックは除外（ノード自体の操作を優先）
+        if (e.target.closest('.node-button')) {
+            return;
+        }
+        console.log(`[ドリルダウン] パネルクリック → 編集モードに入ります（レイヤー${targetLayer}）`);
+        enterEditMode(targetLayer);
+    }, { once: true }); // 一度だけ実行（編集モードに入ったら不要）
 
     // ノードを描画（既存のrenderNodesInLayerと同じロジック）
     const nodeContainer = rightPanel.querySelector('#drilldown-nodes');
@@ -6874,6 +7766,13 @@ function showLayerInDrilldownPanel(parentNodeData) {
         }
 
         console.log(`🔍 [ドリルダウン] ノード描画完了: ${sortedNodes.length}個`);
+
+        // ノード数が多い場合にコンテナの高さを動的に調整
+        if (sortedNodes.length > 0) {
+            const maxY = Math.max(...sortedNodes.map(n => n.y)) + 80; // ノード高さ(40px) + 余白(40px)
+            nodeContainer.style.minHeight = `${Math.max(700, maxY)}px`;
+            console.log(`🔍 [ドリルダウン] コンテナ高さを調整: ${Math.max(700, maxY)}px`);
+        }
 
         // Canvas要素を追加して矢印を描画
         const existingCanvas = nodeContainer.querySelector('.arrow-canvas');
@@ -6961,11 +7860,56 @@ function closeDrilldownPanel() {
     drilldownState.currentPinkNode = null;
     drilldownState.targetLayer = null;
 
+    // グロー効果を解除（Pinkノードのピックアップ状態を解除）
+    clearGlowEffects();
+
     // ★ パンくずリストは左パネルに連動するため、ドリルダウンを閉じても変更しない
 
     if (LOG_CONFIG.pink) {
         console.log('[ドリルダウン] パネルを閉じました');
     }
+}
+
+// グロー効果をすべて解除
+function clearGlowEffects() {
+    console.log('[グロー効果] clearGlowEffects() - グロー効果を解除');
+
+    // グロー状態をクリア
+    glowState.sourceNode = null;
+    glowState.sourceLayer = null;
+    glowState.targetLayer = null;
+
+    // すべてのノードからglow-sourceクラスとインラインスタイルを削除
+    const existingGlowSources = document.querySelectorAll('.node-button.glow-source');
+    existingGlowSources.forEach(el => {
+        el.classList.remove('glow-source');
+        el.style.border = '';
+        el.style.borderRadius = '';
+        el.style.transform = '';
+        el.style.transformOrigin = '';
+        el.style.zIndex = '';
+        el.style.transition = '';
+        el.style.boxShadow = '';
+        el.style.animation = '';
+        el.style.outline = '';
+        el.style.outlineOffset = '';
+    });
+
+    // グロー矢印インジケーター（▶）を削除
+    const existingArrows = document.querySelectorAll('.glow-arrow-indicator');
+    existingArrows.forEach(el => el.remove());
+    console.log(`[グロー効果] ${existingArrows.length}個のグロー矢印を削除しました`);
+
+    // ピンク矢印の状態もクリア
+    arrowState.pinkSelected = false;
+    arrowState.selectedPinkButton = null;
+
+    // 矢印を再描画（ピンク矢印を消すため）
+    if (window.arrowDrawing) {
+        window.arrowDrawing.drawPanelArrows(`layer-${leftVisibleLayer}`);
+    }
+
+    console.log(`[グロー効果] ${existingGlowSources.length}個のグロー効果を解除しました`);
 }
 
 // 編集モードに入る（指定したレイヤーを左パネルで編集）
@@ -7146,6 +8090,25 @@ async function loadCurrentLayerData() {
     }
 }
 
+// 重複しないY座標を計算（既存ノードと重ならない位置を探す）
+function findNonOverlappingY(targetLayer, desiredY, nodeHeight = 40, gridSize = 60) {
+    const layerNodes = layerStructure[targetLayer]?.nodes || [];
+
+    // desiredYをグリッドにスナップ
+    let newY = Math.round(desiredY / gridSize) * gridSize + 30;
+
+    // 既存ノードのY座標を取得してソート
+    const existingYs = layerNodes.map(n => n.y).sort((a, b) => a - b);
+
+    // 重複チェック：同じY座標にノードがあれば下にずらす
+    while (existingYs.includes(newY)) {
+        newY += gridSize;
+        console.log(`[Y座標調整] 重複検出、新しいY=${newY}`);
+    }
+
+    return newY;
+}
+
 // ノードをコピー
 async function copyNode(nodeId) {
     console.log(`[コピー] ノードをコピー: ${nodeId}`);
@@ -7196,9 +8159,9 @@ async function pasteNode() {
         const random = Math.floor(Math.random() * 900) + 100;
         const newNodeId = `node-${timestamp}-${random}`;
 
-        // Y座標を30px下にオフセット
-        const offsetY = 30;
-        const newY = sourceNode.y + offsetY;
+        // Y座標を計算（重複しない位置を探す）
+        const desiredY = sourceNode.y + 60;  // 元のノードの1グリッド下を希望
+        const newY = findNonOverlappingY(sourceNode.layer, desiredY);
 
         // 新しいノードを作成（元のノードの全プロパティをコピー）
         const newNode = {
@@ -7461,26 +8424,18 @@ async function updateUndoRedoButtons() {
         const redoBtn = document.getElementById('btn-redo');
 
         if (data.success) {
-            // Undoボタンの状態
+            // Undoボタンの状態（CSSクラスで制御）
             if (data.canUndo) {
-                undoBtn.style.opacity = '1.0';
-                undoBtn.style.pointerEvents = 'auto';
-                undoBtn.style.cursor = 'pointer';
+                undoBtn.classList.remove('disabled');
             } else {
-                undoBtn.style.opacity = '0.5';
-                undoBtn.style.pointerEvents = 'none';
-                undoBtn.style.cursor = 'not-allowed';
+                undoBtn.classList.add('disabled');
             }
 
-            // Redoボタンの状態
+            // Redoボタンの状態（CSSクラスで制御）
             if (data.canRedo) {
-                redoBtn.style.opacity = '1.0';
-                redoBtn.style.pointerEvents = 'auto';
-                redoBtn.style.cursor = 'pointer';
+                redoBtn.classList.remove('disabled');
             } else {
-                redoBtn.style.opacity = '0.5';
-                redoBtn.style.pointerEvents = 'none';
-                redoBtn.style.cursor = 'not-allowed';
+                redoBtn.classList.add('disabled');
             }
 
             if (LOG_CONFIG.history) {

@@ -17,63 +17,11 @@ const AURORA_COLORS = {
 
 // ============================================
 // 既存のdrawDownArrow関数をAurora版に置き換え
+// ※ ただしプレーンノード間（黒矢印）はシンプルな描画を維持
 // ============================================
-function drawDownArrow(ctx, fromNode, toNode, color = '#000000') {
-    const fromRect = fromNode.getBoundingClientRect();
-    const toRect = toNode.getBoundingClientRect();
-    const containerRect = fromNode.closest('.node-list-container').getBoundingClientRect();
-
-    // 相対座標に変換（既存のロジックを保持）
-    const startX = fromRect.left + fromRect.width / 2 - containerRect.left;
-    const startY = fromRect.bottom - containerRect.top;
-    const endX = toRect.left + toRect.width / 2 - containerRect.left;
-    const endY = toRect.top - containerRect.top;
-
-    // 色に基づいてAuroraグラデーションカラーを選択
-    let gradientColors = AURORA_COLORS.default;
-    
-    // 既存の色判定ロジックを保持
-    if (color === '#000000' || color === 'rgb(0, 0, 0)') {
-        gradientColors = AURORA_COLORS.default;
-    } else if (color === 'rgb(250, 128, 114)' || color.includes('250, 128')) {
-        gradientColors = AURORA_COLORS.red;  // False分岐
-    } else if (color === 'rgb(200, 220, 255)' || color.includes('200, 220')) {
-        gradientColors = AURORA_COLORS.blue; // True分岐
-    } else if (color === 'rgb(255, 165, 0)' || color.includes('255, 165')) {
-        gradientColors = AURORA_COLORS.yellow; // ループ
-    } else if (color === 'rgb(255, 105, 180)' || color.includes('255, 105')) {
-        gradientColors = AURORA_COLORS.pink; // スクリプト化
-    }
-
-    // Auroraグラデーションを作成
-    const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
-    gradient.addColorStop(0, gradientColors[0]);
-    gradient.addColorStop(1, gradientColors[1]);
-
-    // Aurora発光効果
-    ctx.shadowColor = gradientColors[0];
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
-    // 線を描画（線幅を少し太くしてグラデーションを見やすく）
-    ctx.strokeStyle = gradient;
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
-    ctx.stroke();
-
-    // 矢印ヘッドを描画（Aurora色で）
-    drawArrowHead(ctx, startX, startY, endX, endY, 10, 30, gradientColors[1]);
-
-    // 影をリセット
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = 'transparent';
-}
+// このパッチは app-legacy.js の drawDownArrow より後に読み込まれるが、
+// app-legacy.js側の関数が優先されるように、ここでは何もしない
+// （app-legacy.jsで正しく定義済みのため、上書きしない）
 
 // ============================================
 // 既存のdrawBranchArrow関数をAurora版に置き換え
@@ -129,28 +77,8 @@ function drawBranchArrow(ctx, fromNode, toNode, branchType = 'true') {
 // ============================================
 // 矢印ヘッド描画の更新（色指定対応）
 // ============================================
-function drawArrowHead(ctx, startX, startY, endX, endY, headLength = 10, headAngle = 30, fillColor = null) {
-    const angle = Math.atan2(endY - startY, endX - startX);
-    const headRadian = headAngle * Math.PI / 180;
-
-    // 塗りつぶし色（Aurora色を使用）
-    if (fillColor) {
-        ctx.fillStyle = fillColor;
-    }
-
-    ctx.beginPath();
-    ctx.moveTo(endX, endY);
-    ctx.lineTo(
-        endX - headLength * Math.cos(angle - headRadian),
-        endY - headLength * Math.sin(angle - headRadian)
-    );
-    ctx.lineTo(
-        endX - headLength * Math.cos(angle + headRadian),
-        endY - headLength * Math.sin(angle + headRadian)
-    );
-    ctx.closePath();
-    ctx.fill();
-}
+// 注: app-legacy.jsのdrawArrowHead関数を優先するため、ここでは定義しない
+// app-legacy.jsの関数はstrokeStyleを使用してシンプルな矢印ヘッドを描画する
 
 // 角度指定版の矢印ヘッド描画
 function drawArrowHeadAtAngle(ctx, x, y, angle, headLength = 10, headAngle = 30, fillColor = null) {
@@ -285,22 +213,10 @@ function drawGlowArrow(ctx, fromNode, toNode) {
 }
 
 // ============================================
-// 既存のdrawArrows関数をパッチ（Aurora効果を追加）
+// 既存のdrawArrows関数をパッチ（Aurora効果を削除）
 // ============================================
-const originalDrawArrows = window.drawArrows;
-window.drawArrows = function(container) {
-    // Canvas設定にAurora効果を追加
-    const canvas = container.querySelector('.arrow-canvas');
-    if (canvas) {
-        // Canvasにフィルターを追加（グロー効果）
-        canvas.style.filter = 'drop-shadow(0 0 3px rgba(102, 126, 234, 0.3))';
-    }
-    
-    // 既存のdrawArrows関数を呼び出し（既存の機能を保持）
-    if (originalDrawArrows) {
-        originalDrawArrows.call(this, container);
-    }
-};
+// 注: グロー効果（drop-shadow フィルター）は削除済み
+// プレーンノード間の矢印は黒いシンプルな線で描画する
 
 // ============================================
 // ユーティリティ: 色のブレンド（グラデーション中間色用）

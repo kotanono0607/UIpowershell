@@ -1,18 +1,20 @@
-# ================================================================
+﻿# ================================================================
 # 17_操作履歴管理.ps1
 # ================================================================
 # 責任: Undo/Redo機能の操作履歴管理
 #
 # 含まれる関数:
 #   - Initialize-HistoryStack  : 操作履歴スタックの初期化
-#   - Record-Operation        : 操作を記録
-#   - Undo-Operation          : Undo実行
-#   - Redo-Operation          : Redo実行
+#   - Record-Operation        : 操作を記録（差分保存方式）
+#   - Undo-Operation          : Undo実行（差分復元方式）
+#   - Redo-Operation          : Redo実行（差分復元方式）
 #   - Get-HistoryStatus       : 履歴状態取得
 #   - Clear-HistoryStack      : 履歴クリア
 #
 # 作成日: 2025-11-19
+# 更新日: 2025-11-29
 # 目的: スナップショット機能を拡張してUndo/Redo機能を実装
+# 変更: 差分保存方式に変更（ファイルサイズ大幅削減）
 # ================================================================
 
 # グローバル変数
@@ -92,11 +94,12 @@ function Initialize-HistoryStack {
 
 <#
 .SYNOPSIS
-操作を記録
+操作を記録（差分保存方式）
 
 .DESCRIPTION
 ノード追加/削除/移動/更新などの操作を履歴スタックに記録。
 Redo分岐を削除し、新しい操作を追加する。
+【改善】全体スナップショットではなく、変更されたレイヤーのみを保存してファイルサイズを削減。
 
 .PARAMETER FolderPath
 プロジェクトフォルダのパス
@@ -159,16 +162,90 @@ function Record-Operation {
             Write-Host "[操作履歴] Redo分岐を削除しました" -ForegroundColor Yellow
         }
 
-        # 新しい操作を追加
+        # ===== 差分抽出処理 =====
+        $affectedLayers = @()
+        $layerDiffs = @{}
+
+        if ($MemoryBefore -and $MemoryAfter) {
+            # MemoryBeforeとMemoryAfterを比較して、変更されたレイヤーを特定
+            # レイヤーキーは "1", "2", "3", "4", "5", "6" のみを対象とする
+            $validLayerKeys = @("1", "2", "3", "4", "5", "6")
+            $allLayerKeys = @()
+
+            foreach ($key in $validLayerKeys) {
+                # PSObjectの場合
+                if ($MemoryBefore.PSObject.Properties[$key] -or $MemoryAfter.PSObject.Properties[$key]) {
+                    $allLayerKeys += $key
+                }
+                # Hashtableの場合
+                elseif (($MemoryBefore -is [hashtable] -and $MemoryBefore.ContainsKey($key)) -or
+                        ($MemoryAfter -is [hashtable] -and $MemoryAfter.ContainsKey($key))) {
+                    $allLayerKeys += $key
+                }
+            }
+            $allLayerKeys = $allLayerKeys | Select-Object -Unique
+
+            foreach ($layerKey in $allLayerKeys) {
+                $beforeLayer = $null
+                $afterLayer = $null
+
+                # PSObjectとHashtableの両方に対応
+                if ($MemoryBefore -is [hashtable]) {
+                    if ($MemoryBefore.ContainsKey($layerKey)) {
+                        $beforeLayer = $MemoryBefore[$layerKey]
+                    }
+                } elseif ($MemoryBefore.PSObject.Properties[$layerKey]) {
+                    $beforeLayer = $MemoryBefore.$layerKey
+                }
+
+                if ($MemoryAfter -is [hashtable]) {
+                    if ($MemoryAfter.ContainsKey($layerKey)) {
+                        $afterLayer = $MemoryAfter[$layerKey]
+                    }
+                } elseif ($MemoryAfter.PSObject.Properties[$layerKey]) {
+                    $afterLayer = $MemoryAfter.$layerKey
+                }
+
+                # レイヤーが変更されたかチェック（簡易比較：JSON文字列化して比較）
+                $beforeJson = if ($beforeLayer) { $beforeLayer | ConvertTo-Json -Depth 5 -Compress } else { "" }
+                $afterJson = if ($afterLayer) { $afterLayer | ConvertTo-Json -Depth 5 -Compress } else { "" }
+
+                if ($beforeJson -ne $afterJson) {
+                    $affectedLayers += $layerKey
+                    $layerDiffs[$layerKey] = @{
+                        before = $beforeLayer
+                        after = $afterLayer
+                    }
+                }
+            }
+
+            Write-Host "[操作履歴] 変更されたレイヤー: $($affectedLayers -join ', ')" -ForegroundColor Cyan
+        }
+
+        # コード差分も同様に処理
+        $codeDiff = $null
+        if ($CodeBefore -or $CodeAfter) {
+            $codeDiff = @{
+                before = $CodeBefore
+                after = $CodeAfter
+            }
+        }
+
+        # 新しい操作を追加（差分のみ保存）
         $operation = @{
             operationId = [guid]::NewGuid().ToString()
             operationType = $OperationType
             description = $Description
             timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-            memory_before = $MemoryBefore
-            memory_after = $MemoryAfter
-            code_before = $CodeBefore
-            code_after = $CodeAfter
+            # 差分保存方式のフィールド
+            affectedLayers = $affectedLayers
+            layerDiffs = $layerDiffs
+            codeDiff = $codeDiff
+            # 旧フィールドは削除（互換性のためnullを設定）
+            memory_before = $null
+            memory_after = $null
+            code_before = $null
+            code_after = $null
         }
 
         $global:HistoryStack += $operation
@@ -188,17 +265,19 @@ function Record-Operation {
             HistoryStack = $global:HistoryStack
             CurrentHistoryPosition = $global:CurrentHistoryPosition
             MaxHistoryCount = $global:MaxHistoryCount
+            version = 2  # 差分保存方式のバージョン
         }
 
         Write-JsonSafe -Path $historyPath -Data $historyData -Depth 10 -Silent $true
 
-        Write-Host "[操作履歴] 操作を記録: $Description (位置: $global:CurrentHistoryPosition)" -ForegroundColor Green
+        Write-Host "[操作履歴] 操作を記録: $Description (位置: $global:CurrentHistoryPosition, 影響レイヤー: $($affectedLayers.Count))" -ForegroundColor Green
 
         return @{
             success = $true
             operationId = $operation.operationId
             position = $global:CurrentHistoryPosition
             count = $global:HistoryStack.Count
+            affectedLayers = $affectedLayers
         }
 
     } catch {
@@ -213,11 +292,12 @@ function Record-Operation {
 
 <#
 .SYNOPSIS
-Undo実行（操作を戻す）
+Undo実行（操作を戻す）- 差分復元方式
 
 .DESCRIPTION
 操作履歴スタックから1つ前の状態に戻す。
-memory.jsonとコード.jsonを復元する。
+【改善】差分データを使用して、変更されたレイヤーのみを復元する。
+旧形式（全体スナップショット）との互換性も維持。
 
 .PARAMETER FolderPath
 プロジェクトフォルダのパス
@@ -260,6 +340,7 @@ function Undo-Operation {
         $historyStack = $historyData.HistoryStack
         $currentPosition = $historyData.CurrentHistoryPosition
         $maxCount = if ($historyData.MaxHistoryCount) { $historyData.MaxHistoryCount } else { 50 }
+        $historyVersion = if ($historyData.version) { $historyData.version } else { 1 }
 
         # Undo可能かチェック
         if ($currentPosition -le 0) {
@@ -279,16 +360,46 @@ function Undo-Operation {
         $memoryPath = Join-Path $FolderPath 'memory.json'
         $codePath = Join-Path $FolderPath 'コード.json'
 
-        # memory.jsonを復元
-        if ($currentOp.memory_before) {
-            Write-JsonSafe -Path $memoryPath -Data $currentOp.memory_before -Depth 10 -Silent $true | Out-Null
-            Write-Host "[操作履歴] memory.jsonを復元しました" -ForegroundColor Cyan
-        }
+        # ===== 差分復元処理（v2形式） =====
+        if ($currentOp.layerDiffs -and $currentOp.affectedLayers) {
+            # 現在のmemory.jsonを読み込み
+            $currentMemory = Read-JsonSafe -Path $memoryPath -Required $false -Silent $true
 
-        # コード.jsonを復元（存在する場合）
-        if ($currentOp.code_before) {
-            Write-JsonSafe -Path $codePath -Data $currentOp.code_before -Depth 10 -Silent $true | Out-Null
-            Write-Host "[操作履歴] コード.jsonを復元しました" -ForegroundColor Cyan
+            if ($currentMemory) {
+                # 影響を受けたレイヤーのみを復元
+                foreach ($layerKey in $currentOp.affectedLayers) {
+                    # レイヤーキーを文字列に変換（数値の場合Add-Memberでエラーになるため）
+                    $layerKeyStr = [string]$layerKey
+                    if ($currentOp.layerDiffs.$layerKeyStr) {
+                        $beforeData = $currentOp.layerDiffs.$layerKeyStr.before
+                        if ($null -ne $beforeData) {
+                            $currentMemory | Add-Member -NotePropertyName $layerKeyStr -NotePropertyValue $beforeData -Force
+                        } else {
+                            # beforeがnullの場合、そのレイヤーを削除（新規追加されたレイヤーのUndo）
+                            $currentMemory.PSObject.Properties.Remove($layerKeyStr)
+                        }
+                    }
+                }
+
+                Write-JsonSafe -Path $memoryPath -Data $currentMemory -Depth 10 -Silent $true | Out-Null
+                Write-Host "[操作履歴] memory.jsonを差分復元しました (レイヤー: $($currentOp.affectedLayers -join ', '))" -ForegroundColor Cyan
+            }
+
+            # コード差分の復元
+            if ($currentOp.codeDiff -and $currentOp.codeDiff.before) {
+                Write-JsonSafe -Path $codePath -Data $currentOp.codeDiff.before -Depth 10 -Silent $true | Out-Null
+                Write-Host "[操作履歴] コード.jsonを差分復元しました" -ForegroundColor Cyan
+            }
+        }
+        # ===== 旧形式（v1形式）との互換性 =====
+        elseif ($currentOp.memory_before) {
+            Write-JsonSafe -Path $memoryPath -Data $currentOp.memory_before -Depth 10 -Silent $true | Out-Null
+            Write-Host "[操作履歴] memory.jsonを復元しました (旧形式)" -ForegroundColor Cyan
+
+            if ($currentOp.code_before) {
+                Write-JsonSafe -Path $codePath -Data $currentOp.code_before -Depth 10 -Silent $true | Out-Null
+                Write-Host "[操作履歴] コード.jsonを復元しました (旧形式)" -ForegroundColor Cyan
+            }
         }
 
         # 履歴位置を1つ戻す
@@ -299,6 +410,7 @@ function Undo-Operation {
             HistoryStack = $historyStack
             CurrentHistoryPosition = $currentPosition
             MaxHistoryCount = $maxCount
+            version = $historyVersion
         }
         Write-JsonSafe -Path $historyPath -Data $updatedHistoryData -Depth 10 -Silent $true | Out-Null
 
@@ -394,16 +506,46 @@ function Redo-Operation {
         $memoryPath = Join-Path $FolderPath 'memory.json'
         $codePath = Join-Path $FolderPath 'コード.json'
 
-        # memory.jsonを復元
-        if ($nextOp.memory_after) {
-            Write-JsonSafe -Path $memoryPath -Data $nextOp.memory_after -Depth 10 -Silent $true | Out-Null
-            Write-Host "[操作履歴] memory.jsonを復元しました" -ForegroundColor Cyan
-        }
+        # ===== 差分復元処理（v2形式） =====
+        if ($nextOp.layerDiffs -and $nextOp.affectedLayers) {
+            # 現在のmemory.jsonを読み込み
+            $currentMemory = Read-JsonSafe -Path $memoryPath -Required $false -Silent $true
 
-        # コード.jsonを復元（存在する場合）
-        if ($nextOp.code_after) {
-            Write-JsonSafe -Path $codePath -Data $nextOp.code_after -Depth 10 -Silent $true | Out-Null
-            Write-Host "[操作履歴] コード.jsonを復元しました" -ForegroundColor Cyan
+            if ($currentMemory) {
+                # 影響を受けたレイヤーのみを復元
+                foreach ($layerKey in $nextOp.affectedLayers) {
+                    # レイヤーキーを文字列に変換（数値の場合Add-Memberでエラーになるため）
+                    $layerKeyStr = [string]$layerKey
+                    if ($nextOp.layerDiffs.$layerKeyStr) {
+                        $afterData = $nextOp.layerDiffs.$layerKeyStr.after
+                        if ($null -ne $afterData) {
+                            $currentMemory | Add-Member -NotePropertyName $layerKeyStr -NotePropertyValue $afterData -Force
+                        } else {
+                            # afterがnullの場合、そのレイヤーを削除（削除されたレイヤーのRedo）
+                            $currentMemory.PSObject.Properties.Remove($layerKeyStr)
+                        }
+                    }
+                }
+
+                Write-JsonSafe -Path $memoryPath -Data $currentMemory -Depth 10 -Silent $true | Out-Null
+                Write-Host "[操作履歴] memory.jsonを差分復元しました (レイヤー: $($nextOp.affectedLayers -join ', '))" -ForegroundColor Cyan
+            }
+
+            # コード差分の復元
+            if ($nextOp.codeDiff -and $nextOp.codeDiff.after) {
+                Write-JsonSafe -Path $codePath -Data $nextOp.codeDiff.after -Depth 10 -Silent $true | Out-Null
+                Write-Host "[操作履歴] コード.jsonを差分復元しました" -ForegroundColor Cyan
+            }
+        }
+        # ===== 旧形式（v1形式）との互換性 =====
+        elseif ($nextOp.memory_after) {
+            Write-JsonSafe -Path $memoryPath -Data $nextOp.memory_after -Depth 10 -Silent $true | Out-Null
+            Write-Host "[操作履歴] memory.jsonを復元しました (旧形式)" -ForegroundColor Cyan
+
+            if ($nextOp.code_after) {
+                Write-JsonSafe -Path $codePath -Data $nextOp.code_after -Depth 10 -Silent $true | Out-Null
+                Write-Host "[操作履歴] コード.jsonを復元しました (旧形式)" -ForegroundColor Cyan
+            }
         }
 
         # 履歴位置を1つ進める

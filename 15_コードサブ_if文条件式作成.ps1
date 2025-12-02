@@ -413,6 +413,17 @@
 
     # 「保存」ボタンのクリックイベント
     $btnSave.Add_Click({
+        # プレビューが空の場合はエラーメッセージを表示して保存しない
+        if ([string]::IsNullOrWhiteSpace($txtPreview.Text)) {
+            [System.Windows.Forms.MessageBox]::Show(
+                "ループ構文が生成されていません。`n`n終了値などの必須項目を入力してください。",
+                "入力エラー",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            )
+            return
+        }
+
         # 各行を処理し、#で始まる行を---に置換
         $script:loopResult  = $txtPreview.Text -split "`n" | ForEach-Object {
             if ($_ -match '^\s*#') {

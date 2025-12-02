@@ -1022,6 +1022,18 @@ New-PolarisRoute -Path "/api/execute/generate" -Method POST -ScriptBlock {
         # 配列として確実に変換
         $nodeArray = @($body.nodes)
 
+        # 重要: $global:folderPath と $global:jsonパス を正しく設定
+        # main.json から現在のフォルダパスを直接取得（フルパス）
+        $mainJsonPath = Join-Path $global:RootDirForPolaris "main.json"
+        if (Test-Path $mainJsonPath) {
+            $mainData = Get-Content $mainJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            # main.jsonのフォルダパスをそのまま使用
+            $global:folderPath = $mainData.フォルダパス
+            $global:jsonパス = Join-Path $global:folderPath "コード.json"
+            Write-Host "[実行] フォルダパス: $global:folderPath" -ForegroundColor Cyan
+            Write-Host "[実行] コード.json: $global:jsonパス" -ForegroundColor Cyan
+        }
+
         # OutputPathとOpenFileのデフォルト値設定
         $outputPath = if ($body.outputPath) { $body.outputPath } else { $null }
         $openFile = if ($body.PSObject.Properties.Name -contains 'openFile') { [bool]$body.openFile } else { $false }
@@ -1509,7 +1521,11 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
             foreach ($node in $layerNodes) {
                 # [ordered] を使用してフィールドの順序を既存のPS1形式に合わせる
                 # 既存PS1版: 05_メインフォームUI_矢印処理.ps1 1069-1081行
+                $nodeId = if ($node.id) { $node.id } else { "" }
+                $nodeScript = if ($null -ne $node.script) { $node.script } else { "" }
+
                 $構成 += [ordered]@{
+                    ID = $nodeId
                     ボタン名 = $node.name
                     X座標 = if ($node.x) { $node.x } else { 10 }
                     Y座標 = $node.y
@@ -1519,7 +1535,7 @@ New-PolarisRoute -Path "/api/folders/:name/memory" -Method POST -ScriptBlock {
                     処理番号 = if ($node.処理番号) { $node.処理番号 } else { "未設定" }
                     高さ = if ($node.height) { $node.height } else { 40 }
                     幅 = if ($node.width) { $node.width } else { 280 }
-                    script = if ($null -ne $node.script) { $node.script } else { "未設定" }
+                    script = $nodeScript
                     GroupID = if ($node.groupId -ne $null -and $node.groupId -ne "") { $node.groupId } else { "" }
                 }
                 $totalNodes++

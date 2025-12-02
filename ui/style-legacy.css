@@ -119,32 +119,81 @@ body::after {
     display: flex;
     height: 50px;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     padding: 0 10px;
 }
 
 .menu-item {
-    padding: 0 18px;
-    height: 36px;
+    padding: 0 10px;
+    height: 32px;
+    width: 100px;  /* 統一した幅 */
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    font-size: 13px;
-    border-radius: 12px;
-    margin: 0 2px;
+    justify-content: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 8px;
     background: var(--bg-color);
     color: var(--text-primary);
-    box-shadow: 
-        4px 4px 8px var(--shadow-dark),
-        -4px -4px 8px var(--shadow-light);
+    white-space: nowrap;
+    box-shadow:
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
 }
 
 .menu-item:hover {
-    box-shadow: 
-        6px 6px 12px var(--shadow-dark),
-        -6px -6px 12px var(--shadow-light);
+    box-shadow:
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light);
     transform: translateY(-1px);
+}
+
+/* ブランドロゴ */
+.menu-brand {
+    font-weight: bold;
+    color: var(--aurora-purple);
+    cursor: default;
+    padding: 0 12px;
+    width: auto;  /* ブランドは幅を自動に */
+}
+
+.menu-brand:hover {
+    transform: none;
+}
+
+.menu-brand #app-version {
+    font-size: 10px;
+    font-weight: normal;
+    color: var(--text-secondary);
+    margin-left: 4px;
+}
+
+/* 危険なアクション（削除など） */
+.menu-danger {
+    color: var(--aurora-red);
+}
+
+/* 長いテキスト用のメニュー項目 */
+.menu-wide {
+    width: 120px;
+}
+
+/* Undo/Redo ボタンの無効状態 */
+#btn-undo.disabled,
+#btn-redo.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#btn-undo.disabled:hover,
+#btn-redo.disabled:hover {
+    transform: none;
+    box-shadow:
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
 }
 
 #toolbar {
@@ -223,7 +272,7 @@ body::after {
     padding: 16px;
     display: flex;
     flex-direction: row;
-    gap: 12px;
+    gap: 0;  /* カテゴリータブとノード追加ボタンパネルを隣接させる */
     overflow: hidden;
     flex-shrink: 0;
     box-shadow:
@@ -267,7 +316,7 @@ body::after {
     font-size: 11px;
     text-align: left;
     padding-left: 12px;
-    border-radius: 10px;
+    border-radius: 0;  /* 角の丸みをなくす */
     background: var(--bg-color);
     transition: all 0.3s ease;
     color: var(--text-primary);
@@ -280,9 +329,22 @@ body::after {
 
 .category-btn:hover {
     transform: translateX(4px);
-    box-shadow: 
+    box-shadow:
         5px 5px 10px var(--shadow-dark),
         -5px -5px 10px var(--shadow-light);
+}
+
+/* カテゴリーボタン選択状態 */
+.category-btn.active {
+    box-shadow:
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
+    transform: translateX(4px);
+    font-weight: bold;
+}
+
+.category-btn.active:hover {
+    transform: translateX(4px);
 }
 
 #node-buttons-container {
@@ -291,7 +353,7 @@ body::after {
     margin-left: auto;  /* 右詰めにする */
     overflow: hidden auto;  /* 横hidden、縦auto */
     padding: 12px;
-    border-radius: 12px;
+    border-radius: 0;  /* 角の丸みをなくす */
     background: var(--bg-color);
     box-shadow:
         inset 4px 4px 8px var(--shadow-dark),
@@ -317,7 +379,7 @@ body::after {
 .add-node-btn {
     height: 36px;
     border: none;
-    border-radius: 12px;
+    border-radius: 0;  /* 角の丸みをなくす */
     cursor: pointer;
     font-size: 11px;
     text-align: left;
@@ -332,7 +394,7 @@ body::after {
     background: var(--bg-color);
     transition: all 0.3s ease;
     color: var(--text-primary);
-    box-shadow: 
+    box-shadow:
         3px 3px 6px var(--shadow-dark),
         -3px -3px 6px var(--shadow-light);
 }
@@ -460,9 +522,13 @@ body::after {
 }
 
 .node-button[style*="rgb(252, 160, 158)"],
+.node-button[style*="rgb(255, 20, 147)"],
+.node-button[style*="rgb(255, 182, 193)"],
+.node-button[style*="#ff1493"],
+.node-button[style*="#ffb6c1"],
 .node-button[style*="Pink"] {
     background: var(--bg-color);
-    border: 2px solid var(--aurora-pink);  /* 単色のボーダー */
+    border: 2px solid #ffb6c1;  /* LightPink (パステル) */
     animation: pinkGlow 2s ease-in-out infinite;
 }
 
@@ -471,13 +537,13 @@ body::after {
         box-shadow:
             4px 4px 8px var(--shadow-dark),
             -4px -4px 8px var(--shadow-light),
-            0 0 20px rgba(122, 184, 232, 0.3);  /* 青系のグロー */
+            0 0 15px rgba(255, 182, 193, 0.4);  /* パステルピンクのグロー */
     }
     50% {
         box-shadow:
             4px 4px 8px var(--shadow-dark),
             -4px -4px 8px var(--shadow-light),
-            0 0 40px rgba(122, 184, 232, 0.5);  /* 青系のグロー */
+            0 0 25px rgba(255, 182, 193, 0.6);  /* パステルピンクのグロー */
     }
 }
 
@@ -490,7 +556,7 @@ body::after {
 .node-button[style*="rgb(200, 220, 255)"],
 .node-button[style*="LightBlue"] {
     background: var(--bg-color);
-    border: 2px solid var(--aurora-blue);  /* 単色のボーダー */
+    border: 2px solid var(--aurora-blue);  /* 薄い青 */
 }
 
 .node-button[style*="rgb(128, 128, 128)"],
@@ -531,14 +597,13 @@ body::after {
         0 0 20px rgba(239, 68, 68, 0.3);
 }
 
-/* 矢印Canvas - Aurora Style (既存の機能を保持しつつグロー効果追加) */
+/* 矢印Canvas */
 .arrow-canvas {
     position: absolute;
     top: 0;
     left: 0;
     pointer-events: none;
     z-index: 1;
-    filter: drop-shadow(0 0 3px rgba(102, 126, 234, 0.3));
 }
 
 /* 右パネル削除済み - 2025-11-09 */
@@ -679,7 +744,7 @@ body::after {
 .glow-arrow-indicator {
     /* position, left, top, transformはJavaScriptで動的に設定 */
     font-size: 24px;
-    color: rgba(255, 20, 147, 0.9);
+    color: rgba(255, 182, 193, 0.9);  /* パステルピンク */
     pointer-events: none;
     z-index: 200;
     animation: glowArrowPulse 2s ease-in-out infinite;
@@ -689,17 +754,17 @@ body::after {
     0%, 100% {
         opacity: 0.8;
         text-shadow:
-            0 0 10px rgba(255, 20, 147, 0.8),
-            0 0 20px rgba(255, 105, 180, 0.6),
-            0 0 30px rgba(255, 182, 193, 0.4);
+            0 0 10px rgba(255, 182, 193, 0.8),
+            0 0 20px rgba(255, 192, 203, 0.6),
+            0 0 30px rgba(255, 218, 233, 0.4);
         transform: translateX(0px);
     }
     50% {
         opacity: 1;
         text-shadow:
-            0 0 15px rgba(255, 20, 147, 1),
-            0 0 30px rgba(255, 105, 180, 0.8),
-            0 0 45px rgba(255, 182, 193, 0.6);
+            0 0 15px rgba(255, 182, 193, 1),
+            0 0 30px rgba(255, 192, 203, 0.8),
+            0 0 45px rgba(255, 218, 233, 0.6);
         transform: translateX(5px);
     }
 }

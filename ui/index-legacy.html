@@ -11,16 +11,17 @@
     <div id="header">
         <!-- メニューバー -->
         <div id="menubar">
-            <div class="menu-item" style="font-weight: bold; color: #007acc; cursor: default;">UIpowershell <span id="app-version" style="font-size: 0.85em; color: #666;">v1.0.236</span></div>
-            <div class="menu-item" onclick="executeCode()">実行</div>
-            <div class="menu-item" onclick="openVariableModal()">変数</div>
-            <div class="menu-item" onclick="createFolder()">フォルダ作成</div>
-            <div class="menu-item" onclick="switchFolder()">フォルダ切替</div>
-            <div class="menu-item" onclick="deleteAllNodes()" style="color: #dc3545;">🗑️ 全削除</div>
-            <div class="menu-item" onclick="createSnapshot()">📸 スナップショット</div>
-            <div class="menu-item" onclick="restoreSnapshot()">↩️ 復元</div>
-            <div class="menu-item" id="btn-undo" onclick="undoOperation()" style="opacity: 0.5;">⬅️ Undo</div>
-            <div class="menu-item" id="btn-redo" onclick="redoOperation()" style="opacity: 0.5;">➡️ Redo</div>
+            <div class="menu-item menu-brand">UIpowershell <span id="app-version">v1.0.236</span></div>
+            <div class="menu-item" onclick="executeCode()">▶ 実行</div>
+            <div class="menu-item" onclick="openPartialExecuteDialog()">⏯ 部分実行</div>
+            <div class="menu-item" onclick="openVariableModal()">📊 変数</div>
+            <div class="menu-item" onclick="createFolder()">📁 フォルダ作成</div>
+            <div class="menu-item" onclick="switchFolder()">🔀 フォルダ切替</div>
+            <div class="menu-item menu-danger" onclick="deleteAllNodes()">🗑 全削除</div>
+            <div class="menu-item menu-wide" onclick="createSnapshot()">📸 スナップショット</div>
+            <div class="menu-item" onclick="restoreSnapshot()">↩ 復元</div>
+            <div class="menu-item disabled" id="btn-undo" onclick="undoOperation()">⬅ Undo</div>
+            <div class="menu-item disabled" id="btn-redo" onclick="redoOperation()">➡ Redo</div>
         </div>
 
         <!-- ダークモード切り替え（Neumorphismデザインでは非対応のためコメントアウト）
@@ -49,16 +50,16 @@
         <div id="left-panel">
             <!-- カテゴリー切り替えボタン -->
             <div id="category-buttons">
-                <button onclick="switchCategory(1)" class="category-btn" style="background-color: rgb(180, 180, 180);">制御構文</button>
-                <button onclick="switchCategory(2)" class="category-btn" style="background-color: rgb(250, 215, 220);">マウス操作</button>
-                <button onclick="switchCategory(3)" class="category-btn" style="background-color: rgb(210, 255, 240);">キーボード操作</button>
-                <button onclick="switchCategory(4)" class="category-btn" style="background-color: rgb(225, 245, 230);">UIAutomation</button>
-                <button onclick="switchCategory(5)" class="category-btn" style="background-color: rgb(250, 250, 230);">ファイル操作</button>
-                <button onclick="switchCategory(6)" class="category-btn" style="background-color: rgb(240, 230, 250);">データ処理</button>
-                <button onclick="switchCategory(7)" class="category-btn" style="background-color: rgb(245, 245, 245);">スクリプト実行</button>
-                <button onclick="switchCategory(8)" class="category-btn" style="background-color: rgb(220, 235, 255);">Excel処理</button>
-                <button onclick="switchCategory(9)" class="category-btn" style="background-color: rgb(255, 250, 220);">ウインドウ操作</button>
-                <button onclick="switchCategory(10)" class="category-btn" style="background-color: rgb(255, 235, 240);">画像処理</button>
+                <button onclick="switchCategory(1)" class="category-btn active" data-category="1" data-color="rgb(180, 180, 180)" style="background-color: rgb(180, 180, 180);">制御構文</button>
+                <button onclick="switchCategory(2)" class="category-btn" data-category="2" data-color="rgb(250, 215, 220)" style="background-color: rgb(250, 215, 220);">マウス操作</button>
+                <button onclick="switchCategory(3)" class="category-btn" data-category="3" data-color="rgb(210, 255, 240)" style="background-color: rgb(210, 255, 240);">キーボード操作</button>
+                <button onclick="switchCategory(4)" class="category-btn" data-category="4" data-color="rgb(225, 245, 230)" style="background-color: rgb(225, 245, 230);">UIAutomation</button>
+                <button onclick="switchCategory(5)" class="category-btn" data-category="5" data-color="rgb(250, 250, 230)" style="background-color: rgb(250, 250, 230);">ファイル操作</button>
+                <button onclick="switchCategory(6)" class="category-btn" data-category="6" data-color="rgb(240, 230, 250)" style="background-color: rgb(240, 230, 250);">データ処理</button>
+                <button onclick="switchCategory(7)" class="category-btn" data-category="7" data-color="rgb(245, 245, 245)" style="background-color: rgb(245, 245, 245);">スクリプト実行</button>
+                <button onclick="switchCategory(8)" class="category-btn" data-category="8" data-color="rgb(220, 235, 255)" style="background-color: rgb(220, 235, 255);">Excel処理</button>
+                <button onclick="switchCategory(9)" class="category-btn" data-category="9" data-color="rgb(255, 250, 220)" style="background-color: rgb(255, 250, 220);">ウインドウ操作</button>
+                <button onclick="switchCategory(10)" class="category-btn" data-category="10" data-color="rgb(255, 235, 240)" style="background-color: rgb(255, 235, 240);">画像処理</button>
             </div>
 
             <!-- ノード追加ボタンパネル（カテゴリーごとに切り替わる） -->
@@ -157,7 +158,7 @@
         ESCキーで戻る
     </div>
 
-    <!-- 右クリックメニュー -->
+    <!-- 右クリックメニュー（ノード用） -->
     <div id="context-menu" class="context-menu">
         <div id="layerize-menu-item" class="context-menu-item" onclick="layerizeNode()" style="background-color: pink; font-weight: bold; display: none;">📦 レイヤー化</div>
         <div class="context-menu-item" onclick="openNodeSettingsFromContextMenu()">⚙️ ノード設定</div>
@@ -171,6 +172,13 @@
         <div class="context-menu-item" onclick="pasteNodeFromContextMenu()">📄 貼り付け</div>
         <div class="context-menu-separator"></div>
         <div class="context-menu-item" onclick="deleteNode()">削除</div>
+    </div>
+
+    <!-- 右クリックメニュー（ボード用） -->
+    <div id="board-context-menu" class="context-menu">
+        <div class="context-menu-item" onclick="pasteNodeFromBoardMenu()">📄 貼り付け</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" onclick="clearAllRedBorders()">🔲 赤枠を全て解除</div>
     </div>
 
     <!-- 変数管理モーダル (廃止) -->
@@ -284,7 +292,7 @@
     </div>
 
     <!-- arrow-drawing.jsの内容はapp-legacy.jsに統合されました -->
-    <script src="app-legacy.js?v=1.0.252"></script>
+    <script src="app-legacy.js?v=1.0.260"></script>
     <!-- Aurora Arrow Patch: Neumorphism + Auroraデザインのグラデーション矢印 -->
     <script src="arrow-patch-hybrid.js?v=1.0.0"></script>
     <!-- レイヤー詳細モーダル機能 -->

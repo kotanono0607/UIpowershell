@@ -1,0 +1,145 @@
+﻿**********************
+Windows PowerShell トランスクリプト開始
+開始時刻: 20251202183840
+ユーザー名: A-01\hello
+RunAs ユーザー: A-01\hello
+構成名: 
+コンピューター: A-01 (Microsoft Windows NT 10.0.26100.0)
+ホスト アプリケーション: powershell -NoExit -ExecutionPolicy Bypass -File .\adapter\api-server-v2-pode-complete.ps1 -AutoOpenBrowser
+プロセス ID: 22108
+PSVersion: 5.1.26100.7019
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7019
+BuildVersion: 10.0.26100.7019
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+トランスクリプトが開始されました。出力ファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251202_183840.log
+[ログ] ログファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\api-server-v2_20251202_183840.log
+[ログ] コントロールログ: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\logs\control-log_20251202_183840.log
+
+[2025-12-02 18:38:40.211] [START] UIpowershell 起動開始（Pode版）
+==================================
+UIpowershell - Pode API Server V2
+Version: 2.0.0 (Pode移行版)
+==================================
+
+[警告] Podeモジュールが見つかりません: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\Modules\Pode
+       PowerShell Galleryからのインストールを試みます...
+PowerShell 5.1環境用にPodeモジュールを最適化しています...
+[情報] Podeモジュールが未インストールです（自動インストールされます）
+[OK] Podeモジュールを読み込みました (Version: 2.11.0)
+[2025-12-02 18:38:42.858] [MODULE] Podeモジュール読み込み完了
+[2025-12-02 18:38:42.860] [MODULE] モジュール読み込み完了
+
+既存のPowerShell関数を読み込みます...
+[OK] 00_共通ユーティリティ_JSON操作.ps1
+[OK] 09_変数機能_コードID管理JSON.ps1
+
+==================================
+
+[2025-12-02 18:38:43.015] [MODULE] 基本モジュール読み込み完了
+Podeサーバーを起動します...
+  ポート: 8080
+  URL: http://localhost:8080
+  フロントエンド: http://localhost:8080/index-legacy.html
+
+PS>終了エラー(Get-Item): "ユーザー設定変数 "ErrorActionPreference" または共通パラメーターが Stop に設定されているため、実行中のコマンドが停止しました。パス 'C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\adapter\server.psd1' が存在しないため検出できません。"
+Pode v2.11.0 (PID: 22108)
+[2025-12-02 18:38:43.430] [SERVER] Podeサーバーエンドポイント設定完了 (ポート: 8080)
+[2025-12-02 18:38:43.442] [CORS] CORS設定完了（ミドルウェア方式）
+[2025-12-02 18:38:43.502] [CORS] OPTIONSプリフライトハンドラー設定完了
+APIエンドポイントを設定します...
+[CONVERTED_ROUTES.ps1] v2ファイルとAdapterファイルを読み込みます...
+  [OK] 00_共通ユーティリティ_JSON操作.ps1
+  [OK] 09_変数機能_コードID管理JSON.ps1
+  [OK] 12_コードメイン_コード本文_v2.ps1
+  [OK] 10_変数機能_変数管理UI_v2.ps1
+  [OK] 07_メインF機能_ツールバー作成_v2.ps1
+  [OK] 08_メインF機能_メインボタン処理_v2.ps1
+  [OK] 02-6_削除処理_v2.ps1
+  [OK] 02-2_ネスト規制バリデーション_v2.ps1
+  [OK] 16_スナップショット機能.ps1
+  [OK] 17_操作履歴管理.ps1
+[OK] UIpowershell状態を初期化しました (SessionId: 8da4694c-d1bb-48f2-92db-2d8ed6ef45e1)
+  [OK] state-manager.ps1
+  [OK] node-operations.ps1
+  [デバッグ] 読み込み前の関数数: 1563
+  [デバッグ] 読み込み後の関数数: 1647
+  [デバッグ] 新しい関数数: 84
+  [情報] 新しく定義された関数をグローバルスコープにエクスポート中...
+[CONVERTED_ROUTES.ps1] 全関数の読み込み完了！(84 個の関数をグローバル化)
+  [デバッグ] エクスポートされた関数: 00_文字列処理内容, 00_文字列処理内容_v2, Add-Node, Add-Variable_v2, Add-VariableToGlobal_v2, Check-GroupFragmentation_v2, Clear-HistoryStack, Clear-MenuActions_v2, ConvertFrom-WindowsFormsControls, ConvertTo-JsonNodes, Execute-MenuAction_v2, Export-VariablesToJson_v2, Get-AllEdges, Get-AllGroupRanges_v2, Get-AllGroups, Get-AllNodes, Get-AllVariables, Get-CurrentFolderPath, Get-CurrentProject, Get-GroupRangeAfterMove_v2, Get-HistoryStatus, Get-MenuStructure_v2, Get-NextAvailableY, Get-NodeBounds, Get-NodeById, Get-NodesByColor, Get-NodesByGroupId, Get-NodesByType, Get-RegisteredActions_v2, Get-SessionInfo, Get-StateDebugInfo, Get-Variable_v2, Get-VariableList_v2, Import-VariablesFromJson_v2, Initialize-HistoryStack, Is-IllegalPair_v2, New-GroupId, Record-Operation, Redo-Operation, Register-MenuAction_v2, Remove-Node, Remove-Variable_v2, Reset-Session, Set-AllEdges, Set-AllNodes, Set-CurrentProject, Set-Variable, Show-VariableManagerForm, Sort-NodesByY, Test-NodeCollision, UIをリロード, Undo-Operation, Update-Node, Update-説明ラベル, スナップショット作成, スナップショット復元, すべてのノードを削除_v2, ツールバーを追加, ドロップ禁止チェック_ネスト規制, ドロップ禁止チェック_ネスト規制_v2, ノードリストを展開, ノード削除_v2, フォルダ作成イベント, フォルダ作成イベント_v2, フォルダ切替イベント, フォルダ切替イベント_v2, フォルダ選択と保存, フレームパネルからすべてのボタンを削除する, メニューを追加, メニュー項目作成, ループノード削除_v2, ループボタン削除処理, 一覧-ノード配列からボタン一覧_v2, 一覧-フレームパネルのボタン一覧, 作成ボタンとイベント設定, 削除処理, 実行イベント, 実行イベント_v2, 条件分岐ノード削除_v2, 条件分岐ボタン削除処理, 新規フォルダ作成, 切替ボタンイベント, 変数イベント, 変数イベント_v2
+
+[情報] Podeランスペース用の共通初期化コードを準備しました
+
+[OK] CONVERTED_ROUTES.ps1 から50個のルートを読み込みました
+[2025-12-02 18:38:44.540] [ROUTES] 全APIルート設定完了（50個）
+[OK] 静的ファイル配信を設定しました: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\ui
+[2025-12-02 18:38:44.653] [STATIC] 静的ファイル配信設定完了
+
+==================================
+✓ Podeサーバー起動成功！
+==================================
+
+アクセス先: http://localhost:8080
+
+[2025-12-02 18:38:44.659] [SERVER] Podeサーバー起動成功 (ポート: 8080)
+APIエンドポイント（Phase 3対応）:
+
+【基本】
+  GET  /api/health                    - ヘルスチェック
+  GET  /api/session                   - セッション情報
+  GET  /api/debug                     - デバッグ情報
+
+【ノード管理】
+  GET  /api/nodes                     - 全ノード取得
+  PUT  /api/nodes                     - ノード配列を一括設定
+  POST /api/nodes                     - ノード追加
+  DELETE /api/nodes/:id               - ノード削除
+  DELETE /api/nodes/all               - 全ノード削除
+
+【変数管理】
+  GET  /api/variables                 - 変数一覧取得
+  GET  /api/variables/:name           - 変数取得
+  POST /api/variables                 - 変数追加
+  PUT  /api/variables/:name           - 変数更新
+  DELETE /api/variables/:name         - 変数削除
+
+【メニュー操作】
+  GET  /api/menu/structure            - メニュー構造取得
+  POST /api/menu/action/:actionId     - メニューアクション実行
+
+【実行・フォルダ】
+  POST /api/execute/generate          - PowerShellコード生成
+  GET  /api/folders                   - フォルダ一覧取得
+  POST /api/folders                   - フォルダ作成
+  PUT  /api/folders/:name             - フォルダ切り替え
+
+【バリデーション】
+  POST /api/validate/drop             - ドロップ可否チェック
+
+【コードID管理】
+  POST /api/id/generate               - 新規ID生成
+  POST /api/entry/add                 - エントリ追加
+  GET  /api/entry/:id                 - エントリ取得
+  GET  /api/entries/all               - 全エントリ取得
+
+【ブラウザログ】
+  POST /api/browser-logs              - ブラウザコンソールログ受信
+  POST /api/control-log               - コントロールログ受信
+
+【静的ファイル】
+  GET  /                              - index-legacy.html
+  GET  /index-legacy.html             - HTMLファイル
+  GET  /style-legacy.css              - CSSファイル
+  GET  /app-legacy.js                 - JavaScriptファイル
+
+停止するには Ctrl+C を押してください
+
+[ブラウザ] Microsoft Edge（UIpowershell専用）を最大化アプリモードで起動します
+           URL: http://localhost:8080/index-legacy.html
+次の 1 エンドポイントでリッスンしています [1 スレッド]:
+	- http://localhost:8080/
