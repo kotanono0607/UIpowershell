@@ -4510,8 +4510,9 @@ async function loadFolders() {
 // ============================================
 
 function createFolder() {
-    console.log('[フォルダ管理] createFolder() は廃止されました（PowerShell Windows Forms版に移行）');
-    console.log('[フォルダ管理] 代わりに switchFolder() を使用してください');
+    console.log('[フォルダ管理] createFolder() → switchFolder() にリダイレクト');
+    // フォルダ作成機能はswitchFolder()ダイアログ内に統合されています
+    switchFolder();
 }
 
 async function switchFolder() {
