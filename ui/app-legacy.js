@@ -313,6 +313,7 @@ let buttonSettings = [];        // ボタン設定.jsonのデータ
 let variables = {};             // 変数データ
 let folders = [];               // フォルダ一覧
 let currentFolder = null;       // 現在のフォルダ
+let isRestoringHistory = false; // Undo/Redo実行中フラグ（履歴記録をスキップするため）
 let contextMenuTarget = null;   // 右クリックメニューの対象ノード
 let draggedNode = null;         // ドラッグ中のノード
 let layerStructure = {          // レイヤー構造
@@ -5455,10 +5456,12 @@ async function loadExistingNodes() {
                 }
             });
         }
-        if (needsSave) {
+        if (needsSave && !isRestoringHistory) {
             console.log('[memory.json復元] IDフィールドがないノードがあるため、memory.jsonを再保存します');
             // 非同期で保存（await不要、バックグラウンドで実行）
             setTimeout(() => saveMemoryJson(), 500);
+        } else if (needsSave && isRestoringHistory) {
+            console.log('[memory.json復元] Undo/Redo実行中のため、自動保存をスキップします');
         }
 
         // 左パネルのみを再描画（起動時は右パネルを非表示）
@@ -8460,6 +8463,9 @@ async function undoOperation() {
     }
 
     try {
+        // 履歴復元中フラグを立てる（自動保存を防ぐため）
+        isRestoringHistory = true;
+
         if (LOG_CONFIG.history) {
             console.log('[履歴] Undo実行開始...');
         }
@@ -8497,6 +8503,9 @@ async function undoOperation() {
     } catch (error) {
         console.error('[履歴] Undoエラー:', error);
         showMessage('❌ Undoに失敗しました', 'error');
+    } finally {
+        // 履歴復元中フラグをクリア
+        isRestoringHistory = false;
     }
 }
 
@@ -8512,6 +8521,9 @@ async function redoOperation() {
     }
 
     try {
+        // 履歴復元中フラグを立てる（自動保存を防ぐため）
+        isRestoringHistory = true;
+
         if (LOG_CONFIG.history) {
             console.log('[履歴] Redo実行開始...');
         }
@@ -8549,6 +8561,9 @@ async function redoOperation() {
     } catch (error) {
         console.error('[履歴] Redoエラー:', error);
         showMessage('❌ Redoに失敗しました', 'error');
+    } finally {
+        // 履歴復元中フラグをクリア
+        isRestoringHistory = false;
     }
 }
 
