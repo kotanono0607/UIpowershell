@@ -373,7 +373,8 @@ function Undo-Operation {
                     if ($currentOp.layerDiffs.$layerKeyStr) {
                         $beforeData = $currentOp.layerDiffs.$layerKeyStr.before
                         if ($null -ne $beforeData) {
-                            $currentMemory | Add-Member -NotePropertyName $layerKeyStr -NotePropertyValue $beforeData -Force
+                            # 直接プロパティを設定（Add-Memberを使わない）
+                            $currentMemory.$layerKeyStr = $beforeData
                         } else {
                             # beforeがnullの場合、そのレイヤーを削除（新規追加されたレイヤーのUndo）
                             $currentMemory.PSObject.Properties.Remove($layerKeyStr)
@@ -519,7 +520,8 @@ function Redo-Operation {
                     if ($nextOp.layerDiffs.$layerKeyStr) {
                         $afterData = $nextOp.layerDiffs.$layerKeyStr.after
                         if ($null -ne $afterData) {
-                            $currentMemory | Add-Member -NotePropertyName $layerKeyStr -NotePropertyValue $afterData -Force
+                            # 直接プロパティを設定（Add-Memberを使わない）
+                            $currentMemory.$layerKeyStr = $afterData
                         } else {
                             # afterがnullの場合、そのレイヤーを削除（削除されたレイヤーのRedo）
                             $currentMemory.PSObject.Properties.Remove($layerKeyStr)
