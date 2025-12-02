@@ -1,0 +1,199 @@
+﻿{
+    "CurrentHistoryPosition":  3,
+    "version":  2,
+    "HistoryStack":  [
+                         {
+                             "operationType":  "NodeUpdate",
+                             "description":  "ノード配置を更新 (1 ノード)",
+                             "layerDiffs":  {
+
+                                            },
+                             "operationId":  "6aa4764e-aeb6-41b7-a42c-3219ddc0066a",
+                             "memory_before":  null,
+                             "timestamp":  "2025-12-02 23:05:37",
+                             "memory_after":  null,
+                             "codeDiff":  null,
+                             "code_before":  null,
+                             "code_after":  null,
+                             "affectedLayers":  [
+
+                                                ]
+                         },
+                         {
+                             "operationType":  "NodeUpdate",
+                             "description":  "ノード配置を更新 (2 ノード)",
+                             "layerDiffs":  {
+                                                "3":  {
+                                                          "before":  {
+                                                                         "構成":  [
+
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      },
+                                                "2":  {
+                                                          "before":  {
+                                                                         "構成":  [
+
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      },
+                                                "1":  {
+                                                          "before":  {
+                                                                         "構成":  [
+                                                                                    {
+                                                                                        "ボタン名":  "1",
+                                                                                        "X座標":  90,
+                                                                                        "Y座標":  30,
+                                                                                        "順番":  1,
+                                                                                        "ボタン色":  "White",
+                                                                                        "テキスト":  "順次",
+                                                                                        "処理番号":  "1-1",
+                                                                                        "高さ":  40,
+                                                                                        "幅":  120,
+                                                                                        "script":  "",
+                                                                                        "GroupID":  ""
+                                                                                    }
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      },
+                                                "4":  {
+                                                          "before":  {
+                                                                         "構成":  [
+
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      },
+                                                "6":  {
+                                                          "before":  {
+                                                                         "構成":  [
+
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      },
+                                                "5":  {
+                                                          "before":  {
+                                                                         "構成":  [
+
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      }
+                                            },
+                             "operationId":  "13ced16e-ee59-4859-a7f6-d3fb1b2d73fb",
+                             "memory_before":  null,
+                             "timestamp":  "2025-12-02 23:05:38",
+                             "memory_after":  null,
+                             "codeDiff":  null,
+                             "code_before":  null,
+                             "code_after":  null,
+                             "affectedLayers":  [
+                                                    "1",
+                                                    "2",
+                                                    "3",
+                                                    "4",
+                                                    "5",
+                                                    "6"
+                                                ]
+                         },
+                         {
+                             "operationType":  "NodeUpdate",
+                             "description":  "ノード配置を更新 (2 ノード)",
+                             "layerDiffs":  {
+                                                "3":  {
+                                                          "before":  {
+                                                                         "構成":  [
+
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      },
+                                                "2":  {
+                                                          "before":  {
+                                                                         "構成":  [
+
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      },
+                                                "1":  {
+                                                          "before":  {
+                                                                         "構成":  [
+                                                                                    {
+                                                                                        "ボタン名":  "1",
+                                                                                        "X座標":  90,
+                                                                                        "Y座標":  30,
+                                                                                        "順番":  1,
+                                                                                        "ボタン色":  "White",
+                                                                                        "テキスト":  "順次",
+                                                                                        "処理番号":  "1-1",
+                                                                                        "高さ":  40,
+                                                                                        "幅":  120,
+                                                                                        "script":  "",
+                                                                                        "GroupID":  ""
+                                                                                    },
+                                                                                    {
+                                                                                        "ボタン名":  "1",
+                                                                                        "X座標":  90,
+                                                                                        "Y座標":  90,
+                                                                                        "順番":  2,
+                                                                                        "ボタン色":  "White",
+                                                                                        "テキスト":  "順次",
+                                                                                        "処理番号":  "1-1",
+                                                                                        "高さ":  40,
+                                                                                        "幅":  120,
+                                                                                        "script":  "",
+                                                                                        "GroupID":  ""
+                                                                                    }
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      },
+                                                "4":  {
+                                                          "before":  {
+                                                                         "構成":  [
+
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      },
+                                                "6":  {
+                                                          "before":  {
+                                                                         "構成":  [
+
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      },
+                                                "5":  {
+                                                          "before":  {
+                                                                         "構成":  [
+
+                                                                                ]
+                                                                     },
+                                                          "after":  null
+                                                      }
+                                            },
+                             "operationId":  "e100bf5f-de95-4321-bd22-c22fd5c962f7",
+                             "memory_before":  null,
+                             "timestamp":  "2025-12-02 23:05:54",
+                             "memory_after":  null,
+                             "codeDiff":  null,
+                             "code_before":  null,
+                             "code_after":  null,
+                             "affectedLayers":  [
+                                                    "1",
+                                                    "2",
+                                                    "3",
+                                                    "4",
+                                                    "5",
+                                                    "6"
+                                                ]
+                         }
+                     ],
+    "MaxHistoryCount":  50
+}
