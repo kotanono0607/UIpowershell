@@ -8452,6 +8452,13 @@ async function updateUndoRedoButtons() {
  * Undo操作を実行
  */
 async function undoOperation() {
+    // ボタンが無効な場合は何もしない
+    const undoBtn = document.getElementById('btn-undo');
+    if (undoBtn && undoBtn.classList.contains('disabled')) {
+        console.log('[履歴] Undoボタンが無効です');
+        return;
+    }
+
     try {
         if (LOG_CONFIG.history) {
             console.log('[履歴] Undo実行開始...');
@@ -8497,6 +8504,13 @@ async function undoOperation() {
  * Redo操作を実行
  */
 async function redoOperation() {
+    // ボタンが無効な場合は何もしない
+    const redoBtn = document.getElementById('btn-redo');
+    if (redoBtn && redoBtn.classList.contains('disabled')) {
+        console.log('[履歴] Redoボタンが無効です');
+        return;
+    }
+
     try {
         if (LOG_CONFIG.history) {
             console.log('[履歴] Redo実行開始...');
