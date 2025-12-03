@@ -373,9 +373,22 @@ function Undo-Operation {
                     if ($currentOp.layerDiffs.$layerKeyStr) {
                         $beforeData = $currentOp.layerDiffs.$layerKeyStr.before
                         if ($null -ne $beforeData) {
+                            # デバッグ: beforeデータの内容を確認
+                            $nodeCount = if ($beforeData.構成) { $beforeData.構成.Count } else { 0 }
+                            Write-Host "[Undo Debug] Layer $layerKeyStr : beforeデータに $nodeCount 個のノード" -ForegroundColor Cyan
+
+                            # beforeデータの最初のノードのIDを確認
+                            if ($nodeCount -gt 0) {
+                                $firstNode = $beforeData.構成[0]
+                                $hasId = $firstNode.PSObject.Properties['ID'] -ne $null
+                                $idValue = if ($hasId) { $firstNode.ID } else { "(IDフィールドなし)" }
+                                Write-Host "[Undo Debug]   -> 最初のノードID: $idValue" -ForegroundColor Cyan
+                            }
+
                             # 直接プロパティを設定（Add-Memberを使わない）
                             $currentMemory.$layerKeyStr = $beforeData
                         } else {
+                            Write-Host "[Undo Debug] Layer $layerKeyStr : beforeデータがnullのため、レイヤーを削除" -ForegroundColor Yellow
                             # beforeがnullの場合、そのレイヤーを削除（新規追加されたレイヤーのUndo）
                             $currentMemory.PSObject.Properties.Remove($layerKeyStr)
                         }
@@ -520,9 +533,22 @@ function Redo-Operation {
                     if ($nextOp.layerDiffs.$layerKeyStr) {
                         $afterData = $nextOp.layerDiffs.$layerKeyStr.after
                         if ($null -ne $afterData) {
+                            # デバッグ: afterデータの内容を確認
+                            $nodeCount = if ($afterData.構成) { $afterData.構成.Count } else { 0 }
+                            Write-Host "[Redo Debug] Layer $layerKeyStr : afterデータに $nodeCount 個のノード" -ForegroundColor Magenta
+
+                            # afterデータの最初のノードのIDを確認
+                            if ($nodeCount -gt 0) {
+                                $firstNode = $afterData.構成[0]
+                                $hasId = $firstNode.PSObject.Properties['ID'] -ne $null
+                                $idValue = if ($hasId) { $firstNode.ID } else { "(IDフィールドなし)" }
+                                Write-Host "[Redo Debug]   -> 最初のノードID: $idValue" -ForegroundColor Magenta
+                            }
+
                             # 直接プロパティを設定（Add-Memberを使わない）
                             $currentMemory.$layerKeyStr = $afterData
                         } else {
+                            Write-Host "[Redo Debug] Layer $layerKeyStr : afterデータがnullのため、レイヤーを削除" -ForegroundColor Yellow
                             # afterがnullの場合、そのレイヤーを削除（削除されたレイヤーのRedo）
                             $currentMemory.PSObject.Properties.Remove($layerKeyStr)
                         }
