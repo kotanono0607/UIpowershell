@@ -166,17 +166,7 @@ function Record-Operation {
         $affectedLayers = @()
         $layerDiffs = @{}
 
-        Write-Host "[Record Debug] MemoryBefore is null: $($null -eq $MemoryBefore)" -ForegroundColor Magenta
-        Write-Host "[Record Debug] MemoryAfter is null: $($null -eq $MemoryAfter)" -ForegroundColor Magenta
-        if ($MemoryBefore) {
-            Write-Host "[Record Debug] MemoryBefore type: $($MemoryBefore.GetType().FullName)" -ForegroundColor Magenta
-        }
-        if ($MemoryAfter) {
-            Write-Host "[Record Debug] MemoryAfter type: $($MemoryAfter.GetType().FullName)" -ForegroundColor Magenta
-        }
-
         if ($MemoryBefore -and $MemoryAfter) {
-            Write-Host "[Record Debug] 差分抽出処理を開始" -ForegroundColor Magenta
             # MemoryBeforeとMemoryAfterを比較して、変更されたレイヤーを特定
             # レイヤーキーは "1", "2", "3", "4", "5", "6" のみを対象とする
             $validLayerKeys = @("1", "2", "3", "4", "5", "6")
@@ -191,6 +181,7 @@ function Record-Operation {
                     $hasKeyInBefore = $true
                 } elseif ($MemoryBefore -is [System.Collections.IDictionary]) {
                     # ContainsKeyではなく直接アクセスして$nullチェック
+                    # （OrderedDictionaryにはContainsKeyメソッドがないため）
                     $hasKeyInBefore = ($null -ne $MemoryBefore[$key])
                 }
 
@@ -199,6 +190,7 @@ function Record-Operation {
                     $hasKeyInAfter = $true
                 } elseif ($MemoryAfter -is [System.Collections.IDictionary]) {
                     # ContainsKeyではなく直接アクセスして$nullチェック
+                    # （OrderedDictionaryにはContainsKeyメソッドがないため）
                     $hasKeyInAfter = ($null -ne $MemoryAfter[$key])
                 }
 
@@ -208,72 +200,37 @@ function Record-Operation {
             }
             $allLayerKeys = $allLayerKeys | Select-Object -Unique
 
-            Write-Host "[Record Debug] allLayerKeys: $($allLayerKeys -join ', ')" -ForegroundColor Magenta
-            Write-Host "[Record Debug] allLayerKeysの数: $($allLayerKeys.Count)" -ForegroundColor Magenta
-
             foreach ($layerKey in $allLayerKeys) {
                 $beforeLayer = $null
                 $afterLayer = $null
 
-                Write-Host "[Record Debug] Layer $layerKey の処理開始" -ForegroundColor Cyan
-
                 # PSObject、Hashtable、OrderedDictionaryの全てに対応
-                try {
-                    if ($MemoryBefore -is [System.Collections.IDictionary]) {
-                        # OrderedDictionary/Hashtableの場合、直接キーでアクセス
-                        # ContainsKeyメソッドはHashtable専用でOrderedDictionaryにはない
-                        $beforeLayer = $MemoryBefore[$layerKey]
-                        if ($null -ne $beforeLayer) {
-                            Write-Host "[Record Debug]   beforeLayer取得成功 (IDictionary)" -ForegroundColor Cyan
-                        }
-                    } elseif ($MemoryBefore.PSObject.Properties[$layerKey]) {
-                        $beforeLayer = $MemoryBefore.$layerKey
-                        Write-Host "[Record Debug]   beforeLayer取得成功 (PSObject)" -ForegroundColor Cyan
-                    }
-                } catch {
-                    Write-Host "[Record Debug]   beforeLayer取得エラー: $($_.Exception.Message)" -ForegroundColor Red
+                if ($MemoryBefore -is [System.Collections.IDictionary]) {
+                    # OrderedDictionary/Hashtableの場合、直接キーでアクセス
+                    # ContainsKeyメソッドはHashtable専用でOrderedDictionaryにはない
+                    $beforeLayer = $MemoryBefore[$layerKey]
+                } elseif ($MemoryBefore.PSObject.Properties[$layerKey]) {
+                    $beforeLayer = $MemoryBefore.$layerKey
                 }
 
-                Write-Host "[Record Debug]   beforeLayer取得処理完了" -ForegroundColor Cyan
-
-                try {
-                    if ($MemoryAfter -is [System.Collections.IDictionary]) {
-                        # OrderedDictionary/Hashtableの場合、直接キーでアクセス
-                        # ContainsKeyメソッドはHashtable専用でOrderedDictionaryにはない
-                        $afterLayer = $MemoryAfter[$layerKey]
-                        if ($null -ne $afterLayer) {
-                            Write-Host "[Record Debug]   afterLayer取得成功 (IDictionary)" -ForegroundColor Cyan
-                        }
-                    } elseif ($MemoryAfter.PSObject.Properties[$layerKey]) {
-                        $afterLayer = $MemoryAfter.$layerKey
-                        Write-Host "[Record Debug]   afterLayer取得成功 (PSObject)" -ForegroundColor Cyan
-                    }
-                } catch {
-                    Write-Host "[Record Debug]   afterLayer取得エラー: $($_.Exception.Message)" -ForegroundColor Red
+                if ($MemoryAfter -is [System.Collections.IDictionary]) {
+                    # OrderedDictionary/Hashtableの場合、直接キーでアクセス
+                    # ContainsKeyメソッドはHashtable専用でOrderedDictionaryにはない
+                    $afterLayer = $MemoryAfter[$layerKey]
+                } elseif ($MemoryAfter.PSObject.Properties[$layerKey]) {
+                    $afterLayer = $MemoryAfter.$layerKey
                 }
-
-                Write-Host "[Record Debug]   beforeLayer is null: $($null -eq $beforeLayer)" -ForegroundColor Cyan
-                Write-Host "[Record Debug]   afterLayer is null: $($null -eq $afterLayer)" -ForegroundColor Cyan
 
                 # レイヤーが変更されたかチェック（簡易比較：JSON文字列化して比較）
-                try {
-                    $beforeJson = if ($beforeLayer) { $beforeLayer | ConvertTo-Json -Depth 5 -Compress } else { "" }
-                    $afterJson = if ($afterLayer) { $afterLayer | ConvertTo-Json -Depth 5 -Compress } else { "" }
+                $beforeJson = if ($beforeLayer) { $beforeLayer | ConvertTo-Json -Depth 5 -Compress } else { "" }
+                $afterJson = if ($afterLayer) { $afterLayer | ConvertTo-Json -Depth 5 -Compress } else { "" }
 
-                    Write-Host "[Record Debug]   beforeJson length: $($beforeJson.Length)" -ForegroundColor Cyan
-                    Write-Host "[Record Debug]   afterJson length: $($afterJson.Length)" -ForegroundColor Cyan
-                    Write-Host "[Record Debug]   JSONが異なる: $($beforeJson -ne $afterJson)" -ForegroundColor Cyan
-
-                    if ($beforeJson -ne $afterJson) {
-                        $affectedLayers += $layerKey
-                        $layerDiffs[$layerKey] = @{
-                            before = $beforeLayer
-                            after = $afterLayer
-                        }
-                        Write-Host "[Record Debug]   Layer $layerKey を影響レイヤーに追加" -ForegroundColor Green
+                if ($beforeJson -ne $afterJson) {
+                    $affectedLayers += $layerKey
+                    $layerDiffs[$layerKey] = @{
+                        before = $beforeLayer
+                        after = $afterLayer
                     }
-                } catch {
-                    Write-Host "[Record Debug]   JSON変換エラー: $($_.Exception.Message)" -ForegroundColor Red
                 }
             }
 
@@ -431,22 +388,9 @@ function Undo-Operation {
                     if ($currentOp.layerDiffs.$layerKeyStr) {
                         $beforeData = $currentOp.layerDiffs.$layerKeyStr.before
                         if ($null -ne $beforeData) {
-                            # デバッグ: beforeデータの内容を確認
-                            $nodeCount = if ($beforeData.構成) { $beforeData.構成.Count } else { 0 }
-                            Write-Host "[Undo Debug] Layer $layerKeyStr : beforeデータに $nodeCount 個のノード" -ForegroundColor Cyan
-
-                            # beforeデータの最初のノードのIDを確認
-                            if ($nodeCount -gt 0) {
-                                $firstNode = $beforeData.構成[0]
-                                $hasId = $firstNode.PSObject.Properties['ID'] -ne $null
-                                $idValue = if ($hasId) { $firstNode.ID } else { "(IDフィールドなし)" }
-                                Write-Host "[Undo Debug]   -> 最初のノードID: $idValue" -ForegroundColor Cyan
-                            }
-
                             # 直接プロパティを設定（Add-Memberを使わない）
                             $currentMemory.$layerKeyStr = $beforeData
                         } else {
-                            Write-Host "[Undo Debug] Layer $layerKeyStr : beforeデータがnullのため、レイヤーを削除" -ForegroundColor Yellow
                             # beforeがnullの場合、そのレイヤーを削除（新規追加されたレイヤーのUndo）
                             $currentMemory.PSObject.Properties.Remove($layerKeyStr)
                         }
@@ -591,22 +535,9 @@ function Redo-Operation {
                     if ($nextOp.layerDiffs.$layerKeyStr) {
                         $afterData = $nextOp.layerDiffs.$layerKeyStr.after
                         if ($null -ne $afterData) {
-                            # デバッグ: afterデータの内容を確認
-                            $nodeCount = if ($afterData.構成) { $afterData.構成.Count } else { 0 }
-                            Write-Host "[Redo Debug] Layer $layerKeyStr : afterデータに $nodeCount 個のノード" -ForegroundColor Magenta
-
-                            # afterデータの最初のノードのIDを確認
-                            if ($nodeCount -gt 0) {
-                                $firstNode = $afterData.構成[0]
-                                $hasId = $firstNode.PSObject.Properties['ID'] -ne $null
-                                $idValue = if ($hasId) { $firstNode.ID } else { "(IDフィールドなし)" }
-                                Write-Host "[Redo Debug]   -> 最初のノードID: $idValue" -ForegroundColor Magenta
-                            }
-
                             # 直接プロパティを設定（Add-Memberを使わない）
                             $currentMemory.$layerKeyStr = $afterData
                         } else {
-                            Write-Host "[Redo Debug] Layer $layerKeyStr : afterデータがnullのため、レイヤーを削除" -ForegroundColor Yellow
                             # afterがnullの場合、そのレイヤーを削除（削除されたレイヤーのRedo）
                             $currentMemory.PSObject.Properties.Remove($layerKeyStr)
                         }
