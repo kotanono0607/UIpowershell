@@ -166,7 +166,17 @@ function Record-Operation {
         $affectedLayers = @()
         $layerDiffs = @{}
 
+        Write-Host "[Record Debug] MemoryBefore is null: $($null -eq $MemoryBefore)" -ForegroundColor Magenta
+        Write-Host "[Record Debug] MemoryAfter is null: $($null -eq $MemoryAfter)" -ForegroundColor Magenta
+        if ($MemoryBefore) {
+            Write-Host "[Record Debug] MemoryBefore type: $($MemoryBefore.GetType().FullName)" -ForegroundColor Magenta
+        }
+        if ($MemoryAfter) {
+            Write-Host "[Record Debug] MemoryAfter type: $($MemoryAfter.GetType().FullName)" -ForegroundColor Magenta
+        }
+
         if ($MemoryBefore -and $MemoryAfter) {
+            Write-Host "[Record Debug] 差分抽出処理を開始" -ForegroundColor Magenta
             # MemoryBeforeとMemoryAfterを比較して、変更されたレイヤーを特定
             # レイヤーキーは "1", "2", "3", "4", "5", "6" のみを対象とする
             $validLayerKeys = @("1", "2", "3", "4", "5", "6")
