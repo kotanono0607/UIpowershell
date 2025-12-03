@@ -177,9 +177,9 @@ function Record-Operation {
                 if ($MemoryBefore.PSObject.Properties[$key] -or $MemoryAfter.PSObject.Properties[$key]) {
                     $allLayerKeys += $key
                 }
-                # Hashtableの場合
-                elseif (($MemoryBefore -is [hashtable] -and $MemoryBefore.ContainsKey($key)) -or
-                        ($MemoryAfter -is [hashtable] -and $MemoryAfter.ContainsKey($key))) {
+                # Hashtable/OrderedDictionaryの場合（IDictionaryインターフェースで両方をカバー）
+                elseif (($MemoryBefore -is [System.Collections.IDictionary] -and $MemoryBefore.ContainsKey($key)) -or
+                        ($MemoryAfter -is [System.Collections.IDictionary] -and $MemoryAfter.ContainsKey($key))) {
                     $allLayerKeys += $key
                 }
             }
@@ -189,8 +189,8 @@ function Record-Operation {
                 $beforeLayer = $null
                 $afterLayer = $null
 
-                # PSObjectとHashtableの両方に対応
-                if ($MemoryBefore -is [hashtable]) {
+                # PSObject、Hashtable、OrderedDictionaryの全てに対応
+                if ($MemoryBefore -is [System.Collections.IDictionary]) {
                     if ($MemoryBefore.ContainsKey($layerKey)) {
                         $beforeLayer = $MemoryBefore[$layerKey]
                     }
@@ -198,7 +198,7 @@ function Record-Operation {
                     $beforeLayer = $MemoryBefore.$layerKey
                 }
 
-                if ($MemoryAfter -is [hashtable]) {
+                if ($MemoryAfter -is [System.Collections.IDictionary]) {
                     if ($MemoryAfter.ContainsKey($layerKey)) {
                         $afterLayer = $MemoryAfter[$layerKey]
                     }
