@@ -14,7 +14,7 @@
 
 ### 技術スタック
 - **バックエンド**: PowerShell 5.1+ / PowerShell 7.x (推奨)
-- **HTTPサーバー**: Polaris (PowerShell製軽量HTTPサーバー)
+- **HTTPサーバー**: Pode 2.11.0 (PowerShell製HTTPサーバー)
 - **フロントエンド**: React 18.2.0 + React Flow 11.7.4
 - **UI/UX**: Neumorphism + Auroraデザイン
 - **データ永続化**: JSON (UTF-8 BOM)
@@ -111,13 +111,13 @@
    .\quick-start.ps1
    ```
    - 必須ファイルの自動チェック
-   - Polarisモジュールの自動インストール
+   - Podeモジュールの自動インストール
    - ポート使用状況の自動確認
    - ブラウザの自動起動
 
    **方法2: 手動起動**
    ```powershell
-   .\adapter\api-server-v2.ps1 -Port 8080 -AutoOpenBrowser
+   .\adapter\api-server-v2-pode-complete.ps1 -Port 8080 -AutoOpenBrowser
    ```
 
 4. **アクセス**
@@ -218,7 +218,8 @@
 ```
 UIpowershell/
 ├── adapter/                              # REST APIレイヤー
-│   ├── api-server-v2.ps1                # Polaris HTTPサーバー（38エンドポイント）
+│   ├── api-server-v2-pode-complete.ps1  # Pode HTTPサーバー（50エンドポイント）
+│   ├── CONVERTED_ROUTES.ps1             # Pode用ルート定義ファイル
 │   ├── state-manager.ps1                # グローバル状態管理
 │   └── node-operations.ps1              # ノード配列操作ユーティリティ
 ├── ui/                                   # フロントエンド（React + React Flow）
@@ -381,8 +382,9 @@ Excel/CSVから読み込んだデータを保存。
 ブラウザ（ui/index-legacy.html）
   React + React Flow
   ↓
-REST API（adapter/api-server-v2.ps1）
-  Polaris HTTPサーバー（38エンドポイント）
+REST API（adapter/api-server-v2-pode-complete.ps1）
+  Pode HTTPサーバー（50エンドポイント）
+  CONVERTED_ROUTES.ps1（ルート定義）
   ↓
 ビジネスロジック（v2関数群）
   - 12_コード本文_v2.ps1
@@ -486,7 +488,7 @@ REST API（adapter/api-server-v2.ps1）
 
 | 関数/エンドポイント | ファイル | 用途 |
 |-------------------|----------|------|
-| `POST /api/nodes` | api-server-v2.ps1 | ノード追加API |
+| `POST /api/nodes` | CONVERTED_ROUTES.ps1 | ノード追加API |
 | `ノード追加_v2` | 07_ツールバー_v2.ps1 | ノード追加処理 |
 | `実行イベント_v2` | 08_ボタン処理_v2.ps1 | コード生成処理 |
 | `IDでエントリを取得` | 09_コードID管理JSON.ps1 | コード取得 |
@@ -503,7 +505,7 @@ REST API（adapter/api-server-v2.ps1）
    - Console タブでJavaScriptエラーを確認
 
 2. **PowerShellコンソール**
-   - `api-server-v2.ps1` の実行ログを確認
+   - `api-server-v2-pode-complete.ps1` の実行ログを確認
    - Write-Host によるデバッグ出力
 
 3. **JSON内容を確認**
@@ -590,6 +592,13 @@ REST API（adapter/api-server-v2.ps1）
 - **パフォーマンス改善**
   - Canvas2D パフォーマンス警告の解消
   - 不要なログの削減
+
+### 2025-11-16
+- **Pode HTTPサーバーへ移行完了**
+  - Polaris → Pode 2.11.0 への完全移行
+  - REST APIエンドポイント拡張（50個）
+  - CONVERTED_ROUTES.ps1 によるルート定義の分離
+  - PowerShell 5.1環境での安定性向上
 
 ### 2025-11-02
 - **アーキテクチャ移行完了**

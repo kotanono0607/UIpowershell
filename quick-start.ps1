@@ -215,12 +215,12 @@ Write-Host ""
 Write-Host "サーバーを起動中..." -ForegroundColor Cyan
 Write-Host ""
 
-# サーバー起動
+# サーバー起動（Pode版）
 try {
     if ($openBrowser) {
-        & ".\adapter\api-server-v2.ps1" -Port $Port -AutoOpenBrowser
+        & ".\adapter\api-server-v2-pode-complete.ps1" -Port $Port -AutoOpenBrowser
     } else {
-        & ".\adapter\api-server-v2.ps1" -Port $Port
+        & ".\adapter\api-server-v2-pode-complete.ps1" -Port $Port
     }
 } catch {
     Write-Host ""
