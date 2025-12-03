@@ -183,13 +183,26 @@ function Record-Operation {
             $allLayerKeys = @()
 
             foreach ($key in $validLayerKeys) {
-                # PSObjectの場合
-                if ($MemoryBefore.PSObject.Properties[$key] -or $MemoryAfter.PSObject.Properties[$key]) {
-                    $allLayerKeys += $key
+                $hasKeyInBefore = $false
+                $hasKeyInAfter = $false
+
+                # MemoryBeforeでキー存在チェック
+                if ($MemoryBefore.PSObject.Properties[$key]) {
+                    $hasKeyInBefore = $true
+                } elseif ($MemoryBefore -is [System.Collections.IDictionary]) {
+                    # ContainsKeyではなく直接アクセスして$nullチェック
+                    $hasKeyInBefore = ($null -ne $MemoryBefore[$key])
                 }
-                # Hashtable/OrderedDictionaryの場合（IDictionaryインターフェースで両方をカバー）
-                elseif (($MemoryBefore -is [System.Collections.IDictionary] -and $MemoryBefore.ContainsKey($key)) -or
-                        ($MemoryAfter -is [System.Collections.IDictionary] -and $MemoryAfter.ContainsKey($key))) {
+
+                # MemoryAfterでキー存在チェック
+                if ($MemoryAfter.PSObject.Properties[$key]) {
+                    $hasKeyInAfter = $true
+                } elseif ($MemoryAfter -is [System.Collections.IDictionary]) {
+                    # ContainsKeyではなく直接アクセスして$nullチェック
+                    $hasKeyInAfter = ($null -ne $MemoryAfter[$key])
+                }
+
+                if ($hasKeyInBefore -or $hasKeyInAfter) {
                     $allLayerKeys += $key
                 }
             }
@@ -207,8 +220,10 @@ function Record-Operation {
                 # PSObject、Hashtable、OrderedDictionaryの全てに対応
                 try {
                     if ($MemoryBefore -is [System.Collections.IDictionary]) {
-                        if ($MemoryBefore.ContainsKey($layerKey)) {
-                            $beforeLayer = $MemoryBefore[$layerKey]
+                        # OrderedDictionary/Hashtableの場合、直接キーでアクセス
+                        # ContainsKeyメソッドはHashtable専用でOrderedDictionaryにはない
+                        $beforeLayer = $MemoryBefore[$layerKey]
+                        if ($null -ne $beforeLayer) {
                             Write-Host "[Record Debug]   beforeLayer取得成功 (IDictionary)" -ForegroundColor Cyan
                         }
                     } elseif ($MemoryBefore.PSObject.Properties[$layerKey]) {
@@ -222,18 +237,11 @@ function Record-Operation {
                 Write-Host "[Record Debug]   beforeLayer取得処理完了" -ForegroundColor Cyan
 
                 try {
-                    Write-Host "[Record Debug]   afterLayer取得処理開始" -ForegroundColor Cyan
-                    $isIDictionary = $MemoryAfter -is [System.Collections.IDictionary]
-                    Write-Host "[Record Debug]   MemoryAfter is IDictionary: $isIDictionary" -ForegroundColor Cyan
-
-                    if ($isIDictionary) {
-                        Write-Host "[Record Debug]   ContainsKey チェック開始" -ForegroundColor Cyan
-                        $hasKey = $MemoryAfter.ContainsKey($layerKey)
-                        Write-Host "[Record Debug]   ContainsKey('$layerKey'): $hasKey" -ForegroundColor Cyan
-
-                        if ($hasKey) {
-                            Write-Host "[Record Debug]   afterLayerを取得中..." -ForegroundColor Cyan
-                            $afterLayer = $MemoryAfter[$layerKey]
+                    if ($MemoryAfter -is [System.Collections.IDictionary]) {
+                        # OrderedDictionary/Hashtableの場合、直接キーでアクセス
+                        # ContainsKeyメソッドはHashtable専用でOrderedDictionaryにはない
+                        $afterLayer = $MemoryAfter[$layerKey]
+                        if ($null -ne $afterLayer) {
                             Write-Host "[Record Debug]   afterLayer取得成功 (IDictionary)" -ForegroundColor Cyan
                         }
                     } elseif ($MemoryAfter.PSObject.Properties[$layerKey]) {
