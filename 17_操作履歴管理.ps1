@@ -195,37 +195,58 @@ function Record-Operation {
             }
             $allLayerKeys = $allLayerKeys | Select-Object -Unique
 
+            Write-Host "[Record Debug] allLayerKeys: $($allLayerKeys -join ', ')" -ForegroundColor Magenta
+            Write-Host "[Record Debug] allLayerKeysの数: $($allLayerKeys.Count)" -ForegroundColor Magenta
+
             foreach ($layerKey in $allLayerKeys) {
                 $beforeLayer = $null
                 $afterLayer = $null
+
+                Write-Host "[Record Debug] Layer $layerKey の処理開始" -ForegroundColor Cyan
 
                 # PSObject、Hashtable、OrderedDictionaryの全てに対応
                 if ($MemoryBefore -is [System.Collections.IDictionary]) {
                     if ($MemoryBefore.ContainsKey($layerKey)) {
                         $beforeLayer = $MemoryBefore[$layerKey]
+                        Write-Host "[Record Debug]   beforeLayer取得成功 (IDictionary)" -ForegroundColor Cyan
                     }
                 } elseif ($MemoryBefore.PSObject.Properties[$layerKey]) {
                     $beforeLayer = $MemoryBefore.$layerKey
+                    Write-Host "[Record Debug]   beforeLayer取得成功 (PSObject)" -ForegroundColor Cyan
                 }
 
                 if ($MemoryAfter -is [System.Collections.IDictionary]) {
                     if ($MemoryAfter.ContainsKey($layerKey)) {
                         $afterLayer = $MemoryAfter[$layerKey]
+                        Write-Host "[Record Debug]   afterLayer取得成功 (IDictionary)" -ForegroundColor Cyan
                     }
                 } elseif ($MemoryAfter.PSObject.Properties[$layerKey]) {
                     $afterLayer = $MemoryAfter.$layerKey
+                    Write-Host "[Record Debug]   afterLayer取得成功 (PSObject)" -ForegroundColor Cyan
                 }
 
-                # レイヤーが変更されたかチェック（簡易比較：JSON文字列化して比較）
-                $beforeJson = if ($beforeLayer) { $beforeLayer | ConvertTo-Json -Depth 5 -Compress } else { "" }
-                $afterJson = if ($afterLayer) { $afterLayer | ConvertTo-Json -Depth 5 -Compress } else { "" }
+                Write-Host "[Record Debug]   beforeLayer is null: $($null -eq $beforeLayer)" -ForegroundColor Cyan
+                Write-Host "[Record Debug]   afterLayer is null: $($null -eq $afterLayer)" -ForegroundColor Cyan
 
-                if ($beforeJson -ne $afterJson) {
-                    $affectedLayers += $layerKey
-                    $layerDiffs[$layerKey] = @{
-                        before = $beforeLayer
-                        after = $afterLayer
+                # レイヤーが変更されたかチェック（簡易比較：JSON文字列化して比較）
+                try {
+                    $beforeJson = if ($beforeLayer) { $beforeLayer | ConvertTo-Json -Depth 5 -Compress } else { "" }
+                    $afterJson = if ($afterLayer) { $afterLayer | ConvertTo-Json -Depth 5 -Compress } else { "" }
+
+                    Write-Host "[Record Debug]   beforeJson length: $($beforeJson.Length)" -ForegroundColor Cyan
+                    Write-Host "[Record Debug]   afterJson length: $($afterJson.Length)" -ForegroundColor Cyan
+                    Write-Host "[Record Debug]   JSONが異なる: $($beforeJson -ne $afterJson)" -ForegroundColor Cyan
+
+                    if ($beforeJson -ne $afterJson) {
+                        $affectedLayers += $layerKey
+                        $layerDiffs[$layerKey] = @{
+                            before = $beforeLayer
+                            after = $afterLayer
+                        }
+                        Write-Host "[Record Debug]   Layer $layerKey を影響レイヤーに追加" -ForegroundColor Green
                     }
+                } catch {
+                    Write-Host "[Record Debug]   JSON変換エラー: $($_.Exception.Message)" -ForegroundColor Red
                 }
             }
 
