@@ -1435,7 +1435,11 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
             foreach ($node in $layerNodes) {
                 # [ordered] を使用してフィールドの順序を既存のPS1形式に合わせる
                 # 既存PS1版: 05_メインフォームUI_矢印処理.ps1 1069-1081行
+                $nodeId = if ($node.id) { $node.id } else { "" }
+                $nodeScript = if ($null -ne $node.script) { $node.script } else { "" }
+
                 $構成 += [ordered]@{
+                    ID = $nodeId
                     ボタン名 = $node.name
                     X座標 = if ($node.x) { $node.x } else { 10 }
                     Y座標 = $node.y
@@ -1445,7 +1449,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
                     処理番号 = if ($node.処理番号) { $node.処理番号 } else { "未設定" }
                     高さ = if ($node.height) { $node.height } else { 40 }
                     幅 = if ($node.width) { $node.width } else { 280 }
-                    script = if ($null -ne $node.script) { $node.script } else { "未設定" }
+                    script = $nodeScript
                     GroupID = if ($node.groupId -ne $null -and $node.groupId -ne "") { $node.groupId } else { "" }
                 }
                 $totalNodes++
