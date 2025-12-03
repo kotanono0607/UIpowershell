@@ -1486,6 +1486,8 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
 
         # 履歴記録: 保存後の状態を記録
         try {
+            Write-Host "[履歴] Record-Operation呼び出し開始..." -ForegroundColor Magenta
+
             # 履歴管理関数の初期化（未読み込みの場合のみ）
             if (-not (Get-Command Record-Operation -ErrorAction SilentlyContinue)) {
                 $RootDir = Get-PodeState -Name 'RootDir'
@@ -1494,14 +1496,27 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
                 Write-Host "[履歴] ✅ 履歴管理関数を読み込みました" -ForegroundColor Green
             }
 
+            # デバッグ: $memoryDataの型を確認
+            $memoryDataType = $memoryData.GetType().FullName
+            Write-Host "[履歴] memoryDataの型: $memoryDataType" -ForegroundColor Magenta
+            Write-Host "[履歴] memoryDataのレイヤー数: $($memoryData.Count)" -ForegroundColor Magenta
+
+            # デバッグ: Layer 1のノード数を確認
+            if ($memoryData["1"] -and $memoryData["1"].構成) {
+                Write-Host "[履歴] memoryData Layer 1のノード数: $($memoryData['1'].構成.Count)" -ForegroundColor Magenta
+            }
+
             Record-Operation `
                 -FolderPath $folderPath `
                 -OperationType "NodeUpdate" `
                 -Description "ノード配置を更新 ($totalNodes ノード)" `
                 -MemoryBefore $memoryBefore `
                 -MemoryAfter $memoryData
+
+            Write-Host "[履歴] Record-Operation呼び出し完了" -ForegroundColor Magenta
         } catch {
-            Write-Host "[履歴] Record-Operationエラー: $($_.Exception.Message)" -ForegroundColor Yellow
+            Write-Host "[履歴] Record-Operationエラー: $($_.Exception.Message)" -ForegroundColor Red
+            Write-Host "[履歴] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
         }
 
         # ファイル保存確認
