@@ -205,24 +205,43 @@ function Record-Operation {
                 Write-Host "[Record Debug] Layer $layerKey の処理開始" -ForegroundColor Cyan
 
                 # PSObject、Hashtable、OrderedDictionaryの全てに対応
-                if ($MemoryBefore -is [System.Collections.IDictionary]) {
-                    if ($MemoryBefore.ContainsKey($layerKey)) {
-                        $beforeLayer = $MemoryBefore[$layerKey]
-                        Write-Host "[Record Debug]   beforeLayer取得成功 (IDictionary)" -ForegroundColor Cyan
+                try {
+                    if ($MemoryBefore -is [System.Collections.IDictionary]) {
+                        if ($MemoryBefore.ContainsKey($layerKey)) {
+                            $beforeLayer = $MemoryBefore[$layerKey]
+                            Write-Host "[Record Debug]   beforeLayer取得成功 (IDictionary)" -ForegroundColor Cyan
+                        }
+                    } elseif ($MemoryBefore.PSObject.Properties[$layerKey]) {
+                        $beforeLayer = $MemoryBefore.$layerKey
+                        Write-Host "[Record Debug]   beforeLayer取得成功 (PSObject)" -ForegroundColor Cyan
                     }
-                } elseif ($MemoryBefore.PSObject.Properties[$layerKey]) {
-                    $beforeLayer = $MemoryBefore.$layerKey
-                    Write-Host "[Record Debug]   beforeLayer取得成功 (PSObject)" -ForegroundColor Cyan
+                } catch {
+                    Write-Host "[Record Debug]   beforeLayer取得エラー: $($_.Exception.Message)" -ForegroundColor Red
                 }
 
-                if ($MemoryAfter -is [System.Collections.IDictionary]) {
-                    if ($MemoryAfter.ContainsKey($layerKey)) {
-                        $afterLayer = $MemoryAfter[$layerKey]
-                        Write-Host "[Record Debug]   afterLayer取得成功 (IDictionary)" -ForegroundColor Cyan
+                Write-Host "[Record Debug]   beforeLayer取得処理完了" -ForegroundColor Cyan
+
+                try {
+                    Write-Host "[Record Debug]   afterLayer取得処理開始" -ForegroundColor Cyan
+                    $isIDictionary = $MemoryAfter -is [System.Collections.IDictionary]
+                    Write-Host "[Record Debug]   MemoryAfter is IDictionary: $isIDictionary" -ForegroundColor Cyan
+
+                    if ($isIDictionary) {
+                        Write-Host "[Record Debug]   ContainsKey チェック開始" -ForegroundColor Cyan
+                        $hasKey = $MemoryAfter.ContainsKey($layerKey)
+                        Write-Host "[Record Debug]   ContainsKey('$layerKey'): $hasKey" -ForegroundColor Cyan
+
+                        if ($hasKey) {
+                            Write-Host "[Record Debug]   afterLayerを取得中..." -ForegroundColor Cyan
+                            $afterLayer = $MemoryAfter[$layerKey]
+                            Write-Host "[Record Debug]   afterLayer取得成功 (IDictionary)" -ForegroundColor Cyan
+                        }
+                    } elseif ($MemoryAfter.PSObject.Properties[$layerKey]) {
+                        $afterLayer = $MemoryAfter.$layerKey
+                        Write-Host "[Record Debug]   afterLayer取得成功 (PSObject)" -ForegroundColor Cyan
                     }
-                } elseif ($MemoryAfter.PSObject.Properties[$layerKey]) {
-                    $afterLayer = $MemoryAfter.$layerKey
-                    Write-Host "[Record Debug]   afterLayer取得成功 (PSObject)" -ForegroundColor Cyan
+                } catch {
+                    Write-Host "[Record Debug]   afterLayer取得エラー: $($_.Exception.Message)" -ForegroundColor Red
                 }
 
                 Write-Host "[Record Debug]   beforeLayer is null: $($null -eq $beforeLayer)" -ForegroundColor Cyan
