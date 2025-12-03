@@ -522,14 +522,30 @@ REST API（adapter/api-server-v2-pode-complete.ps1）
 
 ---
 
-## 📚 参考ドキュメント
+## 📚 ドキュメント
 
-- **ARCHITECTURE_OVERVIEW.md**: システム全体のアーキテクチャ概要
-- **SPEC.md**: システム仕様書（詳細な機能仕様）
-- **DESIGN_MIGRATION.md**: デザイン統合完了レポート（Neumorphism + Aurora）
-- **DEBUG_INSTRUCTIONS.md**: デバッグ手順
-- **スナップショット機能_使い方.md**: スナップショット機能ガイド
-- **組織PC制限事項.md**: 組織PCでの制限事項と対処方法
+### ユーザー向けガイド
+- [スナップショット機能](docs/user-guide/snapshot.md) - 現在の状態を保存・復元する方法
+- [デバッグ手順](docs/user-guide/debug-instructions.md) - トラブルシューティングとデバッグ方法
+- [デバッグログの使い方](docs/user-guide/debug-logging.md) - ログ機能の詳細説明
+- [組織PC制限事項](docs/user-guide/restrictions.md) - 組織PCでの制限事項と対処方法
+
+### 開発者向けドキュメント
+- [アーキテクチャ概要](docs/development/architecture.md) - システム全体のアーキテクチャ解説
+- [システム仕様書](docs/development/spec.md) - 詳細な機能仕様とAPI仕様
+- [配布手順](docs/development/distribution.md) - アプリケーション配布ガイド
+
+### UI設計資料
+- [サイズ調整ガイド](docs/ui/size-adjustment.md) - UI要素のサイズ調整方法
+- [用語集](docs/ui/glossary.md) - UIpowershellで使用される用語集
+- [テストケース](docs/ui/test-cases.md) - スクリプト化レイヤー管理のテストケース
+
+### 履歴・アーカイブ
+- [Pode移行計画](docs/archive/pode-migration-plan.md) - Polaris→Pode移行計画書
+- [Pode移行完了レポート](docs/archive/pode-migration-report.md) - 移行作業完了報告
+- [デザイン移行レポート](docs/archive/design-migration.md) - Neumorphism + Aurora移行記録
+- [UI移行レポート](docs/archive/ui-migration.md) - 条件分岐ループUI移行記録
+- [起動パフォーマンス調査](docs/archive/performance-report.md) - 起動時間最適化調査結果
 
 ---
 
