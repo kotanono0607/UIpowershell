@@ -35,11 +35,11 @@ Write-Host "【Step 1】必須ファイルの確認..." -ForegroundColor Yellow
 Write-Host ""
 
 $requiredFiles = @(
-    "adapter\api-server-v2.ps1",
+    "adapter\api-server-v2-pode-complete.ps1",
     "adapter\state-manager.ps1",
     "adapter\node-operations.ps1",
-    "ui\index-v2.html",
-    "ui\app.js",
+    "ui\index-legacy.html",
+    "ui\app-legacy.js",
     "12_コードメイン_コード本文_v2.ps1",
     "10_変数機能_変数管理UI_v2.ps1",
     "07_メインF機能_ツールバー作成_v2.ps1",
@@ -197,7 +197,7 @@ Write-Host "  起動設定" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "  ポート: $Port" -ForegroundColor White
 Write-Host "  URL: http://localhost:$Port" -ForegroundColor White
-Write-Host "  フロントエンド: http://localhost:$Port/index-v2.html" -ForegroundColor White
+Write-Host "  フロントエンド: http://localhost:$Port/index-legacy.html" -ForegroundColor White
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
