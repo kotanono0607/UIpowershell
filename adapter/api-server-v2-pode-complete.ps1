@@ -153,12 +153,23 @@ if (-not $localPodeFound) {
 # PowerShell 5.1はUTF-8 BOMが必要なため、Podeモジュールの問題ファイルを修正
 Write-Host "PowerShell 5.1環境用にPodeモジュールを最適化しています..." -ForegroundColor Cyan
 
-# Pode 2.11.0または2.12.1のConsole.ps1を検出
-$podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.11.0\Private\Console.ps1"
-if (-not (Test-Path $podeConsoleFile)) {
-    $podeConsoleFile = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
+# Pode 2.11.0または2.12.1のConsole.ps1を検出（ローカル優先）
+$podeConsoleFile = $null
+$possiblePaths = @(
+    # ローカル（プロジェクト内）
+    (Join-Path $script:RootDir "Modules\Pode\2.11.0\Private\Console.ps1"),
+    (Join-Path $script:RootDir "Modules\Pode\2.12.1\Private\Console.ps1"),
+    # システム（ユーザープロファイル）
+    "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.11.0\Private\Console.ps1",
+    "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\Pode\2.12.1\Private\Console.ps1"
+)
+foreach ($path in $possiblePaths) {
+    if (Test-Path $path) {
+        $podeConsoleFile = $path
+        break
+    }
 }
-if (Test-Path $podeConsoleFile) {
+if ($podeConsoleFile -and (Test-Path $podeConsoleFile)) {
     try {
         # バイナリモードで正確に読み取る
         $bytes = [System.IO.File]::ReadAllBytes($podeConsoleFile)
