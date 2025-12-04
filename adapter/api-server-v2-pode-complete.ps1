@@ -121,13 +121,30 @@ Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Podeモジュールの読み込み
-$podeModulePath = Join-Path $script:RootDir "Modules\Pode"
-if (Test-Path $podeModulePath) {
-    Write-Host "[OK] Podeモジュールを読み込みます: $podeModulePath" -ForegroundColor Green
-    $env:PSModulePath = "$podeModulePath;$env:PSModulePath"
-} else {
-    Write-Host "[警告] Podeモジュールが見つかりません: $podeModulePath" -ForegroundColor Yellow
-    Write-Host "       PowerShell Galleryからのインストールを試みます..." -ForegroundColor Yellow
+# Modules フォルダを PSModulePath に追加（Modules\Pode\<version> 構造に対応）
+$modulesPath = Join-Path $script:RootDir "Modules"
+if (Test-Path $modulesPath) {
+    $env:PSModulePath = "$modulesPath;$env:PSModulePath"
+}
+
+# ローカルの Pode モジュールを検索（バージョン付きフォルダ対応）
+$localPodePath = Join-Path $script:RootDir "Modules\Pode"
+$localPodeFound = $false
+if (Test-Path $localPodePath) {
+    # Modules\Pode\<version> または Modules\Pode 直下を確認
+    $podeVersionDirs = Get-ChildItem -Path $localPodePath -Directory -ErrorAction SilentlyContinue
+    if ($podeVersionDirs) {
+        $latestVersion = $podeVersionDirs | Sort-Object Name -Descending | Select-Object -First 1
+        Write-Host "[OK] ローカルPodeモジュールを使用: $($latestVersion.FullName)" -ForegroundColor Green
+        $localPodeFound = $true
+    } elseif (Test-Path (Join-Path $localPodePath "Pode.psd1")) {
+        Write-Host "[OK] ローカルPodeモジュールを使用: $localPodePath" -ForegroundColor Green
+        $localPodeFound = $true
+    }
+}
+
+if (-not $localPodeFound) {
+    Write-Host "[情報] ローカルPodeモジュールなし - システム/Galleryのモジュールを使用します" -ForegroundColor Cyan
 }
 
 # ============================================
