@@ -2310,6 +2310,14 @@ function renderNodesInLayer(layer, panelSide = 'left') {
             return;
         }
 
+        // ノードがない場合は右パネルを空状態にする
+        if (!layerStructure[layer] || layerStructure[layer].nodes.length === 0) {
+            console.log(`[レンダリング] レイヤー${layer}にノードがないため、右パネルを空状態にします`);
+            rightPanel.classList.add('empty');
+            rightPanel.innerHTML = '';
+            return;
+        }
+
         // emptyクラスを削除
         rightPanel.classList.remove('empty');
 
