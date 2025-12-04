@@ -229,7 +229,7 @@ if ($podeConsoleFile -and (Test-Path $podeConsoleFile)) {
         Write-Host "[警告] Podeモジュールの修正をスキップ: $($_.Exception.Message)" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "[情報] Podeモジュールが未インストールです（自動インストールされます）" -ForegroundColor Gray
+    Write-Host "[情報] Console.ps1修正不要（Pode 2.11.0以降では不要）" -ForegroundColor Gray
 }
 
 try {
