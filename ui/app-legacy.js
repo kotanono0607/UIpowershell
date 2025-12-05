@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.261';  // アプリバージョン - エッジ基盤追加（将来の多重分岐用）
+const APP_VERSION = '1.1.0';  // アプリバージョン - 多重分岐対応（If-ElseIf-Else）
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -766,9 +766,9 @@ function drawPanelArrows(layerId) {
     const layerMatch = layerId.match(/layer-(\d+)/);
     const layerNumber = layerMatch ? parseInt(layerMatch[1], 10) : 1;
 
-    // 条件分岐の矢印を描画（色ベース - Grayノードで分岐判定）
+    // 条件分岐の矢印を描画（色ベース - Grayノードで分岐判定、多重分岐対応）
     conditionGroups.forEach(group => {
-        drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect, scrollTop, scrollLeft);
+        drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect, scrollTop, scrollLeft, group.grayIndices, group.branchCount);
     });
 
     // ループの矢印を描画
@@ -830,10 +830,24 @@ function findConditionGroups(nodes) {
                 currentGroup.push(node); // 終了ノード
 
                 if (currentGroup.length >= 2) {
+                    const innerNodes = currentGroup.slice(1, -1);
+                    // Grayノードのインデックスを収集（多重分岐対応）
+                    const grayIndices = [];
+                    innerNodes.forEach((n, idx) => {
+                        if (isGrayColor(window.getComputedStyle(n).backgroundColor)) {
+                            grayIndices.push(idx);
+                        }
+                    });
+
+                    // 分岐数を計算（Grayノード数 + 1）
+                    const branchCount = grayIndices.length + 1;
+
                     groups.push({
                         startNode: currentGroup[0],
                         endNode: currentGroup[currentGroup.length - 1],
-                        innerNodes: currentGroup.slice(1, -1) // 開始と終了の間のノード
+                        innerNodes: innerNodes,
+                        grayIndices: grayIndices,  // Grayノードの位置（多重分岐用）
+                        branchCount: branchCount   // 分岐数
                     });
                 }
 
@@ -849,8 +863,10 @@ function findConditionGroups(nodes) {
     return groups;
 }
 
-// 条件分岐の複雑な矢印を描画
-function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, containerRect, scrollTop = 0, scrollLeft = 0) {
+// 条件分岐の複雑な矢印を描画（多重分岐対応）
+// grayIndices: innerNodes内のGrayノードのインデックス配列
+// branchCount: 分岐数（デフォルト2 = if-else）
+function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, containerRect, scrollTop = 0, scrollLeft = 0, grayIndices = [], branchCount = 2) {
     // ★修正: style.topを直接使用（getBoundingClientRectはビューポート依存のため不正確）
     const startTop = parseInt(startNode.style.top, 10) || 0;
     const startLeft = parseInt(startNode.style.left, 10) || 90;
@@ -862,101 +878,191 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
     const endHeight = endNode.offsetHeight || 40;
     const endWidth = endNode.offsetWidth || 120;
 
-    // 内部ノードを赤、Gray、青、Pinkに分類
-    console.log(`[条件分岐デバッグ] innerNodes数: ${innerNodes.length}`);
-    innerNodes.forEach((node, index) => {
-        const computedColor = window.getComputedStyle(node).backgroundColor;
-        console.log(`  [${index}] text="${node.textContent}", color="${computedColor}"`);
-    });
-
-    const redNodes = innerNodes.filter(node => isSalmonColor(window.getComputedStyle(node).backgroundColor));
-    const grayNodes = innerNodes.filter(node => isGrayColor(window.getComputedStyle(node).backgroundColor));
-    const blueNodes = innerNodes.filter(node => isBlueColor(window.getComputedStyle(node).backgroundColor));
-    const pinkNodes = innerNodes.filter(node => isPinkColor(window.getComputedStyle(node).backgroundColor));
-
-    // Grayノードのインデックスを取得（False分岐とTrue分岐の境界）
-    const grayIndex = innerNodes.findIndex(node => isGrayColor(window.getComputedStyle(node).backgroundColor));
-
-    // False分岐のノード（Gray以前、赤またはPink）
-    const falseBranchNodes = innerNodes.filter((node, index) => {
-        if (grayIndex === -1) return false;
-        if (index >= grayIndex) return false;
-        const color = window.getComputedStyle(node).backgroundColor;
-        return isSalmonColor(color) || isPinkColor(color);
-    });
-
-    // True分岐のノード（Gray以降、青またはPink）
-    const trueBranchNodes = innerNodes.filter((node, index) => {
-        if (grayIndex === -1) return false;
-        if (index <= grayIndex) return false;
-        const color = window.getComputedStyle(node).backgroundColor;
-        return isBlueColor(color) || isPinkColor(color);
-    });
-
-    console.log(`[条件分岐] 赤ノード数: ${redNodes.length}, Grayノード数: ${grayNodes.length}, 青ノード数: ${blueNodes.length}, Pinkノード数: ${pinkNodes.length}`);
-    console.log(`[条件分岐] False分岐ノード数: ${falseBranchNodes.length}, True分岐ノード数: ${trueBranchNodes.length}`);
-
-    // 1. 緑（開始）→ False分岐の最初のノード（赤またはPink）への下向き矢印
-    if (falseBranchNodes.length > 0) {
-        const firstFalse = falseBranchNodes[0];
-        drawDownArrow(ctx, startNode, firstFalse, 'rgb(250, 128, 114)');
+    // 後方互換性: grayIndicesが渡されない場合は従来の方法で取得
+    if (!grayIndices || grayIndices.length === 0) {
+        grayIndices = [];
+        innerNodes.forEach((n, idx) => {
+            if (isGrayColor(window.getComputedStyle(n).backgroundColor)) {
+                grayIndices.push(idx);
+            }
+        });
+        branchCount = grayIndices.length + 1;
     }
 
-    // 2. 緑（開始）→ True分岐の最初のノード（青またはPink）への複雑な矢印（右→下）
-    if (trueBranchNodes.length > 0) {
-        const firstTrue = trueBranchNodes[0];
-        const trueTop = parseInt(firstTrue.style.top, 10) || 0;
-        const trueLeft = parseInt(firstTrue.style.left, 10) || 90;
-        const trueHeight = firstTrue.offsetHeight || 40;
-        const trueWidth = firstTrue.offsetWidth || 120;
+    // 内部ノードをデバッグ出力
+    console.log(`[条件分岐デバッグ] innerNodes数: ${innerNodes.length}, 分岐数: ${branchCount}, Grayインデックス: [${grayIndices.join(', ')}]`);
 
-        // 開始ノードの右端中央
-        const lineStartX = startLeft + startWidth;
-        const lineStartY = startTop + startHeight / 2;
-        const horizontalEndX = lineStartX + 20;
-        // True分岐ノードの中央Y座標
-        const trueY = trueTop + trueHeight / 2;
+    // 各分岐のノードを収集
+    // branches[0] = 開始→最初のGray間のノード（False分岐）
+    // branches[1] = 最初のGray→2番目のGray間のノード（ElseIf1分岐）
+    // ...
+    // branches[N-1] = 最後のGray→終了間のノード（True分岐）
+    const branches = [];
+    let prevGrayIndex = -1;
 
-        ctx.strokeStyle = '#1e90ff';  // DodgerBlue
-        ctx.lineWidth = 2;
+    for (let i = 0; i < branchCount; i++) {
+        const startIdx = prevGrayIndex + 1;
+        const endIdx = (i < grayIndices.length) ? grayIndices[i] : innerNodes.length;
 
-        // 右への横線
-        ctx.beginPath();
-        ctx.moveTo(lineStartX, lineStartY);
-        ctx.lineTo(horizontalEndX, lineStartY);
-        ctx.stroke();
-
-        // 下への縦線
-        ctx.beginPath();
-        ctx.moveTo(horizontalEndX, lineStartY);
-        ctx.lineTo(horizontalEndX, trueY);
-        ctx.stroke();
-
-        // True分岐ノードへの横線
-        const trueRightX = trueLeft + trueWidth;
-        ctx.beginPath();
-        ctx.moveTo(horizontalEndX, trueY);
-        ctx.lineTo(trueRightX, trueY);
-        ctx.stroke();
+        const branchNodes = [];
+        for (let j = startIdx; j < endIdx; j++) {
+            const node = innerNodes[j];
+            const color = window.getComputedStyle(node).backgroundColor;
+            // Grayノードは除外
+            if (!isGrayColor(color)) {
+                branchNodes.push(node);
+            }
+        }
+        branches.push(branchNodes);
+        prevGrayIndex = (i < grayIndices.length) ? grayIndices[i] : innerNodes.length;
     }
 
-    // 3. False分岐の最後のノード（赤またはPink）→ 緑（終了）への複雑な矢印（左→下→右）
-    // v1.0.187の仕様：True分岐の有無に関係なく常に描画
-    if (falseBranchNodes.length > 0) {
-        const lastFalse = falseBranchNodes[falseBranchNodes.length - 1];
-        const lastFalseTop = parseInt(lastFalse.style.top, 10) || 0;
-        const lastFalseLeft = parseInt(lastFalse.style.left, 10) || 90;
-        const lastFalseHeight = lastFalse.offsetHeight || 40;
+    console.log(`[条件分岐] 分岐数: ${branches.length}`);
+    branches.forEach((b, idx) => {
+        console.log(`  分岐${idx}: ${b.length}ノード`);
+    });
 
-        // 最後のFalse分岐ノードの左端中央
-        const lineStartX = lastFalseLeft;
-        const lineStartY = lastFalseTop + lastFalseHeight / 2;
-        const horizontalEndX = Math.max(lineStartX - 20, 0);
-        // 終了ノードの中央Y座標
-        const lineEndY = endTop + endHeight / 2;
+    // 分岐ごとの色を定義（多重分岐対応）
+    const branchColors = getBranchColors(branchCount);
 
-        ctx.strokeStyle = 'rgb(250, 128, 114)';
-        ctx.lineWidth = 2;
+    // === 各分岐の矢印を描画 ===
+
+    for (let branchIdx = 0; branchIdx < branches.length; branchIdx++) {
+        const branchNodes = branches[branchIdx];
+        const branchColor = branchColors[branchIdx];
+        const isFirstBranch = branchIdx === 0;
+        const isLastBranch = branchIdx === branches.length - 1;
+
+        if (branchNodes.length === 0) continue;
+
+        const firstNode = branchNodes[0];
+        const lastNode = branchNodes[branchNodes.length - 1];
+
+        // 1. 開始ノード → 分岐の最初のノード
+        if (isFirstBranch) {
+            // False分岐: 下向き矢印
+            drawDownArrow(ctx, startNode, firstNode, branchColor);
+        } else {
+            // ElseIf/True分岐: 右→下の複雑な矢印
+            drawBranchStartArrow(ctx, startNode, firstNode, branchColor, branchIdx);
+        }
+
+        // 2. 分岐内のノード間の矢印
+        for (let i = 0; i < branchNodes.length - 1; i++) {
+            drawDownArrow(ctx, branchNodes[i], branchNodes[i + 1], branchColor);
+        }
+
+        // 3. 分岐の最後のノード → 終了ノード
+        if (isFirstBranch) {
+            // False分岐: 左→下→右の複雑な矢印
+            drawBranchEndArrow(ctx, lastNode, endNode, branchColor, 'left');
+        } else if (isLastBranch) {
+            // True分岐: 下向き矢印
+            drawDownArrow(ctx, lastNode, endNode, branchColor);
+        } else {
+            // ElseIf分岐: 右→下→左の複雑な矢印
+            drawBranchEndArrow(ctx, lastNode, endNode, branchColor, 'right', branchIdx);
+        }
+    }
+}
+
+// 分岐色の配列を取得（多重分岐対応）
+function getBranchColors(branchCount) {
+    const baseColors = [
+        'rgb(250, 128, 114)',  // 赤（False/最初の分岐）
+        '#ff8c00',              // オレンジ（ElseIf1）
+        '#ffd700',              // 黄色（ElseIf2）
+        '#32cd32',              // ライムグリーン（ElseIf3）
+        '#00ced1',              // ダークターコイズ（ElseIf4）
+        '#9370db',              // ミディアムパープル（ElseIf5）
+        '#ff69b4',              // ホットピンク（ElseIf6）
+        '#1e90ff',              // DodgerBlue（True/最後の分岐）
+    ];
+
+    if (branchCount === 2) {
+        // 従来の2分岐: 赤と青
+        return ['rgb(250, 128, 114)', '#1e90ff'];
+    }
+
+    // 多重分岐: 最初は赤、最後は青、中間は順番に色を割り当て
+    const colors = [];
+    colors.push(baseColors[0]);  // 最初の分岐は赤
+
+    for (let i = 1; i < branchCount - 1; i++) {
+        const colorIdx = Math.min(i, baseColors.length - 2);
+        colors.push(baseColors[colorIdx]);
+    }
+
+    colors.push(baseColors[baseColors.length - 1]);  // 最後の分岐は青
+
+    return colors;
+}
+
+// 分岐開始の複雑な矢印を描画（右→下）
+function drawBranchStartArrow(ctx, startNode, targetNode, color, branchIdx) {
+    const startTop = parseInt(startNode.style.top, 10) || 0;
+    const startLeft = parseInt(startNode.style.left, 10) || 90;
+    const startHeight = startNode.offsetHeight || 40;
+    const startWidth = startNode.offsetWidth || 120;
+
+    const targetTop = parseInt(targetNode.style.top, 10) || 0;
+    const targetLeft = parseInt(targetNode.style.left, 10) || 90;
+    const targetHeight = targetNode.offsetHeight || 40;
+    const targetWidth = targetNode.offsetWidth || 120;
+
+    // 開始ノードの右端中央
+    const lineStartX = startLeft + startWidth;
+    const lineStartY = startTop + startHeight / 2;
+    // 分岐ごとにオフセットを変える
+    const horizontalEndX = lineStartX + 20 + (branchIdx * 10);
+    // ターゲットノードの中央Y座標
+    const targetY = targetTop + targetHeight / 2;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+
+    // 右への横線
+    ctx.beginPath();
+    ctx.moveTo(lineStartX, lineStartY);
+    ctx.lineTo(horizontalEndX, lineStartY);
+    ctx.stroke();
+
+    // 下への縦線
+    ctx.beginPath();
+    ctx.moveTo(horizontalEndX, lineStartY);
+    ctx.lineTo(horizontalEndX, targetY);
+    ctx.stroke();
+
+    // ターゲットノードへの横線
+    const targetRightX = targetLeft + targetWidth;
+    ctx.beginPath();
+    ctx.moveTo(horizontalEndX, targetY);
+    ctx.lineTo(targetRightX, targetY);
+    ctx.stroke();
+}
+
+// 分岐終了の複雑な矢印を描画（左→下→右 または 右→下→左）
+function drawBranchEndArrow(ctx, sourceNode, endNode, color, direction = 'left', branchIdx = 0) {
+    const sourceTop = parseInt(sourceNode.style.top, 10) || 0;
+    const sourceLeft = parseInt(sourceNode.style.left, 10) || 90;
+    const sourceHeight = sourceNode.offsetHeight || 40;
+    const sourceWidth = sourceNode.offsetWidth || 120;
+
+    const endTop = parseInt(endNode.style.top, 10) || 0;
+    const endLeft = parseInt(endNode.style.left, 10) || 90;
+    const endHeight = endNode.offsetHeight || 40;
+    const endWidth = endNode.offsetWidth || 120;
+
+    const lineEndY = endTop + endHeight / 2;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+
+    if (direction === 'left') {
+        // 左→下→右（False分岐用）
+        const lineStartX = sourceLeft;
+        const lineStartY = sourceTop + sourceHeight / 2;
+        const horizontalEndX = Math.max(lineStartX - 20 - (branchIdx * 10), 0);
 
         // 左への横線
         ctx.beginPath();
@@ -971,84 +1077,40 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         ctx.stroke();
 
         // 終了ノードへの横線と矢印
-        const endLeftX = endLeft;
         ctx.beginPath();
         ctx.moveTo(horizontalEndX, lineEndY);
-        ctx.lineTo(endLeftX, lineEndY);
+        ctx.lineTo(endLeft, lineEndY);
         ctx.stroke();
 
         // 矢印ヘッド
-        drawArrowHead(ctx, horizontalEndX, lineEndY, endLeftX, lineEndY);
-    }
+        drawArrowHead(ctx, horizontalEndX, lineEndY, endLeft, lineEndY);
+    } else {
+        // 右→下→左（ElseIf分岐用）
+        const lineStartX = sourceLeft + sourceWidth;
+        const lineStartY = sourceTop + sourceHeight / 2;
+        const horizontalEndX = lineStartX + 20 + (branchIdx * 10);
 
-    // 4. innerNodes間の矢印を描画（赤ノード間、青ノード間、Pinkノード含む）
-    // 注: Grayは目印なので矢印不要
-    for (let i = 0; i < innerNodes.length - 1; i++) {
-        const currentNode = innerNodes[i];
-        const nextNode = innerNodes[i + 1];
-        const currentColor = window.getComputedStyle(currentNode).backgroundColor;
-        const nextColor = window.getComputedStyle(nextNode).backgroundColor;
+        // 右への横線
+        ctx.beginPath();
+        ctx.moveTo(lineStartX, lineStartY);
+        ctx.lineTo(horizontalEndX, lineStartY);
+        ctx.stroke();
 
-        // Grayノードは矢印をスキップ（目印のため）
-        if (isGrayColor(currentColor) || isGrayColor(nextColor)) {
-            console.log(`[条件分岐] Gray検出のため矢印スキップ: ${currentNode.textContent} → ${nextNode.textContent}`);
-            continue;
-        }
+        // 下への縦線
+        ctx.beginPath();
+        ctx.moveTo(horizontalEndX, lineStartY);
+        ctx.lineTo(horizontalEndX, lineEndY);
+        ctx.stroke();
 
-        // 色の判定（Pinkノードは分岐の色を継承）
-        const isCurrentBlue = isBlueColor(currentColor);
-        const isCurrentRed = isSalmonColor(currentColor);
-        const isCurrentPink = isPinkColor(currentColor);
-        const isNextBlue = isBlueColor(nextColor);
-        const isNextRed = isSalmonColor(nextColor);
-        const isNextPink = isPinkColor(nextColor);
+        // 終了ノードへの横線と矢印
+        const endRightX = endLeft + endWidth;
+        ctx.beginPath();
+        ctx.moveTo(horizontalEndX, lineEndY);
+        ctx.lineTo(endRightX, lineEndY);
+        ctx.stroke();
 
-        // 矢印の色を決定（現在と次のノードの色に基づく）
-        let arrowColor = null;
-
-        // 青系の矢印（青→青、青→Pink、Pink→青、Pink→Pink（青分岐内））
-        if ((isCurrentBlue || isCurrentPink) && (isNextBlue || isNextPink)) {
-            // 両方Pinkの場合は、どちらの分岐にいるか判定が必要
-            // ここでは青分岐内かどうかをblueNodesの存在で判定
-            if (isCurrentBlue || isNextBlue) {
-                arrowColor = '#1e90ff'; // DodgerBlue
-            } else if (blueNodes.length > 0) {
-                // 両方Pinkで、青ノードが存在する場合は青分岐内の可能性
-                // innerNodesの位置関係で判定
-                const currentIndex = innerNodes.indexOf(currentNode);
-                const grayIndex = innerNodes.findIndex(n => isGrayColor(window.getComputedStyle(n).backgroundColor));
-                if (grayIndex !== -1 && currentIndex > grayIndex) {
-                    arrowColor = '#1e90ff'; // DodgerBlue（Gray以降 = True分岐）
-                } else {
-                    arrowColor = 'rgb(250, 128, 114)'; // 赤色（Gray以前 = False分岐）
-                }
-            }
-        }
-        // 赤系の矢印（赤→赤、赤→Pink、Pink→赤）
-        else if ((isCurrentRed || isCurrentPink) && (isNextRed || isNextPink)) {
-            if (isCurrentRed || isNextRed) {
-                arrowColor = 'rgb(250, 128, 114)'; // 赤色
-            } else {
-                // 両方Pinkの場合、位置で判定
-                const currentIndex = innerNodes.indexOf(currentNode);
-                const grayIndex = innerNodes.findIndex(n => isGrayColor(window.getComputedStyle(n).backgroundColor));
-                if (grayIndex !== -1 && currentIndex < grayIndex) {
-                    arrowColor = 'rgb(250, 128, 114)'; // 赤色（Gray以前 = False分岐）
-                }
-            }
-        }
-
-        // 矢印を描画（色が決定された場合のみ）
-        if (arrowColor) {
-            drawDownArrow(ctx, currentNode, nextNode, arrowColor);
-            console.log(`[条件分岐] innerNodes間矢印: ${currentNode.textContent} → ${nextNode.textContent} (色: ${arrowColor})`);
-        }
-    }
-
-    // 5. True分岐の最後のノード（青またはPink）→ 緑（終了）への下向き矢印
-    if (trueBranchNodes.length > 0) {
-        const lastTrue = trueBranchNodes[trueBranchNodes.length - 1];
-        drawDownArrow(ctx, lastTrue, endNode, '#1e90ff');  // DodgerBlue
+        // 矢印ヘッド（逆向き）
+        drawArrowHead(ctx, horizontalEndX, lineEndY, endRightX, lineEndY);
     }
 }
 
@@ -1965,8 +2027,20 @@ function generateAddNodeButtons() {
                 // - 変数管理システムとの深い統合
                 // ============================================
 
+                // 条件分岐の場合、分岐数を選択
+                let finalSetting = { ...setting };
+                if (setting.処理番号 === '1-2') {
+                    const branchCount = await showBranchCountSelector();
+                    if (branchCount === null) {
+                        console.log('[ボタンクリック] 分岐数選択がキャンセルされました');
+                        return;
+                    }
+                    finalSetting.branchCount = branchCount;
+                    console.log(`[ボタンクリック] 分岐数: ${branchCount}`);
+                }
+
                 // 全てのボタンで統一的にノード追加処理
-                await addNodeToLayer(setting);
+                await addNodeToLayer(finalSetting);
 
             } catch (error) {
                 console.error('[ボタンクリック] ❌ エラーが発生しました:', error);
@@ -2162,9 +2236,11 @@ async function addNodeToLayer(setting) {
 
     // 処理番号で判定してセット作成
     if (setting.処理番号 === '1-2') {
-        // 条件分岐：3個セット（開始・中間・終了）
-        console.log('[addNodeToLayer] 条件分岐セット追加を開始');
-        addedNodes = await addConditionSet(setting);
+        // 条件分岐：多重分岐対応（開始・中間×N・終了）
+        // branchCount: 2=if-else, 3=if-elseif-else, etc.
+        const branchCount = setting.branchCount || 2;
+        console.log(`[addNodeToLayer] 条件分岐セット追加を開始 (分岐数: ${branchCount})`);
+        addedNodes = await addConditionSet(setting, branchCount);
         console.log('[addNodeToLayer] 条件分岐セット追加が完了');
     } else if (setting.処理番号 === '1-3') {
         // ループ：2個セット（開始・終了）
@@ -2318,9 +2394,10 @@ async function addLoopSet(setting) {
     return [startNode, endNode];
 }
 
-// 条件分岐セット（3個）を追加
-// Grayノード（中間ライン）でTrue/False分岐を視覚的に分離
-async function addConditionSet(setting) {
+// 条件分岐セット（多重分岐対応）を追加
+// branchCount: 分岐数（2=if-else, 3=if-elseif-else, etc.）
+// Grayノード（中間ライン）でTrue/Else-if/False分岐を視覚的に分離
+async function addConditionSet(setting, branchCount = 2) {
     const groupId = conditionGroupCounter++;
     const baseY = getNextAvailableY(leftVisibleLayer);
 
@@ -2328,7 +2405,13 @@ async function addConditionSet(setting) {
     const baseId = nodeCounter;
     nodeCounter++;
 
-    console.log(`[条件分岐作成] GroupID=${groupId}, ベースID=${baseId} を割り当て`);
+    // 分岐数を検証（最小2、最大10）
+    branchCount = Math.max(2, Math.min(10, branchCount));
+    const grayNodeCount = branchCount - 1;  // Grayノード数 = 分岐数 - 1
+
+    console.log(`[条件分岐作成] GroupID=${groupId}, ベースID=${baseId}, 分岐数=${branchCount}, Grayノード数=${grayNodeCount}`);
+
+    const allNodes = [];
 
     // 1. 開始ボタン（緑）
     const startNode = addSingleNode(
@@ -2339,38 +2422,171 @@ async function addConditionSet(setting) {
         40,
         `${baseId}-1`  // カスタムID指定
     );
+    startNode.dataset.branchCount = branchCount;  // 分岐数をデータ属性に保存
+    allNodes.push(startNode);
 
     // コード生成（条件式） - ベースIDを渡す
     console.log(`[条件分岐作成] コード生成 - ベースID: ${baseId}`);
     await generateCode(setting.処理番号, `${baseId}`);
 
-    // 2. 中間ライン（グレー、高さ1px）- True/False分岐の境界
-    const middleNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 中間', 背景色: 'Gray', ボタン名: `${baseId}-2` },
-        '条件分岐 中間',
-        baseY + 45 - 5,  // 5px上に調整
-        groupId,
-        1,  // 高さ1px
-        `${baseId}-2`  // カスタムID指定
-    );
+    // 2. 中間ライン（グレー、高さ1px）- 分岐の境界
+    // branchCount=2: Gray1個（False/True境界）
+    // branchCount=3: Gray2個（False/ElseIf1/True境界）
+    // branchCount=N: Gray(N-1)個
+    for (let i = 0; i < grayNodeCount; i++) {
+        const branchLabel = getBranchLabel(i, grayNodeCount);
+        const middleNode = addSingleNode(
+            { ...setting, テキスト: `条件分岐 ${branchLabel}`, 背景色: 'Gray', ボタン名: `${baseId}-${i + 2}` },
+            `条件分岐 ${branchLabel}`,
+            baseY + 45 * (i + 1) - 5,  // 5px上に調整
+            groupId,
+            1,  // 高さ1px
+            `${baseId}-${i + 2}`  // カスタムID指定
+        );
+        middleNode.dataset.branchIndex = i;  // 何番目のGrayか
+        allNodes.push(middleNode);
+    }
 
     // 3. 終了ボタン（緑）
     const endNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${baseId}-3` },
+        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${baseId}-${grayNodeCount + 2}` },
         '条件分岐 終了',
-        baseY + 45,
+        baseY + 45 * (grayNodeCount + 1),
         groupId,
         40,
-        `${baseId}-3`  // カスタムID指定
+        `${baseId}-${grayNodeCount + 2}`  // カスタムID指定
     );
+    allNodes.push(endNode);
 
-    console.log(`[条件分岐作成完了] 開始:${startNode.id}, 中間:${middleNode.id}, 終了:${endNode.id} (GroupID=${groupId}, ベースID=${baseId})`);
+    console.log(`[条件分岐作成完了] ノード数=${allNodes.length}, 開始:${startNode.id}, 終了:${endNode.id} (GroupID=${groupId})`);
 
     renderNodesInLayer(leftVisibleLayer);
     reorderNodesInLayer(leftVisibleLayer);
 
     // 追加されたノードを返す
-    return [startNode, middleNode, endNode];
+    return allNodes;
+}
+
+// 分岐ラベルを取得（多重分岐用）
+function getBranchLabel(grayIndex, totalGrays) {
+    if (totalGrays === 1) {
+        return '中間';  // 従来の2分岐
+    }
+    // 多重分岐の場合
+    // Gray0 = False/ElseIf1境界
+    // Gray1 = ElseIf1/ElseIf2境界 or ElseIf1/True境界
+    // ...
+    if (grayIndex === 0) {
+        return 'False境界';
+    } else if (grayIndex === totalGrays - 1) {
+        return 'True境界';
+    } else {
+        return `ElseIf${grayIndex}境界`;
+    }
+}
+
+// 分岐数選択ダイアログを表示（多重分岐対応）
+function showBranchCountSelector() {
+    return new Promise((resolve) => {
+        // モーダルダイアログを作成
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            min-width: 300px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        `;
+
+        dialog.innerHTML = `
+            <h3 style="margin: 0 0 16px 0; color: #333;">条件分岐の設定</h3>
+            <p style="margin: 0 0 16px 0; color: #666;">分岐数を選択してください:</p>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="branchCount" value="2" checked style="margin-right: 8px;">
+                    <span>2分岐 (If-Else)</span>
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="branchCount" value="3" style="margin-right: 8px;">
+                    <span>3分岐 (If-ElseIf-Else)</span>
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="branchCount" value="4" style="margin-right: 8px;">
+                    <span>4分岐 (If-ElseIf×2-Else)</span>
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="branchCount" value="5" style="margin-right: 8px;">
+                    <span>5分岐以上...</span>
+                </label>
+            </div>
+            <div id="custom-branch-input" style="display: none; margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 4px; color: #666;">カスタム分岐数 (2-10):</label>
+                <input type="number" id="custom-branch-count" min="2" max="10" value="5"
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button id="branch-cancel-btn" style="padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; background: white; cursor: pointer;">キャンセル</button>
+                <button id="branch-ok-btn" style="padding: 8px 16px; border: none; border-radius: 4px; background: #00cc66; color: white; cursor: pointer;">OK</button>
+            </div>
+        `;
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        // カスタム入力の表示/非表示を切り替え
+        const radios = dialog.querySelectorAll('input[name="branchCount"]');
+        const customInput = dialog.querySelector('#custom-branch-input');
+        radios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                customInput.style.display = radio.value === '5' ? 'block' : 'none';
+            });
+        });
+
+        // キャンセルボタン
+        dialog.querySelector('#branch-cancel-btn').onclick = () => {
+            document.body.removeChild(overlay);
+            resolve(null);
+        };
+
+        // OKボタン
+        dialog.querySelector('#branch-ok-btn').onclick = () => {
+            const selectedRadio = dialog.querySelector('input[name="branchCount"]:checked');
+            let branchCount;
+            if (selectedRadio.value === '5') {
+                branchCount = parseInt(dialog.querySelector('#custom-branch-count').value) || 5;
+                branchCount = Math.max(2, Math.min(10, branchCount));  // 2-10の範囲に制限
+            } else {
+                branchCount = parseInt(selectedRadio.value);
+            }
+            document.body.removeChild(overlay);
+            resolve(branchCount);
+        };
+
+        // ESCキーでキャンセル
+        const handleEsc = (e) => {
+            if (e.key === 'Escape') {
+                document.body.removeChild(overlay);
+                document.removeEventListener('keydown', handleEsc);
+                resolve(null);
+            }
+        };
+        document.addEventListener('keydown', handleEsc);
+    });
 }
 
 // 次の利用可能なY座標を取得
