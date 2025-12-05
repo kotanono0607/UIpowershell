@@ -316,6 +316,7 @@ let currentFolder = null;       // 現在のフォルダ
 let isRestoringHistory = false; // Undo/Redo実行中フラグ（履歴記録をスキップするため）
 let contextMenuTarget = null;   // 右クリックメニューの対象ノード
 let draggedNode = null;         // ドラッグ中のノード
+let dropIndicator = null;       // ドロップ位置インジケーター（青い線）
 let layerStructure = {          // レイヤー構造
     0: { visible: false, nodes: [], edges: [] },
     1: { visible: true, nodes: [], edges: [] },
@@ -1778,6 +1779,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // コントロールログ: 矢印描画初期化完了
     await writeControlLog('✅ [INIT] 矢印描画機能の初期化完了');
 
+    // ドロップ位置インジケーターを作成
+    createDropIndicator();
+
     // ウィンドウリサイズ時に矢印を再描画
     window.addEventListener('resize', resizeCanvases);
 
@@ -2889,6 +2893,99 @@ function handleDragEnd(e) {
     document.querySelectorAll('.drag-over').forEach(el => {
         el.classList.remove('drag-over');
     });
+
+    // ドロップインジケーターを非表示
+    hideDropIndicator();
+}
+
+// ============================================
+// ドロップ位置インジケーター
+// ============================================
+
+/**
+ * ドロップ位置インジケーター要素を作成
+ */
+function createDropIndicator() {
+    dropIndicator = document.createElement('div');
+    dropIndicator.id = 'drop-indicator';
+    dropIndicator.style.cssText = `
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        height: 3px;
+        background: linear-gradient(90deg, #1e90ff, #00bfff, #1e90ff);
+        border-radius: 2px;
+        box-shadow: 0 0 8px rgba(30, 144, 255, 0.8);
+        pointer-events: none;
+        display: none;
+        z-index: 1000;
+        transition: top 0.1s ease-out;
+    `;
+    document.body.appendChild(dropIndicator);
+    console.log('[ドロップインジケーター] 初期化完了');
+}
+
+/**
+ * ドロップ位置インジケーターを表示・更新
+ */
+function showDropIndicator(container, mouseY) {
+    if (!dropIndicator || !container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const relativeY = mouseY - containerRect.top + container.scrollTop;
+
+    // 現在のレイヤーのノードを取得（Y座標でソート）
+    const layerNodes = [...layerStructure[leftVisibleLayer].nodes].sort((a, b) => a.y - b.y);
+
+    if (layerNodes.length === 0) {
+        // ノードがない場合は最上部に表示
+        dropIndicator.style.top = `${containerRect.top + 10}px`;
+        dropIndicator.style.left = `${containerRect.left + 10}px`;
+        dropIndicator.style.width = `${containerRect.width - 20}px`;
+        dropIndicator.style.display = 'block';
+        return;
+    }
+
+    // マウス位置に最も近いノード間の位置を計算
+    let indicatorY = 10;  // デフォルトは最上部
+
+    for (let i = 0; i < layerNodes.length; i++) {
+        const node = layerNodes[i];
+        const nodeHeight = node.color === 'Gray' ? 1 : 40;
+        const nodeBottom = node.y + nodeHeight;
+
+        if (relativeY < node.y) {
+            // このノードの上に挿入
+            indicatorY = node.y - 5;
+            break;
+        } else if (i === layerNodes.length - 1) {
+            // 最後のノードの下に挿入
+            indicatorY = nodeBottom + 10;
+        } else {
+            // 次のノードとの間をチェック
+            const nextNode = layerNodes[i + 1];
+            if (relativeY < nextNode.y) {
+                // このノードと次のノードの間
+                indicatorY = nodeBottom + (nextNode.y - nodeBottom) / 2;
+                break;
+            }
+        }
+    }
+
+    // インジケーターを配置
+    dropIndicator.style.top = `${containerRect.top + indicatorY - container.scrollTop}px`;
+    dropIndicator.style.left = `${containerRect.left + 10}px`;
+    dropIndicator.style.width = `${containerRect.width - 20}px`;
+    dropIndicator.style.display = 'block';
+}
+
+/**
+ * ドロップ位置インジケーターを非表示
+ */
+function hideDropIndicator() {
+    if (dropIndicator) {
+        dropIndicator.style.display = 'none';
+    }
 }
 
 function handleDragOver(e) {
@@ -2902,9 +2999,16 @@ function handleDragOver(e) {
     if (target && target.classList) {
         if (target.classList.contains('node-button') && target !== draggedNode) {
             target.classList.add('drag-over');
+            // ノード上でもインジケーターを表示
+            const container = target.closest('.node-list-container');
+            if (container) {
+                showDropIndicator(container, e.clientY);
+            }
         } else if (target.classList.contains('node-list-container')) {
             // レイヤーパネルへのドロップも許可
             target.classList.add('drag-over-container');
+            // ドロップ位置インジケーターを表示
+            showDropIndicator(target, e.clientY);
         }
     }
 
@@ -2915,6 +3019,9 @@ function handleDrop(e) {
     if (e.stopPropagation) {
         e.stopPropagation();
     }
+
+    // ドロップインジケーターを非表示
+    hideDropIndicator();
 
     const target = e.target;
     if (target && target.classList) {
