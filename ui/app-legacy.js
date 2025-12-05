@@ -1096,7 +1096,8 @@ function drawBranchStartArrow(ctx, startNode, targetNode, color, branchIdx) {
 
     // 開始ノードの右端（Y座標は分岐ごとにオフセットして重なりを防ぐ）
     const lineStartX = startLeft + startWidth;
-    const yOffset = (branchIdx - 1) * 5;  // 分岐ごとに5pxずらす
+    // 中央を基準に分岐ごとに3pxずらす（上下に分散）
+    const yOffset = (branchIdx - 3) * 3;  // branchIdx=1で-6、2で-3、3で0、4で+3...
     const lineStartY = startTop + startHeight / 2 + yOffset;
     // 分岐ごとにX方向もオフセットを変える
     const horizontalEndX = lineStartX + 20 + (branchIdx * 10);
@@ -1139,8 +1140,9 @@ function drawBranchEndArrow(ctx, sourceNode, endNode, color, direction = 'left',
     const endWidth = endNode.offsetWidth || 120;
 
     // 終了ノードのY座標（分岐ごとにオフセットして重なりを防ぐ）
-    const yOffset = branchIdx * 5;  // 分岐ごとに5pxずらす
-    const lineEndY = endTop + endHeight / 2 - 10 + yOffset;
+    // 中央を基準に分岐ごとに3pxずらす（上下に分散）
+    const yOffset = (branchIdx - 2) * 3;  // branchIdx=0で-6、1で-3、2で0、3で+3...
+    const lineEndY = endTop + endHeight / 2 + yOffset;
 
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
