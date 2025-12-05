@@ -6868,37 +6868,53 @@ function getArrayVariables() {
  * APIを通じて00_code/*.ps1の関数を実行
  * @param {string} functionName - 関数名（例: "1_6"）
  * @param {object} params - パラメータ（省略可）
+ * @param {number} timeoutMs - タイムアウト時間（ミリ秒、デフォルト5分）
  * @returns {Promise<string>} - 生成されたコード
  */
-async function executeNodeFunction(functionName, params = {}) {
+async function executeNodeFunction(functionName, params = {}, timeoutMs = 300000) {
     try {
         console.log(`[ノード関数実行] 関数: ${functionName}, パラメータ:`, params);
 
-        const response = await fetch(`${API_BASE}/node/execute/${functionName}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(params)
-        });
+        // AbortControllerで長いタイムアウトを設定（ダイアログ操作対応）
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-        // レスポンスボディを先に読み取る（エラー詳細取得のため）
-        const result = await response.json();
+        try {
+            const response = await fetch(`${API_BASE}/node/execute/${functionName}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params),
+                signal: controller.signal
+            });
 
-        if (!response.ok) {
-            console.error(`[ノード関数実行] サーバーエラー詳細:`, result);
-            if (result.error) {
-                console.error(`[ノード関数実行] エラーメッセージ: ${result.error}`);
+            clearTimeout(timeoutId);
+
+            // レスポンスボディを先に読み取る（エラー詳細取得のため）
+            const result = await response.json();
+
+            if (!response.ok) {
+                console.error(`[ノード関数実行] サーバーエラー詳細:`, result);
+                if (result.error) {
+                    console.error(`[ノード関数実行] エラーメッセージ: ${result.error}`);
+                }
+                if (result.stackTrace) {
+                    console.error(`[ノード関数実行] スタックトレース:\n${result.stackTrace}`);
+                }
+                throw new Error(`API Error: ${response.status} - ${result.error || response.statusText}`);
             }
-            if (result.stackTrace) {
-                console.error(`[ノード関数実行] スタックトレース:\n${result.stackTrace}`);
-            }
-            throw new Error(`API Error: ${response.status} - ${result.error || response.statusText}`);
-        }
 
-        if (result.success && result.code) {
-            console.log(`[ノード関数実行] 成功 - コード長: ${result.code.length}文字`);
-            return result.code;
-        } else {
-            throw new Error(result.error || '不明なエラー');
+            if (result.success && result.code) {
+                console.log(`[ノード関数実行] 成功 - コード長: ${result.code.length}文字`);
+                return result.code;
+            } else {
+                throw new Error(result.error || '不明なエラー');
+            }
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (fetchError.name === 'AbortError') {
+                throw new Error(`タイムアウト: ${timeoutMs / 1000}秒を超えました`);
+            }
+            throw fetchError;
         }
     } catch (error) {
         console.error(`[ノード関数実行] エラー:`, error);
@@ -7034,12 +7050,29 @@ async function generateCode(処理番号, ノードID, 直接エントリ = null
             return null;
         }
 
+        // JSONレスポンスの処理（条件分岐ダイアログ対応）
+        // 形式: {"branchCount": N, "code": "..."}
+        let codeToSave = entryString;
+        try {
+            if (typeof entryString === 'string' && entryString.startsWith('{')) {
+                const parsed = JSON.parse(entryString);
+                if (parsed.code) {
+                    // JSONの場合はcodeフィールドのみを保存
+                    codeToSave = parsed.code;
+                    console.log(`[コード生成] JSONレスポンスからコードを抽出: branchCount=${parsed.branchCount}`);
+                }
+            }
+        } catch (e) {
+            // JSONパース失敗時はそのまま使用
+            console.log(`[コード生成] JSONパース失敗、元の値をそのまま使用`);
+        }
+
         // コード.jsonに保存
         console.log(`[コード生成] コード.jsonに保存します - ノードID: ${ノードID}`);
-        await setCodeEntry(ノードID, entryString);
+        await setCodeEntry(ノードID, codeToSave);
 
         console.log(`[コード生成] 成功: ノードID ${ノードID} に保存しました`);
-        return entryString;
+        return entryString;  // 呼び出し元にはJSONを含む元の値を返す
     } catch (error) {
         console.error('[コード生成] エラーが発生しました:', error);
         console.error('[コード生成] スタックトレース:', error.stack);
