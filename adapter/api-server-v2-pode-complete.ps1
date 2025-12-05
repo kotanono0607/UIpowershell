@@ -410,14 +410,10 @@ Start-PodeServer {
     # エンドポイント設定
     Add-PodeEndpoint -Address localhost -Port $global:ServerPort -Protocol Http
 
-    # リクエストタイムアウト設定（ダイアログ操作対応：5分）
-    # PowerShell Windows Formsダイアログの操作に時間がかかる場合に対応
-    $PodeContext.Server.Request.Timeout = 300
-
     # ロギング設定
     New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging
 
-    Write-ControlLog "[SERVER] Podeサーバーエンドポイント設定完了 (ポート: $global:ServerPort, タイムアウト: 300秒)"
+    Write-ControlLog "[SERVER] Podeサーバーエンドポイント設定完了 (ポート: $global:ServerPort)"
 
     # CORS設定（PowerShell 5.1 / Pode 2.11.0互換：ミドルウェアを使用）
     Add-PodeMiddleware -Name 'CORS' -ScriptBlock {
