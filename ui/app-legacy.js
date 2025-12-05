@@ -955,13 +955,13 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         // 3. 分岐の最後のノード → 終了ノード
         if (isFirstBranch) {
             // False分岐: 左→下→右の複雑な矢印
-            drawBranchEndArrow(ctx, lastNode, endNode, branchColor, 'left');
+            drawBranchEndArrow(ctx, lastNode, endNode, branchColor, 'left', 0);
         } else if (isLastBranch) {
             // True分岐: 下向き矢印
             drawDownArrow(ctx, lastNode, endNode, branchColor);
         } else {
-            // ElseIf分岐: 右→下→左の複雑な矢印
-            drawBranchEndArrow(ctx, lastNode, endNode, branchColor, 'right', branchIdx);
+            // ElseIf分岐: 左→下→左の複雑な矢印（False分岐と同じ側だがオフセットが異なる）
+            drawBranchEndArrow(ctx, lastNode, endNode, branchColor, 'left', branchIdx);
         }
     }
 }
