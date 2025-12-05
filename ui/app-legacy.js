@@ -1416,10 +1416,10 @@ function drawLoopArrows(ctx, startNode, endNode, containerRect, scrollTop = 0, s
     const endLeft = parseInt(endNode.style.left, 10) || 90;
     const endHeight = endNode.offsetHeight || 40;
 
-    // 開始ノードの左端から左に出る（動的オフセットを使用）
+    // 開始ノードの左端から左に出る（動的オフセットを使用、最小10pxを確保）
     const startX = startLeft;
     const startY = startTop + startHeight / 2;
-    const horizontalEndX = startX - loopOffset;
+    const horizontalEndX = Math.max(startX - loopOffset, 10);
 
     // 終了ノードの中央Y座標
     const endY = endTop + endHeight / 2;
