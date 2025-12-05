@@ -113,31 +113,39 @@ try {
 }
 
 # ============================================
-# 5. Polarisモジュールの読み込み確認
+# 5. Podeモジュールの読み込み確認
 # ============================================
 
 Write-Host ""
-Write-Host "[5/6] Polarisモジュールの読み込みをテスト..." -ForegroundColor Yellow
+Write-Host "[5/6] Podeモジュールの読み込みをテスト..." -ForegroundColor Yellow
 
-$polarisPath = Join-Path $PSScriptRoot "Modules\Polaris"
+# ローカルのPodeモジュールをチェック（バージョン付きフォルダ構造に対応）
+$localPodePath = Join-Path $PSScriptRoot "Modules\Pode"
+$localPodeVersionPath = Get-ChildItem -Path "$localPodePath\*\Pode.psm1" -ErrorAction SilentlyContinue | Select-Object -First 1
 
-if (Test-Path $polarisPath) {
-    Write-Host "      [OK] Polarisモジュールが見つかりました: $polarisPath" -ForegroundColor Green
+if ($localPodeVersionPath) {
+    Write-Host "      [OK] ローカルPodeモジュールが見つかりました: $($localPodeVersionPath.Directory.FullName)" -ForegroundColor Green
 
     # モジュール読み込みテスト
     try {
-        $env:PSModulePath = "$polarisPath;$env:PSModulePath"
-        Import-Module Polaris -ErrorAction Stop
-        $polarisVersion = (Get-Module Polaris).Version
-        Write-Host "      [OK] Polarisモジュールを読み込めました (Version: $polarisVersion)" -ForegroundColor Green
-        Remove-Module Polaris -Force
+        $env:PSModulePath = "$($localPodeVersionPath.Directory.Parent.FullName);$env:PSModulePath"
+        Import-Module Pode -ErrorAction Stop
+        $podeVersion = (Get-Module Pode).Version
+        Write-Host "      [OK] Podeモジュールを読み込めました (Version: $podeVersion)" -ForegroundColor Green
+        Remove-Module Pode -Force
     } catch {
-        Write-Host "      [警告] Polarisモジュールの読み込みに失敗しました: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host "      [警告] Podeモジュールの読み込みに失敗しました: $($_.Exception.Message)" -ForegroundColor Yellow
         Write-Host "      初回起動時に自動インストールを試みます" -ForegroundColor Gray
-        $warnings += "Polarisモジュール読み込み失敗（自動インストールで対応）"
+        $warnings += "Podeモジュール読み込み失敗（自動インストールで対応）"
     }
 } else {
-    Write-Host "      [情報] Polarisモジュールが見つかりません（初回起動時に自動インストールされます）" -ForegroundColor Gray
+    # システムにインストールされているかチェック
+    $podeModule = Get-Module -ListAvailable -Name Pode -ErrorAction SilentlyContinue
+    if ($podeModule) {
+        Write-Host "      [OK] Podeモジュールがインストールされています (Version: $($podeModule.Version))" -ForegroundColor Green
+    } else {
+        Write-Host "      [情報] Podeモジュールが見つかりません（初回起動時に自動インストールされます）" -ForegroundColor Gray
+    }
 }
 
 # ============================================

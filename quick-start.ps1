@@ -7,13 +7,13 @@
 #   .\quick-start.ps1                    # デフォルト（ポート8080、ブラウザ自動起動）
 #   .\quick-start.ps1 -Port 8081         # ポート指定
 #   .\quick-start.ps1 -NoBrowser         # ブラウザを開かない
-#   .\quick-start.ps1 -NoAutoInstall     # Polaris自動インストールを無効
+#   .\quick-start.ps1 -NoAutoInstall     # Pode自動インストールを無効
 #
 # 特徴：
 #   - 対話プロンプトなし（完全自動）
 #   - PowerShell 5.x/7.x 両対応
 #   - ポート使用中の場合は自動的に次のポートを使用
-#   - Polarisがない場合は自動インストール
+#   - Podeがない場合は自動インストール
 # ============================================
 
 param(
@@ -93,40 +93,47 @@ if ($psVersion.Major -lt 7) {
 Write-Host ""
 
 # ============================================
-# 3. Polarisモジュールのチェック
+# 3. Podeモジュールのチェック
 # ============================================
 
-Write-Host "【Step 3】Polarisモジュールの確認..." -ForegroundColor Yellow
+Write-Host "【Step 3】Podeモジュールの確認..." -ForegroundColor Yellow
 Write-Host ""
 
-# ローカルのPolarisモジュールをチェック
-$localPolarisPath = ".\Modules\Polaris"
-if (Test-Path $localPolarisPath) {
-    Write-Host "  ✓ ローカルPolarisモジュールが存在します: $localPolarisPath" -ForegroundColor Green
-    $polarisReady = $true
+$podeReady = $false
+
+# ローカルのPodeモジュールをチェック（バージョン付きフォルダ構造に対応）
+$localPodePath = ".\Modules\Pode"
+$localPodeVersionPath = Get-ChildItem -Path ".\Modules\Pode\*\Pode.psm1" -ErrorAction SilentlyContinue | Select-Object -First 1
+
+if ($localPodeVersionPath) {
+    Write-Host "  ✓ ローカルPodeモジュールが存在します: $($localPodeVersionPath.Directory.FullName)" -ForegroundColor Green
+    $podeReady = $true
+} elseif (Test-Path "$localPodePath\Pode.psm1") {
+    Write-Host "  ✓ ローカルPodeモジュールが存在します: $localPodePath" -ForegroundColor Green
+    $podeReady = $true
 } else {
     # システムにインストールされているかチェック
-    $polarisModule = Get-Module -ListAvailable -Name Polaris -ErrorAction SilentlyContinue
+    $podeModule = Get-Module -ListAvailable -Name Pode -ErrorAction SilentlyContinue
 
-    if ($polarisModule) {
-        Write-Host "  ✓ Polarisモジュールがインストールされています" -ForegroundColor Green
-        $polarisReady = $true
+    if ($podeModule) {
+        Write-Host "  ✓ Podeモジュールがインストールされています (Version: $($podeModule.Version))" -ForegroundColor Green
+        $podeReady = $true
     } else {
-        Write-Host "  ✗ Polarisモジュールが見つかりません" -ForegroundColor Red
+        Write-Host "  ✗ Podeモジュールが見つかりません" -ForegroundColor Red
 
         if ($NoAutoInstall) {
             Write-Host "  → 自動インストールがスキップされました（-NoAutoInstall）" -ForegroundColor Yellow
-            $polarisReady = $false
+            $podeReady = $false
         } else {
             Write-Host "  → 自動的にインストールします..." -ForegroundColor Cyan
             Write-Host ""
             try {
-                Install-Module -Name Polaris -Scope CurrentUser -Force -AllowClobber
-                Write-Host "  ✓ Polarisのインストールに成功しました" -ForegroundColor Green
-                $polarisReady = $true
+                Install-Module -Name Pode -Scope CurrentUser -Force -AllowClobber
+                Write-Host "  ✓ Podeのインストールに成功しました" -ForegroundColor Green
+                $podeReady = $true
             } catch {
                 Write-Host "  ✗ インストールに失敗しました: $($_.Exception.Message)" -ForegroundColor Red
-                $polarisReady = $false
+                $podeReady = $false
             }
         }
     }
@@ -134,10 +141,10 @@ if (Test-Path $localPolarisPath) {
 
 Write-Host ""
 
-if (-not $polarisReady) {
-    Write-Host "【エラー】Polarisモジュールが利用できません" -ForegroundColor Red
+if (-not $podeReady) {
+    Write-Host "【エラー】Podeモジュールが利用できません" -ForegroundColor Red
     Write-Host "手動でインストールしてください:" -ForegroundColor Yellow
-    Write-Host "  Install-Module -Name Polaris -Scope CurrentUser -Force" -ForegroundColor Yellow
+    Write-Host "  Install-Module -Name Pode -Scope CurrentUser -Force" -ForegroundColor Yellow
     pause
     exit 1
 }

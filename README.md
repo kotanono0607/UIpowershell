@@ -264,8 +264,7 @@ UIpowershell/
 │   │   ├── コード_snapshot.json           # スナップショット
 │   │   └── snapshot_info.json             # スナップショット情報
 │   └── TA/                                # 別のワークフロー例
-├── Modules/Polaris/                      # Polaris HTTPサーバーモジュール
-├── archive/                              # 旧Windows Forms版（アーカイブ）
+├── Modules/                              # 外部モジュール（Pode等）
 └── files/                                # 設定ファイル・ガイド
 ```
 

@@ -24,9 +24,9 @@
         └─→│    Adapter Layer (Phase 3)     │←─┘
            │                                 │
            │  ┌─────────────────────────┐   │
-           │  │  api-server-v2.ps1      │   │
-           │  │  - 26 REST endpoints    │   │
-           │  │  - Polaris HTTP server  │   │
+           │  │  api-server-v2-pode.ps1 │   │
+           │  │  - 50 REST endpoints    │   │
+           │  │  - Pode HTTP server     │   │
            │  └────────┬────────────────┘   │
            │           │                     │
            │  ┌────────┴────────────────┐   │
@@ -283,11 +283,11 @@ $global:UIpowershellState = @{
 
 ---
 
-### api-server-v2.ps1（700行）
+### api-server-v2-pode-complete.ps1（515行）
 
-**役割**: REST API サーバー（Polaris HTTP Server）
+**役割**: REST API サーバー（Pode HTTP Server）
 
-**26 エンドポイント**:
+**50 エンドポイント**:
 
 #### 🔌 システム
 - `GET /api/health` - ヘルスチェック
@@ -376,11 +376,11 @@ async function callApi(endpoint, method = 'GET', body = null) {
 
 ### CORS対応
 ```powershell
-# api-server-v2.ps1
-New-PolarisRoute -Path "/api/*" -Method OPTIONS -ScriptBlock {
-    $Response.SetHeader("Access-Control-Allow-Origin", "*")
-    $Response.SetHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-    $Response.SetStatusCode(200)
+# api-server-v2-pode-complete.ps1
+Add-PodeRoute -Method Options -Path '/api/*' -ScriptBlock {
+    Set-PodeHeader -Name 'Access-Control-Allow-Origin' -Value '*'
+    Set-PodeHeader -Name 'Access-Control-Allow-Methods' -Value 'GET, POST, PUT, DELETE, OPTIONS'
+    Write-PodeJsonResponse -Value @{ success = $true }
 }
 ```
 
@@ -415,7 +415,7 @@ try {
 ### 必須
 - **OS**: Windows 10/11
 - **PowerShell**: 7.x 以上（推奨）
-- **Polaris**: 0.2.0 以上
+- **Pode**: 2.11.0 以上
 - **ブラウザ**: Chrome, Edge, Firefox（最新版）
 
 ### 推奨
@@ -434,19 +434,19 @@ try {
     ↓
 3. PowerShell バージョンチェック（7.x推奨）
     ↓
-4. Polaris モジュールチェック
+4. Pode モジュールチェック
     ↓
 5. ポート使用状況チェック（デフォルト: 8080）
     ↓
-6. api-server-v2.ps1 起動
+6. api-server-v2-pode-complete.ps1 起動
     ↓
 7. Phase 2 v2ファイル読み込み（6ファイル）
     ↓
 8. Phase 3 adapterファイル読み込み（2ファイル）
     ↓
-9. Polaris HTTPサーバー起動
+9. Pode HTTPサーバー起動
     ↓
-10. 26エンドポイント登録
+10. 50エンドポイント登録
     ↓
 11. ブラウザ自動起動（オプション）
     ↓
