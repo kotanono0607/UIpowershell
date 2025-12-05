@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.1.0';  // アプリバージョン - 多重分岐対応（If-ElseIf-Else）
+const APP_VERSION = '1.1.1';  // アプリバージョン - 多重分岐UX改善（PowerShellダイアログ統合）
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -2027,20 +2027,9 @@ function generateAddNodeButtons() {
                 // - 変数管理システムとの深い統合
                 // ============================================
 
-                // 条件分岐の場合、分岐数を選択
-                let finalSetting = { ...setting };
-                if (setting.処理番号 === '1-2') {
-                    const branchCount = await showBranchCountSelector();
-                    if (branchCount === null) {
-                        console.log('[ボタンクリック] 分岐数選択がキャンセルされました');
-                        return;
-                    }
-                    finalSetting.branchCount = branchCount;
-                    console.log(`[ボタンクリック] 分岐数: ${branchCount}`);
-                }
-
                 // 全てのボタンで統一的にノード追加処理
-                await addNodeToLayer(finalSetting);
+                // ※ 条件分岐(1-2)の場合、PowerShellダイアログで分岐数も選択される
+                await addNodeToLayer(setting);
 
             } catch (error) {
                 console.error('[ボタンクリック] ❌ エラーが発生しました:', error);
@@ -2237,10 +2226,13 @@ async function addNodeToLayer(setting) {
     // 処理番号で判定してセット作成
     if (setting.処理番号 === '1-2') {
         // 条件分岐：多重分岐対応（開始・中間×N・終了）
-        // branchCount: 2=if-else, 3=if-elseif-else, etc.
-        const branchCount = setting.branchCount || 2;
-        console.log(`[addNodeToLayer] 条件分岐セット追加を開始 (分岐数: ${branchCount})`);
-        addedNodes = await addConditionSet(setting, branchCount);
+        // branchCountはPowerShellダイアログで選択される
+        console.log(`[addNodeToLayer] 条件分岐セット追加を開始`);
+        addedNodes = await addConditionSet(setting);
+        if (addedNodes === null) {
+            console.log('[addNodeToLayer] 条件分岐セット追加がキャンセルされました');
+            return;
+        }
         console.log('[addNodeToLayer] 条件分岐セット追加が完了');
     } else if (setting.処理番号 === '1-3') {
         // ループ：2個セット（開始・終了）
@@ -2395,9 +2387,9 @@ async function addLoopSet(setting) {
 }
 
 // 条件分岐セット（多重分岐対応）を追加
-// branchCount: 分岐数（2=if-else, 3=if-elseif-else, etc.）
+// PowerShellダイアログで分岐数と条件を同時に設定
 // Grayノード（中間ライン）でTrue/Else-if/False分岐を視覚的に分離
-async function addConditionSet(setting, branchCount = 2) {
+async function addConditionSet(setting) {
     const groupId = conditionGroupCounter++;
     const baseY = getNextAvailableY(leftVisibleLayer);
 
@@ -2405,11 +2397,38 @@ async function addConditionSet(setting, branchCount = 2) {
     const baseId = nodeCounter;
     nodeCounter++;
 
+    console.log(`[条件分岐作成] GroupID=${groupId}, ベースID=${baseId}`);
+
+    // コード生成（条件式）を先に呼び出してbranchCountを取得
+    // PowerShellダイアログがJSON形式で返す: {"branchCount": N, "code": "..."}
+    console.log(`[条件分岐作成] コード生成ダイアログを表示 - ベースID: ${baseId}`);
+    const result = await generateCode(setting.処理番号, `${baseId}`);
+
+    // キャンセル時はnullが返る
+    if (result === null) {
+        console.log(`[条件分岐作成] キャンセルされました`);
+        nodeCounter--;  // カウンタを戻す
+        return null;
+    }
+
+    // JSONレスポンスをパースしてbranchCountを取得
+    let branchCount = 2;  // デフォルト
+    try {
+        // resultがJSON文字列の場合パースする
+        if (typeof result === 'string' && result.startsWith('{')) {
+            const parsed = JSON.parse(result);
+            branchCount = parsed.branchCount || 2;
+            console.log(`[条件分岐作成] JSONからbranchCount取得: ${branchCount}`);
+        }
+    } catch (e) {
+        console.log(`[条件分岐作成] JSONパース失敗、デフォルトbranchCount=2を使用: ${e.message}`);
+    }
+
     // 分岐数を検証（最小2、最大10）
     branchCount = Math.max(2, Math.min(10, branchCount));
     const grayNodeCount = branchCount - 1;  // Grayノード数 = 分岐数 - 1
 
-    console.log(`[条件分岐作成] GroupID=${groupId}, ベースID=${baseId}, 分岐数=${branchCount}, Grayノード数=${grayNodeCount}`);
+    console.log(`[条件分岐作成] 分岐数=${branchCount}, Grayノード数=${grayNodeCount}`);
 
     const allNodes = [];
 
@@ -2424,10 +2443,6 @@ async function addConditionSet(setting, branchCount = 2) {
     );
     startNode.branchCount = branchCount;  // 分岐数をノードに保存
     allNodes.push(startNode);
-
-    // コード生成（条件式） - ベースIDを渡す
-    console.log(`[条件分岐作成] コード生成 - ベースID: ${baseId}`);
-    await generateCode(setting.処理番号, `${baseId}`);
 
     // 2. 中間ライン（グレー、高さ1px）- 分岐の境界
     // branchCount=2: Gray1個（False/True境界）
@@ -2483,110 +2498,6 @@ function getBranchLabel(grayIndex, totalGrays) {
     } else {
         return `ElseIf${grayIndex}境界`;
     }
-}
-
-// 分岐数選択ダイアログを表示（多重分岐対応）
-function showBranchCountSelector() {
-    return new Promise((resolve) => {
-        // モーダルダイアログを作成
-        const overlay = document.createElement('div');
-        overlay.className = 'modal-overlay';
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        `;
-
-        const dialog = document.createElement('div');
-        dialog.style.cssText = `
-            background: white;
-            border-radius: 8px;
-            padding: 24px;
-            min-width: 300px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        `;
-
-        dialog.innerHTML = `
-            <h3 style="margin: 0 0 16px 0; color: #333;">条件分岐の設定</h3>
-            <p style="margin: 0 0 16px 0; color: #666;">分岐数を選択してください:</p>
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="radio" name="branchCount" value="2" checked style="margin-right: 8px;">
-                    <span>2分岐 (If-Else)</span>
-                </label>
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="radio" name="branchCount" value="3" style="margin-right: 8px;">
-                    <span>3分岐 (If-ElseIf-Else)</span>
-                </label>
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="radio" name="branchCount" value="4" style="margin-right: 8px;">
-                    <span>4分岐 (If-ElseIf×2-Else)</span>
-                </label>
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="radio" name="branchCount" value="5" style="margin-right: 8px;">
-                    <span>5分岐以上...</span>
-                </label>
-            </div>
-            <div id="custom-branch-input" style="display: none; margin-bottom: 16px;">
-                <label style="display: block; margin-bottom: 4px; color: #666;">カスタム分岐数 (2-10):</label>
-                <input type="number" id="custom-branch-count" min="2" max="10" value="5"
-                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                <button id="branch-cancel-btn" style="padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; background: white; cursor: pointer;">キャンセル</button>
-                <button id="branch-ok-btn" style="padding: 8px 16px; border: none; border-radius: 4px; background: #00cc66; color: white; cursor: pointer;">OK</button>
-            </div>
-        `;
-
-        overlay.appendChild(dialog);
-        document.body.appendChild(overlay);
-
-        // カスタム入力の表示/非表示を切り替え
-        const radios = dialog.querySelectorAll('input[name="branchCount"]');
-        const customInput = dialog.querySelector('#custom-branch-input');
-        radios.forEach(radio => {
-            radio.addEventListener('change', () => {
-                customInput.style.display = radio.value === '5' ? 'block' : 'none';
-            });
-        });
-
-        // キャンセルボタン
-        dialog.querySelector('#branch-cancel-btn').onclick = () => {
-            document.body.removeChild(overlay);
-            resolve(null);
-        };
-
-        // OKボタン
-        dialog.querySelector('#branch-ok-btn').onclick = () => {
-            const selectedRadio = dialog.querySelector('input[name="branchCount"]:checked');
-            let branchCount;
-            if (selectedRadio.value === '5') {
-                branchCount = parseInt(dialog.querySelector('#custom-branch-count').value) || 5;
-                branchCount = Math.max(2, Math.min(10, branchCount));  // 2-10の範囲に制限
-            } else {
-                branchCount = parseInt(selectedRadio.value);
-            }
-            document.body.removeChild(overlay);
-            resolve(branchCount);
-        };
-
-        // ESCキーでキャンセル
-        const handleEsc = (e) => {
-            if (e.key === 'Escape') {
-                document.body.removeChild(overlay);
-                document.removeEventListener('keydown', handleEsc);
-                resolve(null);
-            }
-        };
-        document.addEventListener('keydown', handleEsc);
-    });
 }
 
 // 次の利用可能なY座標を取得

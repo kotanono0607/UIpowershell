@@ -547,108 +547,123 @@ function ShowConditionBuilder {
 
     # 保存時に条件式プレビューの値を返すための変数
     $script:conditionResult = $null
+    # 分岐数を保存する変数
+    $script:branchCount = 2
 
     # フォーム作成
     $form = New-Object System.Windows.Forms.Form
-    $form.Text = "条件式の設定"
-    $form.Size = New-Object System.Drawing.Size(1000, 800)
+    $form.Text = "条件分岐の設定"
+    $form.Size = New-Object System.Drawing.Size(1000, 850)
     $form.StartPosition = "CenterScreen"
 
-    # 条件項目セクション
-    $groupBoxConditionItem = New-Object System.Windows.Forms.GroupBox
-    $groupBoxConditionItem.Text = "条件項目"
-    $groupBoxConditionItem.Size = New-Object System.Drawing.Size(800, 450)
-    $groupBoxConditionItem.Location = New-Object System.Drawing.Point(10, 10)
-    $form.Controls.Add($groupBoxConditionItem)
+    # ============================================
+    # 分岐数選択セクション（多重分岐対応）
+    # ============================================
+    $groupBoxBranchCount = New-Object System.Windows.Forms.GroupBox
+    $groupBoxBranchCount.Text = "分岐数の設定"
+    $groupBoxBranchCount.Size = New-Object System.Drawing.Size(960, 60)
+    $groupBoxBranchCount.Location = New-Object System.Drawing.Point(10, 10)
+    $form.Controls.Add($groupBoxBranchCount)
 
-    # 条件入力フィールドを追加するパネル
-    $script:panelConditions = New-Object System.Windows.Forms.Panel
-    $script:panelConditions.AutoScroll = $true
-    $script:panelConditions.Size = New-Object System.Drawing.Size(730, 400)
-    $script:panelConditions.Location = New-Object System.Drawing.Point(10, 20)
-    $groupBoxConditionItem.Controls.Add($script:panelConditions)
+    $lblBranchCount = New-Object System.Windows.Forms.Label
+    $lblBranchCount.Text = "分岐数:"
+    $lblBranchCount.Location = New-Object System.Drawing.Point(20, 25)
+    $lblBranchCount.AutoSize = $true
+    $groupBoxBranchCount.Controls.Add($lblBranchCount)
 
-    # 条件追加ボタン
-    $btnAddCondition = New-Object System.Windows.Forms.Button
-    $btnAddCondition.Text = "条件追加"
-    $btnAddCondition.Size = New-Object System.Drawing.Size(120, 30)
-    $btnAddCondition.Location = New-Object System.Drawing.Point(10, 470)
-    $form.Controls.Add($btnAddCondition)
+    $cmbBranchCount = New-Object System.Windows.Forms.ComboBox
+    $cmbBranchCount.Location = New-Object System.Drawing.Point(80, 22)
+    $cmbBranchCount.Size = New-Object System.Drawing.Size(200, 25)
+    $cmbBranchCount.DropDownStyle = "DropDownList"
+    $cmbBranchCount.Items.Add("2分岐 (If-Else)") | Out-Null
+    $cmbBranchCount.Items.Add("3分岐 (If-ElseIf-Else)") | Out-Null
+    $cmbBranchCount.Items.Add("4分岐 (If-ElseIf×2-Else)") | Out-Null
+    $cmbBranchCount.Items.Add("5分岐 (If-ElseIf×3-Else)") | Out-Null
+    $cmbBranchCount.SelectedIndex = 0
+    $groupBoxBranchCount.Controls.Add($cmbBranchCount)
 
-    # 条件式プレビューセクション
-    $labelPreview = New-Object System.Windows.Forms.Label
-    $labelPreview.Text = "条件式プレビュー:"
-    $labelPreview.AutoSize = $true
-    $labelPreview.Location = New-Object System.Drawing.Point(10, 510)
-    $form.Controls.Add($labelPreview)
+    $lblBranchHelp = New-Object System.Windows.Forms.Label
+    $lblBranchHelp.Text = "※ 各分岐の条件を下で設定してください"
+    $lblBranchHelp.Location = New-Object System.Drawing.Point(300, 25)
+    $lblBranchHelp.AutoSize = $true
+    $lblBranchHelp.ForeColor = [System.Drawing.Color]::Gray
+    $groupBoxBranchCount.Controls.Add($lblBranchHelp)
 
-    $script:textBoxPreview = New-Object System.Windows.Forms.TextBox
-    $script:textBoxPreview.Size = New-Object System.Drawing.Size(950, 70)
-    $script:textBoxPreview.Location = New-Object System.Drawing.Point(10, 540)
-    $script:textBoxPreview.Multiline = $true
-    $script:textBoxPreview.ScrollBars = "Vertical"
-    $form.Controls.Add($script:textBoxPreview)
+    # ループビルダーからの呼び出しの場合は分岐数選択を非表示
+    if ($IsFromLoopBuilder) {
+        $groupBoxBranchCount.Visible = $false
+    }
 
-    # 保存/キャンセルボタン
-    $btnSave = New-Object System.Windows.Forms.Button
-    $btnSave.Text = "保存"
-    $btnSave.Size = New-Object System.Drawing.Size(100, 30)
-    $btnSave.Location = New-Object System.Drawing.Point(770, 620)
-    $form.Controls.Add($btnSave)
+    # ============================================
+    # 条件項目セクション（タブコントロール）
+    # ============================================
+    $tabControl = New-Object System.Windows.Forms.TabControl
+    $tabControl.Size = New-Object System.Drawing.Size(960, 500)
+    $tabControl.Location = New-Object System.Drawing.Point(10, 80)
+    $form.Controls.Add($tabControl)
 
-    $btnCancel = New-Object System.Windows.Forms.Button
-    $btnCancel.Text = "キャンセル"
-    $btnCancel.Size = New-Object System.Drawing.Size(100, 30)
-    $btnCancel.Location = New-Object System.Drawing.Point(880, 620)
-    $form.Controls.Add($btnCancel)
+    # 各分岐の条件コントロールを保持
+    $script:branchConditionControls = @{}
 
-    # 閉じるイベント
-    $btnCancel.Add_Click({ 
-        $script:conditionResult = $null  # キャンセル時は $null を設定
-        $form.Close() 
-    })
+    # タブページを作成する関数
+    function CreateBranchTab {
+        param([int]$branchIndex, [string]$tabTitle)
 
-    # 「保存」ボタンのクリックイベント
-    $btnSave.Add_Click({
-        #$script:conditionResult = $script:textBoxPreview.Text
+        $tabPage = New-Object System.Windows.Forms.TabPage
+        $tabPage.Text = $tabTitle
 
-                # 各行を処理し、#で始まる行を---に置換
-            $script:conditionResult  = $script:textBoxPreview.Text -split "`n" | ForEach-Object {
-                if ($_ -match '^\s*#') {
-                    # 置換
-                    '---'
-                } else {
-                    # そのまま保持
-                    $_
-                }
-            } | Out-String
+        # 条件入力パネル
+        $panelConditions = New-Object System.Windows.Forms.Panel
+        $panelConditions.AutoScroll = $true
+        $panelConditions.Size = New-Object System.Drawing.Size(930, 420)
+        $panelConditions.Location = New-Object System.Drawing.Point(5, 5)
+        $tabPage.Controls.Add($panelConditions)
 
+        # 条件追加ボタン
+        $btnAddCondition = New-Object System.Windows.Forms.Button
+        $btnAddCondition.Text = "条件追加"
+        $btnAddCondition.Size = New-Object System.Drawing.Size(100, 25)
+        $btnAddCondition.Location = New-Object System.Drawing.Point(5, 430)
+        $btnAddCondition.Tag = $branchIndex
+        $tabPage.Controls.Add($btnAddCondition)
 
-        $form.Close()
-    })
+        # コントロール情報を保存
+        $script:branchConditionControls[$branchIndex] = @{
+            Panel = $panelConditions
+            AddButton = $btnAddCondition
+            Conditions = @()
+        }
 
-    # 条件コントロールを保持するリスト
-    $script:conditionControls = @()
+        # 条件追加ボタンのイベント
+        $btnAddCondition.Add_Click({
+            param($sender, $e)
+            $idx = $sender.Tag
+            AddConditionToBranch -branchIndex $idx
+        })
 
-    # 条件追加の処理を関数化
-    function AddCondition {
-        # スクリプトスコープの変数を参照
-        $index = $script:conditionControls.Count
-        $yPosition = $index * 90  # 行の高さを増やす
+        # 初期条件を追加
+        $tabControl.TabPages.Add($tabPage)
+        AddConditionToBranch -branchIndex $branchIndex
+    }
 
-        # デバッグ用
-        # #Write-Host "Index: $index"
-        # #Write-Host "Y Position: $yPosition"
+    # 分岐に条件を追加する関数
+    function AddConditionToBranch {
+        param([int]$branchIndex)
+
+        $branchData = $script:branchConditionControls[$branchIndex]
+        $panel = $branchData.Panel
+        $conditions = $branchData.Conditions
+        $index = $conditions.Count
+        $yPosition = $index * 90
 
         # 条件連結（2行目以降）
+        $comboBoxLogicalOperator = $null
         if ($index -ge 1) {
             $comboBoxLogicalOperator = New-Object System.Windows.Forms.ComboBox
             $comboBoxLogicalOperator.Size = New-Object System.Drawing.Size(60, 20)
             $comboBoxLogicalOperator.Location = [System.Drawing.Point]::new(0, $yPosition + 30)
             $comboBoxLogicalOperator.Items.AddRange(@("-and", "-or"))
-            $script:panelConditions.Controls.Add($comboBoxLogicalOperator)
-        } else {
-            $comboBoxLogicalOperator = $null
+            $panel.Controls.Add($comboBoxLogicalOperator)
         }
 
         # 左辺グループ
@@ -656,273 +671,336 @@ function ShowConditionBuilder {
         $groupLeftOption.Text = "左辺"
         $groupLeftOption.Size = New-Object System.Drawing.Size(280, 80)
         $groupLeftOption.Location = [System.Drawing.Point]::new(70, $yPosition)
-        $script:panelConditions.Controls.Add($groupLeftOption)
+        $panel.Controls.Add($groupLeftOption)
 
-        # 左辺の「変数を使用」チェックボックス
         $checkBoxLeftVariable = New-Object System.Windows.Forms.CheckBox
         $checkBoxLeftVariable.Text = "変数を使用"
         $checkBoxLeftVariable.Location = [System.Drawing.Point]::new(10, 15)
         $groupLeftOption.Controls.Add($checkBoxLeftVariable)
-        $checkBoxLeftVariable.Checked = $false  # 初期状態はチェックなし
 
-        # 左辺変数選択コンボボックス
         $comboBoxLeftVariable = New-Object System.Windows.Forms.ComboBox
         $comboBoxLeftVariable.Size = New-Object System.Drawing.Size(250, 20)
         $comboBoxLeftVariable.Location = [System.Drawing.Point]::new(10, 40)
         $comboBoxLeftVariable.Items.AddRange($script:variablesList)
+        $comboBoxLeftVariable.Visible = $false
         $groupLeftOption.Controls.Add($comboBoxLeftVariable)
-        $comboBoxLeftVariable.Visible = $false  # 初期状態は非表示
 
-        # 左辺直接入力テキストボックス
         $textBoxLeftValue = New-Object System.Windows.Forms.TextBox
         $textBoxLeftValue.Size = New-Object System.Drawing.Size(250, 20)
         $textBoxLeftValue.Location = [System.Drawing.Point]::new(10, 40)
         $groupLeftOption.Controls.Add($textBoxLeftValue)
-        $textBoxLeftValue.Visible = $true  # 初期状態は表示
 
         # 演算子
         $comboBoxOperator = New-Object System.Windows.Forms.ComboBox
         $comboBoxOperator.Size = New-Object System.Drawing.Size(80, 20)
         $comboBoxOperator.Location = [System.Drawing.Point]::new(360, $yPosition + 30)
         $comboBoxOperator.Items.AddRange(@("-eq", "-ne", "-lt", "-gt", "-like", "-notlike"))
-        $script:panelConditions.Controls.Add($comboBoxOperator)
+        $panel.Controls.Add($comboBoxOperator)
 
         # 右辺グループ
         $groupRightOption = New-Object System.Windows.Forms.GroupBox
         $groupRightOption.Text = "右辺"
         $groupRightOption.Size = New-Object System.Drawing.Size(280, 80)
         $groupRightOption.Location = [System.Drawing.Point]::new(450, $yPosition)
-        $script:panelConditions.Controls.Add($groupRightOption)
+        $panel.Controls.Add($groupRightOption)
 
-        # 右辺の「変数を使用」チェックボックス
         $checkBoxRightVariable = New-Object System.Windows.Forms.CheckBox
         $checkBoxRightVariable.Text = "変数を使用"
         $checkBoxRightVariable.Location = [System.Drawing.Point]::new(10, 15)
         $groupRightOption.Controls.Add($checkBoxRightVariable)
-        $checkBoxRightVariable.Checked = $false  # 初期状態はチェックなし
 
-        # 右辺変数選択コンボボックス
         $comboBoxRightVariable = New-Object System.Windows.Forms.ComboBox
         $comboBoxRightVariable.Size = New-Object System.Drawing.Size(250, 20)
         $comboBoxRightVariable.Location = [System.Drawing.Point]::new(10, 40)
         $comboBoxRightVariable.Items.AddRange($script:variablesList)
+        $comboBoxRightVariable.Visible = $false
         $groupRightOption.Controls.Add($comboBoxRightVariable)
-        $comboBoxRightVariable.Visible = $false  # 初期状態は非表示
 
-        # 右辺直接入力テキストボックス
         $textBoxRightValue = New-Object System.Windows.Forms.TextBox
         $textBoxRightValue.Size = New-Object System.Drawing.Size(250, 20)
         $textBoxRightValue.Location = [System.Drawing.Point]::new(10, 40)
         $groupRightOption.Controls.Add($textBoxRightValue)
-        $textBoxRightValue.Visible = $true  # 初期状態は表示
 
-        # 条件削除ボタン
-        $btnDeleteCondition = New-Object System.Windows.Forms.Button
-        $btnDeleteCondition.Text = "削除"
-        $btnDeleteCondition.Size = New-Object System.Drawing.Size(50, 20)
-        $btnDeleteCondition.Location = [System.Drawing.Point]::new(10, $yPosition + 60)
-        $script:panelConditions.Controls.Add($btnDeleteCondition)
+        # 削除ボタン
+        $btnDelete = New-Object System.Windows.Forms.Button
+        $btnDelete.Text = "削除"
+        $btnDelete.Size = New-Object System.Drawing.Size(50, 20)
+        $btnDelete.Location = [System.Drawing.Point]::new(10, $yPosition + 60)
+        $btnDelete.Tag = @{ BranchIndex = $branchIndex; ConditionIndex = $index }
+        $panel.Controls.Add($btnDelete)
 
-        # コントロール情報をリストに追加
-        $controlSet = [pscustomobject]@{
-            LogicalOperatorControl = $comboBoxLogicalOperator
-            LeftVariableCheckBox = $checkBoxLeftVariable
-            LeftVariableControl = $comboBoxLeftVariable
-            LeftValueControl = $textBoxLeftValue
-            OperatorControl = $comboBoxOperator
-            RightVariableCheckBox = $checkBoxRightVariable
-            RightVariableControl = $comboBoxRightVariable
-            RightValueControl = $textBoxRightValue
-            DeleteButton = $btnDeleteCondition
+        # コントロールセット
+        $controlSet = @{
+            LogicalOperator = $comboBoxLogicalOperator
+            LeftCheckBox = $checkBoxLeftVariable
+            LeftComboBox = $comboBoxLeftVariable
+            LeftTextBox = $textBoxLeftValue
+            LeftGroup = $groupLeftOption
+            Operator = $comboBoxOperator
+            RightCheckBox = $checkBoxRightVariable
+            RightComboBox = $comboBoxRightVariable
+            RightTextBox = $textBoxRightValue
+            RightGroup = $groupRightOption
+            DeleteButton = $btnDelete
         }
 
-        # 各コントロールのTagプロパティにコントロールセットを格納
-        $checkBoxLeftVariable.Tag = $controlSet
-        $checkBoxRightVariable.Tag = $controlSet
-        $btnDeleteCondition.Tag = $controlSet
+        $branchData.Conditions += $controlSet
 
-        # 入力コントロールのTagプロパティにも格納（必要に応じて）
-        $comboBoxLeftVariable.Tag = $controlSet
-        $textBoxLeftValue.Tag = $controlSet
-        $comboBoxOperator.Tag = $controlSet
-        $comboBoxRightVariable.Tag = $controlSet
-        $textBoxRightValue.Tag = $controlSet
-        if ($comboBoxLogicalOperator -ne $null) {
-            $comboBoxLogicalOperator.Tag = $controlSet
-        }
-
-        # コントロールリストに追加
-        $script:conditionControls += $controlSet
-
-        # 左辺のチェックボックスのイベント
+        # イベントハンドラ
         $checkBoxLeftVariable.Add_CheckedChanged({
             param($sender, $e)
-            $controlSet = $sender.Tag
-            if ($controlSet -ne $null) {
-                if ($sender.Checked) {
-                    $controlSet.LeftVariableControl.Visible = $true
-                    $controlSet.LeftValueControl.Visible = $false
-                } else {
-                    $controlSet.LeftVariableControl.Visible = $false
-                    $controlSet.LeftValueControl.Visible = $true
-                }
-                UpdateConditionPreview
+            $parent = $sender.Parent
+            $combo = $parent.Controls | Where-Object { $_ -is [System.Windows.Forms.ComboBox] }
+            $text = $parent.Controls | Where-Object { $_ -is [System.Windows.Forms.TextBox] }
+            if ($sender.Checked) {
+                $combo.Visible = $true
+                $text.Visible = $false
+            } else {
+                $combo.Visible = $false
+                $text.Visible = $true
             }
+            UpdateMultiBranchPreview
         })
 
-        # 右辺のチェックボックスのイベント
         $checkBoxRightVariable.Add_CheckedChanged({
             param($sender, $e)
-            $controlSet = $sender.Tag
-            if ($controlSet -ne $null) {
-                if ($sender.Checked) {
-                    $controlSet.RightVariableControl.Visible = $true
-                    $controlSet.RightValueControl.Visible = $false
-                } else {
-                    $controlSet.RightVariableControl.Visible = $false
-                    $controlSet.RightValueControl.Visible = $true
-                }
-                UpdateConditionPreview
+            $parent = $sender.Parent
+            $combo = $parent.Controls | Where-Object { $_ -is [System.Windows.Forms.ComboBox] }
+            $text = $parent.Controls | Where-Object { $_ -is [System.Windows.Forms.TextBox] }
+            if ($sender.Checked) {
+                $combo.Visible = $true
+                $text.Visible = $false
+            } else {
+                $combo.Visible = $false
+                $text.Visible = $true
             }
+            UpdateMultiBranchPreview
         })
 
-        # 入力フィールドが変更されたときにプレビューを更新
-        $comboBoxLeftVariable.Add_SelectedIndexChanged({
-            UpdateConditionPreview
-        })
-        $textBoxLeftValue.Add_TextChanged({
-            UpdateConditionPreview
-        })
-        $comboBoxOperator.Add_SelectedIndexChanged({
-            UpdateConditionPreview
-        })
-        $comboBoxRightVariable.Add_SelectedIndexChanged({
-            UpdateConditionPreview
-        })
-        $textBoxRightValue.Add_TextChanged({
-            UpdateConditionPreview
-        })
-        if ($comboBoxLogicalOperator -ne $null) {
-            $comboBoxLogicalOperator.Add_SelectedIndexChanged({
-                UpdateConditionPreview
-            })
+        # 入力変更時にプレビュー更新
+        $comboBoxLeftVariable.Add_SelectedIndexChanged({ UpdateMultiBranchPreview })
+        $textBoxLeftValue.Add_TextChanged({ UpdateMultiBranchPreview })
+        $comboBoxOperator.Add_SelectedIndexChanged({ UpdateMultiBranchPreview })
+        $comboBoxRightVariable.Add_SelectedIndexChanged({ UpdateMultiBranchPreview })
+        $textBoxRightValue.Add_TextChanged({ UpdateMultiBranchPreview })
+        if ($comboBoxLogicalOperator) {
+            $comboBoxLogicalOperator.Add_SelectedIndexChanged({ UpdateMultiBranchPreview })
         }
 
-        # 削除ボタンのクリックイベント
-        $btnDeleteCondition.Add_Click({
-            param($sender, $e)
-            $controlSet = $sender.Tag
-            if ($controlSet -ne $null) {
-                # 条件行が一つだけの場合は削除しない
-                if ($script:conditionControls.Count -le 1) {
-                    [System.Windows.Forms.MessageBox]::Show("これ以上削除できません。最低一つの条件が必要です。", "警告", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
-                    return
-                }
-
-                # コントロールを削除
-                $script:panelConditions.Controls.Remove($controlSet.LogicalOperatorControl)
-                $script:panelConditions.Controls.Remove($controlSet.LeftVariableCheckBox.Parent)
-                $script:panelConditions.Controls.Remove($controlSet.OperatorControl)
-                $script:panelConditions.Controls.Remove($controlSet.RightVariableCheckBox.Parent)
-                $script:panelConditions.Controls.Remove($controlSet.DeleteButton)
-
-                # リストから削除
-                $script:conditionControls = $script:conditionControls | Where-Object { $_.DeleteButton -ne $controlSet.DeleteButton }
-
-                # 再配置
-                $index = 0
-                foreach ($controlSet in $script:conditionControls) {
-                    $yPos = $index * 90  # 行の高さを増やす
-                    if ($index -ge 1) {
-                        $controlSet.LogicalOperatorControl.Location = [System.Drawing.Point]::new(0, $yPos + 30)
-                    }
-                    $controlSet.LeftVariableCheckBox.Parent.Location = [System.Drawing.Point]::new(70, $yPos)
-                    $controlSet.OperatorControl.Location = [System.Drawing.Point]::new(360, $yPos + 30)
-                    $controlSet.RightVariableCheckBox.Parent.Location = [System.Drawing.Point]::new(450, $yPos)
-                    $controlSet.DeleteButton.Location = [System.Drawing.Point]::new(10, $yPos + 60)
-                    $index++
-                }
-
-                # プレビューを更新
-                UpdateConditionPreview
-            }
-        })
-
-        # プレビューを更新
-        UpdateConditionPreview
+        UpdateMultiBranchPreview
     }
 
-    # プレビューを更新する関数
-    function UpdateConditionPreview {
-    $fullCondition = ""
-    $i = 0
-    foreach ($controlSet in $script:conditionControls) {
-        # 左辺の値を取得
-        if ($controlSet.LeftVariableCheckBox.Checked) {
-            $leftOperand = $controlSet.LeftVariableControl.SelectedItem
-        } else {
-            $leftOperandValue = $controlSet.LeftValueControl.Text.Trim()
-            # 値をダブルクォーテーションで囲む
-            $leftOperand = '"' + $leftOperandValue + '"'
-        }
+    # タブを再構築する関数
+    function RebuildTabs {
+        $selectedBranchCount = $cmbBranchCount.SelectedIndex + 2
+        $script:branchCount = $selectedBranchCount
 
-        # 右辺の値を取得
-        if ($controlSet.RightVariableCheckBox.Checked) {
-            $rightOperand = $controlSet.RightVariableControl.SelectedItem
-        } else {
-            $rightOperandValue = $controlSet.RightValueControl.Text.Trim()
-            # 値をダブルクォーテーションで囲む
-            $rightOperand = '"' + $rightOperandValue + '"'
-        }
+        # 既存タブをクリア
+        $tabControl.TabPages.Clear()
+        $script:branchConditionControls = @{}
 
-        $operator = $controlSet.OperatorControl.SelectedItem
-
-        # 入力チェック
-        if ([string]::IsNullOrWhiteSpace($leftOperand) -or [string]::IsNullOrWhiteSpace($operator) -or [string]::IsNullOrWhiteSpace($rightOperand)) {
-            continue
-        }
-
-        # 条件式の作成
-        $condition = "$leftOperand $operator $rightOperand"
-
-        if ($i -eq 0) {
-            $fullCondition = $condition
-        } else {
-            $logicalOperator = $controlSet.LogicalOperatorControl.SelectedItem
-            if (![string]::IsNullOrWhiteSpace($logicalOperator)) {
-                $fullCondition = "($fullCondition) $logicalOperator ($condition)"
-            }
-        }
-        $i++
-    }
-
-        # プレビューの表示を切り替え
+        # ループビルダーからの場合は1タブのみ
         if ($IsFromLoopBuilder) {
-            # ループビルダーからの呼び出しの場合は条件式のみを表示
-            $script:textBoxPreview.Text = $fullCondition
-        } else {
-            # それ以外の場合は if-else 構文を表示
-            $script:textBoxPreview.Text = "if ($fullCondition) {
-    # Trueの処理内容
-} else {
-    # Falseの処理内容
-}"
+            CreateBranchTab -branchIndex 0 -tabTitle "条件式"
+            return
         }
+
+        # 分岐数に応じてタブを作成
+        for ($i = 0; $i -lt $selectedBranchCount; $i++) {
+            if ($i -eq 0) {
+                $tabTitle = "If条件 (True時)"
+            } elseif ($i -eq $selectedBranchCount - 1) {
+                $tabTitle = "Else (その他)"
+            } else {
+                $tabTitle = "ElseIf条件 $i"
+            }
+            CreateBranchTab -branchIndex $i -tabTitle $tabTitle
+        }
+
+        # Elseタブの条件入力を無効化（条件不要）
+        $lastIndex = $selectedBranchCount - 1
+        if ($script:branchConditionControls.ContainsKey($lastIndex)) {
+            $lastBranch = $script:branchConditionControls[$lastIndex]
+            $lastBranch.Panel.Enabled = $false
+            $lastBranch.AddButton.Enabled = $false
+            # Elseタブに説明ラベルを追加
+            $lblElseInfo = New-Object System.Windows.Forms.Label
+            $lblElseInfo.Text = "Else分岐は条件式不要です。`n上記のいずれの条件にも該当しない場合に実行されます。"
+            $lblElseInfo.Location = New-Object System.Drawing.Point(20, 50)
+            $lblElseInfo.Size = New-Object System.Drawing.Size(400, 50)
+            $lblElseInfo.ForeColor = [System.Drawing.Color]::Gray
+            $lastBranch.Panel.Controls.Clear()
+            $lastBranch.Panel.Controls.Add($lblElseInfo)
+        }
+
+        UpdateMultiBranchPreview
     }
 
-    # 条件追加ボタンのクリックイベント
-    $btnAddCondition.Add_Click({
-        AddCondition
+    # 条件式プレビューセクション
+    $labelPreview = New-Object System.Windows.Forms.Label
+    $labelPreview.Text = "生成コード プレビュー:"
+    $labelPreview.AutoSize = $true
+    $labelPreview.Location = New-Object System.Drawing.Point(10, 590)
+    $form.Controls.Add($labelPreview)
+
+    $script:textBoxPreview = New-Object System.Windows.Forms.TextBox
+    $script:textBoxPreview.Size = New-Object System.Drawing.Size(960, 120)
+    $script:textBoxPreview.Location = New-Object System.Drawing.Point(10, 615)
+    $script:textBoxPreview.Multiline = $true
+    $script:textBoxPreview.ScrollBars = "Both"
+    $script:textBoxPreview.Font = New-Object System.Drawing.Font("Consolas", 9)
+    $form.Controls.Add($script:textBoxPreview)
+
+    # 保存/キャンセルボタン
+    $btnSave = New-Object System.Windows.Forms.Button
+    $btnSave.Text = "保存"
+    $btnSave.Size = New-Object System.Drawing.Size(100, 30)
+    $btnSave.Location = New-Object System.Drawing.Point(770, 745)
+    $form.Controls.Add($btnSave)
+
+    $btnCancel = New-Object System.Windows.Forms.Button
+    $btnCancel.Text = "キャンセル"
+    $btnCancel.Size = New-Object System.Drawing.Size(100, 30)
+    $btnCancel.Location = New-Object System.Drawing.Point(880, 745)
+    $form.Controls.Add($btnCancel)
+
+    # プレビュー更新関数（多重分岐対応）
+    function UpdateMultiBranchPreview {
+        if ($IsFromLoopBuilder) {
+            # ループビルダーからの場合は条件式のみ
+            $condition = GetBranchCondition -branchIndex 0
+            $script:textBoxPreview.Text = $condition
+            return
+        }
+
+        $branchCount = $script:branchCount
+        $code = ""
+
+        for ($i = 0; $i -lt $branchCount; $i++) {
+            $condition = GetBranchCondition -branchIndex $i
+
+            if ($i -eq 0) {
+                # If
+                if ([string]::IsNullOrWhiteSpace($condition)) {
+                    $condition = '$true'
+                }
+                $code = "if ($condition) {`r`n    # True の処理`r`n}"
+            } elseif ($i -eq $branchCount - 1) {
+                # Else
+                $code += " else {`r`n    # その他 の処理`r`n}"
+            } else {
+                # ElseIf
+                if ([string]::IsNullOrWhiteSpace($condition)) {
+                    $condition = '$true'
+                }
+                $code += " elseif ($condition) {`r`n    # ElseIf$i の処理`r`n}"
+            }
+        }
+
+        $script:textBoxPreview.Text = $code
+    }
+
+    # 分岐の条件式を取得
+    function GetBranchCondition {
+        param([int]$branchIndex)
+
+        if (-not $script:branchConditionControls.ContainsKey($branchIndex)) {
+            return ""
+        }
+
+        $branchData = $script:branchConditionControls[$branchIndex]
+        $conditions = $branchData.Conditions
+        $fullCondition = ""
+        $i = 0
+
+        foreach ($controlSet in $conditions) {
+            # 左辺
+            if ($controlSet.LeftCheckBox.Checked) {
+                $leftOperand = $controlSet.LeftComboBox.SelectedItem
+            } else {
+                $leftValue = $controlSet.LeftTextBox.Text.Trim()
+                $leftOperand = '"' + $leftValue + '"'
+            }
+
+            # 右辺
+            if ($controlSet.RightCheckBox.Checked) {
+                $rightOperand = $controlSet.RightComboBox.SelectedItem
+            } else {
+                $rightValue = $controlSet.RightTextBox.Text.Trim()
+                $rightOperand = '"' + $rightValue + '"'
+            }
+
+            $operator = $controlSet.Operator.SelectedItem
+
+            if ([string]::IsNullOrWhiteSpace($leftOperand) -or [string]::IsNullOrWhiteSpace($operator) -or [string]::IsNullOrWhiteSpace($rightOperand)) {
+                $i++
+                continue
+            }
+
+            $condition = "$leftOperand $operator $rightOperand"
+
+            if ($i -eq 0) {
+                $fullCondition = $condition
+            } else {
+                $logicalOp = $controlSet.LogicalOperator.SelectedItem
+                if (![string]::IsNullOrWhiteSpace($logicalOp)) {
+                    $fullCondition = "($fullCondition) $logicalOp ($condition)"
+                }
+            }
+            $i++
+        }
+
+        return $fullCondition
+    }
+
+    # 分岐数変更イベント
+    $cmbBranchCount.Add_SelectedIndexChanged({
+        RebuildTabs
     })
 
-    # フォームを表示する前に、最初の条件行を追加
-    AddCondition
+    # 初期タブ構築
+    RebuildTabs
 
-    # フォームを表示（戻り値を無視）
+    # キャンセルボタン
+    $btnCancel.Add_Click({
+        $script:conditionResult = $null
+        $form.Close()
+    })
+
+    # 保存ボタン
+    $btnSave.Add_Click({
+        # コメント行を "---" に置換
+        $script:conditionResult = $script:textBoxPreview.Text -split "`n" | ForEach-Object {
+            if ($_ -match '^\s*#') {
+                '---'
+            } else {
+                $_
+            }
+        } | Out-String
+
+        $form.Close()
+    })
+
+    # フォーム表示
     $null = $form.ShowDialog()
 
-    # 関数の返り値として条件式プレビューの値を返す
-    return $script:conditionResult
+    # ループビルダーからの場合は条件式のみ返す
+    if ($IsFromLoopBuilder) {
+        return $script:conditionResult
+    }
+
+    # 通常の場合はJSON形式で分岐数とコードを返す
+    if ($null -eq $script:conditionResult) {
+        return $null
+    }
+
+    # 分岐数を含めてJSON形式で返す
+    $result = @{
+        branchCount = $script:branchCount
+        code = $script:conditionResult
+    } | ConvertTo-Json -Compress
+
+    return $result
 }
 
 

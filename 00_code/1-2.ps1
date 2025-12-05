@@ -54,32 +54,21 @@
     try {
         # 条件分岐ダイアログを表示
         # JSONPathは未指定（関数内で自動取得される）
+        # 戻り値: JSON形式 {"branchCount": N, "code": "..."}
         Write-Host "[1_2] ShowConditionBuilder を呼び出します..." -ForegroundColor Cyan
-        $conditionCode = ShowConditionBuilder
-        Write-Host "[1_2] ShowConditionBuilder から戻りました。戻り値の型: $($conditionCode.GetType().Name)" -ForegroundColor Cyan
+        $result = ShowConditionBuilder
+        Write-Host "[1_2] ShowConditionBuilder から戻りました。戻り値: $result" -ForegroundColor Cyan
 
         # キャンセル時は $null が返る
-        if ($null -eq $conditionCode) {
+        if ($null -eq $result) {
             Write-Host "[1_2] ⚠️ 戻り値が`$null です（キャンセルまたはエラー）" -ForegroundColor Yellow
             return $null
         }
 
-        # 空文字列の場合はデフォルトの条件分岐コードを生成
-        if ($conditionCode.Trim() -eq "") {
-            Write-Host "[1_2] ⚠️ 戻り値が空文字列です。デフォルトの条件分岐を生成します" -ForegroundColor Yellow
-            $conditionCode = @"
-if (`$true) {
-    # True の場合の処理をここに記述
-} else {
-    # False の場合の処理をここに記述
-}
-"@
-            Write-Host "[1_2] ✅ デフォルトコードを生成しました" -ForegroundColor Green
-        }
-
-        # 生成されたコードを返す
-        Write-Host "[1_2] ✅ コード生成成功（長さ: $($conditionCode.Length)文字）" -ForegroundColor Green
-        return $conditionCode
+        # JSON形式の戻り値をそのまま返す
+        # ShowConditionBuilderが返すJSON: {"branchCount": N, "code": "..."}
+        Write-Host "[1_2] ✅ コード生成成功" -ForegroundColor Green
+        return $result
 
     } catch {
         Write-Host "[ERROR] 条件分岐ビルダーの実行エラー: $_" -ForegroundColor Red
