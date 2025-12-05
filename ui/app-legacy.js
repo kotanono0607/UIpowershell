@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.1.0';  // アプリバージョン - エッジベースアーキテクチャ導入
+const APP_VERSION = '1.0.261';  // アプリバージョン - エッジ基盤追加（将来の多重分岐用）
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -766,18 +766,10 @@ function drawPanelArrows(layerId) {
     const layerMatch = layerId.match(/layer-(\d+)/);
     const layerNumber = layerMatch ? parseInt(layerMatch[1], 10) : 1;
 
-    // 条件分岐の矢印を描画
-    // エッジベース（v1.1.0新方式）または色ベース（旧方式）を自動選択
-    if (hasEdgeBasedConditions(layerNumber)) {
-        // エッジベース描画（新方式）
-        console.log(`[drawPanelArrows] エッジベース描画を使用: レイヤー${layerNumber}`);
-        drawEdgeBasedConditionArrows(ctx, layerNumber, nodes);
-    } else {
-        // 色ベース描画（旧方式 - 後方互換性）
-        conditionGroups.forEach(group => {
-            drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect, scrollTop, scrollLeft);
-        });
-    }
+    // 条件分岐の矢印を描画（色ベース - Grayノードで分岐判定）
+    conditionGroups.forEach(group => {
+        drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect, scrollTop, scrollLeft);
+    });
 
     // ループの矢印を描画
     const loopGroups = findLoopGroups(nodes);
@@ -2326,8 +2318,8 @@ async function addLoopSet(setting) {
     return [startNode, endNode];
 }
 
-// 条件分岐セット（2個 + エッジ）を追加
-// ※ v1.1.0: Grayノード廃止、エッジベースアーキテクチャに移行
+// 条件分岐セット（3個）を追加
+// Grayノード（中間ライン）でTrue/False分岐を視覚的に分離
 async function addConditionSet(setting) {
     const groupId = conditionGroupCounter++;
     const baseY = getNextAvailableY(leftVisibleLayer);
@@ -2336,9 +2328,9 @@ async function addConditionSet(setting) {
     const baseId = nodeCounter;
     nodeCounter++;
 
-    console.log(`[条件分岐作成] GroupID=${groupId}, ベースID=${baseId} を割り当て (エッジベース)`);
+    console.log(`[条件分岐作成] GroupID=${groupId}, ベースID=${baseId} を割り当て`);
 
-    // 1. 開始ボタン（緑）- nodeType追加
+    // 1. 開始ボタン（緑）
     const startNode = addSingleNode(
         { ...setting, テキスト: '条件分岐 開始', ボタン名: `${baseId}-1` },
         '条件分岐 開始',
@@ -2347,55 +2339,38 @@ async function addConditionSet(setting) {
         40,
         `${baseId}-1`  // カスタムID指定
     );
-    startNode.nodeType = 'condition-start';  // エッジベース識別用
 
     // コード生成（条件式） - ベースIDを渡す
     console.log(`[条件分岐作成] コード生成 - ベースID: ${baseId}`);
     await generateCode(setting.処理番号, `${baseId}`);
 
-    // 2. 終了ボタン（緑）- nodeType追加
-    // ※ Grayノード廃止: 中間ラインは作成しない
+    // 2. 中間ライン（グレー、高さ1px）- True/False分岐の境界
+    const middleNode = addSingleNode(
+        { ...setting, テキスト: '条件分岐 中間', 背景色: 'Gray', ボタン名: `${baseId}-2` },
+        '条件分岐 中間',
+        baseY + 45 - 5,  // 5px上に調整
+        groupId,
+        1,  // 高さ1px
+        `${baseId}-2`  // カスタムID指定
+    );
+
+    // 3. 終了ボタン（緑）
     const endNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${baseId}-2` },
+        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${baseId}-3` },
         '条件分岐 終了',
         baseY + 45,
         groupId,
         40,
-        `${baseId}-2`  // カスタムID指定（旧: baseId-3）
+        `${baseId}-3`  // カスタムID指定
     );
-    endNode.nodeType = 'condition-end';  // エッジベース識別用
 
-    // 3. エッジを作成（True/False分岐）
-    const trueEdge = {
-        id: `edge-${groupId}-true`,
-        source: startNode.id,
-        target: endNode.id,
-        type: 'true',
-        groupId: groupId,
-        label: 'True'
-    };
-
-    const falseEdge = {
-        id: `edge-${groupId}-false`,
-        source: startNode.id,
-        target: endNode.id,
-        type: 'false',
-        groupId: groupId,
-        label: 'False'
-    };
-
-    // エッジをレイヤー構造に追加
-    layerStructure[leftVisibleLayer].edges.push(trueEdge);
-    layerStructure[leftVisibleLayer].edges.push(falseEdge);
-
-    console.log(`[条件分岐作成完了] 開始:${startNode.id}, 終了:${endNode.id} (GroupID=${groupId}, ベースID=${baseId})`);
-    console.log(`[条件分岐作成完了] エッジ作成: True=${trueEdge.id}, False=${falseEdge.id}`);
+    console.log(`[条件分岐作成完了] 開始:${startNode.id}, 中間:${middleNode.id}, 終了:${endNode.id} (GroupID=${groupId}, ベースID=${baseId})`);
 
     renderNodesInLayer(leftVisibleLayer);
     reorderNodesInLayer(leftVisibleLayer);
 
-    // 追加されたノードを返す（Grayノードは含まない）
-    return [startNode, endNode];
+    // 追加されたノードを返す
+    return [startNode, middleNode, endNode];
 }
 
 // 次の利用可能なY座標を取得
