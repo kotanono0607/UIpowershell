@@ -550,18 +550,18 @@ function ShowConditionBuilder {
     # 分岐数を保存する変数
     $script:branchCount = 2
 
-    # フォーム作成
+    # フォーム作成（横幅を広げて条件入力エリアを拡張）
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "条件分岐の設定"
-    $form.Size = New-Object System.Drawing.Size(1000, 850)
+    $form.Size = New-Object System.Drawing.Size(1200, 850)
     $form.StartPosition = "CenterScreen"
 
     # ============================================
-    # 分岐数選択セクション（多重分岐対応）
+    # 分岐数選択セクション（多重分岐対応：最大7分岐）
     # ============================================
     $groupBoxBranchCount = New-Object System.Windows.Forms.GroupBox
     $groupBoxBranchCount.Text = "分岐数の設定"
-    $groupBoxBranchCount.Size = New-Object System.Drawing.Size(960, 60)
+    $groupBoxBranchCount.Size = New-Object System.Drawing.Size(1160, 60)
     $groupBoxBranchCount.Location = New-Object System.Drawing.Point(10, 10)
     $form.Controls.Add($groupBoxBranchCount)
 
@@ -573,18 +573,20 @@ function ShowConditionBuilder {
 
     $cmbBranchCount = New-Object System.Windows.Forms.ComboBox
     $cmbBranchCount.Location = New-Object System.Drawing.Point(80, 22)
-    $cmbBranchCount.Size = New-Object System.Drawing.Size(200, 25)
+    $cmbBranchCount.Size = New-Object System.Drawing.Size(220, 25)
     $cmbBranchCount.DropDownStyle = "DropDownList"
     $cmbBranchCount.Items.Add("2分岐 (If-Else)") | Out-Null
     $cmbBranchCount.Items.Add("3分岐 (If-ElseIf-Else)") | Out-Null
     $cmbBranchCount.Items.Add("4分岐 (If-ElseIf×2-Else)") | Out-Null
     $cmbBranchCount.Items.Add("5分岐 (If-ElseIf×3-Else)") | Out-Null
+    $cmbBranchCount.Items.Add("6分岐 (If-ElseIf×4-Else)") | Out-Null
+    $cmbBranchCount.Items.Add("7分岐 (If-ElseIf×5-Else)") | Out-Null
     $cmbBranchCount.SelectedIndex = 0
     $groupBoxBranchCount.Controls.Add($cmbBranchCount)
 
     $lblBranchHelp = New-Object System.Windows.Forms.Label
-    $lblBranchHelp.Text = "※ 各分岐の条件を下で設定してください"
-    $lblBranchHelp.Location = New-Object System.Drawing.Point(300, 25)
+    $lblBranchHelp.Text = "※ 各分岐の条件を下で設定してください（曜日判定等に7分岐が便利）"
+    $lblBranchHelp.Location = New-Object System.Drawing.Point(320, 25)
     $lblBranchHelp.AutoSize = $true
     $lblBranchHelp.ForeColor = [System.Drawing.Color]::Gray
     $groupBoxBranchCount.Controls.Add($lblBranchHelp)
@@ -598,7 +600,7 @@ function ShowConditionBuilder {
     # 条件項目セクション（タブコントロール）
     # ============================================
     $tabControl = New-Object System.Windows.Forms.TabControl
-    $tabControl.Size = New-Object System.Drawing.Size(960, 500)
+    $tabControl.Size = New-Object System.Drawing.Size(1160, 500)
     $tabControl.Location = New-Object System.Drawing.Point(10, 80)
     $form.Controls.Add($tabControl)
 
@@ -612,10 +614,10 @@ function ShowConditionBuilder {
         $tabPage = New-Object System.Windows.Forms.TabPage
         $tabPage.Text = $tabTitle
 
-        # 条件入力パネル
+        # 条件入力パネル（横幅拡張）
         $panelConditions = New-Object System.Windows.Forms.Panel
         $panelConditions.AutoScroll = $true
-        $panelConditions.Size = New-Object System.Drawing.Size(930, 420)
+        $panelConditions.Size = New-Object System.Drawing.Size(1130, 420)
         $panelConditions.Location = New-Object System.Drawing.Point(5, 5)
         $tabPage.Controls.Add($panelConditions)
 
@@ -666,10 +668,10 @@ function ShowConditionBuilder {
             $panel.Controls.Add($comboBoxLogicalOperator)
         }
 
-        # 左辺グループ
+        # 左辺グループ（横幅拡張）
         $groupLeftOption = New-Object System.Windows.Forms.GroupBox
         $groupLeftOption.Text = "左辺"
-        $groupLeftOption.Size = New-Object System.Drawing.Size(280, 80)
+        $groupLeftOption.Size = New-Object System.Drawing.Size(350, 80)
         $groupLeftOption.Location = [System.Drawing.Point]::new(70, $yPosition)
         $panel.Controls.Add($groupLeftOption)
 
@@ -679,29 +681,29 @@ function ShowConditionBuilder {
         $groupLeftOption.Controls.Add($checkBoxLeftVariable)
 
         $comboBoxLeftVariable = New-Object System.Windows.Forms.ComboBox
-        $comboBoxLeftVariable.Size = New-Object System.Drawing.Size(250, 20)
+        $comboBoxLeftVariable.Size = New-Object System.Drawing.Size(320, 20)
         $comboBoxLeftVariable.Location = [System.Drawing.Point]::new(10, 40)
         $comboBoxLeftVariable.Items.AddRange($script:variablesList)
         $comboBoxLeftVariable.Visible = $false
         $groupLeftOption.Controls.Add($comboBoxLeftVariable)
 
         $textBoxLeftValue = New-Object System.Windows.Forms.TextBox
-        $textBoxLeftValue.Size = New-Object System.Drawing.Size(250, 20)
+        $textBoxLeftValue.Size = New-Object System.Drawing.Size(320, 20)
         $textBoxLeftValue.Location = [System.Drawing.Point]::new(10, 40)
         $groupLeftOption.Controls.Add($textBoxLeftValue)
 
         # 演算子
         $comboBoxOperator = New-Object System.Windows.Forms.ComboBox
-        $comboBoxOperator.Size = New-Object System.Drawing.Size(80, 20)
-        $comboBoxOperator.Location = [System.Drawing.Point]::new(360, $yPosition + 30)
-        $comboBoxOperator.Items.AddRange(@("-eq", "-ne", "-lt", "-gt", "-like", "-notlike"))
+        $comboBoxOperator.Size = New-Object System.Drawing.Size(90, 20)
+        $comboBoxOperator.Location = [System.Drawing.Point]::new(430, $yPosition + 30)
+        $comboBoxOperator.Items.AddRange(@("-eq", "-ne", "-lt", "-gt", "-le", "-ge", "-like", "-notlike", "-match", "-notmatch"))
         $panel.Controls.Add($comboBoxOperator)
 
-        # 右辺グループ
+        # 右辺グループ（横幅拡張）
         $groupRightOption = New-Object System.Windows.Forms.GroupBox
         $groupRightOption.Text = "右辺"
-        $groupRightOption.Size = New-Object System.Drawing.Size(280, 80)
-        $groupRightOption.Location = [System.Drawing.Point]::new(450, $yPosition)
+        $groupRightOption.Size = New-Object System.Drawing.Size(350, 80)
+        $groupRightOption.Location = [System.Drawing.Point]::new(530, $yPosition)
         $panel.Controls.Add($groupRightOption)
 
         $checkBoxRightVariable = New-Object System.Windows.Forms.CheckBox
@@ -710,14 +712,14 @@ function ShowConditionBuilder {
         $groupRightOption.Controls.Add($checkBoxRightVariable)
 
         $comboBoxRightVariable = New-Object System.Windows.Forms.ComboBox
-        $comboBoxRightVariable.Size = New-Object System.Drawing.Size(250, 20)
+        $comboBoxRightVariable.Size = New-Object System.Drawing.Size(320, 20)
         $comboBoxRightVariable.Location = [System.Drawing.Point]::new(10, 40)
         $comboBoxRightVariable.Items.AddRange($script:variablesList)
         $comboBoxRightVariable.Visible = $false
         $groupRightOption.Controls.Add($comboBoxRightVariable)
 
         $textBoxRightValue = New-Object System.Windows.Forms.TextBox
-        $textBoxRightValue.Size = New-Object System.Drawing.Size(250, 20)
+        $textBoxRightValue.Size = New-Object System.Drawing.Size(320, 20)
         $textBoxRightValue.Location = [System.Drawing.Point]::new(10, 40)
         $groupRightOption.Controls.Add($textBoxRightValue)
 
@@ -836,7 +838,7 @@ function ShowConditionBuilder {
         UpdateMultiBranchPreview
     }
 
-    # 条件式プレビューセクション
+    # 条件式プレビューセクション（横幅拡張）
     $labelPreview = New-Object System.Windows.Forms.Label
     $labelPreview.Text = "生成コード プレビュー:"
     $labelPreview.AutoSize = $true
@@ -844,24 +846,24 @@ function ShowConditionBuilder {
     $form.Controls.Add($labelPreview)
 
     $script:textBoxPreview = New-Object System.Windows.Forms.TextBox
-    $script:textBoxPreview.Size = New-Object System.Drawing.Size(960, 120)
+    $script:textBoxPreview.Size = New-Object System.Drawing.Size(1160, 120)
     $script:textBoxPreview.Location = New-Object System.Drawing.Point(10, 615)
     $script:textBoxPreview.Multiline = $true
     $script:textBoxPreview.ScrollBars = "Both"
     $script:textBoxPreview.Font = New-Object System.Drawing.Font("Consolas", 9)
     $form.Controls.Add($script:textBoxPreview)
 
-    # 保存/キャンセルボタン
+    # 保存/キャンセルボタン（位置調整）
     $btnSave = New-Object System.Windows.Forms.Button
     $btnSave.Text = "保存"
     $btnSave.Size = New-Object System.Drawing.Size(100, 30)
-    $btnSave.Location = New-Object System.Drawing.Point(770, 745)
+    $btnSave.Location = New-Object System.Drawing.Point(960, 745)
     $form.Controls.Add($btnSave)
 
     $btnCancel = New-Object System.Windows.Forms.Button
     $btnCancel.Text = "キャンセル"
     $btnCancel.Size = New-Object System.Drawing.Size(100, 30)
-    $btnCancel.Location = New-Object System.Drawing.Point(880, 745)
+    $btnCancel.Location = New-Object System.Drawing.Point(1070, 745)
     $form.Controls.Add($btnCancel)
 
     # プレビュー更新関数（多重分岐対応）
