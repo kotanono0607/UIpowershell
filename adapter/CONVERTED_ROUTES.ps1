@@ -1367,13 +1367,14 @@ Add-PodeRoute -Method Get -Path "/api/folders/:name/memory" -ScriptBlock {
             Write-PodeJsonResponse -Value $result -Depth 10
         } else {
             # memory.jsonが存在しない場合は空のレイヤー構造を返す
+            # v1.1.0: edges配列も含める
             $emptyMemory = @{
-                "1" = @{ "構成" = @() }
-                "2" = @{ "構成" = @() }
-                "3" = @{ "構成" = @() }
-                "4" = @{ "構成" = @() }
-                "5" = @{ "構成" = @() }
-                "6" = @{ "構成" = @() }
+                "1" = @{ "構成" = @(); "edges" = @() }
+                "2" = @{ "構成" = @(); "edges" = @() }
+                "3" = @{ "構成" = @(); "edges" = @() }
+                "4" = @{ "構成" = @(); "edges" = @() }
+                "5" = @{ "構成" = @(); "edges" = @() }
+                "6" = @{ "構成" = @(); "edges" = @() }
             }
             $result = @{
                 success = $true
@@ -1455,10 +1456,16 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
                 $totalNodes++
             }
 
-            $memoryData["$i"] = @{ "構成" = $構成 }
-
-            if ($構成.Count -gt 0) {
-                Write-Host "[API] レイヤー$i : $($構成.Count)個のノード" -ForegroundColor Gray
+            # v1.1.0: エッジデータも保存
+            $layerEdges = $layerStructure."$i".edges
+            if ($layerEdges -and $layerEdges.Count -gt 0) {
+                $memoryData["$i"] = @{ "構成" = $構成; "edges" = $layerEdges }
+                Write-Host "[API] レイヤー$i : $($構成.Count)個のノード, $($layerEdges.Count)本のエッジ" -ForegroundColor Gray
+            } else {
+                $memoryData["$i"] = @{ "構成" = $構成 }
+                if ($構成.Count -gt 0) {
+                    Write-Host "[API] レイヤー$i : $($構成.Count)個のノード" -ForegroundColor Gray
+                }
             }
         }
 

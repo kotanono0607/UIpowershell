@@ -3,7 +3,7 @@
 // 既存Windows Forms版の完全再現
 // ============================================
 
-const APP_VERSION = '1.0.260';  // アプリバージョン
+const APP_VERSION = '1.1.0';  // アプリバージョン - エッジベースアーキテクチャ導入
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
@@ -317,13 +317,13 @@ let isRestoringHistory = false; // Undo/Redo実行中フラグ（履歴記録を
 let contextMenuTarget = null;   // 右クリックメニューの対象ノード
 let draggedNode = null;         // ドラッグ中のノード
 let layerStructure = {          // レイヤー構造
-    0: { visible: false, nodes: [] },
-    1: { visible: true, nodes: [] },
-    2: { visible: false, nodes: [] },
-    3: { visible: false, nodes: [] },
-    4: { visible: false, nodes: [] },
-    5: { visible: false, nodes: [] },
-    6: { visible: false, nodes: [] }
+    0: { visible: false, nodes: [], edges: [] },
+    1: { visible: true, nodes: [], edges: [] },
+    2: { visible: false, nodes: [], edges: [] },
+    3: { visible: false, nodes: [], edges: [] },
+    4: { visible: false, nodes: [], edges: [] },
+    5: { visible: false, nodes: [], edges: [] },
+    6: { visible: false, nodes: [], edges: [] }
 };
 
 // ノードカウンター（ID生成用）
@@ -762,10 +762,22 @@ function drawPanelArrows(layerId) {
     const scrollTop = nodeListContainer.scrollTop || 0;
     const scrollLeft = nodeListContainer.scrollLeft || 0;
 
-    // 条件分岐の特別な矢印を描画
-    conditionGroups.forEach(group => {
-        drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect, scrollTop, scrollLeft);
-    });
+    // レイヤー番号を抽出
+    const layerMatch = layerId.match(/layer-(\d+)/);
+    const layerNumber = layerMatch ? parseInt(layerMatch[1], 10) : 1;
+
+    // 条件分岐の矢印を描画
+    // エッジベース（v1.1.0新方式）または色ベース（旧方式）を自動選択
+    if (hasEdgeBasedConditions(layerNumber)) {
+        // エッジベース描画（新方式）
+        console.log(`[drawPanelArrows] エッジベース描画を使用: レイヤー${layerNumber}`);
+        drawEdgeBasedConditionArrows(ctx, layerNumber, nodes);
+    } else {
+        // 色ベース描画（旧方式 - 後方互換性）
+        conditionGroups.forEach(group => {
+            drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect, scrollTop, scrollLeft);
+        });
+    }
 
     // ループの矢印を描画
     const loopGroups = findLoopGroups(nodes);
@@ -1046,6 +1058,135 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         const lastTrue = trueBranchNodes[trueBranchNodes.length - 1];
         drawDownArrow(ctx, lastTrue, endNode, '#1e90ff');  // DodgerBlue
     }
+}
+
+// ============================================
+// エッジベース矢印描画（v1.1.0新機能）
+// ============================================
+
+/**
+ * エッジベースで条件分岐の矢印を描画
+ * @param {CanvasRenderingContext2D} ctx - Canvasコンテキスト
+ * @param {number} layer - レイヤー番号
+ * @param {HTMLElement[]} nodes - DOMノード配列
+ */
+function drawEdgeBasedConditionArrows(ctx, layer, nodes) {
+    const edges = layerStructure[layer]?.edges || [];
+    if (edges.length === 0) {
+        console.log(`[エッジ描画] レイヤー${layer}: エッジなし`);
+        return false;  // エッジがない場合は旧方式にフォールバック
+    }
+
+    console.log(`[エッジ描画] レイヤー${layer}: ${edges.length}本のエッジを処理`);
+
+    // 条件分岐用エッジのみ処理
+    const conditionEdges = edges.filter(e => e.type === 'true' || e.type === 'false');
+
+    conditionEdges.forEach(edge => {
+        // ソースとターゲットのDOMノードを取得
+        const sourceNode = nodes.find(n => n.dataset.nodeId === edge.source);
+        const targetNode = nodes.find(n => n.dataset.nodeId === edge.target);
+
+        if (!sourceNode || !targetNode) {
+            console.warn(`[エッジ描画] ノード未発見: source=${edge.source}, target=${edge.target}`);
+            return;
+        }
+
+        // 座標を取得
+        const sourceTop = parseInt(sourceNode.style.top, 10) || 0;
+        const sourceLeft = parseInt(sourceNode.style.left, 10) || 90;
+        const sourceHeight = sourceNode.offsetHeight || 40;
+        const sourceWidth = sourceNode.offsetWidth || 120;
+
+        const targetTop = parseInt(targetNode.style.top, 10) || 0;
+        const targetLeft = parseInt(targetNode.style.left, 10) || 90;
+        const targetHeight = targetNode.offsetHeight || 40;
+        const targetWidth = targetNode.offsetWidth || 120;
+
+        // エッジタイプに応じた色を設定
+        const edgeColor = edge.type === 'true' ? '#1e90ff' : 'rgb(250, 128, 114)';
+        ctx.strokeStyle = edgeColor;
+        ctx.lineWidth = 2;
+
+        if (edge.type === 'true') {
+            // True分岐: 開始ノード右端 → 右へ横線 → 下へ縦線 → 終了ノード右端
+            const lineStartX = sourceLeft + sourceWidth;
+            const lineStartY = sourceTop + sourceHeight / 2;
+            const horizontalEndX = lineStartX + 30;  // 右へ30px
+            const targetY = targetTop + targetHeight / 2;
+
+            // 右への横線
+            ctx.beginPath();
+            ctx.moveTo(lineStartX, lineStartY);
+            ctx.lineTo(horizontalEndX, lineStartY);
+            ctx.stroke();
+
+            // 下への縦線
+            ctx.beginPath();
+            ctx.moveTo(horizontalEndX, lineStartY);
+            ctx.lineTo(horizontalEndX, targetY);
+            ctx.stroke();
+
+            // 終了ノードへの横線
+            const targetRightX = targetLeft + targetWidth;
+            ctx.beginPath();
+            ctx.moveTo(horizontalEndX, targetY);
+            ctx.lineTo(targetRightX, targetY);
+            ctx.stroke();
+
+            // ラベル描画
+            ctx.fillStyle = edgeColor;
+            ctx.font = '12px sans-serif';
+            ctx.fillText('True', horizontalEndX + 5, lineStartY - 5);
+
+        } else {
+            // False分岐: 開始ノード左端 → 左へ横線 → 下へ縦線 → 終了ノード左端
+            const lineStartX = sourceLeft;
+            const lineStartY = sourceTop + sourceHeight / 2;
+            const horizontalEndX = Math.max(lineStartX - 30, 10);  // 左へ30px
+            const targetY = targetTop + targetHeight / 2;
+
+            // 左への横線
+            ctx.beginPath();
+            ctx.moveTo(lineStartX, lineStartY);
+            ctx.lineTo(horizontalEndX, lineStartY);
+            ctx.stroke();
+
+            // 下への縦線
+            ctx.beginPath();
+            ctx.moveTo(horizontalEndX, lineStartY);
+            ctx.lineTo(horizontalEndX, targetY);
+            ctx.stroke();
+
+            // 終了ノードへの横線と矢印
+            ctx.beginPath();
+            ctx.moveTo(horizontalEndX, targetY);
+            ctx.lineTo(targetLeft, targetY);
+            ctx.stroke();
+
+            // 矢印ヘッド
+            drawArrowHead(ctx, horizontalEndX, targetY, targetLeft, targetY);
+
+            // ラベル描画
+            ctx.fillStyle = edgeColor;
+            ctx.font = '12px sans-serif';
+            ctx.fillText('False', horizontalEndX - 30, lineStartY - 5);
+        }
+
+        console.log(`[エッジ描画] ${edge.type}分岐: ${edge.source} → ${edge.target}`);
+    });
+
+    return conditionEdges.length > 0;  // エッジを描画した場合true
+}
+
+/**
+ * レイヤーにエッジベースの条件分岐があるかチェック
+ * @param {number} layer - レイヤー番号
+ * @returns {boolean} エッジベースの条件分岐がある場合true
+ */
+function hasEdgeBasedConditions(layer) {
+    const edges = layerStructure[layer]?.edges || [];
+    return edges.some(e => e.type === 'true' || e.type === 'false');
 }
 
 // ループグループを見つける
@@ -2185,7 +2326,8 @@ async function addLoopSet(setting) {
     return [startNode, endNode];
 }
 
-// 条件分岐セット（3個）を追加
+// 条件分岐セット（2個 + エッジ）を追加
+// ※ v1.1.0: Grayノード廃止、エッジベースアーキテクチャに移行
 async function addConditionSet(setting) {
     const groupId = conditionGroupCounter++;
     const baseY = getNextAvailableY(leftVisibleLayer);
@@ -2194,9 +2336,9 @@ async function addConditionSet(setting) {
     const baseId = nodeCounter;
     nodeCounter++;
 
-    console.log(`[条件分岐作成] GroupID=${groupId}, ベースID=${baseId} を割り当て`);
+    console.log(`[条件分岐作成] GroupID=${groupId}, ベースID=${baseId} を割り当て (エッジベース)`);
 
-    // 1. 開始ボタン（緑）
+    // 1. 開始ボタン（緑）- nodeType追加
     const startNode = addSingleNode(
         { ...setting, テキスト: '条件分岐 開始', ボタン名: `${baseId}-1` },
         '条件分岐 開始',
@@ -2205,38 +2347,55 @@ async function addConditionSet(setting) {
         40,
         `${baseId}-1`  // カスタムID指定
     );
+    startNode.nodeType = 'condition-start';  // エッジベース識別用
 
     // コード生成（条件式） - ベースIDを渡す
     console.log(`[条件分岐作成] コード生成 - ベースID: ${baseId}`);
     await generateCode(setting.処理番号, `${baseId}`);
 
-    // 2. 中間ライン（グレー、高さ1px）
-    const middleNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 中間', 背景色: 'Gray', ボタン名: `${baseId}-2` },
-        '条件分岐 中間',
-        baseY + 45 - 5,  // 5px上に調整
-        groupId,
-        1,  // 高さ1px
-        `${baseId}-2`  // カスタムID指定
-    );
-
-    // 3. 終了ボタン（緑）
+    // 2. 終了ボタン（緑）- nodeType追加
+    // ※ Grayノード廃止: 中間ラインは作成しない
     const endNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${baseId}-3` },
+        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${baseId}-2` },
         '条件分岐 終了',
         baseY + 45,
         groupId,
         40,
-        `${baseId}-3`  // カスタムID指定
+        `${baseId}-2`  // カスタムID指定（旧: baseId-3）
     );
+    endNode.nodeType = 'condition-end';  // エッジベース識別用
 
-    console.log(`[条件分岐作成完了] 開始:${startNode.id}, 中間:${middleNode.id}, 終了:${endNode.id} (GroupID=${groupId}, ベースID=${baseId})`);
+    // 3. エッジを作成（True/False分岐）
+    const trueEdge = {
+        id: `edge-${groupId}-true`,
+        source: startNode.id,
+        target: endNode.id,
+        type: 'true',
+        groupId: groupId,
+        label: 'True'
+    };
+
+    const falseEdge = {
+        id: `edge-${groupId}-false`,
+        source: startNode.id,
+        target: endNode.id,
+        type: 'false',
+        groupId: groupId,
+        label: 'False'
+    };
+
+    // エッジをレイヤー構造に追加
+    layerStructure[leftVisibleLayer].edges.push(trueEdge);
+    layerStructure[leftVisibleLayer].edges.push(falseEdge);
+
+    console.log(`[条件分岐作成完了] 開始:${startNode.id}, 終了:${endNode.id} (GroupID=${groupId}, ベースID=${baseId})`);
+    console.log(`[条件分岐作成完了] エッジ作成: True=${trueEdge.id}, False=${falseEdge.id}`);
 
     renderNodesInLayer(leftVisibleLayer);
     reorderNodesInLayer(leftVisibleLayer);
 
-    // 追加されたノードを返す
-    return [startNode, middleNode, endNode];
+    // 追加されたノードを返す（Grayノードは含まない）
+    return [startNode, endNode];
 }
 
 // 次の利用可能なY座標を取得
@@ -3411,6 +3570,16 @@ async function deleteNode() {
         if (layerIndex !== -1) {
             layerStructure[leftVisibleLayer].nodes.splice(layerIndex, 1);
         }
+    });
+
+    // v1.1.0: 関連するエッジも削除
+    const layerEdges = layerStructure[leftVisibleLayer].edges || [];
+    layerStructure[leftVisibleLayer].edges = layerEdges.filter(edge => {
+        const isRelated = deleteTargets.includes(edge.source) || deleteTargets.includes(edge.target);
+        if (isRelated) {
+            console.log(`[削除] エッジ削除: ${edge.id} (${edge.source} → ${edge.target})`);
+        }
+        return !isRelated;
     });
 
     renderNodesInLayer(leftVisibleLayer);
@@ -5385,6 +5554,7 @@ async function loadExistingNodes() {
         nodes = [];
         for (let i = 0; i <= 6; i++) {
             layerStructure[i].nodes = [];
+            layerStructure[i].edges = [];  // v1.1.0: エッジもクリア
         }
 
         // memory.jsonからノードを復元
@@ -5437,6 +5607,14 @@ async function loadExistingNodes() {
                 nodes.push(node);
                 layerStructure[layerNum].nodes.push(node);
             });
+
+            // v1.1.0: エッジデータを復元
+            if (layerData.edges && Array.isArray(layerData.edges)) {
+                layerStructure[layerNum].edges = layerData.edges;
+                if (layerData.edges.length > 0) {
+                    console.log(`│ [L${layerNum}] エッジ復元: ${layerData.edges.length}本`);
+                }
+            }
         }
         console.log('└─ [memory.json復元] 完了 ─────────────────────');
 
@@ -5452,6 +5630,28 @@ async function loadExistingNodes() {
             }
         });
         console.log(`[memory.json読み込み] nodeCounter を ${nodeCounter} に更新しました`);
+
+        // v1.1.0: conditionGroupCounter と loopGroupCounter も更新（エッジのgroupIdから）
+        for (let layerNum = 0; layerNum <= 6; layerNum++) {
+            const layerEdges = layerStructure[layerNum]?.edges || [];
+            layerEdges.forEach(edge => {
+                if (edge.groupId && typeof edge.groupId === 'number') {
+                    // 条件分岐用（2000番台）
+                    if (edge.groupId >= 2000 && edge.groupId < 3000) {
+                        if (edge.groupId >= conditionGroupCounter) {
+                            conditionGroupCounter = edge.groupId + 1;
+                        }
+                    }
+                    // ループ用（1000番台）
+                    else if (edge.groupId >= 1000 && edge.groupId < 2000) {
+                        if (edge.groupId >= loopGroupCounter) {
+                            loopGroupCounter = edge.groupId + 1;
+                        }
+                    }
+                }
+            });
+        }
+        console.log(`[memory.json読み込み] conditionGroupCounter を ${conditionGroupCounter}, loopGroupCounter を ${loopGroupCounter} に更新しました`);
 
         // IDフィールドがなかった場合は、新しいIDでmemory.jsonを再保存
         // これにより、次回起動時にIDが維持される
@@ -5513,8 +5713,15 @@ async function saveMemoryJson() {
 
             formattedLayerStructure[i] = {
                 visible: layerStructure[i].visible,
-                nodes: nodesWithIndex
+                nodes: nodesWithIndex,
+                edges: layerStructure[i].edges || []  // v1.1.0: エッジデータを保存
             };
+
+            // デバッグ: エッジ情報を出力
+            const layerEdges = layerStructure[i].edges || [];
+            if (layerEdges.length > 0) {
+                console.log(`│ [L${i}] エッジ数: ${layerEdges.length}`);
+            }
 
             // デバッグ: Pinkノードの情報を出力
             nodesWithIndex.forEach(node => {
