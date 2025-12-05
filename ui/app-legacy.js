@@ -926,6 +926,9 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
     // 分岐ごとの色を定義（多重分岐対応）
     const branchColors = getBranchColors(branchCount);
 
+    // === 分岐ラベルを描画 ===
+    drawBranchLabels(ctx, startNode, endNode, innerNodes, grayIndices, branchCount, branchColors);
+
     // === 各分岐の矢印を描画 ===
 
     for (let branchIdx = 0; branchIdx < branches.length; branchIdx++) {
@@ -997,6 +1000,72 @@ function getBranchColors(branchCount) {
     colors.push(baseColors[baseColors.length - 1]);  // 最後の分岐は青
 
     return colors;
+}
+
+/**
+ * 分岐ラベルを描画（False, ElseIf 1, ElseIf 2, ..., True）
+ */
+function drawBranchLabels(ctx, startNode, endNode, innerNodes, grayIndices, branchCount, branchColors) {
+    const startTop = parseInt(startNode.style.top, 10) || 0;
+    const startLeft = parseInt(startNode.style.left, 10) || 90;
+    const startHeight = startNode.offsetHeight || 40;
+    const startWidth = startNode.offsetWidth || 120;
+
+    // ラベルのスタイル設定
+    ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+
+    // ラベル位置（ノードの右側）
+    const labelX = startLeft + startWidth + 15;
+
+    // 分岐ラベル名を生成
+    const branchLabels = [];
+    for (let i = 0; i < branchCount; i++) {
+        if (i === 0) {
+            branchLabels.push('False');
+        } else if (i === branchCount - 1) {
+            branchLabels.push('True');
+        } else {
+            branchLabels.push(`ElseIf ${i}`);
+        }
+    }
+
+    // 各分岐のラベルを描画
+    for (let i = 0; i < branchCount; i++) {
+        const label = branchLabels[i];
+        const color = branchColors[i];
+        let labelY;
+
+        if (i === 0) {
+            // 最初の分岐（False）: 開始ノードの直下
+            labelY = startTop + startHeight + 12;
+        } else {
+            // ElseIf/True分岐: 対応するGrayノードの直下
+            const grayIdx = grayIndices[i - 1];
+            if (grayIdx !== undefined && innerNodes[grayIdx]) {
+                const grayNode = innerNodes[grayIdx];
+                const grayTop = parseInt(grayNode.style.top, 10) || 0;
+                labelY = grayTop + 8;
+            } else {
+                continue;  // Grayノードが見つからない場合はスキップ
+            }
+        }
+
+        // ラベル背景（視認性向上）
+        const labelWidth = ctx.measureText(label).width + 10;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.fillRect(labelX - 3, labelY - 8, labelWidth, 16);
+
+        // ラベル枠線
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(labelX - 3, labelY - 8, labelWidth, 16);
+
+        // ラベルテキスト
+        ctx.fillStyle = color;
+        ctx.fillText(label, labelX + 2, labelY);
+    }
 }
 
 // 分岐開始の複雑な矢印を描画（右→下）
