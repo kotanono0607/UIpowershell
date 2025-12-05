@@ -2422,7 +2422,7 @@ async function addConditionSet(setting, branchCount = 2) {
         40,
         `${baseId}-1`  // カスタムID指定
     );
-    startNode.dataset.branchCount = branchCount;  // 分岐数をデータ属性に保存
+    startNode.branchCount = branchCount;  // 分岐数をノードに保存
     allNodes.push(startNode);
 
     // コード生成（条件式） - ベースIDを渡す
@@ -2443,7 +2443,7 @@ async function addConditionSet(setting, branchCount = 2) {
             1,  // 高さ1px
             `${baseId}-${i + 2}`  // カスタムID指定
         );
-        middleNode.dataset.branchIndex = i;  // 何番目のGrayか
+        middleNode.branchIndex = i;  // 何番目のGrayか
         allNodes.push(middleNode);
     }
 
