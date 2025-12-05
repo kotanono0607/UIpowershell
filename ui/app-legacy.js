@@ -3145,11 +3145,12 @@ function reorderNodesInLayer(layer) {
             console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} のまま（構成ノード）`);
         }
 
-        // ボタン間隔と高さの調整（"条件分岐 中間"の場合は特殊）
+        // ボタン間隔と高さの調整（Grayノード=中間ノードの場合は特殊）
+        // 多重分岐対応: テキストではなく色でチェック
         let interval, height;
-        if (buttonText === '条件分岐 中間') {
+        if (node.color === 'Gray') {
             interval = 10;  // 通常20のところ10
-            height = 0;     // 通常40のところ0
+            height = 0;     // 通常40のところ0（高さ1pxだが間隔計算では0扱い）
         } else {
             interval = 20;
             height = 40;
