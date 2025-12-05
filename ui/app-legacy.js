@@ -1004,7 +1004,7 @@ function getBranchColors(branchCount) {
 
 /**
  * 分岐ラベルを描画（True, ElseIf 1, ElseIf 2, ..., False）
- * Grayノードの中央にラベルを配置
+ * Grayノードの少し下（下側分岐に寄せて）にラベルを配置
  */
 function drawBranchLabels(ctx, startNode, endNode, innerNodes, grayIndices, branchCount, branchColors) {
     const startTop = parseInt(startNode.style.top, 10) || 0;
@@ -1028,7 +1028,23 @@ function drawBranchLabels(ctx, startNode, endNode, innerNodes, grayIndices, bran
         }
     }
 
-    // Grayノードの中央にラベルを配置（最初の分岐以外）
+    // 最初の分岐（True）のラベルは開始ノードの下に表示（中央揃え）
+    const firstLabel = branchLabels[0];
+    const firstColor = branchColors[0];
+    ctx.textAlign = 'center';
+    const firstLabelX = startLeft + startWidth / 2;
+    const firstLabelY = startTop + startHeight + 12;
+
+    const firstLabelWidth = ctx.measureText(firstLabel).width + 10;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.fillRect(firstLabelX - firstLabelWidth / 2, firstLabelY - 7, firstLabelWidth, 14);
+    ctx.strokeStyle = firstColor;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(firstLabelX - firstLabelWidth / 2, firstLabelY - 7, firstLabelWidth, 14);
+    ctx.fillStyle = firstColor;
+    ctx.fillText(firstLabel, firstLabelX, firstLabelY);
+
+    // Grayノードの少し下にラベルを配置（下側分岐に寄せる）
     for (let i = 1; i < branchCount; i++) {
         const label = branchLabels[i];
         const color = branchColors[i];
@@ -1044,10 +1060,10 @@ function drawBranchLabels(ctx, startNode, endNode, innerNodes, grayIndices, bran
         const grayLeft = parseInt(grayNode.style.left, 10) || 90;
         const grayWidth = grayNode.offsetWidth || 20;
 
-        // ラベル位置（Grayノードの中央）
+        // ラベル位置（Grayノードの少し下、下側分岐に寄せる）
         ctx.textAlign = 'center';
         const labelX = grayLeft + grayWidth / 2;
-        const labelY = grayTop;
+        const labelY = grayTop + 10;  // 少し下にオフセット
 
         // ラベル背景（視認性向上）
         const labelWidth = ctx.measureText(label).width + 12;
@@ -1064,22 +1080,6 @@ function drawBranchLabels(ctx, startNode, endNode, innerNodes, grayIndices, bran
         ctx.fillStyle = color;
         ctx.fillText(label, labelX, labelY);
     }
-
-    // 最初の分岐（True）のラベルは開始ノードの右側に表示
-    const firstLabel = branchLabels[0];
-    const firstColor = branchColors[0];
-    ctx.textAlign = 'left';
-    const firstLabelX = startLeft + startWidth + 8;
-    const firstLabelY = startTop + startHeight / 2;
-
-    const firstLabelWidth = ctx.measureText(firstLabel).width + 10;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    ctx.fillRect(firstLabelX - 2, firstLabelY - 7, firstLabelWidth, 14);
-    ctx.strokeStyle = firstColor;
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(firstLabelX - 2, firstLabelY - 7, firstLabelWidth, 14);
-    ctx.fillStyle = firstColor;
-    ctx.fillText(firstLabel, firstLabelX + 3, firstLabelY);
 }
 
 // 分岐開始の複雑な矢印を描画（右→下）
