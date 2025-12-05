@@ -772,16 +772,30 @@ function drawPanelArrows(layerId) {
         drawConditionalBranchArrows(ctx, group.startNode, group.endNode, group.innerNodes, containerRect, scrollTop, scrollLeft, group.grayIndices, group.branchCount);
     });
 
+    // 最大分岐オフセットを計算（ループ矢印が分岐矢印と重ならないように）
+    // 分岐終了矢印のオフセット計算式: 20 + (branchIdx * 10)
+    let maxBranchOffset = 0;
+    conditionGroups.forEach(group => {
+        const maxBranchIdx = group.branchCount - 1;
+        const branchOffset = 20 + (maxBranchIdx * 10);
+        if (branchOffset > maxBranchOffset) {
+            maxBranchOffset = branchOffset;
+        }
+    });
+    // ループ矢印のオフセット = 最大分岐オフセット + マージン（20px）
+    // 分岐がない場合は従来の30pxを使用
+    const loopArrowOffset = maxBranchOffset > 0 ? maxBranchOffset + 20 : 30;
+
     // ループの矢印を描画
     const loopGroups = findLoopGroups(nodes);
     if (LOG_CONFIG.loopGroups) {
-        console.log(`🔍 [drawPanelArrows] layerId=${layerId}, ループグループ数: ${loopGroups.length}`);
+        console.log(`🔍 [drawPanelArrows] layerId=${layerId}, ループグループ数: ${loopGroups.length}, loopArrowOffset: ${loopArrowOffset}`);
     }
     loopGroups.forEach(group => {
         if (LOG_CONFIG.loopGroups) {
             console.log(`🔍 [drawPanelArrows] ループ矢印描画: ${group.startNode.textContent} → ${group.endNode.textContent}`);
         }
-        drawLoopArrows(ctx, group.startNode, group.endNode, containerRect, scrollTop, scrollLeft);
+        drawLoopArrows(ctx, group.startNode, group.endNode, containerRect, scrollTop, scrollLeft, loopArrowOffset);
     });
 
     // console.log(`[デバッグ] drawPanelArrows() 完了: ${layerId}`);
@@ -1391,7 +1405,8 @@ function findLoopGroups(nodes) {
 }
 
 // ループの矢印を描画
-function drawLoopArrows(ctx, startNode, endNode, containerRect, scrollTop = 0, scrollLeft = 0) {
+// loopOffset: 分岐矢印との競合を避けるための動的オフセット値
+function drawLoopArrows(ctx, startNode, endNode, containerRect, scrollTop = 0, scrollLeft = 0, loopOffset = 30) {
     // ★修正: style.topを直接使用（getBoundingClientRectはビューポート依存のため不正確）
     const startTop = parseInt(startNode.style.top, 10) || 0;
     const startLeft = parseInt(startNode.style.left, 10) || 90;
@@ -1401,10 +1416,10 @@ function drawLoopArrows(ctx, startNode, endNode, containerRect, scrollTop = 0, s
     const endLeft = parseInt(endNode.style.left, 10) || 90;
     const endHeight = endNode.offsetHeight || 40;
 
-    // 開始ノードの左端から左に出る
+    // 開始ノードの左端から左に出る（動的オフセットを使用）
     const startX = startLeft;
     const startY = startTop + startHeight / 2;
-    const horizontalEndX = startX - 30;
+    const horizontalEndX = startX - loopOffset;
 
     // 終了ノードの中央Y座標
     const endY = endTop + endHeight / 2;
