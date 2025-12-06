@@ -1994,7 +1994,7 @@ async function testApiConnection() {
         return true;
     } catch (error) {
         console.error('API接続失敗:', error);
-        alert('APIサーバーに接続できません。\nadapter/api-server-v2.ps1 を起動してください。');
+        await showAlertDialog('APIサーバーに接続できません。\nadapter/api-server-v2.ps1 を起動してください。', '接続エラー');
         return false;
     }
 }
@@ -2315,7 +2315,7 @@ async function updateParentPinkNode(addedNodes, deletedNodes = []) {
         console.log(`  code.json["エントリ"]["${parentPinkNodeId}-1"]:`, savedEntry);
     } catch (error) {
         console.error('[親ピンクノード更新] ❌ コード.json保存エラー:', error);
-        alert('親ピンクノードの更新に失敗しました。コンソールを確認してください。');
+        await showAlertDialog('親ピンクノードの更新に失敗しました。コンソールを確認してください。', '保存エラー');
     }
 }
 
@@ -3191,7 +3191,7 @@ function handleDrop(e) {
     );
 
     if (sameColorCollision) {
-        alert('この位置には配置できません。\n同色のノードブロックと衝突します。');
+        await showAlertDialog('この位置には配置できません。\n同色のノードブロックと衝突します。', '配置エラー');
         return false;
     }
 
@@ -3203,7 +3203,7 @@ function handleDrop(e) {
     );
 
     if (groupOrderViolation) {
-        alert('この位置には配置できません。\n同じグループ内のノードをまたぐことはできません。');
+        await showAlertDialog('この位置には配置できません。\n同じグループ内のノードをまたぐことはできません。', '配置エラー');
         return false;
     }
 
@@ -3214,7 +3214,7 @@ function handleDrop(e) {
     );
 
     if (nestingValidation.isProhibited) {
-        alert(`この位置には配置できません。\n${nestingValidation.reason}`);
+        await showAlertDialog(`この位置には配置できません。\n${nestingValidation.reason}`, '配置エラー');
         return false;
     }
 
@@ -3611,7 +3611,7 @@ async function editScript() {
 
         if (!response.ok) {
             console.error('[editScript] サーバーエラー:', result);
-            alert(`エラーが発生しました: ${result.error || 'Unknown error'}`);
+            await showAlertDialog(`エラーが発生しました: ${result.error || 'Unknown error'}`, 'サーバーエラー');
             return;
         }
 
@@ -3631,7 +3631,7 @@ async function editScript() {
 
     } catch (error) {
         console.error('[editScript] エラー:', error);
-        alert(`スクリプト編集中にエラーが発生しました: ${error.message}`);
+        await showAlertDialog(`スクリプト編集中にエラーが発生しました: ${error.message}`, 'エラー');
     }
 }
 
@@ -3642,12 +3642,12 @@ async function executeScript() {
     const script = contextMenuTarget.script || '';
 
     if (!script || script.trim() === '') {
-        alert('実行するスクリプトが設定されていません。\n「スクリプト編集」でスクリプトを設定してください。');
+        await showAlertDialog('実行するスクリプトが設定されていません。\n「スクリプト編集」でスクリプトを設定してください。', 'スクリプト未設定');
         hideContextMenu();
         return;
     }
 
-    const confirmed = confirm(`ノード「${contextMenuTarget.text}」のスクリプトを実行しますか？\n\nスクリプト内容:\n${script.substring(0, 200)}${script.length > 200 ? '...' : ''}`);
+    const confirmed = await showConfirmDialog(`ノード「${contextMenuTarget.text}」のスクリプトを実行しますか？\n\nスクリプト内容:\n${script.substring(0, 200)}${script.length > 200 ? '...' : ''}`, 'スクリプト実行確認');
     if (!confirmed) {
         hideContextMenu();
         return;
@@ -3661,13 +3661,13 @@ async function executeScript() {
         });
 
         if (result.success) {
-            alert(`スクリプト実行完了！\n\n出力:\n${result.output || '(出力なし)'}`);
+            await showAlertDialog(`スクリプト実行完了！\n\n出力:\n${result.output || '(出力なし)'}`, '実行完了');
         } else {
-            alert(`スクリプト実行失敗:\n${result.error}`);
+            await showAlertDialog(`スクリプト実行失敗:\n${result.error}`, '実行失敗');
         }
     } catch (error) {
         console.error('スクリプト実行エラー:', error);
-        alert(`スクリプト実行中にエラーが発生しました:\n${error.message}`);
+        await showAlertDialog(`スクリプト実行中にエラーが発生しました:\n${error.message}`, 'エラー');
     }
 
     hideContextMenu();
@@ -3676,7 +3676,7 @@ async function executeScript() {
 // レイヤー化（赤枠ノードをまとめて1つのピンクノードにする）
 async function layerizeNode() {
     if (!contextMenuTarget) {
-        alert('ノードが選択されていません。');
+        await showAlertDialog('ノードが選択されていません。', 'エラー');
         return;
     }
 
@@ -3692,7 +3692,7 @@ async function layerizeNode() {
     let redBorderNodes = layerNodes.filter(n => n.redBorder);
 
     if (redBorderNodes.length === 0) {
-        alert('レイヤー化するには、まず赤枠でノードを選択してください。');
+        await showAlertDialog('レイヤー化するには、まず赤枠でノードを選択してください。', '選択エラー');
         hideContextMenu();
         return;
     }
@@ -3828,7 +3828,7 @@ async function layerizeNode() {
         console.log(`  code.json["エントリ"]["${newNodeId}-1"]:`, savedEntry);
     } catch (error) {
         console.error(`[レイヤー化] ❌ コード.json保存エラー:`, error);
-        alert('ピンクノードの保存に失敗しました。コンソールを確認してください。');
+        await showAlertDialog('ピンクノードの保存に失敗しました。コンソールを確認してください。', '保存エラー');
     }
     console.log(`[レイヤー化] ========== code.json保存処理完了 ==========`);
 
@@ -3868,7 +3868,7 @@ async function deleteNode() {
         ? `「${contextMenuTarget.text}」を含む${deleteTargets.length}個のセットを削除しますか？`
         : `「${contextMenuTarget.text}」を削除しますか？`;
 
-    const confirmed = confirm(confirmMessage);
+    const confirmed = await showConfirmDialog(confirmMessage, 'ノード削除確認');
     if (!confirmed) {
         hideContextMenu();
         return;
@@ -4017,7 +4017,7 @@ async function handlePinkNodeClick(node) {
     // レイヤー上限チェック
     if (nextLayer > 6) {
         console.log(`[ピンク展開] レイヤー上限エラー（nextLayer=${nextLayer}）`);
-        alert('これ以上レイヤーを展開できません（最大レイヤー6）。');
+        await showAlertDialog('これ以上レイヤーを展開できません（最大レイヤー6）。', 'レイヤー上限');
         return;
     }
 
@@ -4050,7 +4050,7 @@ async function handlePinkNodeClick(node) {
     // scriptプロパティを解析してノードを展開
     if (!node.script || node.script.trim() === '') {
         console.warn(`[ピンク展開] scriptデータなし`);
-        alert('このスクリプト化ノードは空です。展開するノードがありません。');
+        await showAlertDialog('このスクリプト化ノードは空です。展開するノードがありません。', '空のノード');
         return;
     }
 
@@ -4244,7 +4244,7 @@ async function handlePinkNodeClickPopup(node) {
     // scriptプロパティを解析してノードを展開
     if (!node.script || node.script.trim() === '') {
         console.warn(`[ピンク展開ポップアップ] scriptデータなし`);
-        alert('このスクリプト化ノードは空です。展開するノードがありません。');
+        await showAlertDialog('このスクリプト化ノードは空です。展開するノードがありません。', '空のノード');
         return;
     }
 
@@ -4431,7 +4431,7 @@ function applyRedBorderToGroup() {
 
     // 赤枠ノードが2つ以上ある場合のみ処理
     if (redBorderIndices.length < 2) {
-        alert('赤枠ノードが2つ以上必要です。');
+        await showAlertDialog('赤枠ノードが2つ以上必要です。', '選択エラー');
         hideContextMenu();
         return;
     }
@@ -4455,7 +4455,7 @@ function applyRedBorderToGroup() {
     saveMemoryJson();
 
     console.log(`[赤枠グループ適用] ${appliedCount}個のノードに赤枠を適用しました`);
-    alert(`${appliedCount}個のノードに赤枠を適用しました。`);
+    await showAlertDialog(`${appliedCount}個のノードに赤枠を適用しました。`, '赤枠適用完了');
 
     hideContextMenu();
 }
@@ -4595,19 +4595,20 @@ async function deleteAllNodes() {
     }
 
     if (totalNodeCount === 0) {
-        alert('削除するノードがありません。');
+        await showAlertDialog('削除するノードがありません。', 'お知らせ');
         return;
     }
 
     // 確認ダイアログ（全レイヤーの合計ノード数を表示）
-    const confirmed = confirm(
+    const confirmed = await showConfirmDialog(
         `⚠️ すべてのレイヤーのノード（合計${totalNodeCount}個）とコード.jsonを削除します。\n\n` +
         `この操作は取り消せません。本当に削除しますか？\n\n` +
         `削除されるノード:\n` +
         Object.keys(layerCounts)
             .filter(layer => layerCounts[layer] > 0)
             .map(layer => `  レイヤー${layer}: ${layerCounts[layer]}個`)
-            .join('\n')
+            .join('\n'),
+        '⚠️ 全削除確認'
     );
     if (!confirmed) {
         console.log('[全削除] ユーザーがキャンセルしました');
@@ -4647,7 +4648,7 @@ async function deleteAllNodes() {
 
         if (!result.success) {
             console.error('[全削除] ノード削除API失敗:', result.error);
-            alert(`ノード削除に失敗しました: ${result.error}`);
+            await showAlertDialog(`ノード削除に失敗しました: ${result.error}`, '削除エラー');
             return;
         }
 
@@ -4671,7 +4672,7 @@ async function deleteAllNodes() {
 
         if (!codeResult.success) {
             console.error('[全削除] コード.json初期化失敗:', codeResult.error);
-            alert(`コード.json初期化に失敗しました: ${codeResult.error}`);
+            await showAlertDialog(`コード.json初期化に失敗しました: ${codeResult.error}`, '初期化エラー');
             return;
         }
 
@@ -4711,11 +4712,11 @@ async function deleteAllNodes() {
         await saveMemoryJson();
 
         console.log('[全削除] ✅ すべての処理が完了しました');
-        alert(`✅ ${totalNodeCount}個のノードとコード.jsonを削除しました。`);
+        await showAlertDialog(`${totalNodeCount}個のノードとコード.jsonを削除しました。`, '削除完了');
     } catch (error) {
         console.error('[全削除] ❌ エラー:', error);
         console.error('[全削除] スタックトレース:', error.stack);
-        alert(`削除中にエラーが発生しました: ${error.message}`);
+        await showAlertDialog(`削除中にエラーが発生しました: ${error.message}`, 'エラー');
     }
 }
 
@@ -4738,7 +4739,7 @@ function navigateLayer(direction) {
         // スクリプト展開チェック（レイヤー1以降）
         if (leftVisibleLayer >= 1) {
             if (pinkSelectionArray[leftVisibleLayer].value !== 1) {
-                alert(`レイヤー${leftVisibleLayer + 1} に進むには、\nレイヤー${leftVisibleLayer} でスクリプト化ノードを展開してください。\n\n操作手順:\n1. Shift を押しながら複数のノードをクリック（赤枠が付きます）\n2. 「レイヤー化」ボタンをクリック\n3. 作成されたスクリプト化ノード（ピンク色）をクリック\n4. 次のレイヤーに展開されます`);
+                await showAlertDialog(`レイヤー${leftVisibleLayer + 1} に進むには、\nレイヤー${leftVisibleLayer} でスクリプト化ノードを展開してください。\n\n操作手順:\n1. Shift を押しながら複数のノードをクリック（赤枠が付きます）\n2. 「レイヤー化」ボタンをクリック\n3. 作成されたスクリプト化ノード（ピンク色）をクリック\n4. 次のレイヤーに展開されます`, '操作ガイド');
                 console.log(`[❌ 右矢印] レイヤー${leftVisibleLayer} でスクリプト展開中ではないため、進めません`);
                 return;
             }
@@ -4885,12 +4886,12 @@ async function openVariableModal() {
             await loadVariables();
         } else {
             console.error('❌ [変数管理] エラー:', result.error);
-            alert(`変数管理エラー: ${result.error}`);
+            await showAlertDialog(`変数管理エラー: ${result.error}`, '変数管理エラー');
         }
 
     } catch (error) {
         console.error('❌ [変数管理] 予期しないエラー:', error);
-        alert(`変数管理中にエラーが発生しました: ${error.message}`);
+        await showAlertDialog(`変数管理中にエラーが発生しました: ${error.message}`, 'エラー');
     }
 }
 
@@ -5047,12 +5048,12 @@ async function switchFolder() {
             }
         } else {
             console.error('❌ [フォルダ切替] エラー:', result.error);
-            alert(`フォルダ切替エラー: ${result.error}`);
+            await showAlertDialog(`フォルダ切替エラー: ${result.error}`, 'フォルダ切替エラー');
         }
 
     } catch (error) {
         console.error('❌ [フォルダ切替] 予期しないエラー:', error);
-        alert(`フォルダ切替中にエラーが発生しました: ${error.message}`);
+        await showAlertDialog(`フォルダ切替中にエラーが発生しました: ${error.message}`, 'エラー');
     }
 }
 
@@ -5070,7 +5071,7 @@ async function selectFolder() {
 // ============================================
 
 async function executeCode() {
-    const confirmed = confirm('PowerShellコードを生成しますか？');
+    const confirmed = await showConfirmDialog('PowerShellコードを生成しますか？', 'コード生成確認');
     if (!confirmed) return;
 
     const startTime = performance.now();
@@ -5083,7 +5084,7 @@ async function executeCode() {
         // ノードが存在しない場合の検証
         if (currentLayerNodes.length === 0) {
             console.log('❌ [実行] ノードがありません');
-            alert('現在のレイヤーにノードがありません。ノードを追加してから実行してください。');
+            await showAlertDialog('現在のレイヤーにノードがありません。ノードを追加してから実行してください。', 'ノードなし');
             return;
         }
 
@@ -5138,7 +5139,7 @@ async function executeCode() {
             }
         } else {
             console.error(`❌ [実行] 失敗: ${result.error}`);
-            alert(`コード生成失敗: ${result.error}`);
+            await showAlertDialog(`コード生成失敗: ${result.error}`, 'コード生成失敗');
         }
     } catch (error) {
         const endTime = performance.now();
@@ -5148,7 +5149,7 @@ async function executeCode() {
         console.error('❌ [実行] スタックトレース:', error.stack);
         console.log('═══════════════════════════════════════════════');
         console.log('');
-        alert(`コード生成中にエラーが発生しました: ${error.message}`);
+        await showAlertDialog(`コード生成中にエラーが発生しました: ${error.message}`, 'エラー');
     }
 }
 
@@ -5177,7 +5178,7 @@ function openPartialExecuteDialog() {
     const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
 
     if (currentLayerNodes.length === 0) {
-        alert('現在のレイヤーにノードがありません。');
+        await showAlertDialog('現在のレイヤーにノードがありません。', 'ノードなし');
         return;
     }
 
@@ -5593,7 +5594,7 @@ function updatePartialExecuteControlsInfo() {
 // 部分実行を実行
 async function executePartialCode() {
     if (!partialExecuteMode.active) {
-        alert('部分実行モードがアクティブではありません。');
+        await showAlertDialog('部分実行モードがアクティブではありません。', 'モード未アクティブ');
         return;
     }
 
@@ -5616,7 +5617,7 @@ async function executePartialCode() {
         console.log('[部分実行] 選択されたノード:', selectedNodes.map(n => n.text));
 
         if (selectedNodes.length === 0) {
-            alert('選択された範囲にノードがありません。');
+            await showAlertDialog('選択された範囲にノードがありません。', '選択エラー');
             return;
         }
 
@@ -5674,11 +5675,11 @@ async function executePartialCode() {
             }
         } else {
             console.error(`❌ [部分実行] 失敗: ${result.error}`);
-            alert(`部分実行失敗: ${result.error}`);
+            await showAlertDialog(`部分実行失敗: ${result.error}`, '部分実行失敗');
         }
     } catch (error) {
         console.error('❌ [部分実行] エラー:', error);
-        alert(`部分実行中にエラーが発生しました: ${error.message}`);
+        await showAlertDialog(`部分実行中にエラーが発生しました: ${error.message}`, 'エラー');
     }
 }
 
@@ -5700,9 +5701,9 @@ function openGeneratedFile() {
     console.log('[コード結果] ファイルを開く機能はPowerShellダイアログ内のボタンで実行されます');
     if (window.lastGeneratedCode && window.lastGeneratedCode.path) {
         // PowerShellでファイルを開く（Windows環境）
-        alert(`ファイルを開きます: ${window.lastGeneratedCode.path}\n\n（この機能はブラウザ制限により未実装です）`);
+        showAlertDialog(`ファイルを開きます: ${window.lastGeneratedCode.path}\n\n（この機能はブラウザ制限により未実装です）`, 'ファイル操作');
     } else {
-        alert('出力ファイルのパスが見つかりません。');
+        showAlertDialog('出力ファイルのパスが見つかりません。', 'エラー');
     }
 }
 
@@ -5714,7 +5715,7 @@ async function createSnapshot() {
     console.log('[スナップショット] 作成開始');
 
     if (!currentFolder) {
-        alert('フォルダが選択されていません。\n先にフォルダを選択または作成してください。');
+        await showAlertDialog('フォルダが選択されていません。\n先にフォルダを選択または作成してください。', 'フォルダ未選択');
         return;
     }
 
@@ -5762,11 +5763,11 @@ async function createSnapshot() {
 
         console.log('[スナップショット] ✅ 保存完了');
 
-        alert(`📸 スナップショット作成完了\n\n作成日時: ${timestampJP}\nフォルダ: ${currentFolder}\n\n「↩️ 復元」ボタンでこの状態に戻すことができます。`);
+        await showAlertDialog(`📸 スナップショット作成完了\n\n作成日時: ${timestampJP}\nフォルダ: ${currentFolder}\n\n「↩️ 復元」ボタンでこの状態に戻すことができます。`, 'スナップショット完了');
 
     } catch (error) {
         console.error('[スナップショット] ❌ エラー:', error);
-        alert(`スナップショット作成中にエラーが発生しました:\n${error.message}`);
+        await showAlertDialog(`スナップショット作成中にエラーが発生しました:\n${error.message}`, 'エラー');
     }
 }
 
@@ -5774,7 +5775,7 @@ async function restoreSnapshot() {
     console.log('[スナップショット復元] 開始');
 
     if (!currentFolder) {
-        alert('フォルダが選択されていません。\n先にフォルダを選択してください。');
+        await showAlertDialog('フォルダが選択されていません。\n先にフォルダを選択してください。', 'フォルダ未選択');
         return;
     }
 
@@ -5785,7 +5786,7 @@ async function restoreSnapshot() {
         // スナップショット存在確認
         const snapshotData = localStorage.getItem(storageKey);
         if (!snapshotData) {
-            alert('スナップショットが存在しません。\n\n先に「📸 スナップショット」ボタンで現在の状態を保存してください。');
+            await showAlertDialog('スナップショットが存在しません。\n\n先に「📸 スナップショット」ボタンで現在の状態を保存してください。', 'スナップショット未保存');
             console.log('[スナップショット復元] スナップショット未保存');
             return;
         }
@@ -5798,11 +5799,12 @@ async function restoreSnapshot() {
         console.log(`[スナップショット復元] スナップショット作成日時: ${snapshotDate}`);
 
         // 確認ダイアログ（PowerShell版と同じ）
-        const confirmed = confirm(
+        const confirmed = await showConfirmDialog(
             `スナップショットの状態に復元します。\n\n` +
             `スナップショット作成日時: ${snapshotDate}\n` +
             `フォルダ: ${currentFolder}\n\n` +
-            `現在の変更は失われますがよろしいですか？`
+            `現在の変更は失われますがよろしいですか？`,
+            'スナップショット復元確認'
         );
 
         if (!confirmed) {
@@ -5833,11 +5835,11 @@ async function restoreSnapshot() {
 
         console.log('[スナップショット復元] ✅ 復元完了');
 
-        alert(`✅ 復元完了\n\nスナップショットから復元しました。\n\n復元日時: ${snapshotDate}`);
+        await showAlertDialog(`復元完了\n\nスナップショットから復元しました。\n\n復元日時: ${snapshotDate}`, '復元完了');
 
     } catch (error) {
         console.error('[スナップショット復元] ❌ エラー:', error);
-        alert(`スナップショット復元中にエラーが発生しました:\n${error.message}`);
+        await showAlertDialog(`スナップショット復元中にエラーが発生しました:\n${error.message}`, 'エラー');
     }
 }
 
@@ -6275,7 +6277,7 @@ async function openNodeSettings(node) {
 
     if (!actualNode) {
         console.error('❌ [ノード設定] ノードIDが見つかりません:', node.id);
-        alert('ノード情報が見つかりませんでした。');
+        await showAlertDialog('ノード情報が見つかりませんでした。', 'ノード未検出');
         return;
     }
 
@@ -6330,7 +6332,7 @@ async function openNodeSettings(node) {
 
         if (!response.ok) {
             console.error('❌ [ノード設定] サーバーエラー:', result);
-            alert(`エラーが発生しました: ${result.error || 'Unknown error'}`);
+            await showAlertDialog(`エラーが発生しました: ${result.error || 'Unknown error'}`, 'サーバーエラー');
             return;
         }
 
@@ -6370,7 +6372,7 @@ async function openNodeSettings(node) {
 
     } catch (error) {
         console.error('❌ [ノード設定] エラー:', error);
-        alert(`ノード設定中にエラーが発生しました: ${error.message}`);
+        await showAlertDialog(`ノード設定中にエラーが発生しました: ${error.message}`, 'エラー');
     }
 }
 
@@ -6828,7 +6830,7 @@ function setupEventListeners() {
         if (e.key === 's' && e.ctrlKey && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             saveMemoryJson();
-            alert('💾 memory.json を保存しました');
+            showAlertDialog('memory.json を保存しました', '保存完了');
             return;
         }
 
@@ -6856,14 +6858,14 @@ function setupEventListeners() {
         // Ctrl+Z: Undo（将来機能）
         if (e.key === 'z' && e.ctrlKey && !e.shiftKey && !e.altKey) {
             e.preventDefault();
-            alert('⚠️ Undo機能は将来実装予定です');
+            showAlertDialog('Undo機能は将来実装予定です', '未実装');
             return;
         }
 
         // Ctrl+Y: Redo（将来機能）
         if (e.key === 'y' && e.ctrlKey && !e.shiftKey && !e.altKey) {
             e.preventDefault();
-            alert('⚠️ Redo機能は将来実装予定です');
+            showAlertDialog('Redo機能は将来実装予定です', '未実装');
             return;
         }
     });
@@ -6904,7 +6906,7 @@ function setupDialogEventListeners() {
 
             if (!code || code.trim() === '') {
                 console.warn('[条件分岐ダイアログ] 条件式が空です');
-                alert('条件式が設定されていません。');
+                showAlertDialog('条件式が設定されていません。', '入力エラー');
                 return;
             }
 
@@ -6964,7 +6966,7 @@ function setupDialogEventListeners() {
 
             if (!code || code.trim() === '') {
                 console.warn('[ループダイアログ] ループ構文が空です');
-                alert('ループ構文が設定されていません。');
+                showAlertDialog('ループ構文が設定されていません。', '入力エラー');
                 return;
             }
 
@@ -7450,7 +7452,7 @@ function addConditionRow() {
     if (deleteBtn) {
         deleteBtn.addEventListener('click', () => {
             if (conditionControls.length <= 1) {
-                alert('最低一つの条件が必要です。');
+                showAlertDialog('最低一つの条件が必要です。', '削除不可');
                 return;
             }
             row.remove();
@@ -8835,7 +8837,7 @@ function setSelectedNode(nodeId, layerId) {
 // トースト通知を表示（簡易実装）
 function showToast(message, type = 'info') {
     console.log(`[トースト ${type}] ${message}`);
-    alert(message); // 簡易実装：実際のUIでは適切な通知UIを使用
+    showAlertDialog(message, 'お知らせ'); // カスタムモーダルダイアログを使用
 }
 
 // ============================================
@@ -8978,6 +8980,324 @@ function showMessage(message, type = 'info') {
         }, 300);
     }, 3000);
 }
+
+// ============================================================================
+// カスタムモーダルダイアログ（ブラウザネイティブ alert/confirm の代替）
+// ============================================================================
+
+/**
+ * カスタムアラートダイアログを表示
+ * @param {string} message - 表示するメッセージ
+ * @param {string} title - ダイアログのタイトル（省略可）
+ * @returns {Promise<void>} ユーザーがOKを押すと解決
+ */
+function showAlertDialog(message, title = 'お知らせ') {
+    return new Promise((resolve) => {
+        // 既存のダイアログを削除
+        const existingDialog = document.querySelector('.custom-dialog-overlay');
+        if (existingDialog) {
+            existingDialog.remove();
+        }
+
+        // オーバーレイを作成
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-dialog-overlay';
+        overlay.style.cssText = `
+            display: flex;
+            position: fixed;
+            z-index: 99999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        `;
+
+        // ダイアログコンテナを作成
+        const dialog = document.createElement('div');
+        dialog.className = 'custom-dialog';
+        dialog.style.cssText = `
+            background: #e0e5ec;
+            padding: 24px;
+            border-radius: 20px;
+            width: 400px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow:
+                12px 12px 24px rgba(163, 177, 198, 0.6),
+                -12px -12px 24px rgba(255, 255, 255, 0.5);
+            animation: dialogFadeIn 0.2s ease-out;
+        `;
+
+        // タイトル
+        const titleEl = document.createElement('div');
+        titleEl.style.cssText = `
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+        `;
+        titleEl.textContent = title;
+
+        // メッセージ
+        const messageEl = document.createElement('div');
+        messageEl.style.cssText = `
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        `;
+        messageEl.textContent = message;
+
+        // ボタンコンテナ
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        `;
+
+        // OKボタン
+        const okButton = document.createElement('button');
+        okButton.textContent = 'OK';
+        okButton.style.cssText = `
+            padding: 10px 32px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow:
+                4px 4px 8px rgba(163, 177, 198, 0.4),
+                -4px -4px 8px rgba(255, 255, 255, 0.4);
+        `;
+        okButton.onmouseenter = () => {
+            okButton.style.transform = 'scale(1.05)';
+            okButton.style.boxShadow = '0 0 15px rgba(99, 102, 241, 0.5)';
+        };
+        okButton.onmouseleave = () => {
+            okButton.style.transform = 'scale(1)';
+            okButton.style.boxShadow = '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.4)';
+        };
+        okButton.onclick = () => {
+            overlay.remove();
+            resolve();
+        };
+
+        // 組み立て
+        buttonContainer.appendChild(okButton);
+        dialog.appendChild(titleEl);
+        dialog.appendChild(messageEl);
+        dialog.appendChild(buttonContainer);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        // フォーカス
+        okButton.focus();
+
+        // Enterキーで閉じる
+        overlay.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === 'Escape') {
+                overlay.remove();
+                resolve();
+            }
+        });
+    });
+}
+
+/**
+ * カスタム確認ダイアログを表示
+ * @param {string} message - 表示するメッセージ
+ * @param {string} title - ダイアログのタイトル（省略可）
+ * @returns {Promise<boolean>} ユーザーがOKを押すとtrue、キャンセルでfalse
+ */
+function showConfirmDialog(message, title = '確認') {
+    return new Promise((resolve) => {
+        // 既存のダイアログを削除
+        const existingDialog = document.querySelector('.custom-dialog-overlay');
+        if (existingDialog) {
+            existingDialog.remove();
+        }
+
+        // オーバーレイを作成
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-dialog-overlay';
+        overlay.style.cssText = `
+            display: flex;
+            position: fixed;
+            z-index: 99999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        `;
+
+        // ダイアログコンテナを作成
+        const dialog = document.createElement('div');
+        dialog.className = 'custom-dialog';
+        dialog.style.cssText = `
+            background: #e0e5ec;
+            padding: 24px;
+            border-radius: 20px;
+            width: 450px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow:
+                12px 12px 24px rgba(163, 177, 198, 0.6),
+                -12px -12px 24px rgba(255, 255, 255, 0.5);
+            animation: dialogFadeIn 0.2s ease-out;
+        `;
+
+        // タイトル
+        const titleEl = document.createElement('div');
+        titleEl.style.cssText = `
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(236, 72, 153, 0.3);
+        `;
+        titleEl.textContent = title;
+
+        // メッセージ
+        const messageEl = document.createElement('div');
+        messageEl.style.cssText = `
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        `;
+        messageEl.textContent = message;
+
+        // ボタンコンテナ
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        `;
+
+        // キャンセルボタン
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'キャンセル';
+        cancelButton.style.cssText = `
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            background: #e0e5ec;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow:
+                4px 4px 8px rgba(163, 177, 198, 0.4),
+                -4px -4px 8px rgba(255, 255, 255, 0.4);
+        `;
+        cancelButton.onmouseenter = () => {
+            cancelButton.style.transform = 'scale(1.05)';
+            cancelButton.style.background = '#d0d5dc';
+        };
+        cancelButton.onmouseleave = () => {
+            cancelButton.style.transform = 'scale(1)';
+            cancelButton.style.background = '#e0e5ec';
+        };
+        cancelButton.onclick = () => {
+            overlay.remove();
+            resolve(false);
+        };
+
+        // OKボタン
+        const okButton = document.createElement('button');
+        okButton.textContent = 'OK';
+        okButton.style.cssText = `
+            padding: 10px 32px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #ec4899, #f472b6);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow:
+                4px 4px 8px rgba(163, 177, 198, 0.4),
+                -4px -4px 8px rgba(255, 255, 255, 0.4);
+        `;
+        okButton.onmouseenter = () => {
+            okButton.style.transform = 'scale(1.05)';
+            okButton.style.boxShadow = '0 0 15px rgba(236, 72, 153, 0.5)';
+        };
+        okButton.onmouseleave = () => {
+            okButton.style.transform = 'scale(1)';
+            okButton.style.boxShadow = '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.4)';
+        };
+        okButton.onclick = () => {
+            overlay.remove();
+            resolve(true);
+        };
+
+        // 組み立て
+        buttonContainer.appendChild(cancelButton);
+        buttonContainer.appendChild(okButton);
+        dialog.appendChild(titleEl);
+        dialog.appendChild(messageEl);
+        dialog.appendChild(buttonContainer);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        // OKボタンにフォーカス
+        okButton.focus();
+
+        // キーボードイベント
+        overlay.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                overlay.remove();
+                resolve(true);
+            } else if (e.key === 'Escape') {
+                overlay.remove();
+                resolve(false);
+            }
+        });
+    });
+}
+
+// CSSアニメーション追加
+(function addDialogStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes dialogFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+})();
 
 /**
  * Undo/Redoボタンの状態を更新
