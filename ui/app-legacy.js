@@ -1381,10 +1381,12 @@ function findLoopGroups(nodes) {
             console.log(`🔍 [findLoopGroups] GroupID=${groupId}, ノード数=${groupNodes.length}`);
         }
         if (groupNodes.length === 2) {
+            // ★修正: getBoundingClientRect()はdisplay:noneから表示切替直後に正しい値を返さないため
+            // style.topを使用（drawLoopArrowsと同じ方式）
             const sorted = groupNodes.sort((a, b) => {
-                const aRect = a.getBoundingClientRect();
-                const bRect = b.getBoundingClientRect();
-                return aRect.top - bRect.top;
+                const aTop = parseInt(a.style.top, 10) || 0;
+                const bTop = parseInt(b.style.top, 10) || 0;
+                return aTop - bTop;
             });
 
             if (LOG_CONFIG.loopGroups) {
