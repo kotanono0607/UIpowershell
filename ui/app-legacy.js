@@ -3120,7 +3120,7 @@ function handleDragOver(e) {
     return false;
 }
 
-function handleDrop(e) {
+async function handleDrop(e) {
     if (e.stopPropagation) {
         e.stopPropagation();
     }
@@ -4413,7 +4413,7 @@ async function handlePinkNodeClickPopup(node) {
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
-function applyRedBorderToGroup() {
+async function applyRedBorderToGroup() {
     if (!contextMenuTarget) return;
 
     const layerNodes = layerStructure[leftVisibleLayer].nodes;
@@ -4724,7 +4724,7 @@ async function deleteAllNodes() {
 // レイヤーナビゲーション
 // ============================================
 
-function navigateLayer(direction) {
+async function navigateLayer(direction) {
     console.log(`[レイヤー移動] ⬅️➡️ navigateLayer("${direction}") - 現在leftVisibleLayer=${leftVisibleLayer}`);
 
     // ドリルダウンパネルがアクティブな場合はクリア
@@ -5167,7 +5167,7 @@ let partialExecuteMode = {
 };
 
 // 部分実行モードを開始/終了
-function openPartialExecuteDialog() {
+async function openPartialExecuteDialog() {
     if (partialExecuteMode.active) {
         // すでにアクティブなら終了
         closePartialExecuteMode();
