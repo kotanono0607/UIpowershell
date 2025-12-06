@@ -40,6 +40,50 @@ function Get-NodeTypeFromColor {
     }
 }
 
+function Get-ScriptNodeInfo {
+    <#
+    .SYNOPSIS
+    スクリプトノード内の子ノード情報を解析してコメント文字列を生成
+    #>
+    param([string]$ScriptContent)
+
+    if ([string]::IsNullOrWhiteSpace($ScriptContent)) {
+        return ""
+    }
+
+    # ノードリスト形式かチェック（"ID;色;テキスト;" パターン）
+    $isNodeListFormat = ($ScriptContent -match "^AAAA") -or ($ScriptContent -match "^[\w\-]+;[\w]+;[^;]*;")
+
+    if (-not $isNodeListFormat) {
+        return ""
+    }
+
+    # AAAA行を除去し、"_"を改行に変換
+    $content = $ScriptContent -replace "^AAAA\n?", "" -replace "_", "`n"
+    $lines = $content -split "`n" | Where-Object { $_ -match ";" }
+
+    if ($lines.Count -eq 0) {
+        return ""
+    }
+
+    $comment = "# ┌─ 内包ノード ─────────────────────────`r`n"
+
+    foreach ($line in $lines) {
+        $parts = $line -split ";"
+        if ($parts.Count -ge 3) {
+            $nodeId = $parts[0]
+            $nodeColor = $parts[1]
+            $nodeText = $parts[2]
+            $nodeType = Get-NodeTypeFromColor -Color $nodeColor
+            $comment += "# │ [$nodeType] $nodeText (ID: $nodeId)`r`n"
+        }
+    }
+
+    $comment += "# └──────────────────────────────────────`r`n"
+
+    return $comment
+}
+
 function New-NodeComment {
     <#
     .SYNOPSIS
@@ -49,20 +93,33 @@ function New-NodeComment {
         [string]$NodeType,
         [string]$NodeText,
         [string]$NodeId,
-        [string]$GroupId = $null
+        [string]$GroupId = $null,
+        [int]$Layer = 0,
+        [string]$ScriptContent = $null
     )
 
     $separator = "# " + ("─" * 40)
     $comment = "$separator`r`n"
     $comment += "# [$NodeType] $NodeText`r`n"
 
-    if ($GroupId -and $GroupId -ne "") {
-        $comment += "# ノードID: $NodeId, GroupID: $GroupId`r`n"
-    } else {
-        $comment += "# ノードID: $NodeId`r`n"
+    # ノードID、レイヤー、GroupIDの情報を組み立て
+    $infoLine = "# ノードID: $NodeId"
+    if ($Layer -gt 0) {
+        $infoLine += ", レイヤー: $Layer"
     }
-
+    if ($GroupId -and $GroupId -ne "") {
+        $infoLine += ", GroupID: $GroupId"
+    }
+    $comment += "$infoLine`r`n"
     $comment += "$separator`r`n"
+
+    # スクリプトノードの場合、内包ノード情報を追加
+    if ($NodeType -eq "スクリプト" -and $ScriptContent) {
+        $scriptNodeInfo = Get-ScriptNodeInfo -ScriptContent $ScriptContent
+        if ($scriptNodeInfo) {
+            $comment += $scriptNodeInfo
+        }
+    }
 
     return $comment
 }
@@ -234,7 +291,9 @@ function 実行イベント_v2 {
                 # コメント生成（Pinkノード用）
                 $nodeType = Get-NodeTypeFromColor -Color $colorName
                 $groupIdValue = if ($button.groupId) { $button.groupId } else { "" }
-                $nodeComment = New-NodeComment -NodeType $nodeType -NodeText $buttonText -NodeId $buttonName -GroupId $groupIdValue
+                $layerValue = if ($button.layer) { [int]$button.layer } else { 0 }
+                $scriptContentValue = if ($button.script) { $button.script } else { "" }
+                $nodeComment = New-NodeComment -NodeType $nodeType -NodeText $buttonText -NodeId $buttonName -GroupId $groupIdValue -Layer $layerValue -ScriptContent $scriptContentValue
                 $output += "$nodeComment$取得したエントリ`r`n`r`n"
             } elseif ($取得したエントリ -ne $null -and $取得したエントリ -ne "") {
                 # エントリの内容をコンソールに出力（デバッグモードのみ）
@@ -260,7 +319,8 @@ function 実行イベント_v2 {
                 # コメント生成（通常ノード用）
                 $nodeType = Get-NodeTypeFromColor -Color $colorName
                 $groupIdValue = if ($button.groupId) { $button.groupId } else { "" }
-                $nodeComment = New-NodeComment -NodeType $nodeType -NodeText $buttonText -NodeId $buttonName -GroupId $groupIdValue
+                $layerValue = if ($button.layer) { [int]$button.layer } else { 0 }
+                $nodeComment = New-NodeComment -NodeType $nodeType -NodeText $buttonText -NodeId $buttonName -GroupId $groupIdValue -Layer $layerValue
                 $output += "$nodeComment$取得したエントリ`r`n`r`n"
                 if ($DebugMode) {
                     Write-Host "[出力追加] 追加後のoutput長: $($output.Length) 文字" -ForegroundColor Cyan
