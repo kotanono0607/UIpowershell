@@ -17,6 +17,57 @@
 Add-Type -AssemblyName System.Windows.Forms
 
 # ============================================
+# コメント生成用ヘルパー関数
+# ============================================
+
+function Get-NodeTypeFromColor {
+    <#
+    .SYNOPSIS
+    ノードの色からノードタイプを判定
+    #>
+    param([string]$Color)
+
+    switch ($Color) {
+        "White"        { return "順次処理" }
+        "LemonChiffon" { return "ループ" }
+        "SpringGreen"  { return "条件分岐" }
+        "Green"        { return "条件分岐" }
+        "Salmon"       { return "処理" }
+        "Red"          { return "処理" }
+        "Pink"         { return "スクリプト" }
+        "Gray"         { return "条件分岐" }
+        default        { return "処理" }
+    }
+}
+
+function New-NodeComment {
+    <#
+    .SYNOPSIS
+    ノード情報からコメントブロックを生成
+    #>
+    param(
+        [string]$NodeType,
+        [string]$NodeText,
+        [string]$NodeId,
+        [string]$GroupId = $null
+    )
+
+    $separator = "# " + ("─" * 40)
+    $comment = "$separator`r`n"
+    $comment += "# [$NodeType] $NodeText`r`n"
+
+    if ($GroupId -and $GroupId -ne "") {
+        $comment += "# ノードID: $NodeId, GroupID: $GroupId`r`n"
+    } else {
+        $comment += "# ノードID: $NodeId`r`n"
+    }
+
+    $comment += "$separator`r`n"
+
+    return $comment
+}
+
+# ============================================
 # 新しい関数（UI非依存版 - HTML/JS対応）
 # ============================================
 
@@ -179,7 +230,12 @@ function 実行イベント_v2 {
 
                 # 改行コードの正規化
                 $取得したエントリ = $取得したエントリ -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
-                $output += "$取得したエントリ`r`n`r`n"
+
+                # コメント生成（Pinkノード用）
+                $nodeType = Get-NodeTypeFromColor -Color $colorName
+                $groupIdValue = if ($button.groupId) { $button.groupId } else { "" }
+                $nodeComment = New-NodeComment -NodeType $nodeType -NodeText $buttonText -NodeId $buttonName -GroupId $groupIdValue
+                $output += "$nodeComment$取得したエントリ`r`n`r`n"
             } elseif ($取得したエントリ -ne $null -and $取得したエントリ -ne "") {
                 # エントリの内容をコンソールに出力（デバッグモードのみ）
                 if ($DebugMode) {
@@ -200,7 +256,12 @@ function 実行イベント_v2 {
                 }
                 # 改行コードの正規化: LF → CRLF（既にCRLFの場合は保持）
                 $取得したエントリ = $取得したエントリ -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
-                $output += "$取得したエントリ`r`n`r`n"
+
+                # コメント生成（通常ノード用）
+                $nodeType = Get-NodeTypeFromColor -Color $colorName
+                $groupIdValue = if ($button.groupId) { $button.groupId } else { "" }
+                $nodeComment = New-NodeComment -NodeType $nodeType -NodeText $buttonText -NodeId $buttonName -GroupId $groupIdValue
+                $output += "$nodeComment$取得したエントリ`r`n`r`n"
                 if ($DebugMode) {
                     Write-Host "[出力追加] 追加後のoutput長: $($output.Length) 文字" -ForegroundColor Cyan
                 }
