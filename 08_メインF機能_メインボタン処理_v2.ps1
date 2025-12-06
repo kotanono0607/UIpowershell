@@ -283,13 +283,13 @@ function 実行イベント_v2 {
                 # 改行コードの正規化
                 $取得したエントリ = $取得したエントリ -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
 
-                # コメント生成（Pinkノード用）
-                $nodeType = Get-NodeTypeFromColor -Color $colorName
+                # コメント生成（Pinkノード用 - 深さ1の開始/終了マーカー付き）
                 $groupIdValue = if ($button.groupId) { $button.groupId } else { "" }
                 $layerValue = if ($button.layer) { [int]$button.layer } else { 0 }
-                $scriptContentValue = if ($button.script) { $button.script } else { "" }
-                $nodeComment = New-NodeComment -NodeType $nodeType -NodeText $buttonText -NodeId $buttonName -GroupId $groupIdValue -Layer $layerValue -ScriptContent $scriptContentValue
-                $output += "$nodeComment$取得したエントリ`r`n`r`n"
+                $separator = "# " + ("═" * 40)
+                $headerComment = "$separator`r`n# [スクリプト開始 深さ:1] $buttonText`r`n# ノードID: $buttonName, レイヤー: $layerValue`r`n$separator`r`n"
+                $footerComment = "$separator`r`n# [スクリプト終了 深さ:1] $buttonName`r`n$separator`r`n"
+                $output += "$headerComment$取得したエントリ`r`n$footerComment`r`n"
             } elseif ($取得したエントリ -ne $null -and $取得したエントリ -ne "") {
                 # エントリの内容をコンソールに出力（デバッグモードのみ）
                 if ($DebugMode) {
@@ -297,11 +297,13 @@ function 実行イベント_v2 {
                 }
 
                 # エントリが "AAAA" で始まる場合は展開（Pinkノード）
+                $isPinkExpanded = $false
                 if ($取得したエントリ -match "^AAAA") {
                     Write-Host "[Pinkノード展開] ★展開開始: $取得したエントリ" -ForegroundColor Magenta
                     $取得したエントリ = ノードリストを展開 -ノードリスト文字列 $取得したエントリ
                     Write-Host "[Pinkノード展開] ★展開後: $($取得したエントリ.Length) 文字" -ForegroundColor Magenta
                     Write-Host "[Pinkノード展開] ★内容: $取得したエントリ" -ForegroundColor Magenta
+                    $isPinkExpanded = $true
                 }
 
                 # エントリの内容のみを$outputに追加（空行を追加）
@@ -311,12 +313,22 @@ function 実行イベント_v2 {
                 # 改行コードの正規化: LF → CRLF（既にCRLFの場合は保持）
                 $取得したエントリ = $取得したエントリ -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
 
-                # コメント生成（通常ノード用）
-                $nodeType = Get-NodeTypeFromColor -Color $colorName
+                # コメント生成
                 $groupIdValue = if ($button.groupId) { $button.groupId } else { "" }
                 $layerValue = if ($button.layer) { [int]$button.layer } else { 0 }
-                $nodeComment = New-NodeComment -NodeType $nodeType -NodeText $buttonText -NodeId $buttonName -GroupId $groupIdValue -Layer $layerValue
-                $output += "$nodeComment$取得したエントリ`r`n`r`n"
+
+                if ($isPinkExpanded -or $colorName -eq "Pink") {
+                    # Pinkノード（スクリプト）の場合は深さ1の開始/終了マーカー付き
+                    $separator = "# " + ("═" * 40)
+                    $headerComment = "$separator`r`n# [スクリプト開始 深さ:1] $buttonText`r`n# ノードID: $buttonName, レイヤー: $layerValue`r`n$separator`r`n"
+                    $footerComment = "$separator`r`n# [スクリプト終了 深さ:1] $buttonName`r`n$separator`r`n"
+                    $output += "$headerComment$取得したエントリ`r`n$footerComment`r`n"
+                } else {
+                    # 通常ノードの場合
+                    $nodeType = Get-NodeTypeFromColor -Color $colorName
+                    $nodeComment = New-NodeComment -NodeType $nodeType -NodeText $buttonText -NodeId $buttonName -GroupId $groupIdValue -Layer $layerValue
+                    $output += "$nodeComment$取得したエントリ`r`n`r`n"
+                }
                 if ($DebugMode) {
                     Write-Host "[出力追加] 追加後のoutput長: $($output.Length) 文字" -ForegroundColor Cyan
                 }
@@ -833,14 +845,17 @@ function ノードリストを展開 {
                 # 内包ノードのコメントを生成（各コードの前にノード情報を表示）
                 $innerNodeType = Get-NodeTypeFromColor -Color $nodeColor
                 if ($nodeColor -eq "Pink") {
-                    # ネストされたスクリプトノードの場合はセパレーター付きヘッダー
+                    # ネストされたスクリプトノードの場合はセパレーター付きヘッダー + 深さ表示 + 終了マーカー
+                    $depth = $再帰深度 + 1
                     $separator = "# " + ("─" * 40)
-                    $innerNodeComment = "$separator`r`n# [$innerNodeType] $nodeText`r`n# ノードID: $nodeId`r`n$separator`r`n"
+                    $headerComment = "$separator`r`n# [スクリプト開始 深さ:$depth] $nodeText`r`n# ノードID: $nodeId`r`n$separator`r`n"
+                    $footerComment = "$separator`r`n# [スクリプト終了 深さ:$depth] $nodeId`r`n$separator`r`n"
+                    $output += "$headerComment$entry`r`n$footerComment"
                 } else {
                     # 通常ノードの場合はシンプルなコメント
                     $innerNodeComment = "# [$innerNodeType] $nodeText (ID: $nodeId)`r`n"
+                    $output += "$innerNodeComment$entry`r`n"
                 }
-                $output += "$innerNodeComment$entry`r`n"
             } else {
                 # エントリが見つからない場合、Pinkノードなら警告を出すがスキップ
                 if ($nodeColor -eq "Pink") {
