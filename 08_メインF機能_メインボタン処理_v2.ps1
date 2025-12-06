@@ -113,13 +113,8 @@ function New-NodeComment {
     $comment += "$infoLine`r`n"
     $comment += "$separator`r`n"
 
-    # スクリプトノードの場合、内包ノード情報を追加
-    if ($NodeType -eq "スクリプト" -and $ScriptContent) {
-        $scriptNodeInfo = Get-ScriptNodeInfo -ScriptContent $ScriptContent
-        if ($scriptNodeInfo) {
-            $comment += $scriptNodeInfo
-        }
-    }
+    # 内包ノード情報は各コードの前に表示されるため、ヘッダーでは表示しない
+    # （ノードリストを展開関数で各コード前にコメントを追加済み）
 
     return $comment
 }
@@ -834,7 +829,11 @@ function ノードリストを展開 {
 
                 # 改行コードの正規化: LF → CRLF（既にCRLFの場合は保持）
                 $entry = $entry -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
-                $output += "$entry`r`n"
+
+                # 内包ノードのコメントを生成（各コードの前にノード情報を表示）
+                $innerNodeType = Get-NodeTypeFromColor -Color $nodeColor
+                $innerNodeComment = "# [$innerNodeType] $nodeText (ID: $nodeId)`r`n"
+                $output += "$innerNodeComment$entry`r`n"
             } else {
                 # エントリが見つからない場合、Pinkノードなら警告を出すがスキップ
                 if ($nodeColor -eq "Pink") {
