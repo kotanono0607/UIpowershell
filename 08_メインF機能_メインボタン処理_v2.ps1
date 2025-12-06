@@ -832,7 +832,14 @@ function ノードリストを展開 {
 
                 # 内包ノードのコメントを生成（各コードの前にノード情報を表示）
                 $innerNodeType = Get-NodeTypeFromColor -Color $nodeColor
-                $innerNodeComment = "# [$innerNodeType] $nodeText (ID: $nodeId)`r`n"
+                if ($nodeColor -eq "Pink") {
+                    # ネストされたスクリプトノードの場合はセパレーター付きヘッダー
+                    $separator = "# " + ("─" * 40)
+                    $innerNodeComment = "$separator`r`n# [$innerNodeType] $nodeText`r`n# ノードID: $nodeId`r`n$separator`r`n"
+                } else {
+                    # 通常ノードの場合はシンプルなコメント
+                    $innerNodeComment = "# [$innerNodeType] $nodeText (ID: $nodeId)`r`n"
+                }
                 $output += "$innerNodeComment$entry`r`n"
             } else {
                 # エントリが見つからない場合、Pinkノードなら警告を出すがスキップ
