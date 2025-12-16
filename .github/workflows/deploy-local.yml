@@ -17,7 +17,7 @@ jobs:
 
       - name: Pull latest changes and Notify
         run: |
-          # プロジェクトのパス設定
+          # プロジェクトのパス
           $projectPath = "C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell"
 
           if (Test-Path $projectPath) {
@@ -27,27 +27,28 @@ jobs:
             git pull origin main
             Write-Host "Update Complete!"
 
-            # 2. 通知メッセージの準備（改行なしの1行にする）
-            $message = "自動更新完了！PC内のコードが最新版になりました。"
+            # 2. 通知処理 (Start-Processを使って安全に実行)
+            # メッセージを変数に入れます（念のためシンプルな英語混じりにします）
+            $msgBody = "Auto Update Completed"
 
-            # 3. 画面通知 (msgコマンド)
-            # cmd /c を経由させて安定性を高めます
-            cmd /c "msg * $message"
+            # msg.exe があるか確認してから実行
+            if (Get-Command "msg.exe" -ErrorAction SilentlyContinue) {
+                # 誰でも読める書き方で実行
+                Start-Process "msg.exe" -ArgumentList "* $msgBody" -NoNewWindow -Wait
+            }
 
-            # 4. 予備の通知 (音とファイル作成)
-            # msgコマンドが失敗したり、気付かない場合のために必ず実行します
+            # 3. 予備の通知 (音とファイルログ)
             [System.Console]::Beep(2000, 500)
             
             $desktop = [Environment]::GetFolderPath("Desktop")
             $logFile = "$desktop\AutoUpdate_Log.txt"
             $date = Get-Date -Format "yyyy/MM/dd HH:mm:ss"
             
-            # 追記モードでログを残します
-            Add-Content -Path $logFile -Value "[$date] $message" -Encoding UTF8
+            Add-Content -Path $logFile -Value "[$date] $msgBody" -Encoding UTF8
             
-            Write-Host "Notification sent."
+            Write-Host "Notification process finished."
 
           } else {
-            Write-Error "Error: Target folder not found: $projectPath"
+            Write-Error "Error: Target folder not found."
             exit 1
           }
