@@ -1,0 +1,34 @@
+name: Deploy to Local PC
+on:
+  push:
+    branches: [ main ]  # mainブランチが更新されたら動く
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        # これはランナーの一時作業場にコードを持ってくる手順です（必須）
+
+      - name: Pull latest changes to Project Folder
+        run: |
+          # あなたの指定したプロジェクトフォルダのパス
+          $projectPath = "C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell"
+
+          Write-Host "Checking path: $projectPath"
+
+          # フォルダが存在するか確認
+          if (Test-Path $projectPath) {
+            Write-Host "Target folder found. Navigating to: $projectPath"
+            Set-Location $projectPath
+            
+            # 最新の変更を取り込む
+            # 注意: ここでエラーが出る場合、フォルダがGit管理されていないか、認証情報が保存されていません
+            git pull origin main
+            
+            Write-Host "Update Complete! Local folder is now up to date."
+          } else {
+            Write-Error "Error: 指定されたフォルダが見つかりません。パスが正しいか、フォルダが存在するか確認してください。"
+            exit 1
+          }
