@@ -14,15 +14,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # <---【重要】これを追加！すべての履歴とブランチを取得します
 
       - name: Create or Update PR & Auto-Merge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Gitの設定（念のため）
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           # 1. PRを作成してみる（既にある場合はエラーを無視して次へ）
-          # "claude/..." ブランチから "main" へのPRを作ります
           gh pr create --base main --head "${{ github.ref_name }}" --title "Auto Merge: ${{ github.ref_name }}" --body "Automated PR by GitHub Actions" || true
           
           # 2. そのPRを「自動マージ」設定にする
-          # (--delete-branch を付けるとマージ後にブランチを自動削除して掃除します)
           gh pr merge "${{ github.ref_name }}" --auto --merge --delete-branch
