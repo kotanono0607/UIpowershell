@@ -1,10 +1,7 @@
 name: Deploy to Local PC
 on:
-  # 1. 人間が直接 push したとき
   push:
     branches: [ main ]
-  
-  # 2. 自動マージロボット（Auto PR and Merge）が仕事を終えたとき
   workflow_run:
     workflows: ["Auto PR and Merge"]
     types:
@@ -12,29 +9,36 @@ on:
 
 jobs:
   deploy:
-    # マージが成功したとき、または人間がPushしたときだけ実行
     if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Pull latest changes to Project Folder
+      - name: Pull latest changes and Notify
         run: |
-          # あなたの指定したプロジェクトフォルダのパス
+          # 1. 更新処理
           $projectPath = "C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell"
-
-          Write-Host "Checking path: $projectPath"
-
+          
           if (Test-Path $projectPath) {
-            Write-Host "Target folder found. Navigating to: $projectPath"
             Set-Location $projectPath
-            
-            # 最新の変更を取り込む
             git pull origin main
-            
-            Write-Host "Update Complete! Local folder is now up to date."
+            Write-Host "Update Complete!"
+
+            # 2. 通知処理（ここを追加！）
+            # msgコマンドを使って、画面にポップアップを送信します
+            if (Get-Command msg -ErrorAction SilentlyContinue) {
+                # msg * "メッセージ" で全ユーザーの画面に表示
+                msg * "【自動更新完了】`n最新のコードがPCに反映されました！"
+            } else {
+                # ※Windows Home版などでmsgがない場合の予備策
+                # 音を鳴らして、デスクトップに「更新完了.txt」を置く
+                [System.Console]::Beep(1000, 500)
+                $desktop = [Environment]::GetFolderPath("Desktop")
+                Set-Content -Path "$desktop\更新完了通知.txt" -Value "$(Get-Date) : 自動更新が完了しました。"
+            }
+
           } else {
-            Write-Error "Error: Target folder not found. Please check the path: $projectPath"
+            Write-Error "Target folder not found."
             exit 1
           }
