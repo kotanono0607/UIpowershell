@@ -1,44 +1,44 @@
 @echo off
 chcp 65001 > nul
 echo ============================================
-echo UIpowershell - Pode APIサーバー起動
+echo UIpowershell - Pode API Server Launcher
 echo ============================================
 echo.
 
-REM 既存のサーバーを停止
-echo [1/3] 既存のサーバーを停止しています...
+REM Stop existing servers
+echo [1/3] Stopping existing servers...
 taskkill /F /IM pwsh.exe 2>nul
 taskkill /F /IM powershell.exe /FI "WINDOWTITLE eq api-server-v2*" 2>nul
 timeout /t 1 /nobreak > nul
 
-REM カレントディレクトリをスクリプトの場所に変更
+REM Change to script directory
 cd /d "%~dp0"
 
-REM PowerShell 7 (pwsh) が利用可能かチェック
+REM Check if PowerShell 7 (pwsh) is available
 where pwsh > nul 2>&1
 if %ERRORLEVEL% EQU 0 (
-    echo [2/3] PowerShell 7 でPode APIサーバーを起動します...
+    echo [2/3] Starting Pode API Server with PowerShell 7...
     echo.
     start "UIpowershell Pode API Server" pwsh -NoExit -ExecutionPolicy Bypass -File ".\adapter\api-server-v2-pode-complete.ps1" -AutoOpenBrowser
 ) else (
-    echo [2/3] Windows PowerShell 5.1 でPode APIサーバーを起動します...
+    echo [2/3] Starting Pode API Server with Windows PowerShell 5.1...
     echo.
     start "UIpowershell Pode API Server" powershell -NoExit -ExecutionPolicy Bypass -File ".\adapter\api-server-v2-pode-complete.ps1" -AutoOpenBrowser
 )
 
-echo [3/3] Pode APIサーバーが起動しました！
+echo [3/3] Pode API Server started!
 echo.
-echo ✅ ブラウザが新規ウインドウで開きます
-echo ✅ サーバーURL: http://localhost:8080/index-legacy.html
-echo ✅ サーバー: Pode (高速版)
+echo [OK] Browser will open in a new window
+echo [OK] Server URL: http://localhost:8080/index-legacy.html
+echo [OK] Server: Pode (high-speed version)
 echo.
-echo 【注意】
-echo - サーバーウインドウを閉じないでください
-echo - 停止する場合はサーバーウインドウで Ctrl+C を押してください
+echo [NOTE]
+echo - Do not close the server window
+echo - To stop, press Ctrl+C in the server window
 echo.
-echo 【期待される改善】
-echo - API応答時間: 95-99%削減 (1000ms → 10-50ms)
-echo - 起動時間: 35-48%削減 (21秒 → 8-10秒)
+echo [Expected Improvements]
+echo - API response time: 95-99%% reduction (1000ms to 10-50ms)
+echo - Startup time: 35-48%% reduction (21s to 8-10s)
 echo.
-echo このウインドウは5秒後に自動的に閉じます...
+echo This window will close automatically in 5 seconds...
 timeout /t 5
