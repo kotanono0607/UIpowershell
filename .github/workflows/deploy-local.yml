@@ -1,7 +1,7 @@
 name: Deploy to Local PC
 on:
   push:
-    branches: [ main ]  # mainブランチが更新されたら動く
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -9,7 +9,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        # これはランナーの一時作業場にコードを持ってくる手順です（必須）
 
       - name: Pull latest changes to Project Folder
         run: |
@@ -18,17 +17,16 @@ jobs:
 
           Write-Host "Checking path: $projectPath"
 
-          # フォルダが存在するか確認
           if (Test-Path $projectPath) {
             Write-Host "Target folder found. Navigating to: $projectPath"
             Set-Location $projectPath
             
             # 最新の変更を取り込む
-            # 注意: ここでエラーが出る場合、フォルダがGit管理されていないか、認証情報が保存されていません
             git pull origin main
             
             Write-Host "Update Complete! Local folder is now up to date."
           } else {
-            Write-Error "Error: 指定されたフォルダが見つかりません。パスが正しいか、フォルダが存在するか確認してください。"
+            # 日本語を英語に変更しました（文字化け回避のため）
+            Write-Error "Error: Target folder not found. Please check the path: $projectPath"
             exit 1
           }
