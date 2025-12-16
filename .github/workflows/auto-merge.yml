@@ -1,19 +1,28 @@
-name: Auto Merge PR
+name: Auto PR and Merge
 on:
-  pull_request:
-    types: [opened]
+  push:
+    branches:
+      - 'claude/**'  # "claude/" で始まるブランチへの変更すべてに反応
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  auto-merge:
+  auto-pr-merge:
     runs-on: ubuntu-latest
-    if: github.actor == 'kotanono0607'  # あなたからのPRだけを対象にする（安全性のため）
     steps:
-      - name: Enable auto-merge for new PRs
-        run: gh pr merge --auto --merge "$PR_URL"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create or Update PR & Auto-Merge
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 1. PRを作成してみる（既にある場合はエラーを無視して次へ）
+          # "claude/..." ブランチから "main" へのPRを作ります
+          gh pr create --base main --head "${{ github.ref_name }}" --title "Auto Merge: ${{ github.ref_name }}" --body "Automated PR by GitHub Actions" || true
+          
+          # 2. そのPRを「自動マージ」設定にする
+          # (--delete-branch を付けるとマージ後にブランチを自動削除して掃除します)
+          gh pr merge "${{ github.ref_name }}" --auto --merge --delete-branch
