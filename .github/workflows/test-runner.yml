@@ -1,0 +1,12 @@
+name: Test Self-Hosted Runner
+on: [push]
+
+jobs:
+  test-job:
+    runs-on: self-hosted
+    steps:
+      - name: Check System
+        run: |
+          echo "接続成功！"
+          echo "このメッセージはあなたのPCから発信されています。"
+          Get-Date
