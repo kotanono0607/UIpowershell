@@ -5067,6 +5067,50 @@ async function selectFolder() {
 }
 
 // ============================================
+// アプリケーション終了
+// ============================================
+
+async function exitApplication() {
+    console.log('[終了] exitApplication() が呼び出されました');
+
+    // 確認ダイアログを表示
+    const confirmed = await showConfirmDialog('アプリケーションを終了しますか？', '終了確認');
+    if (!confirmed) {
+        console.log('[終了] ユーザーがキャンセルしました');
+        return;
+    }
+
+    try {
+        // サーバーに終了リクエストを送信
+        console.log('[終了] サーバーに終了リクエストを送信...');
+        const response = await fetch(`${API_BASE}/shutdown`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('[終了] サーバー終了処理が開始されました');
+            // ブラウザウィンドウを閉じる
+            window.close();
+            // window.close()が動作しない場合は終了メッセージを表示
+            document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-size: 24px; font-family: sans-serif; background-color: #f5f5f5;"><div style="text-align: center;"><p>アプリケーションを終了しました。</p><p style="font-size: 16px; color: #666;">このウィンドウを閉じてください。</p></div></div>';
+        } else {
+            console.error('[終了] サーバー終了エラー:', result.error);
+            await showAlertDialog(`終了処理中にエラーが発生しました: ${result.error}`, 'エラー');
+        }
+    } catch (error) {
+        console.error('[終了] 予期しないエラー:', error);
+        // サーバーに接続できない場合でもブラウザを閉じる
+        window.close();
+        document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-size: 24px; font-family: sans-serif; background-color: #f5f5f5;"><div style="text-align: center;"><p>アプリケーションを終了しました。</p><p style="font-size: 16px; color: #666;">このウィンドウを閉じてください。</p></div></div>';
+    }
+}
+
+// ============================================
 // コード生成
 // ============================================
 

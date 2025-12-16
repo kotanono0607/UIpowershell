@@ -2892,6 +2892,34 @@ Add-PodeRoute -Method Post -Path "/api/history/init" -ScriptBlock {
     }
 }
 
+# ------------------------------
+# アプリケーション終了
+# ------------------------------
+Add-PodeRoute -Method Post -Path "/api/shutdown" -ScriptBlock {
+    try {
+        Write-Host "[API] アプリケーション終了リクエストを受信しました" -ForegroundColor Yellow
+
+        $result = @{
+            success = $true
+            message = "アプリケーションを終了します"
+        }
+        Write-PodeJsonResponse -Value $result
+
+        # サーバーを終了（少し遅延を入れてレスポンスを返してから終了）
+        Start-Sleep -Milliseconds 500
+        Write-Host "[API] サーバーを終了します..." -ForegroundColor Yellow
+        Close-PodeServer
+
+    } catch {
+        Set-PodeResponseStatus -Code 500
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
 # ==============================================================================
 # 変換完了
 # ==============================================================================
