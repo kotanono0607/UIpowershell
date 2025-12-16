@@ -2905,8 +2905,15 @@ Add-PodeRoute -Method Post -Path "/api/shutdown" -ScriptBlock {
         }
         Write-PodeJsonResponse -Value $result
 
-        # サーバーを終了（少し遅延を入れてレスポンスを返してから終了）
-        Start-Sleep -Milliseconds 500
+        # バックグラウンドでプロセスを終了（レスポンス送信後に実行）
+        $currentPID = $PID
+        Start-Job -ScriptBlock {
+            param($processId)
+            Start-Sleep -Seconds 1
+            Stop-Process -Id $processId -Force
+        } -ArgumentList $currentPID | Out-Null
+
+        # サーバーを終了
         Write-Host "[API] サーバーを終了します..." -ForegroundColor Yellow
         Close-PodeServer
 
