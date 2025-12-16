@@ -50,13 +50,26 @@ function Show-ErrorDialog {
         Write-Host "[ERROR] $Message" -ForegroundColor Red
     }
 
+    # Topmostなダミーフォームを作成してオーナーとして使用（ブラウザの前面に表示）
+    $topmostForm = New-Object System.Windows.Forms.Form
+    $topmostForm.TopMost = $true
+    $topmostForm.StartPosition = "CenterScreen"
+    $topmostForm.Size = New-Object System.Drawing.Size(0,0)
+    $topmostForm.ShowInTaskbar = $false
+    $topmostForm.Opacity = 0
+    $topmostForm.Show()
+
     # ダイアログ表示
     [System.Windows.Forms.MessageBox]::Show(
+        $topmostForm,
         $Message,
         $Title,
         [System.Windows.Forms.MessageBoxButtons]::OK,
         [System.Windows.Forms.MessageBoxIcon]::Error
     ) | Out-Null
+
+    $topmostForm.Close()
+    $topmostForm.Dispose()
 }
 
 <#
@@ -95,13 +108,26 @@ function Show-WarningDialog {
         Write-Host "[WARNING] $Message" -ForegroundColor Yellow
     }
 
+    # Topmostなダミーフォームを作成してオーナーとして使用（ブラウザの前面に表示）
+    $topmostForm = New-Object System.Windows.Forms.Form
+    $topmostForm.TopMost = $true
+    $topmostForm.StartPosition = "CenterScreen"
+    $topmostForm.Size = New-Object System.Drawing.Size(0,0)
+    $topmostForm.ShowInTaskbar = $false
+    $topmostForm.Opacity = 0
+    $topmostForm.Show()
+
     # ダイアログ表示
     [System.Windows.Forms.MessageBox]::Show(
+        $topmostForm,
         $Message,
         $Title,
         [System.Windows.Forms.MessageBoxButtons]::OK,
         [System.Windows.Forms.MessageBoxIcon]::Warning
     ) | Out-Null
+
+    $topmostForm.Close()
+    $topmostForm.Dispose()
 }
 
 <#
@@ -140,13 +166,26 @@ function Show-InfoDialog {
         Write-Host "[INFO] $Message" -ForegroundColor Cyan
     }
 
+    # Topmostなダミーフォームを作成してオーナーとして使用（ブラウザの前面に表示）
+    $topmostForm = New-Object System.Windows.Forms.Form
+    $topmostForm.TopMost = $true
+    $topmostForm.StartPosition = "CenterScreen"
+    $topmostForm.Size = New-Object System.Drawing.Size(0,0)
+    $topmostForm.ShowInTaskbar = $false
+    $topmostForm.Opacity = 0
+    $topmostForm.Show()
+
     # ダイアログ表示
     [System.Windows.Forms.MessageBox]::Show(
+        $topmostForm,
         $Message,
         $Title,
         [System.Windows.Forms.MessageBoxButtons]::OK,
         [System.Windows.Forms.MessageBoxIcon]::Information
     ) | Out-Null
+
+    $topmostForm.Close()
+    $topmostForm.Dispose()
 }
 
 <#
@@ -179,13 +218,26 @@ function Show-ConfirmDialog {
         [string]$Title = "確認"
     )
 
+    # Topmostなダミーフォームを作成してオーナーとして使用（ブラウザの前面に表示）
+    $topmostForm = New-Object System.Windows.Forms.Form
+    $topmostForm.TopMost = $true
+    $topmostForm.StartPosition = "CenterScreen"
+    $topmostForm.Size = New-Object System.Drawing.Size(0,0)
+    $topmostForm.ShowInTaskbar = $false
+    $topmostForm.Opacity = 0
+    $topmostForm.Show()
+
     # ダイアログ表示
     $result = [System.Windows.Forms.MessageBox]::Show(
+        $topmostForm,
         $Message,
         $Title,
         [System.Windows.Forms.MessageBoxButtons]::YesNo,
         [System.Windows.Forms.MessageBoxIcon]::Question
     )
+
+    $topmostForm.Close()
+    $topmostForm.Dispose()
 
     return ($result -eq [System.Windows.Forms.DialogResult]::Yes)
 }
