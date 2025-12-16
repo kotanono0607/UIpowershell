@@ -2,7 +2,7 @@ name: Auto PR and Merge
 on:
   push:
     branches:
-      - 'claude/**'  # "claude/" で始まるブランチへの変更すべてに反応
+      - 'claude/**'
 
 permissions:
   contents: write
@@ -15,18 +15,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # <---【重要】これを追加！すべての履歴とブランチを取得します
+          fetch-depth: 0
 
       - name: Create or Update PR & Auto-Merge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Gitの設定（念のため）
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 1. PRを作成してみる（既にある場合はエラーを無視して次へ）
+          # 1. PRを作成（失敗しても無視）
           gh pr create --base main --head "${{ github.ref_name }}" --title "Auto Merge: ${{ github.ref_name }}" --body "Automated PR by GitHub Actions" || true
           
-          # 2. そのPRを「自動マージ」設定にする
-          gh pr merge "${{ github.ref_name }}" --auto --merge --delete-branch
+          # 2. 即時マージを実行（--auto を削除しました）
+          gh pr merge "${{ github.ref_name }}" --merge --delete-branch
