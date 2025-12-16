@@ -634,4 +634,4 @@ REST API（adapter/api-server-v2-pode-complete.ps1）
 
 **開発者メモ**: このREADMEは、Undo/Redo機能実装完了後（2025年11月19日）の最新情報を反映しています。
 
-2025-12-16
+2025-12-16 (火曜日)
