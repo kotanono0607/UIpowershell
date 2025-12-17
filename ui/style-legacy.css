@@ -83,18 +83,16 @@ body::after {
     66% { transform: translate(-20px, 20px) scale(0.9); }
 }
 
-/* ヘッダー: Neumorphism Style */
+/* ヘッダー: ダークグラデーションスタイル */
 #header {
     height: 50px;
-    background: var(--bg-color);
-    color: var(--text-primary);
+    background: linear-gradient(to right, #1e293b, #334155);
+    color: #e5e7eb;
     display: flex;
     align-items: center;
     flex-shrink: 0;
     z-index: 100;
-    box-shadow: 
-        0 6px 12px var(--shadow-dark),
-        0 -3px 6px var(--shadow-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     position: relative;
 }
 
@@ -106,8 +104,7 @@ body::after {
     left: 0;
     right: 0;
     height: 2px;
-    background: var(--aurora-purple);  /* シンプルな単色の青 */
-    /* アニメーションを削除してシンプルに */
+    background: linear-gradient(to right, #3b82f6, #22d3ee);
 }
 
 @keyframes auroraShimmer {
@@ -119,66 +116,92 @@ body::after {
     display: flex;
     height: 50px;
     align-items: center;
-    gap: 6px;
-    padding: 0 10px;
+    gap: 8px;
+    padding: 0 12px;
 }
 
+/* 共通メニューボタンスタイル */
 .menu-item {
-    padding: 0 10px;
+    padding: 8px 16px;
     height: 32px;
-    width: 100px;  /* 統一した幅 */
+    width: auto;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    font-size: 12px;
+    gap: 6px;
+    font-size: 13px;
     font-weight: 500;
-    border-radius: 8px;
-    background: var(--bg-color);
-    color: var(--text-primary);
+    border-radius: 6px;
+    background: #475569;
+    color: #e5e7eb;
     white-space: nowrap;
-    box-shadow:
-        3px 3px 6px var(--shadow-dark),
-        -3px -3px 6px var(--shadow-light);
+    border: none;
 }
 
 .menu-item:hover {
-    box-shadow:
-        4px 4px 8px var(--shadow-dark),
-        -4px -4px 8px var(--shadow-light);
-    transform: translateY(-1px);
+    background: #64748b;
+}
+
+.menu-item:active {
+    background: #334155;
 }
 
 /* ブランドロゴ */
 .menu-brand {
+    background: transparent;
+    color: #fff;
     font-weight: bold;
-    color: var(--aurora-purple);
+    font-size: 14px;
     cursor: default;
     padding: 0 12px;
-    width: auto;  /* ブランドは幅を自動に */
 }
 
 .menu-brand:hover {
-    transform: none;
+    background: transparent;
 }
 
 .menu-brand #app-version {
     font-size: 10px;
     font-weight: normal;
-    color: var(--text-secondary);
-    margin-left: 4px;
+    color: #94a3b8;
+    margin-left: 6px;
 }
 
-/* 危険なアクション（削除など） */
+/* アクセントボタン（コード生成など重要機能） */
+.menu-accent {
+    background: linear-gradient(to right, #3b82f6, #22d3ee);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.menu-accent:hover {
+    background: linear-gradient(to right, #60a5fa, #67e8f9);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.5);
+}
+
+.menu-accent:active {
+    background: linear-gradient(to right, #2563eb, #06b6d4);
+}
+
+/* 危険ボタン（全削除、終了など） */
 .menu-danger {
-    color: var(--aurora-red);
+    background: #b91c1c;
+    color: #fff;
+}
+
+.menu-danger:hover {
+    background: #ef4444;
+}
+
+.menu-danger:active {
+    background: #991b1b;
 }
 
 /* 長いテキスト用のメニュー項目 */
 .menu-wide {
-    width: 120px;
+    /* width auto で対応 */
 }
 
 /* Undo/Redo ボタンの無効状態 */
@@ -186,14 +209,12 @@ body::after {
 #btn-redo.disabled {
     opacity: 0.4;
     cursor: not-allowed;
+    background: #374151;
 }
 
 #btn-undo.disabled:hover,
 #btn-redo.disabled:hover {
-    transform: none;
-    box-shadow:
-        3px 3px 6px var(--shadow-dark),
-        -3px -3px 6px var(--shadow-light);
+    background: #374151;
 }
 
 #toolbar {
