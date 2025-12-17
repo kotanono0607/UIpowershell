@@ -175,6 +175,7 @@
                 $txtEndValue = New-Object System.Windows.Forms.TextBox
                 $txtEndValue.Location = New-Object System.Drawing.Point(120, 60)
                 $txtEndValue.Size = New-Object System.Drawing.Size(200, 20)
+                $txtEndValue.Text = '1'
                 $panelSettings.Controls.Add($txtEndValue)
                 $controls.EndValue = $txtEndValue
 
