@@ -1042,13 +1042,13 @@ button:active, .button:active {
 
     /* ===== サイズ設定 ===== */
     width: 300px;                     /* パネル幅（外枠） */
-    height: calc(100vh - 86px);       /* 高さ = 画面高さ - ヘッダー(50px) - padding-top(36px) */
-    max-height: calc(100vh - 86px);   /* 最大高さ */
+    height: calc(100vh - 58px);       /* 高さ = 画面高さ - top位置(58px) */
+    max-height: calc(100vh - 58px);   /* 最大高さ */
 
     /* ===== 位置・配置設定（座標指定） ===== */
     position: fixed;      /* 固定配置（座標で指定可能） */
     left: 1149px;         /* left-panel(605px) + gap(12px) + center-padding-left(216px) + center-padding(12px) + layer-panel(300px) + gap(4px) */
-    top: 58px;            /* header(50px) + main-container padding-top(36px) */
+    top: 58px;            /* header(50px) + padding(8px) */
     z-index: 100;         /* 他要素の上に表示 */
 
     /* ===== 内枠設定（ノード配置スペース） ===== */
