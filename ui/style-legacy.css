@@ -1043,7 +1043,6 @@ button:active, .button:active {
     /* ===== サイズ設定 ===== */
     width: 300px;                     /* パネル幅（外枠） */
     height: calc(100vh - 86px);       /* 高さ = 画面高さ - ヘッダー(50px) - padding-top(36px) */
-    min-height: 1000px;               /* 最小高さ（ノード配置スペースを縦に長く） */
     max-height: calc(100vh - 86px);   /* 最大高さ */
 
     /* ===== 位置・配置設定（座標指定） ===== */
@@ -1054,11 +1053,9 @@ button:active, .button:active {
 
     /* ===== 内枠設定（ノード配置スペース） ===== */
     padding: 0px;        /* ★内側余白（内枠）★ 編集パネルと統一 */
-                          /* 実質的な内側幅 = 300px - 16px × 2 = 268px */
-                          /* 実質的な内側高さ = 1000px - 16px × 2 = 968px（最小）*/
 
     /* ===== 表示設定 ===== */
-    overflow-y: auto;
+    overflow: hidden;     /* パネル自体はスクロールしない */
     border-radius: 8px;
     background: #ffffff;
     transition: all 0.4s ease;
@@ -1077,8 +1074,7 @@ button:active, .button:active {
 /* ドリルダウンパネル内のノード配置枠（編集パネルと統一） */
 .drilldown-panel .node-list-container {
     flex: 1;  /* 親の残りスペースを全て使う */
-    min-height: 700px;  /* 編集パネルと統一 */
-    overflow-y: auto;
+    overflow-y: auto;  /* コンテンツがはみ出たらスクロール */
 }
 
 /* ドリルダウンパネルの編集ボタン */
