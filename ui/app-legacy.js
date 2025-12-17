@@ -8410,11 +8410,12 @@ function showLayerInDrilldownPanel(parentNodeData) {
 
         console.log(`🔍 [ドリルダウン] ノード描画完了: ${sortedNodes.length}個`);
 
-        // ノード数が多い場合にコンテナの高さを動的に調整
+        // ノード数が多い場合にコンテナの高さを動的に調整（コンテンツに合わせる）
         if (sortedNodes.length > 0) {
             const maxY = Math.max(...sortedNodes.map(n => n.y)) + 80; // ノード高さ(40px) + 余白(40px)
-            nodeContainer.style.minHeight = `${Math.max(700, maxY)}px`;
-            console.log(`🔍 [ドリルダウン] コンテナ高さを調整: ${Math.max(700, maxY)}px`);
+            // 固定の700pxではなく、コンテンツの高さのみを設定（スクロールバー防止）
+            nodeContainer.style.minHeight = `${maxY}px`;
+            console.log(`🔍 [ドリルダウン] コンテナ高さを調整: ${maxY}px`);
         }
 
         // Canvas要素を追加して矢印を描画
