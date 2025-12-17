@@ -339,25 +339,18 @@ body::after {
     box-shadow:
         inset 3px 3px 6px var(--shadow-dark),
         inset -3px -3px 6px var(--shadow-light);
-    transform: none;  /* translateXを削除して位置を固定 */
+    transform: translateX(4px);
     font-weight: bold;
-    /* 右側に伸ばしてノードボタンエリアと接続 */
-    width: calc(100% + 20px);  /* 親幅を超えて右に伸ばす */
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    margin-right: -20px;
-    z-index: 1;
-    position: relative;
 }
 
 .category-btn.active:hover {
-    transform: none;  /* ホバー時もtranslateXなし */
+    transform: translateX(4px);
 }
 
 #node-buttons-container {
     width: 307px;  /* 370px → 407px に変更（1.1倍） */
     flex-shrink: 0;
-    margin-left: auto;  /* 右詰めにする */
+    /* margin-left: auto を削除 - 隙間の原因 */
     overflow: hidden auto;  /* 横hidden、縦auto */
     padding: 12px;
     padding-left: 16px;  /* 左パディングを増やしてカテゴリボタンとの接続部分を調整 */
