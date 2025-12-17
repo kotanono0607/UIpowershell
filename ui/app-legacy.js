@@ -3260,7 +3260,7 @@ function reorderNodesInLayer(layer) {
 
     console.log(`[色変更] reorderNodesInLayer レイヤー${layer}: ${layerNodes.length}個のノード`);
 
-    // 条件分岐グループをgroupIdごとに収集
+    // 条件分岐グループをgroupIdごとに収集（多重分岐対応）
     const conditionGroups = {};
 
     for (let i = 0; i < layerNodes.length; i++) {
@@ -3273,7 +3273,7 @@ function reorderNodesInLayer(layer) {
             if (!conditionGroups[gid]) {
                 conditionGroups[gid] = {
                     startIndex: -1,
-                    middleIndex: -1,
+                    middleIndices: [],  // 複数の中間ノードに対応
                     endIndex: -1
                 };
             }
@@ -3281,9 +3281,10 @@ function reorderNodesInLayer(layer) {
             if (node.text === '条件分岐 開始') {
                 conditionGroups[gid].startIndex = i;
                 console.log(`[色変更] 条件分岐 開始 見つかった: groupId=${gid}, index=${i}`);
-            } else if (node.text === '条件分岐 中間') {
-                conditionGroups[gid].middleIndex = i;
-                console.log(`[色変更] 条件分岐 中間 見つかった: groupId=${gid}, index=${i}`);
+            } else if (node.color === 'Gray') {
+                // Grayノード（中間ノード）を配列に追加
+                conditionGroups[gid].middleIndices.push(i);
+                console.log(`[色変更] 条件分岐 中間(Gray) 見つかった: groupId=${gid}, index=${i}, text="${node.text}"`);
             } else if (node.text === '条件分岐 終了') {
                 conditionGroups[gid].endIndex = i;
                 console.log(`[色変更] 条件分岐 終了 見つかった: groupId=${gid}, index=${i}`);
@@ -3306,29 +3307,47 @@ function reorderNodesInLayer(layer) {
 
         for (const gid in conditionGroups) {
             const group = conditionGroups[gid];
-            const { startIndex, middleIndex, endIndex } = group;
+            const { startIndex, middleIndices, endIndex } = group;
 
-            // グループが完全かチェック
-            if (startIndex === -1 || middleIndex === -1 || endIndex === -1) {
+            // グループが完全かチェック（中間ノードが1つ以上必要）
+            if (startIndex === -1 || middleIndices.length === 0 || endIndex === -1) {
                 continue;
             }
 
-            // 開始〜中間の間: False分岐
-            if (index > startIndex && index < middleIndex) {
+            // 多重分岐対応: middleIndicesをソートして境界を決定
+            const sortedMiddles = [...middleIndices].sort((a, b) => a - b);
+            const firstMiddle = sortedMiddles[0];
+            const lastMiddle = sortedMiddles[sortedMiddles.length - 1];
+
+            // 開始〜最初の中間の間: False分岐（Salmon）
+            if (index > startIndex && index < firstMiddle) {
                 inFalseBranch = true;
                 outsideAllBranches = false;
                 console.log(`[色変更] index=${index} "${node.text}" は groupId=${gid} の False分岐内`);
                 break;
             }
-            // 中間〜終了の間: True分岐
-            else if (index > middleIndex && index < endIndex) {
+            // 最後の中間〜終了の間: True分岐（LightBlue）
+            else if (index > lastMiddle && index < endIndex) {
                 inTrueBranch = true;
                 outsideAllBranches = false;
                 console.log(`[色変更] index=${index} "${node.text}" は groupId=${gid} の True分岐内`);
                 break;
             }
+            // 中間同士の間: 中間分岐（White - 今のところWhiteとする）
+            else if (sortedMiddles.length > 1) {
+                let inMiddleBranch = false;
+                for (let m = 0; m < sortedMiddles.length - 1; m++) {
+                    if (index > sortedMiddles[m] && index < sortedMiddles[m + 1]) {
+                        inMiddleBranch = true;
+                        outsideAllBranches = false;
+                        console.log(`[色変更] index=${index} "${node.text}" は groupId=${gid} の 中間分岐${m + 1}内`);
+                        break;
+                    }
+                }
+                if (inMiddleBranch) break;
+            }
             // 開始〜終了の範囲内（開始、中間、終了自体）
-            else if (index >= startIndex && index <= endIndex) {
+            if (index >= startIndex && index <= endIndex) {
                 outsideAllBranches = false;
             }
         }
