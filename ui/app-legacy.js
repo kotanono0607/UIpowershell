@@ -1910,6 +1910,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 初期カテゴリーの色を設定
     switchCategory(1);
 
+    // カテゴリーボタンのマウスオーバーイベントを設定
+    setupCategoryButtonHover();
+
     // イベントリスナー設定
     setupEventListeners();
 
@@ -2194,6 +2197,20 @@ function getColorCode(colorName) {
 // カテゴリー切り替え
 // ============================================
 
+// カテゴリーの説明文
+const categoryDescriptions = {
+    1: '【制御構文】\n条件分岐やループなど、プログラムの流れを制御するノードです。\n\n・条件分岐: 条件によって処理を分岐\n・ループ: 繰り返し処理を実行',
+    2: '【マウス操作】\nマウスのクリックや移動などの操作を自動化するノードです。\n\n・クリック、ダブルクリック\n・マウス移動、ドラッグ&ドロップ',
+    3: '【キーボード操作】\nキー入力やショートカットキーの操作を自動化するノードです。\n\n・文字入力、キー送信\n・ショートカットキー操作',
+    4: '【UIAutomation】\nWindowsのUI要素を直接操作するノードです。\n\n・ボタンクリック、テキスト入力\n・要素の取得、待機',
+    5: '【ファイル操作】\nファイルやフォルダの操作を行うノードです。\n\n・ファイルの読み書き、コピー、移動\n・フォルダ作成、削除',
+    6: '【データ処理】\nデータの加工や変換を行うノードです。\n\n・文字列操作、数値計算\n・配列操作、JSON処理',
+    7: '【スクリプト実行】\n外部スクリプトやコマンドを実行するノードです。\n\n・PowerShellスクリプト実行\n・コマンドライン実行',
+    8: '【Excel処理】\nExcelファイルの操作を行うノードです。\n\n・セルの読み書き\n・シート操作、ブック操作',
+    9: '【ウインドウ操作】\nウインドウの操作を行うノードです。\n\n・ウインドウの取得、アクティブ化\n・最大化、最小化、閉じる',
+    10: '【画像処理】\n画面キャプチャや画像認識を行うノードです。\n\n・スクリーンショット\n・画像マッチング'
+};
+
 function switchCategory(categoryNum) {
     currentCategory = categoryNum;
 
@@ -2220,6 +2237,21 @@ function switchCategory(categoryNum) {
             container.style.backgroundColor = categoryColor;
         }
     }
+}
+
+// カテゴリーボタンにマウスオーバーイベントを設定
+function setupCategoryButtonHover() {
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    categoryBtns.forEach(btn => {
+        const categoryNum = parseInt(btn.dataset.category);
+        btn.onmouseenter = () => {
+            const description = categoryDescriptions[categoryNum] || 'カテゴリの説明';
+            document.getElementById('description-text').textContent = description;
+        };
+        btn.onmouseleave = () => {
+            document.getElementById('description-text').textContent = 'ノードやカテゴリにマウスを乗せると説明が表示されます。';
+        };
+    });
 }
 
 // ============================================
