@@ -613,11 +613,11 @@ body::after {
 }
 
 .node-button.red-border {
-    border: 3px solid var(--aurora-red) !important;
-    box-shadow: 
+    border: 3px solid #ec4899 !important;  /* ピンク */
+    box-shadow:
         4px 4px 8px var(--shadow-dark),
         -4px -4px 8px var(--shadow-light),
-        0 0 20px rgba(239, 68, 68, 0.3);
+        0 0 20px rgba(236, 72, 153, 0.4);  /* ピンクのグロー */
 }
 
 /* 矢印Canvas */
