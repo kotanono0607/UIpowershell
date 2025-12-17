@@ -2105,6 +2105,7 @@ function generateAddNodeButtons() {
         const btn = document.createElement('button');
         btn.className = 'add-node-btn';
         btn.textContent = setting.テキスト;
+        btn.title = setting.テキスト;  // ツールチップでフルテキスト表示
         btn.style.backgroundColor = getColorCode(setting.背景色);
         btn.dataset.setting = JSON.stringify(setting);
         btn.disabled = true;  // 初期化完了まで無効化
