@@ -1560,8 +1560,14 @@ function コード結果を表示 {
     # コピーボタンクリックイベント
     $ボタン_コピー.Add_Click({
         try {
-            # clip.exeを使用（STAスレッド/OLE問題を完全に回避）
-            $テキスト_コード.Text | clip.exe
+            # 一時ファイル経由 + STAプロセスで日本語対応クリップボードコピー
+            $tempFile = [System.IO.Path]::GetTempFileName()
+            $テキスト_コード.Text | Out-File -FilePath $tempFile -Encoding UTF8 -NoNewline
+
+            # STAモードの別プロセスでクリップボードにコピー
+            $copyScript = "Get-Content -Path '$tempFile' -Raw -Encoding UTF8 | Set-Clipboard; Remove-Item -Path '$tempFile' -Force"
+            Start-Process powershell -ArgumentList "-STA", "-NoProfile", "-WindowStyle", "Hidden", "-Command", $copyScript -Wait
+
             Write-Host "[コード結果] ✅ クリップボードにコピーしました" -ForegroundColor Green
             [System.Windows.Forms.MessageBox]::Show(
                 "生成されたコードをクリップボードにコピーしました！",
