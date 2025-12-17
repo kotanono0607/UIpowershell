@@ -333,7 +333,7 @@ body::after {
 .category-btn.active {
     /* フラットデザイン：背景色のみで区別 */
     background: var(--aurora-purple);
-    color: white;
+    color: var(--text-primary);  /* 黒文字 */
     font-weight: bold;
 }
 
