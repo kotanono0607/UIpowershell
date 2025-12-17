@@ -342,10 +342,10 @@ body::after {
     transform: translateX(4px);
     font-weight: bold;
     /* 右側に伸ばしてノードボタンエリアと接続 */
-    width: 180px;
+    width: 200px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    margin-right: -46px;
+    margin-right: -66px;
     z-index: 1;
     position: relative;
 }
