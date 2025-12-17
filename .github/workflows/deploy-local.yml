@@ -15,40 +15,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Pull latest changes and Notify
+      - name: Pull and Trigger
         run: |
-          # プロジェクトのパス
           $projectPath = "C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell"
 
           if (Test-Path $projectPath) {
             Set-Location $projectPath
-            
-            # 1. 更新処理
             git pull origin main
-            Write-Host "Update Complete!"
-
-            # 2. 通知処理 (Start-Processを使って安全に実行)
-            # メッセージを変数に入れます（念のためシンプルな英語混じりにします）
-            $msgBody = "Auto Update Completed"
-
-            # msg.exe があるか確認してから実行
-            if (Get-Command "msg.exe" -ErrorAction SilentlyContinue) {
-                # 誰でも読める書き方で実行
-                Start-Process "msg.exe" -ArgumentList "* $msgBody" -NoNewWindow -Wait
-            }
-
-            # 3. 予備の通知 (音とファイルログ)
-            [System.Console]::Beep(2000, 500)
             
+            # --- ここがポイント ---
+            # 更新完了の合図として、デスクトップに空のファイルを作ります
             $desktop = [Environment]::GetFolderPath("Desktop")
-            $logFile = "$desktop\AutoUpdate_Log.txt"
-            $date = Get-Date -Format "yyyy/MM/dd HH:mm:ss"
+            $triggerFile = "$desktop\update_signal.txt"
             
-            Add-Content -Path $logFile -Value "[$date] $msgBody" -Encoding UTF8
+            # 中身は何でも良いので、時刻を書いて保存
+            Set-Content -Path $triggerFile -Value "$(Get-Date)" -Force
             
-            Write-Host "Notification process finished."
-
+            Write-Host "Trigger file created at: $triggerFile"
           } else {
-            Write-Error "Error: Target folder not found."
+            Write-Error "Target folder not found."
             exit 1
           }
