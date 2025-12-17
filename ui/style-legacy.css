@@ -391,18 +391,13 @@ body::after {
     min-width: 0;  /* グリッドアイテムがコンテナ幅を超えないようにする */
     max-width: 100%;  /* 親要素の幅を超えないようにする */
     background: var(--bg-color);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     color: var(--text-primary);
-    box-shadow:
-        3px 3px 6px var(--shadow-dark),
-        -3px -3px 6px var(--shadow-light);
+    /* フラットデザイン：シャドウなし */
 }
 
 .add-node-btn:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 
-        5px 5px 10px var(--shadow-dark),
-        -5px -5px 10px var(--shadow-light);
+    opacity: 0.8;  /* フラットなホバー効果 */
 }
 
 /* 中央コンテナ: Neumorphism */
