@@ -8294,22 +8294,25 @@ function showLayerInDrilldownPanel(parentNodeData) {
     const layerName = parentNodeData.text || `スクリプト${parentNodeData.layer}`;
     rightPanel.innerHTML = `
         <div class="layer-label" style="
-            height: 40px;
-            background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-pink));
-            margin: 0 0 0px 0;
-            border-radius: 20px 20px 0 0;
+            height: 32px;
+            background: #f8fafc;
+            margin: 0;
+            border-radius: 8px 8px 0 0;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 15px;
-            padding: 0 15px;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 0 12px 0 16px;
+            color: #334155;
+            font-weight: 600;
+            font-size: 12px;
             cursor: pointer;
+            border-bottom: 1px solid #e2e8f0;
+            position: relative;
         " title="クリックで編集モードに入る">
+            <span style="position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; background: linear-gradient(to bottom, #3b82f6, #22d3ee); border-radius: 0 2px 2px 0;"></span>
             <span>レイヤー${targetLayer} - ${layerName}</span>
-            <span style="font-size: 12px; opacity: 0.8;">✏️ クリックで編集</span>
+            <span style="font-size: 11px; opacity: 0.6; margin-left: auto;">✏️ クリックで編集</span>
         </div>
         <div class="layer-indicator">L${targetLayer}</div>
         <div class="node-list-container" id="drilldown-nodes" style="position: relative; cursor: pointer;" title="クリックで編集モードに入る">
