@@ -540,13 +540,17 @@ Start-PodeServer {
             "${env:ProgramFiles}\Microsoft\Edge\Application\msedge.exe"
         )
 
+        # UIpowershell専用のプロファイルディレクトリ（ウィンドウサイズの記憶をリセット）
+        $userDataDir = "$env:TEMP\UIpowershell-Edge-Profile"
+
         $edgeFound = $false
         foreach ($edgePath in $edgePaths) {
             if (Test-Path $edgePath) {
                 Write-Host "[ブラウザ] Microsoft Edge（UIpowershell専用）を最大化アプリモードで起動します" -ForegroundColor Green
                 Write-Host "           URL: $url" -ForegroundColor Cyan
-                # --app モードで起動（タブなし、独立ウインドウ、最大化）
-                Start-Process $edgePath -ArgumentList "--app=$url --start-maximized"
+                Write-Host "           プロファイル: $userDataDir" -ForegroundColor Gray
+                # --app モードで起動（タブなし、独立ウインドウ、最大化、専用プロファイル）
+                Start-Process $edgePath -ArgumentList "--app=$url --start-maximized --user-data-dir=`"$userDataDir`""
                 $edgeFound = $true
                 break
             }
