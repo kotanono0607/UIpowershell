@@ -629,7 +629,3 @@ REST API（adapter/api-server-v2-pode-complete.ps1）
 ## 📧 お問い合わせ
 
 プロジェクトに関する質問は、GitHubのIssuesからお願いします。
-
----
-
-2025-12-17 (水曜日) 日本
