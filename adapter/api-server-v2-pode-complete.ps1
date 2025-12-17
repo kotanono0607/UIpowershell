@@ -543,10 +543,10 @@ Start-PodeServer {
         $edgeFound = $false
         foreach ($edgePath in $edgePaths) {
             if (Test-Path $edgePath) {
-                Write-Host "[ブラウザ] Microsoft Edge（UIpowershell専用）を最大化アプリモードで起動します" -ForegroundColor Green
+                Write-Host "[ブラウザ] Microsoft Edge（UIpowershell専用）をフルスクリーンアプリモードで起動します" -ForegroundColor Green
                 Write-Host "           URL: $url" -ForegroundColor Cyan
-                # --app モードで起動（タブなし、独立ウインドウ、最大化）
-                Start-Process $edgePath -ArgumentList "--app=$url --start-maximized"
+                # --app モードで起動（タブなし、独立ウインドウ、フルスクリーン）
+                Start-Process $edgePath -ArgumentList "--app=$url --start-fullscreen"
                 $edgeFound = $true
                 break
             }
