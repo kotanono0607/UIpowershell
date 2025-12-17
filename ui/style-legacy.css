@@ -339,19 +339,19 @@ body::after {
     box-shadow:
         inset 3px 3px 6px var(--shadow-dark),
         inset -3px -3px 6px var(--shadow-light);
-    transform: translateX(4px);
+    transform: none;  /* translateXを削除して位置を固定 */
     font-weight: bold;
     /* 右側に伸ばしてノードボタンエリアと接続 */
-    width: 200px;
+    width: calc(100% + 20px);  /* 親幅を超えて右に伸ばす */
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    margin-right: -66px;
+    margin-right: -20px;
     z-index: 1;
     position: relative;
 }
 
 .category-btn.active:hover {
-    transform: translateX(4px);
+    transform: none;  /* ホバー時もtranslateXなし */
 }
 
 #node-buttons-container {
