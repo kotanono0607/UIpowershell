@@ -322,29 +322,26 @@ body::after {
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    box-shadow:
-        3px 3px 6px var(--shadow-dark),
-        -3px -3px 6px var(--shadow-light);
+    /* フラットデザイン：シャドウなし */
 }
 
 .category-btn:hover {
     transform: translateX(4px);
-    box-shadow:
-        5px 5px 10px var(--shadow-dark),
-        -5px -5px 10px var(--shadow-light);
+    opacity: 0.8;  /* フラットなホバー効果 */
 }
 
 /* カテゴリーボタン選択状態 */
 .category-btn.active {
-    box-shadow:
-        inset 3px 3px 6px var(--shadow-dark),
-        inset 0px -3px 6px var(--shadow-light);  /* 右側の影を削除（-3px→0px）*/
+    /* フラットデザイン：選択時も影なし */
+    background: var(--aurora-purple);  /* 選択時は色で区別 */
+    color: white;
     transform: translateX(4px);
     font-weight: bold;
 }
 
 .category-btn.active:hover {
     transform: translateX(4px);
+    opacity: 1;  /* 選択状態はホバー時も通常表示 */
 }
 
 #node-buttons-container {
@@ -393,11 +390,16 @@ body::after {
     background: var(--bg-color);
     transition: all 0.2s ease;
     color: var(--text-primary);
-    /* フラットデザイン：シャドウなし */
+    box-shadow:
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
 }
 
 .add-node-btn:hover {
-    opacity: 0.8;  /* フラットなホバー効果 */
+    transform: translateY(-3px) scale(1.02);
+    box-shadow:
+        5px 5px 10px var(--shadow-dark),
+        -5px -5px 10px var(--shadow-light);
 }
 
 /* 中央コンテナ: Neumorphism */
