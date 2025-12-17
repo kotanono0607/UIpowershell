@@ -1560,8 +1560,8 @@ function コード結果を表示 {
     # コピーボタンクリックイベント
     $ボタン_コピー.Add_Click({
         try {
-            # Set-Clipboardを使用（STAスレッド問題を回避）
-            $テキスト_コード.Text | Set-Clipboard
+            # clip.exeを使用（STAスレッド/OLE問題を完全に回避）
+            $テキスト_コード.Text | clip.exe
             Write-Host "[コード結果] ✅ クリップボードにコピーしました" -ForegroundColor Green
             [System.Windows.Forms.MessageBox]::Show(
                 "生成されたコードをクリップボードにコピーしました！",
