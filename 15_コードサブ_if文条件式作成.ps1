@@ -406,6 +406,9 @@
         $txtPreview.Text = $loopCode
     }
 
+    # 初期プレビューを表示
+    UpdateLoopPreview
+
     # 閉じるイベント
     $btnCancel.Add_Click({
         $script:loopResult = $null  # キャンセル時は $null を設定
