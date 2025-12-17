@@ -1372,11 +1372,15 @@ function フォルダ切替を表示 {
     # 初期表示
     Update-FolderListBox
 
-    # ダイアログ表示
+    # ダイアログ表示（常に前面に表示）
     $フォーム.Topmost = $true
+    $フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
     $ダイアログ結果 = $フォーム.ShowDialog()
 
-    Write-Host "[フォルダ切替] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
+    Write-Host "[フォルダ管理] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
 
     if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
         Write-Host "[フォルダ切替] ✅ フォルダが選択されました: $($script:選択されたフォルダ)" -ForegroundColor Green
