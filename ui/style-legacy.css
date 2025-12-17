@@ -422,7 +422,7 @@ body::after {
         -5px -5px 10px var(--shadow-light);
 }
 
-/* 中央コンテナ: Neumorphism */
+/* 中央コンテナ: モダンデザイン */
 #center-container {
     flex: 1;
     min-width: 640px;
@@ -431,13 +431,11 @@ body::after {
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
-    background: var(--bg-gray);  /* ノードエリア：グレー */
-    border-radius: 20px;
-    gap: 4px;   /* レイヤーパネル間の間隔を縮小（12px→4px） */
-    padding: 12px 12px 12px 216px;  /* 上 右 下 左（上下16px→12pxに変更でドリルダウンパネル縦長化） */
-    box-shadow:
-        inset 6px 6px 12px var(--shadow-dark),
-        inset -6px -6px 12px var(--shadow-light);
+    background: #f1f5f9;  /* 薄いグレー */
+    border-radius: 12px;
+    gap: 12px;
+    padding: 16px 16px 16px 216px;
+    border: 1px solid #e2e8f0;
 }
 
 .dual-layer-panel {
@@ -449,8 +447,8 @@ body::after {
 
 .layer-panel {
     width: 300px;
-    background: var(--bg-gray);  /* ノードエリア：グレー */
-    border-radius: 16px;
+    background: #ffffff;
+    border-radius: 8px;
     display: none;
     flex-direction: column;
     overflow: hidden;
@@ -458,9 +456,8 @@ body::after {
     position: absolute;
     top: 0;
     left: 0;
-    box-shadow:
-        6px 6px 12px var(--shadow-dark),
-        -6px -6px 12px var(--shadow-light);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
 }
 
 .layer-panel[style*="display: block"] {
@@ -469,30 +466,40 @@ body::after {
 }
 
 .layer-label {
-    background: #6BA8D9;  /* 控えめな青 */
-    padding: 10px;
-    text-align: center;
-    font-weight: bold;
+    background: #f8fafc;
+    padding: 0 12px;
+    text-align: left;
+    font-weight: 600;
     font-size: 12px;
-    color: white;
-    height: 36px;
+    color: #334155;
+    height: 32px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    justify-content: flex-start;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #e2e8f0;
+    position: relative;
+}
+
+/* 左側のアクセントバー */
+.layer-label::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    background: linear-gradient(to bottom, #3b82f6, #22d3ee);
+    border-radius: 0 2px 2px 0;
 }
 
 .node-list-container {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 12px;
     position: relative;
     min-height: 700px;
-    background: var(--bg-gray);  /* ノードエリア：グレー */
-    box-shadow:
-        inset 3px 3px 6px var(--shadow-dark),
-        inset -3px -3px 6px var(--shadow-light);
+    background: #ffffff;
 }
 
 /* ノードボタン: Neumorphism + Aurora Border */
@@ -1052,12 +1059,11 @@ button:active, .button:active {
 
     /* ===== 表示設定 ===== */
     overflow-y: auto;
-    border-radius: 16px;    /* レイヤーパネルと同じ角丸に統一 */
-    background: var(--bg-gray);  /* ノードエリア：グレー */
+    border-radius: 8px;
+    background: #ffffff;
     transition: all 0.4s ease;
-    box-shadow:
-        9px 9px 18px var(--shadow-dark),
-        -9px -9px 18px var(--shadow-light);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
 }
 
 .drilldown-panel.empty {
@@ -1361,21 +1367,22 @@ button:active, .button:active {
 }
 
 .modal-content .layer-panel {
-    background: var(--bg-gray);  /* ノードエリア：グレー */
-    border-radius: 15px;
-    padding: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 16px;
     min-height: 100%;
+    border: 1px solid #e2e8f0;
 }
 
 .modal-content .layer-label {
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--text-primary);
-    margin-bottom: 15px;
-    padding: 10px;
-    background: var(--aurora-purple);  /* 単色の青 */
-    color: white;
-    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border-left: 3px solid #3b82f6;
     text-align: center;
 }
 
@@ -1383,9 +1390,10 @@ button:active, .button:active {
 .modal-node-container {
     position: relative;
     min-height: 500px;
-    background: var(--bg-gray);  /* ノードエリア：グレー */
-    border-radius: 10px;
-    padding: 10px;
+    background: #f1f5f9;  /* モダン：明るいグレー */
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
 }
 
 #modal-arrow-canvas {
