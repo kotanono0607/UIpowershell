@@ -338,7 +338,7 @@ body::after {
 .category-btn.active {
     box-shadow:
         inset 3px 3px 6px var(--shadow-dark),
-        inset -3px -3px 6px var(--shadow-light);
+        inset 0px -3px 6px var(--shadow-light);  /* 右側の影を削除（-3px→0px）*/
     transform: translateX(4px);
     font-weight: bold;
 }
