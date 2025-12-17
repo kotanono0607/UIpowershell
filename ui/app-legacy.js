@@ -7637,7 +7637,7 @@ function updateLoopSettings() {
             <div style="margin-bottom: 10px;">
                 <label>終了値:</label>
                 <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
-                    <input type="text" id="loop-end-value" value="" style="flex: 1; padding: 5px;">
+                    <input type="text" id="loop-end-value" value="1" style="flex: 1; padding: 5px;">
                     <label><input type="checkbox" id="loop-end-use-var"> 変数を使用</label>
                 </div>
                 <select id="loop-end-var" style="width: 100%; padding: 5px; margin-top: 5px; display: none;"></select>
@@ -7761,7 +7761,7 @@ function updateLoopPreview() {
         const endUseVar = document.getElementById('loop-end-use-var')?.checked;
         const endValue = endUseVar
             ? document.getElementById('loop-end-var')?.value
-            : document.getElementById('loop-end-value')?.value;
+            : document.getElementById('loop-end-value')?.value || '1';
         const increment = document.getElementById('loop-increment')?.value || '1';
 
         if (counterVar && startValue && endValue && increment) {
