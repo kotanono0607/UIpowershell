@@ -326,21 +326,18 @@ body::after {
 }
 
 .category-btn:hover {
-    transform: translateX(4px);
     opacity: 0.8;  /* フラットなホバー効果 */
 }
 
 /* カテゴリーボタン選択状態 */
 .category-btn.active {
-    /* フラットデザイン：選択時も影なし */
-    background: var(--aurora-purple);  /* 選択時は色で区別 */
+    /* フラットデザイン：背景色のみで区別 */
+    background: var(--aurora-purple);
     color: white;
-    transform: translateX(4px);
     font-weight: bold;
 }
 
 .category-btn.active:hover {
-    transform: translateX(4px);
     opacity: 1;  /* 選択状態はホバー時も通常表示 */
 }
 
@@ -351,9 +348,7 @@ body::after {
     padding: 12px;
     border-radius: 0;  /* 角の丸みをなくす */
     background: var(--bg-color);
-    box-shadow:
-        inset 0px 4px 8px var(--shadow-dark),  /* 左側の影を削除 */
-        inset -4px -4px 8px var(--shadow-light);
+    /* フラットデザイン：影なし */
 }
 
 .category-panel {
