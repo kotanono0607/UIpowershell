@@ -2696,6 +2696,36 @@ Add-PodeRoute -Method Get -Path "/ボタン設定.json" -ScriptBlock {
     }
 }
 
+# カテゴリ設定.json (英語エイリアス: /category-settings.json)
+Add-PodeRoute -Method Get -Path "/category-settings.json" -ScriptBlock {
+    $rootDir = Get-PodeState -Name 'RootDir'
+    $jsonPath = Join-Path $rootDir "カテゴリ設定.json"
+    if (Test-Path $jsonPath) {
+        $content = Get-Content $jsonPath -Raw -Encoding UTF8
+        Set-PodeHeader -Name "Content-Type" -Value "application/json; charset=utf-8"
+        Write-PodeTextResponse -Value $content
+    } else {
+        Set-PodeResponseStatus -Code 404
+        $errorResult = @{ error = "カテゴリ設定.json not found" }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
+# カテゴリ設定.json (日本語パス)
+Add-PodeRoute -Method Get -Path "/カテゴリ設定.json" -ScriptBlock {
+    $rootDir = Get-PodeState -Name 'RootDir'
+    $jsonPath = Join-Path $rootDir "カテゴリ設定.json"
+    if (Test-Path $jsonPath) {
+        $content = Get-Content $jsonPath -Raw -Encoding UTF8
+        Set-PodeHeader -Name "Content-Type" -Value "application/json; charset=utf-8"
+        Write-PodeTextResponse -Value $content
+    } else {
+        Set-PodeResponseStatus -Code 404
+        $errorResult = @{ error = "カテゴリ設定.json not found" }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
 # ==============================================================================
 # Undo/Redo 操作履歴管理 APIエンドポイント
 # ==============================================================================
