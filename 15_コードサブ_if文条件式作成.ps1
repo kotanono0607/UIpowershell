@@ -690,6 +690,7 @@ function ShowConditionBuilder {
         $textBoxLeftValue = New-Object System.Windows.Forms.TextBox
         $textBoxLeftValue.Size = New-Object System.Drawing.Size(320, 20)
         $textBoxLeftValue.Location = [System.Drawing.Point]::new(10, 40)
+        $textBoxLeftValue.Text = "1"  # ダミー初期値
         $groupLeftOption.Controls.Add($textBoxLeftValue)
 
         # 演算子
@@ -697,6 +698,7 @@ function ShowConditionBuilder {
         $comboBoxOperator.Size = New-Object System.Drawing.Size(90, 20)
         $comboBoxOperator.Location = [System.Drawing.Point]::new(430, $yPosition + 30)
         $comboBoxOperator.Items.AddRange(@("-eq", "-ne", "-lt", "-gt", "-le", "-ge", "-like", "-notlike", "-match", "-notmatch"))
+        $comboBoxOperator.SelectedIndex = 0  # "-eq" をデフォルト選択
         $panel.Controls.Add($comboBoxOperator)
 
         # 右辺グループ（横幅拡張）
@@ -721,6 +723,7 @@ function ShowConditionBuilder {
         $textBoxRightValue = New-Object System.Windows.Forms.TextBox
         $textBoxRightValue.Size = New-Object System.Drawing.Size(320, 20)
         $textBoxRightValue.Location = [System.Drawing.Point]::new(10, 40)
+        $textBoxRightValue.Text = "1"  # ダミー初期値
         $groupRightOption.Controls.Add($textBoxRightValue)
 
         # 削除ボタン
