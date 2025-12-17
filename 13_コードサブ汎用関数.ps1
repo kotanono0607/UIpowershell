@@ -1118,7 +1118,7 @@ function フォルダ切替を表示 {
 
     # フォーム作成
     $フォーム = New-Object System.Windows.Forms.Form
-    $フォーム.Text = "フォルダ切替"
+    $フォーム.Text = "フォルダ管理"
     $フォーム.Size = New-Object System.Drawing.Size(500, 450)
     $フォーム.StartPosition = "CenterScreen"
     $フォーム.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
@@ -1177,6 +1177,14 @@ function フォルダ切替を表示 {
     $ボタン_新規作成.Location = New-Object System.Drawing.Point(130, 345)
     $ボタン_新規作成.Size = New-Object System.Drawing.Size(100, 35)
     $フォーム.Controls.Add($ボタン_新規作成)
+
+    # 削除ボタン
+    $ボタン_削除 = New-Object System.Windows.Forms.Button
+    $ボタン_削除.Text = "削除"
+    $ボタン_削除.Location = New-Object System.Drawing.Point(240, 345)
+    $ボタン_削除.Size = New-Object System.Drawing.Size(100, 35)
+    $ボタン_削除.ForeColor = [System.Drawing.Color]::Red
+    $フォーム.Controls.Add($ボタン_削除)
 
     # キャンセルボタン
     $ボタン_キャンセル = New-Object System.Windows.Forms.Button
@@ -1276,6 +1284,78 @@ function フォルダ切替を表示 {
             # 作成したフォルダを選択状態にする
             $index = $script:現在のフォルダリスト.IndexOf($新しいフォルダ名)
             $リストボックス.SelectedIndex = $index
+        }
+    })
+
+    # 削除ボタンクリックイベント
+    $ボタン_削除.Add_Click({
+        if ($リストボックス.SelectedItem) {
+            $削除対象フォルダ = $リストボックス.SelectedItem.ToString()
+
+            # 現在使用中のフォルダは削除不可
+            if ($削除対象フォルダ -eq $現在のフォルダ) {
+                [System.Windows.Forms.MessageBox]::Show(
+                    "現在使用中のフォルダは削除できません。`n別のフォルダに切り替えてから削除してください。",
+                    "削除エラー",
+                    [System.Windows.Forms.MessageBoxButtons]::OK,
+                    [System.Windows.Forms.MessageBoxIcon]::Warning
+                ) | Out-Null
+                return
+            }
+
+            # 確認ダイアログ
+            $確認結果 = [System.Windows.Forms.MessageBox]::Show(
+                "フォルダ「$削除対象フォルダ」を削除しますか？`n`nこの操作は元に戻せません。",
+                "フォルダ削除の確認",
+                [System.Windows.Forms.MessageBoxButtons]::YesNo,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            )
+
+            if ($確認結果 -eq [System.Windows.Forms.DialogResult]::Yes) {
+                Write-Host "[フォルダ管理] フォルダを削除: $削除対象フォルダ" -ForegroundColor Red
+
+                # 03_historyフォルダからフォルダを削除
+                $historyPath = Join-Path $global:RootDir "03_history"
+                $削除パス = Join-Path $historyPath $削除対象フォルダ
+
+                if (Test-Path $削除パス) {
+                    try {
+                        Remove-Item -Path $削除パス -Recurse -Force
+                        Write-Host "[フォルダ管理] フォルダ削除完了: $削除パス" -ForegroundColor Green
+
+                        # リストから削除
+                        $script:現在のフォルダリスト.Remove($削除対象フォルダ)
+                        Update-FolderListBox
+
+                        [System.Windows.Forms.MessageBox]::Show(
+                            "フォルダ「$削除対象フォルダ」を削除しました。",
+                            "削除完了",
+                            [System.Windows.Forms.MessageBoxButtons]::OK,
+                            [System.Windows.Forms.MessageBoxIcon]::Information
+                        ) | Out-Null
+                    } catch {
+                        Write-Host "[フォルダ管理] フォルダ削除エラー: $($_.Exception.Message)" -ForegroundColor Red
+                        [System.Windows.Forms.MessageBox]::Show(
+                            "フォルダの削除に失敗しました。`n$($_.Exception.Message)",
+                            "削除エラー",
+                            [System.Windows.Forms.MessageBoxButtons]::OK,
+                            [System.Windows.Forms.MessageBoxIcon]::Error
+                        ) | Out-Null
+                    }
+                } else {
+                    Write-Host "[フォルダ管理] フォルダが見つかりません: $削除パス" -ForegroundColor Yellow
+                    # リストからは削除
+                    $script:現在のフォルダリスト.Remove($削除対象フォルダ)
+                    Update-FolderListBox
+                }
+            }
+        } else {
+            [System.Windows.Forms.MessageBox]::Show(
+                "削除するフォルダを選択してください。",
+                "フォルダ削除",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
         }
     })
 

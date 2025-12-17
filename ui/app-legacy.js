@@ -5003,14 +5003,21 @@ async function loadFolders() {
 // フォルダ管理（PowerShell Windows Forms版に移行）
 // ============================================
 
-function createFolder() {
-    console.log('[フォルダ管理] createFolder() → switchFolder() にリダイレクト');
-    // フォルダ作成機能はswitchFolder()ダイアログ内に統合されています
+// 統合されたフォルダ管理関数（作成・切替・削除）
+function folderManagement() {
+    console.log('[フォルダ管理] folderManagement() を呼び出し');
+    // フォルダ管理ダイアログを表示（作成・切替・削除を統合）
     switchFolder();
 }
 
+// 後方互換性のため残す
+function createFolder() {
+    console.log('[フォルダ管理] createFolder() → folderManagement() にリダイレクト');
+    folderManagement();
+}
+
 async function switchFolder() {
-    console.log('✅ [フォルダ切替] ダイアログを開く（PowerShell Windows Forms版）');
+    console.log('✅ [フォルダ管理] ダイアログを開く（PowerShell Windows Forms版）');
 
     try {
         // API経由でPowerShell Windows Forms ダイアログを表示
