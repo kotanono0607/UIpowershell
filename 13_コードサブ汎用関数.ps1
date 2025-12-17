@@ -1513,6 +1513,7 @@ function コード結果を表示 {
         $ボタンY = $フォーム.ClientSize.Height - 50
         $ボタン_コピー.Location = New-Object System.Drawing.Point(20, $ボタンY)
         $ボタン_ファイル開く.Location = New-Object System.Drawing.Point(160, $ボタンY)
+        $ボタン_EXE作成.Location = New-Object System.Drawing.Point(320, $ボタンY)
         $ボタン_閉じる.Location = New-Object System.Drawing.Point(($フォーム.ClientSize.Width - 120), $ボタンY)
     })
 
@@ -1533,6 +1534,19 @@ function コード結果を表示 {
     # ファイルパスがない場合は無効化
     if (-not $生成結果.outputPath) {
         $ボタン_ファイル開く.Enabled = $false
+    }
+
+    # EXE作成ボタン
+    $ボタン_EXE作成 = New-Object System.Windows.Forms.Button
+    $ボタン_EXE作成.Text = "🔧 EXE作成"
+    $ボタン_EXE作成.Location = New-Object System.Drawing.Point(320, 600)
+    $ボタン_EXE作成.Size = New-Object System.Drawing.Size(130, 35)
+    $ボタン_EXE作成.BackColor = [System.Drawing.Color]::FromArgb(255, 243, 224)  # Light orange
+    $フォーム.Controls.Add($ボタン_EXE作成)
+
+    # ファイルパスがない場合は無効化
+    if (-not $生成結果.outputPath) {
+        $ボタン_EXE作成.Enabled = $false
     }
 
     # 閉じるボタン
@@ -1586,6 +1600,81 @@ function コード結果を表示 {
                 "エラー",
                 [System.Windows.Forms.MessageBoxButtons]::OK,
                 [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
+        }
+    })
+
+    # EXE作成ボタンクリックイベント
+    $ボタン_EXE作成.Add_Click({
+        if (-not $生成結果.outputPath -or -not (Test-Path $生成結果.outputPath)) {
+            [System.Windows.Forms.MessageBox]::Show(
+                "PowerShellファイルが見つかりません。",
+                "エラー",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
+            return
+        }
+
+        try {
+            Write-Host "[EXE作成] ps2exeによるEXE変換を開始..." -ForegroundColor Cyan
+
+            # ps2exeモジュールのパス
+            $ps2exeModulePath = "C:\Users\hello\Documents\WindowsPowerShell\Modules\ps2exe\1.0.15\ps2exe.psm1"
+
+            # モジュールの存在確認
+            if (-not (Test-Path $ps2exeModulePath)) {
+                throw "ps2exeモジュールが見つかりません: $ps2exeModulePath"
+            }
+
+            # 出力EXEパス（.ps1 → .exe）
+            $exePath = $生成結果.outputPath -replace '\.ps1$', '.exe'
+
+            Write-Host "[EXE作成] 入力: $($生成結果.outputPath)" -ForegroundColor Gray
+            Write-Host "[EXE作成] 出力: $exePath" -ForegroundColor Gray
+
+            # 確認ダイアログ
+            $確認結果 = [System.Windows.Forms.MessageBox]::Show(
+                "EXEファイルを作成しますか？`n`n出力先: $exePath",
+                "EXE作成確認",
+                [System.Windows.Forms.MessageBoxButtons]::YesNo,
+                [System.Windows.Forms.MessageBoxIcon]::Question
+            )
+
+            if ($確認結果 -ne [System.Windows.Forms.DialogResult]::Yes) {
+                Write-Host "[EXE作成] キャンセルされました" -ForegroundColor Yellow
+                return
+            }
+
+            # ps2exeを実行
+            Import-Module $ps2exeModulePath -Force
+            Invoke-ps2exe -inputFile $生成結果.outputPath -outputFile $exePath -noConsole
+
+            # 成功確認
+            if (Test-Path $exePath) {
+                Write-Host "[EXE作成] ✅ EXE作成成功: $exePath" -ForegroundColor Green
+                $開く結果 = [System.Windows.Forms.MessageBox]::Show(
+                    "EXEファイルを作成しました！`n`n$exePath`n`nフォルダを開きますか？",
+                    "EXE作成完了",
+                    [System.Windows.Forms.MessageBoxButtons]::YesNo,
+                    [System.Windows.Forms.MessageBoxIcon]::Information
+                )
+
+                if ($開く結果 -eq [System.Windows.Forms.DialogResult]::Yes) {
+                    # フォルダを開いてファイルを選択状態にする
+                    Start-Process explorer.exe -ArgumentList "/select,`"$exePath`""
+                }
+            } else {
+                throw "EXEファイルの作成に失敗しました"
+            }
+
+        } catch {
+            Write-Host "[EXE作成] ❌ エラー: $_" -ForegroundColor Red
+            [System.Windows.Forms.MessageBox]::Show(
+                "EXE作成中にエラーが発生しました:`n`n$_",
+                "EXE作成エラー",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Error
             ) | Out-Null
         }
     })
