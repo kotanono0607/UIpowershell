@@ -46,41 +46,16 @@
 
     <!-- メインコンテナ: 2ペイン構成（レイヤーナビゲーション） -->
     <div id="main-container">
-        <!-- 左側：操作パネル（10カテゴリー切り替え） -->
+        <!-- 左側：操作パネル（カテゴリー切り替え） -->
         <div id="left-panel">
-            <!-- カテゴリー切り替えボタン -->
+            <!-- カテゴリー切り替えボタン（カテゴリ設定.jsonから動的生成） -->
             <div id="category-buttons">
-                <button onclick="switchCategory(1)" class="category-btn active" data-category="1" data-color="rgb(180, 180, 180)" style="background-color: rgb(180, 180, 180);">制御構文</button>
-                <button onclick="switchCategory(2)" class="category-btn" data-category="2" data-color="rgb(250, 215, 220)" style="background-color: rgb(250, 215, 220);">マウス操作</button>
-                <button onclick="switchCategory(3)" class="category-btn" data-category="3" data-color="rgb(210, 255, 240)" style="background-color: rgb(210, 255, 240);">キーボード操作</button>
-                <button onclick="switchCategory(4)" class="category-btn" data-category="4" data-color="rgb(225, 245, 230)" style="background-color: rgb(225, 245, 230);">UIAutomation</button>
-                <button onclick="switchCategory(5)" class="category-btn" data-category="5" data-color="rgb(250, 250, 230)" style="background-color: rgb(250, 250, 230);">ファイル操作</button>
-                <button onclick="switchCategory(6)" class="category-btn" data-category="6" data-color="rgb(240, 230, 250)" style="background-color: rgb(240, 230, 250);">データ処理</button>
-                <button onclick="switchCategory(7)" class="category-btn" data-category="7" data-color="rgb(245, 245, 245)" style="background-color: rgb(245, 245, 245);">スクリプト実行</button>
-                <button onclick="switchCategory(8)" class="category-btn" data-category="8" data-color="rgb(220, 235, 255)" style="background-color: rgb(220, 235, 255);">Excel処理</button>
-                <button onclick="switchCategory(9)" class="category-btn" data-category="9" data-color="rgb(255, 250, 220)" style="background-color: rgb(255, 250, 220);">ウインドウ操作</button>
-                <button onclick="switchCategory(10)" class="category-btn" data-category="10" data-color="rgb(255, 235, 240)" style="background-color: rgb(255, 235, 240);">画像処理</button>
+                <!-- カテゴリ設定.jsonから動的に生成 -->
             </div>
 
-            <!-- ノード追加ボタンパネル（カテゴリーごとに切り替わる） -->
+            <!-- ノード追加ボタンパネル（カテゴリ設定.jsonから動的生成） -->
             <div id="node-buttons-container">
-                <!-- カテゴリー1：制御構文 -->
-                <div id="category-panel-1" class="category-panel active">
-                    <!-- ボタン設定.jsonから動的に生成 -->
-                </div>
-                <!-- カテゴリー2：マウス操作 -->
-                <div id="category-panel-2" class="category-panel">
-                    <!-- ボタン設定.jsonから動的に生成 -->
-                </div>
-                <!-- カテゴリー3-10も同様 -->
-                <div id="category-panel-3" class="category-panel"></div>
-                <div id="category-panel-4" class="category-panel"></div>
-                <div id="category-panel-5" class="category-panel"></div>
-                <div id="category-panel-6" class="category-panel"></div>
-                <div id="category-panel-7" class="category-panel"></div>
-                <div id="category-panel-8" class="category-panel"></div>
-                <div id="category-panel-9" class="category-panel"></div>
-                <div id="category-panel-10" class="category-panel"></div>
+                <!-- カテゴリ設定.jsonから動的に生成 -->
             </div>
         </div>
 

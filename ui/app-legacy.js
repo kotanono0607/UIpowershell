@@ -307,9 +307,10 @@ console.log('[ブラウザログ] コンソールログキャプチャ機能を�
 
 let leftVisibleLayer = 1;       // 左パネルに表示中のレイヤー
 let rightVisibleLayer = 1;      // 右パネルに表示中のレイヤー（起動時は非表示、スクリプト展開時のみ表示）
-let currentCategory = 1;        // 現在選択中のカテゴリー (1-10)
+let currentCategory = 1;        // 現在選択中のカテゴリー
 let nodes = [];                 // 全ノード配列（全レイヤー）
 let buttonSettings = [];        // ボタン設定.jsonのデータ
+let categorySettings = [];      // カテゴリ設定.jsonのデータ
 let variables = {};             // 変数データ
 let folders = [];               // フォルダ一覧
 let currentFolder = null;       // 現在のフォルダ
@@ -1900,6 +1901,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 左右パネル表示を初期化
     updateDualPanelDisplay();
 
+    // カテゴリ設定.jsonを読み込み
+    await loadCategorySettings();
+    await writeControlLog('✅ [INIT] カテゴリ設定の読み込み完了');
+
+    // カテゴリボタン・パネルを動的生成
+    generateCategoryUI();
+    await writeControlLog('✅ [INIT] カテゴリUI動的生成完了');
+
     // ボタン設定.jsonを読み込み
     await loadButtonSettings();
     await writeControlLog('✅ [INIT] ボタン設定の読み込み完了');
@@ -1909,9 +1918,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 初期カテゴリーの色を設定
     switchCategory(1);
-
-    // カテゴリーボタンのマウスオーバーイベントを設定
-    setupCategoryButtonHover();
 
     // イベントリスナー設定
     setupEventListeners();
@@ -2065,25 +2071,88 @@ async function loadButtonSettings() {
 }
 
 // ============================================
+// カテゴリ設定.json読み込み
+// ============================================
+
+async function loadCategorySettings() {
+    try {
+        console.log('[カテゴリ設定] ロード開始...');
+
+        const response = await fetch('/category-settings.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        categorySettings = await response.json();
+        console.log('[カテゴリ設定] ✅ ロード完了:', categorySettings.length, '個');
+    } catch (error) {
+        console.error('[カテゴリ設定] ❌ ロード失敗:', error);
+        categorySettings = [];
+    }
+}
+
+// ============================================
+// カテゴリボタン・パネルを動的生成
+// ============================================
+
+function generateCategoryUI() {
+    console.log('[カテゴリUI] 動的生成開始...');
+
+    const categoryButtonsContainer = document.getElementById('category-buttons');
+    const nodePanelsContainer = document.getElementById('node-buttons-container');
+
+    if (!categoryButtonsContainer || !nodePanelsContainer) {
+        console.error('[カテゴリUI] コンテナが見つかりません');
+        return;
+    }
+
+    // 既存のコンテンツをクリア
+    categoryButtonsContainer.innerHTML = '';
+    nodePanelsContainer.innerHTML = '';
+
+    // カテゴリ設定からUI生成
+    categorySettings.forEach((category, index) => {
+        // カテゴリボタンを作成
+        const btn = document.createElement('button');
+        btn.className = 'category-btn' + (index === 0 ? ' active' : '');
+        btn.textContent = category.名前;
+        btn.dataset.category = category.番号;
+        btn.dataset.color = category.色;
+        btn.style.backgroundColor = category.色;
+        btn.onclick = () => switchCategory(category.番号);
+
+        // マウスオーバーで説明表示
+        btn.onmouseenter = () => {
+            document.getElementById('description-text').textContent = category.説明 || 'カテゴリの説明';
+        };
+        btn.onmouseleave = () => {
+            document.getElementById('description-text').textContent = 'ノードやカテゴリにマウスを乗せると説明が表示されます。';
+        };
+
+        categoryButtonsContainer.appendChild(btn);
+
+        // カテゴリパネルを作成
+        const panel = document.createElement('div');
+        panel.id = `category-panel-${category.番号}`;
+        panel.className = 'category-panel' + (index === 0 ? ' active' : '');
+        nodePanelsContainer.appendChild(panel);
+    });
+
+    console.log('[カテゴリUI] ✅ 動的生成完了:', categorySettings.length, '個のカテゴリ');
+}
+
+// ============================================
 // カテゴリーパネルにノード追加ボタンを生成
 // ============================================
 
 function generateAddNodeButtons() {
     console.log('[ボタン生成] 開始 - buttonSettings:', buttonSettings.length, '個');
 
-    // 操作フレームパネル1-10の対応
-    const panelMapping = {
-        1: 'category-panel-1',
-        2: 'category-panel-2',
-        3: 'category-panel-3',
-        4: 'category-panel-4',
-        5: 'category-panel-5',
-        6: 'category-panel-6',
-        7: 'category-panel-7',
-        8: 'category-panel-8',
-        9: 'category-panel-9',
-        10: 'category-panel-10'
-    };
+    // カテゴリ設定から動的にpanelMappingを構築
+    const panelMapping = {};
+    categorySettings.forEach(cat => {
+        panelMapping[cat.番号] = `category-panel-${cat.番号}`;
+    });
 
     let generatedCount = 0;
 
@@ -2197,20 +2266,6 @@ function getColorCode(colorName) {
 // カテゴリー切り替え
 // ============================================
 
-// カテゴリーの説明文
-const categoryDescriptions = {
-    1: '【制御構文】\n条件分岐やループなど、プログラムの流れを制御するノードです。\n\n・条件分岐: 条件によって処理を分岐\n・ループ: 繰り返し処理を実行',
-    2: '【マウス操作】\nマウスのクリックや移動などの操作を自動化するノードです。\n\n・クリック、ダブルクリック\n・マウス移動、ドラッグ&ドロップ',
-    3: '【キーボード操作】\nキー入力やショートカットキーの操作を自動化するノードです。\n\n・文字入力、キー送信\n・ショートカットキー操作',
-    4: '【UIAutomation】\nWindowsのUI要素を直接操作するノードです。\n\n・ボタンクリック、テキスト入力\n・要素の取得、待機',
-    5: '【ファイル操作】\nファイルやフォルダの操作を行うノードです。\n\n・ファイルの読み書き、コピー、移動\n・フォルダ作成、削除',
-    6: '【データ処理】\nデータの加工や変換を行うノードです。\n\n・文字列操作、数値計算\n・配列操作、JSON処理',
-    7: '【スクリプト実行】\n外部スクリプトやコマンドを実行するノードです。\n\n・PowerShellスクリプト実行\n・コマンドライン実行',
-    8: '【Excel処理】\nExcelファイルの操作を行うノードです。\n\n・セルの読み書き\n・シート操作、ブック操作',
-    9: '【ウインドウ操作】\nウインドウの操作を行うノードです。\n\n・ウインドウの取得、アクティブ化\n・最大化、最小化、閉じる',
-    10: '【画像処理】\n画面キャプチャや画像認識を行うノードです。\n\n・スクリーンショット\n・画像マッチング'
-};
-
 function switchCategory(categoryNum) {
     currentCategory = categoryNum;
 
@@ -2237,21 +2292,6 @@ function switchCategory(categoryNum) {
             container.style.backgroundColor = categoryColor;
         }
     }
-}
-
-// カテゴリーボタンにマウスオーバーイベントを設定
-function setupCategoryButtonHover() {
-    const categoryBtns = document.querySelectorAll('.category-btn');
-    categoryBtns.forEach(btn => {
-        const categoryNum = parseInt(btn.dataset.category);
-        btn.onmouseenter = () => {
-            const description = categoryDescriptions[categoryNum] || 'カテゴリの説明';
-            document.getElementById('description-text').textContent = description;
-        };
-        btn.onmouseleave = () => {
-            document.getElementById('description-text').textContent = 'ノードやカテゴリにマウスを乗せると説明が表示されます。';
-        };
-    });
 }
 
 // ============================================
