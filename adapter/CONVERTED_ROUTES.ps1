@@ -2268,14 +2268,16 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
 
         Write-Host "[ノード関数実行] ✅ 関数実行完了" -ForegroundColor Green
 
-        # $codeが$nullの場合はキャンセルまたはエラー
-        if ($null -eq $code) {
-            Write-Host "[ノード関数実行] ⚠️ 関数が$nullを返しました（キャンセルまたはエラー）" -ForegroundColor Yellow
+        # $codeが$nullの場合、またはキャンセル文字列の場合はキャンセル扱い
+        $isCancel = ($null -eq $code) -or ($code -eq "# キャンセルされました")
+        if ($isCancel) {
+            Write-Host "[ノード関数実行] ⚠️ ユーザーがキャンセルしました" -ForegroundColor Yellow
             $result = @{
                 success = $false
+                cancelled = $true
                 code = $null
                 functionName = $functionName
-                error = "関数が$nullを返しました（ユーザーキャンセルまたはエラー）"
+                error = "ユーザーがキャンセルしました"
             }
         } else {
             Write-Host "[ノード関数実行] 📤 生成されたコード (先頭200文字):" -ForegroundColor Gray
