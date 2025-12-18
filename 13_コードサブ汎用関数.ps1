@@ -1682,9 +1682,50 @@ function コード結果を表示 {
                 return
             }
 
+            # win32API.psm1を埋め込んだ一時ファイルを作成
+            Write-Host "[EXE作成] win32API.psm1を埋め込みます..." -ForegroundColor Cyan
+            $win32ApiPath = Join-Path $global:RootDir "win32API.psm1"
+            $tempScriptPath = $生成結果.outputPath -replace '\.ps1$', '_combined.ps1'
+
+            if (Test-Path $win32ApiPath) {
+                # win32API.psm1の内容を読み込み
+                $win32ApiContent = Get-Content -Path $win32ApiPath -Raw -Encoding UTF8
+
+                # 元のスクリプトを読み込み
+                $originalScript = Get-Content -Path $生成結果.outputPath -Raw -Encoding UTF8
+
+                # 結合（win32API.psm1の関数を先頭に配置）
+                $combinedScript = @"
+# ============================================
+# win32API.psm1 埋め込み（EXE用）
+# ============================================
+$win32ApiContent
+
+# ============================================
+# 生成されたスクリプト
+# ============================================
+$originalScript
+"@
+                # 一時ファイルに保存
+                Set-Content -Path $tempScriptPath -Value $combinedScript -Encoding UTF8 -Force
+                Write-Host "[EXE作成] ✅ win32API.psm1を埋め込みました" -ForegroundColor Green
+                Write-Host "[EXE作成] 一時ファイル: $tempScriptPath" -ForegroundColor Gray
+
+                $inputFileForExe = $tempScriptPath
+            } else {
+                Write-Host "[EXE作成] ⚠ win32API.psm1が見つかりません。埋め込みなしで続行します" -ForegroundColor Yellow
+                $inputFileForExe = $生成結果.outputPath
+            }
+
             # ps2exeを実行
             Import-Module $ps2exeModulePath -Force
-            Invoke-ps2exe -inputFile $生成結果.outputPath -outputFile $exePath -noConsole
+            Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath -noConsole
+
+            # 一時ファイルを削除
+            if ((Test-Path $tempScriptPath) -and ($tempScriptPath -ne $生成結果.outputPath)) {
+                Remove-Item -Path $tempScriptPath -Force -ErrorAction SilentlyContinue
+                Write-Host "[EXE作成] 一時ファイルを削除しました" -ForegroundColor Gray
+            }
 
             # 成功確認
             if (Test-Path $exePath) {
