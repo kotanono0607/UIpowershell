@@ -1063,10 +1063,18 @@ Add-PodeRoute -Method Post -Path "/api/execute/script" -ScriptBlock {
             return
         }
 
+        $RootDir = Get-PodeState -Name 'RootDir'
+
         # 汎用関数を読み込み（13_コードサブ汎用関数.ps1）
-        $汎用関数パス = Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1"
+        $汎用関数パス = Join-Path $RootDir "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
             . $汎用関数パス
+        }
+
+        # win32API.psm1を読み込み（マウス・キーボード操作等）
+        $win32ApiPath = Join-Path $RootDir "win32API.psm1"
+        if (Test-Path $win32ApiPath) {
+            Import-Module $win32ApiPath -Force -ErrorAction SilentlyContinue
         }
 
         # スクリプトを実行して出力を取得
