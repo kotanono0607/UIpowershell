@@ -1306,7 +1306,7 @@ function 指定アプリ起動 {
     Start-Process @params
 }
 
-# URLを開く Ver2.0
+# URLを開く Ver2.1
 function URLを開く {
     param(
         [Parameter(Mandatory=$true)]
@@ -1323,25 +1323,25 @@ function URLを開く {
         return
     }
 
-    # Edgeの引数を構築
-    $引数リスト = @()
+    # Edgeの引数を構築（文字列として構築）
+    $引数文字列 = ""
 
     if ($新規ウインドウ) {
-        $引数リスト += "--new-window"
+        $引数文字列 += "--new-window "
     }
 
     if ($シークレットモード) {
-        $引数リスト += "-inprivate"
+        $引数文字列 += "-inprivate "
     }
 
     if ($フルスクリーン) {
-        $引数リスト += "--start-fullscreen"
+        $引数文字列 += "--start-fullscreen "
     }
 
-    $引数リスト += $URL
+    $引数文字列 += "`"$URL`""
 
     # Edge で開く
-    Start-Process "msedge" -ArgumentList $引数リスト
+    Start-Process "msedge" -ArgumentList $引数文字列
 }
 
 # ウインドウ存在確認 Ver1.3
