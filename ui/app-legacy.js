@@ -755,6 +755,22 @@ function drawPanelArrows(layerId) {
         else if (isLemonChiffonColor(currentColor) && isNextNormal) {
             drawDownArrow(ctx, currentNode, nextNode, '#000000');
         }
+        // 黄 → 緑（ループ開始 → 条件分岐開始）
+        else if (isLemonChiffonColor(currentColor) && isSpringGreenColor(nextColor)) {
+            drawDownArrow(ctx, currentNode, nextNode, '#000000');
+        }
+        // 緑 → 黄（条件分岐終了 → ループ終了）
+        else if (isSpringGreenColor(currentColor) && isLemonChiffonColor(nextColor)) {
+            drawDownArrow(ctx, currentNode, nextNode, '#000000');
+        }
+        // 緑 → 緑（条件分岐 → 条件分岐）
+        else if (isSpringGreenColor(currentColor) && isSpringGreenColor(nextColor)) {
+            drawDownArrow(ctx, currentNode, nextNode, '#000000');
+        }
+        // 黄 → 黄（ループ → ループ）
+        else if (isLemonChiffonColor(currentColor) && isLemonChiffonColor(nextColor)) {
+            drawDownArrow(ctx, currentNode, nextNode, '#000000');
+        }
         // 注: 赤→赤と青→青はdrawConditionalBranchArrows内で処理されるため、ここでは削除
     }
     // console.log(`[デバッグ] 描画した通常矢印数: ${arrowCount}`);
