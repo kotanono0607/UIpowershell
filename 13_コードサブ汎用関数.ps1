@@ -1541,9 +1541,10 @@ function コード結果を表示 {
         # ボタンの位置を調整
         $ボタンY = $フォーム.ClientSize.Height - 50
         $ボタン_コピー.Location = New-Object System.Drawing.Point(20, $ボタンY)
-        $ボタン_ファイル開く.Location = New-Object System.Drawing.Point(160, $ボタンY)
-        $ボタン_EXE作成.Location = New-Object System.Drawing.Point(320, $ボタンY)
-        $ボタン_実行.Location = New-Object System.Drawing.Point(460, $ボタンY)
+        $ボタン_ファイル開く.Location = New-Object System.Drawing.Point(140, $ボタンY)
+        $ボタン_ISE編集.Location = New-Object System.Drawing.Point(280, $ボタンY)
+        $ボタン_EXE作成.Location = New-Object System.Drawing.Point(400, $ボタンY)
+        $ボタン_実行.Location = New-Object System.Drawing.Point(520, $ボタンY)
         $ボタン_閉じる.Location = New-Object System.Drawing.Point(($フォーム.ClientSize.Width - 120), $ボタンY)
     })
 
@@ -1551,14 +1552,14 @@ function コード結果を表示 {
     $ボタン_コピー = New-Object System.Windows.Forms.Button
     $ボタン_コピー.Text = "📋 コピー"
     $ボタン_コピー.Location = New-Object System.Drawing.Point(20, 600)
-    $ボタン_コピー.Size = New-Object System.Drawing.Size(130, 35)
+    $ボタン_コピー.Size = New-Object System.Drawing.Size(110, 35)
     $フォーム.Controls.Add($ボタン_コピー)
 
     # ファイルを開くボタン
     $ボタン_ファイル開く = New-Object System.Windows.Forms.Button
     $ボタン_ファイル開く.Text = "📂 ファイルを開く"
-    $ボタン_ファイル開く.Location = New-Object System.Drawing.Point(160, 600)
-    $ボタン_ファイル開く.Size = New-Object System.Drawing.Size(150, 35)
+    $ボタン_ファイル開く.Location = New-Object System.Drawing.Point(140, 600)
+    $ボタン_ファイル開く.Size = New-Object System.Drawing.Size(130, 35)
     $フォーム.Controls.Add($ボタン_ファイル開く)
 
     # ファイルパスがない場合は無効化
@@ -1566,11 +1567,23 @@ function コード結果を表示 {
         $ボタン_ファイル開く.Enabled = $false
     }
 
+    # ISEで編集ボタン
+    $ボタン_ISE編集 = New-Object System.Windows.Forms.Button
+    $ボタン_ISE編集.Text = "✏️ ISEで編集"
+    $ボタン_ISE編集.Location = New-Object System.Drawing.Point(280, 600)
+    $ボタン_ISE編集.Size = New-Object System.Drawing.Size(110, 35)
+    $フォーム.Controls.Add($ボタン_ISE編集)
+
+    # ファイルパスがない場合は無効化
+    if (-not $生成結果.outputPath) {
+        $ボタン_ISE編集.Enabled = $false
+    }
+
     # EXE作成ボタン
     $ボタン_EXE作成 = New-Object System.Windows.Forms.Button
     $ボタン_EXE作成.Text = "🔧 EXE作成"
-    $ボタン_EXE作成.Location = New-Object System.Drawing.Point(320, 600)
-    $ボタン_EXE作成.Size = New-Object System.Drawing.Size(130, 35)
+    $ボタン_EXE作成.Location = New-Object System.Drawing.Point(400, 600)
+    $ボタン_EXE作成.Size = New-Object System.Drawing.Size(110, 35)
     $ボタン_EXE作成.BackColor = [System.Drawing.Color]::FromArgb(255, 243, 224)  # Light orange
     $フォーム.Controls.Add($ボタン_EXE作成)
 
@@ -1582,7 +1595,7 @@ function コード結果を表示 {
     # 実行ボタン
     $ボタン_実行 = New-Object System.Windows.Forms.Button
     $ボタン_実行.Text = "🔥 実行"
-    $ボタン_実行.Location = New-Object System.Drawing.Point(460, 600)
+    $ボタン_実行.Location = New-Object System.Drawing.Point(520, 600)
     $ボタン_実行.Size = New-Object System.Drawing.Size(100, 35)
     $ボタン_実行.BackColor = [System.Drawing.Color]::FromArgb(255, 200, 150)  # Orange
     $フォーム.Controls.Add($ボタン_実行)
@@ -1634,6 +1647,31 @@ function コード結果を表示 {
                 Write-Host "[コード結果] ❌ ファイルを開けませんでした: $_" -ForegroundColor Red
                 [System.Windows.Forms.MessageBox]::Show(
                     "ファイルを開けませんでした: $_",
+                    "エラー",
+                    [System.Windows.Forms.MessageBoxButtons]::OK,
+                    [System.Windows.Forms.MessageBoxIcon]::Error
+                ) | Out-Null
+            }
+        } else {
+            [System.Windows.Forms.MessageBox]::Show(
+                "ファイルが見つかりません。",
+                "エラー",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
+        }
+    })
+
+    # ISEで編集ボタンクリックイベント
+    $ボタン_ISE編集.Add_Click({
+        if ($生成結果.outputPath -and (Test-Path $生成結果.outputPath)) {
+            try {
+                Write-Host "[コード結果] ISEで編集します: $($生成結果.outputPath)" -ForegroundColor Cyan
+                Start-Process -FilePath "powershell_ise.exe" -ArgumentList $生成結果.outputPath
+            } catch {
+                Write-Host "[コード結果] ❌ ISEを起動できませんでした: $_" -ForegroundColor Red
+                [System.Windows.Forms.MessageBox]::Show(
+                    "PowerShell ISEを起動できませんでした: $_",
                     "エラー",
                     [System.Windows.Forms.MessageBoxButtons]::OK,
                     [System.Windows.Forms.MessageBoxIcon]::Error
