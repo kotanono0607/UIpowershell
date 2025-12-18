@@ -1306,14 +1306,42 @@ function 指定アプリ起動 {
     Start-Process @params
 }
 
-# URLを開く Ver1.0
+# URLを開く Ver2.0
 function URLを開く {
     param(
         [Parameter(Mandatory=$true)]
-        [string]$URL
+        [string]$URL,
+
+        [switch]$新規ウインドウ,
+        [switch]$シークレットモード,
+        [switch]$フルスクリーン
     )
 
-    Start-Process $URL
+    # オプションが指定されていない場合は既定ブラウザで開く
+    if (-not $新規ウインドウ -and -not $シークレットモード -and -not $フルスクリーン) {
+        Start-Process $URL
+        return
+    }
+
+    # Edgeの引数を構築
+    $引数リスト = @()
+
+    if ($新規ウインドウ) {
+        $引数リスト += "--new-window"
+    }
+
+    if ($シークレットモード) {
+        $引数リスト += "-inprivate"
+    }
+
+    if ($フルスクリーン) {
+        $引数リスト += "--start-fullscreen"
+    }
+
+    $引数リスト += $URL
+
+    # Edge で開く
+    Start-Process "msedge" -ArgumentList $引数リスト
 }
 
 # ウインドウ存在確認 Ver1.3
