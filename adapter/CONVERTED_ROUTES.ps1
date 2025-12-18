@@ -920,7 +920,9 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
             try {
                 $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
                 $mainData = $mainContent | ConvertFrom-Json
-                $global:folderPath = $mainData.フォルダパス
+                # 相対パス対応: フォルダ名からフルパスを構築
+                $folderName = $mainData.フォルダパス
+                $global:folderPath = Join-Path $RootDir "03_history\$folderName"
                 $global:jsonパス = Join-Path $global:folderPath "コード.json"
                 Write-Host "[実行] フォルダパス: $global:folderPath" -ForegroundColor Gray
                 Write-Host "[実行] コード.json: $global:jsonパス" -ForegroundColor Gray
@@ -1223,8 +1225,8 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
             try {
                 $content = Get-Content $mainJsonPath -Raw -Encoding UTF8
                 $mainData = $content | ConvertFrom-Json
-                $folderPath = $mainData.フォルダパス
-                $現在のフォルダ = Split-Path -Leaf $folderPath
+                # 相対パス対応: フォルダ名を直接取得
+                $現在のフォルダ = $mainData.フォルダパス
                 Write-Host "[API] 現在のフォルダ: $現在のフォルダ" -ForegroundColor Gray
             } catch {
                 Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗しました: $_" -ForegroundColor Yellow
@@ -1319,9 +1321,9 @@ Add-PodeRoute -Method Get -Path "/api/main-json" -ScriptBlock {
             $content = Get-Content $mainJsonPath -Raw -Encoding UTF8
             $mainData = $content | ConvertFrom-Json
 
-            # フォルダパスからフォルダ名を抽出
-            $folderPath = $mainData.フォルダパス
-            $folderName = Split-Path -Leaf $folderPath
+            # 相対パス対応: フォルダ名からフルパスを構築
+            $folderName = $mainData.フォルダパス
+            $folderPath = Join-Path $rootDir "03_history\$folderName"
 
             $result = @{
                 success = $true
@@ -1812,7 +1814,9 @@ Add-PodeRoute -Method Post -Path "/api/id/generate" -ScriptBlock {
         try {
             $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
             $mainData = $mainContent | ConvertFrom-Json
-            $global:folderPath = $mainData.フォルダパス
+            # 相対パス対応: フォルダ名からフルパスを構築
+            $folderName = $mainData.フォルダパス
+            $global:folderPath = Join-Path $RootDir "03_history\$folderName"
             $global:jsonパス = Join-Path $global:folderPath "コード.json"
         } catch {
             Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
@@ -1854,7 +1858,9 @@ Add-PodeRoute -Method Post -Path "/api/entry/add" -ScriptBlock {
         try {
             $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
             $mainData = $mainContent | ConvertFrom-Json
-            $global:folderPath = $mainData.フォルダパス
+            # 相対パス対応: フォルダ名からフルパスを構築
+            $folderName = $mainData.フォルダパス
+            $global:folderPath = Join-Path $RootDir "03_history\$folderName"
             $global:jsonパス = Join-Path $global:folderPath "コード.json"
         } catch {
             Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
@@ -1905,7 +1911,9 @@ Add-PodeRoute -Method Get -Path "/api/entry/:id" -ScriptBlock {
         try {
             $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
             $mainData = $mainContent | ConvertFrom-Json
-            $global:folderPath = $mainData.フォルダパス
+            # 相対パス対応: フォルダ名からフルパスを構築
+            $folderName = $mainData.フォルダパス
+            $global:folderPath = Join-Path $RootDir "03_history\$folderName"
             $global:jsonパス = Join-Path $global:folderPath "コード.json"
         } catch {
             Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
@@ -2131,7 +2139,9 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             try {
                 $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
                 $mainData = $mainContent | ConvertFrom-Json
-                $folderPath = $mainData.フォルダパス
+                # 相対パス対応: フォルダ名からフルパスを構築
+                $folderName = $mainData.フォルダパス
+                $folderPath = Join-Path $RootDir "03_history\$folderName"
                 $jsonパス = Join-Path $folderPath "コード.json"
 
                 $runspace.SessionStateProxy.SetVariable('global:folderPath', $folderPath)
@@ -2746,7 +2756,9 @@ Add-PodeRoute -Method Get -Path "/api/history/status" -ScriptBlock {
         if (Test-Path $mainJsonPath) {
             $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
             $mainData = $mainContent | ConvertFrom-Json
-            $folderPath = $mainData.フォルダパス
+            # 相対パス対応: フォルダ名からフルパスを構築
+            $folderName = $mainData.フォルダパス
+            $folderPath = Join-Path $RootDir "03_history\$folderName"
 
             Write-Host "[履歴API] フォルダパス: $folderPath" -ForegroundColor Cyan
 
@@ -2813,7 +2825,9 @@ Add-PodeRoute -Method Post -Path "/api/history/undo" -ScriptBlock {
 
         $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
         $mainData = $mainContent | ConvertFrom-Json
-        $folderPath = $mainData.フォルダパス
+        # 相対パス対応: フォルダ名からフルパスを構築
+        $folderName = $mainData.フォルダパス
+        $folderPath = Join-Path $RootDir "03_history\$folderName"
 
         # Undo実行
         $result = Undo-Operation -FolderPath $folderPath
@@ -2859,7 +2873,9 @@ Add-PodeRoute -Method Post -Path "/api/history/redo" -ScriptBlock {
 
         $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
         $mainData = $mainContent | ConvertFrom-Json
-        $folderPath = $mainData.フォルダパス
+        # 相対パス対応: フォルダ名からフルパスを構築
+        $folderName = $mainData.フォルダパス
+        $folderPath = Join-Path $RootDir "03_history\$folderName"
 
         # Redo実行
         $result = Redo-Operation -FolderPath $folderPath
@@ -2905,7 +2921,9 @@ Add-PodeRoute -Method Post -Path "/api/history/init" -ScriptBlock {
 
         $mainContent = Get-Content -Path $mainJsonPath -Raw -Encoding UTF8
         $mainData = $mainContent | ConvertFrom-Json
-        $folderPath = $mainData.フォルダパス
+        # 相対パス対応: フォルダ名からフルパスを構築
+        $folderName = $mainData.フォルダパス
+        $folderPath = Join-Path $RootDir "03_history\$folderName"
 
         # 履歴初期化
         $result = Initialize-HistoryStack -FolderPath $folderPath
