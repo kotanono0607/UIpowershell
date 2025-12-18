@@ -1306,7 +1306,7 @@ function 指定アプリ起動 {
     Start-Process @params
 }
 
-# URLを開く Ver2.1
+# URLを開く Ver2.2
 function URLを開く {
     param(
         [Parameter(Mandatory=$true)]
@@ -1334,14 +1334,17 @@ function URLを開く {
         $引数文字列 += "-inprivate "
     }
 
-    if ($フルスクリーン) {
-        $引数文字列 += "--start-fullscreen "
-    }
-
     $引数文字列 += "`"$URL`""
 
     # Edge で開く
     Start-Process "msedge" -ArgumentList $引数文字列
+
+    # フルスクリーンはF11キー送信で実現
+    if ($フルスクリーン) {
+        Start-Sleep -Seconds 2
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.SendKeys]::SendWait("{F11}")
+    }
 }
 
 # ウインドウ存在確認 Ver1.3
