@@ -66,7 +66,7 @@ function Get-ScriptNodeInfo {
         return ""
     }
 
-    $comment = "# ┌─ 内包ノード ─────────────────────────`r`n"
+    $comment = "# 内包ノード:`r`n"
 
     foreach ($line in $lines) {
         $parts = $line -split ";"
@@ -75,11 +75,9 @@ function Get-ScriptNodeInfo {
             $nodeColor = $parts[1]
             $nodeText = $parts[2]
             $nodeType = Get-NodeTypeFromColor -Color $nodeColor
-            $comment += "# │ [$nodeType] $nodeText (ID: $nodeId)`r`n"
+            $comment += "#   [$nodeType] $nodeText (ID: $nodeId)`r`n"
         }
     }
-
-    $comment += "# └──────────────────────────────────────`r`n"
 
     return $comment
 }
@@ -87,7 +85,7 @@ function Get-ScriptNodeInfo {
 function New-NodeComment {
     <#
     .SYNOPSIS
-    ノード情報からコメントブロックを生成
+    ノード情報からコメントを生成（簡潔な1行形式）
     #>
     param(
         [string]$NodeType,
@@ -98,25 +96,8 @@ function New-NodeComment {
         [string]$ScriptContent = $null
     )
 
-    $separator = "# " + ("─" * 40)
-    $comment = "$separator`r`n"
-    $comment += "# [$NodeType] $NodeText`r`n"
-
-    # ノードID、レイヤー、GroupIDの情報を組み立て
-    $infoLine = "# ノードID: $NodeId"
-    if ($Layer -gt 0) {
-        $infoLine += ", レイヤー: $Layer"
-    }
-    if ($GroupId -and $GroupId -ne "") {
-        $infoLine += ", GroupID: $GroupId"
-    }
-    $comment += "$infoLine`r`n"
-    $comment += "$separator`r`n"
-
-    # 内包ノード情報は各コードの前に表示されるため、ヘッダーでは表示しない
-    # （ノードリストを展開関数で各コード前にコメントを追加済み）
-
-    return $comment
+    # 簡潔な1行形式: # [タイプ] テキスト (ID: xxx)
+    return "# [$NodeType] $NodeText (ID: $NodeId)`r`n"
 }
 
 # ============================================
@@ -286,9 +267,8 @@ function 実行イベント_v2 {
                 # コメント生成（Pinkノード用 - 深さ1の開始/終了マーカー付き）
                 $groupIdValue = if ($button.groupId) { $button.groupId } else { "" }
                 $layerValue = if ($button.layer) { [int]$button.layer } else { 0 }
-                $separator = "# " + ("═" * 40)
-                $headerComment = "$separator`r`n# [スクリプト開始 深さ:1] $buttonText`r`n# ノードID: $buttonName, レイヤー: $layerValue`r`n$separator`r`n"
-                $footerComment = "$separator`r`n# [スクリプト終了 深さ:1] $buttonName`r`n$separator`r`n"
+                $headerComment = "# [スクリプト開始] $buttonText (ID: $buttonName)`r`n"
+                $footerComment = "# [スクリプト終了] $buttonText (ID: $buttonName)`r`n"
                 $output += "$headerComment$取得したエントリ`r`n$footerComment`r`n"
             } elseif ($取得したエントリ -ne $null -and $取得したエントリ -ne "") {
                 # エントリの内容をコンソールに出力（デバッグモードのみ）
@@ -318,10 +298,9 @@ function 実行イベント_v2 {
                 $layerValue = if ($button.layer) { [int]$button.layer } else { 0 }
 
                 if ($isPinkExpanded -or $colorName -eq "Pink") {
-                    # Pinkノード（スクリプト）の場合は深さ1の開始/終了マーカー付き
-                    $separator = "# " + ("═" * 40)
-                    $headerComment = "$separator`r`n# [スクリプト開始 深さ:1] $buttonText`r`n# ノードID: $buttonName, レイヤー: $layerValue`r`n$separator`r`n"
-                    $footerComment = "$separator`r`n# [スクリプト終了 深さ:1] $buttonName`r`n$separator`r`n"
+                    # Pinkノード（スクリプト）の場合は簡潔な開始/終了マーカー
+                    $headerComment = "# [スクリプト開始] $buttonText (ID: $buttonName)`r`n"
+                    $footerComment = "# [スクリプト終了] $buttonText (ID: $buttonName)`r`n"
                     $output += "$headerComment$取得したエントリ`r`n$footerComment`r`n"
                 } else {
                     # 通常ノードの場合
@@ -847,11 +826,9 @@ function ノードリストを展開 {
                 # 内包ノードのコメントを生成（各コードの前にノード情報を表示）
                 $innerNodeType = Get-NodeTypeFromColor -Color $nodeColor
                 if ($nodeColor -eq "Pink") {
-                    # ネストされたスクリプトノードの場合はセパレーター付きヘッダー + 深さ表示 + 終了マーカー
-                    $depth = $再帰深度 + 1
-                    $separator = "# " + ("─" * 40)
-                    $headerComment = "$separator`r`n# [スクリプト開始 深さ:$depth] $nodeText`r`n# ノードID: $nodeId`r`n$separator`r`n"
-                    $footerComment = "$separator`r`n# [スクリプト終了 深さ:$depth] $nodeId`r`n$separator`r`n"
+                    # ネストされたスクリプトノードの場合は簡潔な開始/終了マーカー
+                    $headerComment = "# [スクリプト開始] $nodeText (ID: $nodeId)`r`n"
+                    $footerComment = "# [スクリプト終了] $nodeText (ID: $nodeId)`r`n"
                     $output += "$headerComment$entry`r`n$footerComment"
                 } else {
                     # 通常ノードの場合はシンプルなコメント
