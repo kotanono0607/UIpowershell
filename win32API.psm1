@@ -30,6 +30,8 @@
             public static extern void mouse_event(int dwFlags, int dx, int dy, int cButtons, int dwExtraInfo);
             public const int MOUSEEVENTF_LEFTDOWN = 0x02;
             public const int MOUSEEVENTF_LEFTUP = 0x04;
+            public const int MOUSEEVENTF_RIGHTDOWN = 0x08;
+            public const int MOUSEEVENTF_RIGHTUP = 0x10;
 
             // クリックイベントとマウス操作に関連する構造体定義
             [StructLayout(LayoutKind.Sequential)]
@@ -78,6 +80,36 @@
                 inputs[1].Type = 0;  // INPUT_MOUSE
                 inputs[1].Data.Mouse.dwFlags = MOUSEEVENTF_LEFTUP;
                 SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+            }
+
+            // 指定座標で右クリックを実行
+            public static void PerformRightClick(int x, int y) {
+                SetCursorPos(x, y);
+                mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+                mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+            }
+
+            // 現在のカーソル位置で右クリックを実行
+            public static void RightClick() {
+                mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+                mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+            }
+
+            // 指定座標でダブルクリックを実行
+            public static void PerformDoubleClick(int x, int y) {
+                SetCursorPos(x, y);
+                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+            }
+
+            // 現在のカーソル位置でダブルクリックを実行
+            public static void DoubleClick() {
+                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
             }
 
             // ウィンドウの表示状態を変更するメソッド
@@ -187,7 +219,41 @@ function 指定座標に移動 {
         [Int]$X座標,
          [Int]$Y座標
     )
-    [winAPIUser32]::SetCursorPos($X座標, $Y座標) 
+    [winAPIUser32]::SetCursorPos($X座標, $Y座標)
+}
+
+function 指定座標を右クリック {
+    param(
+        [Parameter(Mandatory=$true)]
+        [Int]$X座標,
+        [Int]$Y座標
+    )
+    指定秒待機 0.1
+    [winAPIUser32]::PerformRightClick($X座標, $Y座標)
+    指定秒待機 0.1
+}
+
+function 右クリック {
+    指定秒待機 0.1
+    [winAPIUser32]::RightClick()
+    指定秒待機 0.1
+}
+
+function 指定座標をダブルクリック {
+    param(
+        [Parameter(Mandatory=$true)]
+        [Int]$X座標,
+        [Int]$Y座標
+    )
+    指定秒待機 0.1
+    [winAPIUser32]::PerformDoubleClick($X座標, $Y座標)
+    指定秒待機 0.1
+}
+
+function ダブルクリック {
+    指定秒待機 0.1
+    [winAPIUser32]::DoubleClick()
+    指定秒待機 0.1
 }
 
 function クリップボードの文字列取得 {

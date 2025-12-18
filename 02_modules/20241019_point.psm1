@@ -28,6 +28,10 @@ function Invoke-MouseGet {
             $global:MouseClickResult = "指定座標を左クリック -X座標 $x -Y座標 $y"
         } elseif ($Caller -eq "Addon2") {
             $global:MouseClickResult = "指定座標に移動 -X座標 $x -Y座標 $y"
+        } elseif ($Caller -eq "Addon3") {
+            $global:MouseClickResult = "指定座標を右クリック -X座標 $x -Y座標 $y"
+        } elseif ($Caller -eq "Addon4") {
+            $global:MouseClickResult = "指定座標をダブルクリック -X座標 $x -Y座標 $y"
         } else {
             $global:MouseClickResult = "指定座標を左クリック -X座標 $x -Y座標 $y"
         }
