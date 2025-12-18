@@ -3808,6 +3808,44 @@ async function executeScript() {
     hideContextMenu();
 }
 
+// ノード発火（コード.jsonの生成コードを即座に実行）
+async function executeNodeCode() {
+    if (!contextMenuTarget) return;
+
+    // コード.jsonから生成コードを取得
+    const code = getCodeEntry(contextMenuTarget.id);
+
+    if (!code || code.trim() === '') {
+        await showAlertDialog('実行するコードがありません。\nノードのコードが生成されていない可能性があります。', 'コード未生成');
+        hideContextMenu();
+        return;
+    }
+
+    console.log(`[ノード発火] ノード: ${contextMenuTarget.text} (ID: ${contextMenuTarget.id})`);
+    console.log(`[ノード発火] コード長: ${code.length}文字`);
+
+    try {
+        // スクリプト実行APIエンドポイントを呼び出し
+        const result = await callApi('/execute/script', 'POST', {
+            script: code,
+            nodeName: contextMenuTarget.text
+        });
+
+        if (result.success) {
+            console.log(`[ノード発火] ✅ 実行成功`);
+            await showAlertDialog(`🔥 ノード発火完了！\n\nノード: ${contextMenuTarget.text}\n\n出力:\n${result.output || '(出力なし)'}`, '発火完了');
+        } else {
+            console.error(`[ノード発火] ❌ 実行失敗:`, result.error);
+            await showAlertDialog(`ノード発火失敗:\n${result.error}`, '発火失敗');
+        }
+    } catch (error) {
+        console.error('[ノード発火] エラー:', error);
+        await showAlertDialog(`ノード発火中にエラーが発生しました:\n${error.message}`, 'エラー');
+    }
+
+    hideContextMenu();
+}
+
 // レイヤー化（赤枠ノードをまとめて1つのピンクノードにする）
 async function layerizeNode() {
     if (!contextMenuTarget) {
