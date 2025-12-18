@@ -319,6 +319,35 @@ function 文字列入力 {
     }
 }
 
+# ファイルを選択する関数の定義 Ver1.0
+function ファイルを選択 {
+    param(
+        [Parameter(Mandatory = $false)]
+        [string]$タイトル = "ファイルを選択してください",
+
+        [Parameter(Mandatory = $false)]
+        [string]$フィルタ = "All Files (*.*)|*.*",
+
+        [Parameter(Mandatory = $false)]
+        [string]$初期ディレクトリ = [Environment]::GetFolderPath('Desktop')
+    )
+
+    # ファイル選択ダイアログの作成
+    $ダイアログ = New-Object System.Windows.Forms.OpenFileDialog
+    $ダイアログ.Title = $タイトル
+    $ダイアログ.Filter = $フィルタ
+    $ダイアログ.InitialDirectory = $初期ディレクトリ
+
+    # ダイアログを表示
+    $結果 = $ダイアログ.ShowDialog()
+
+    if ($結果 -eq [System.Windows.Forms.DialogResult]::OK) {
+        return $ダイアログ.FileName
+    } else {
+        return $null
+    }
+}
+
 # 複数行テキストを編集する関数の定義
 function 複数行テキストを編集 {
     param(
