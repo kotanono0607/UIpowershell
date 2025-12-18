@@ -1684,10 +1684,37 @@ function コード結果を表示 {
 
             # win32API.psm1を埋め込んだ一時ファイルを作成
             Write-Host "[EXE作成] win32API.psm1を埋め込みます..." -ForegroundColor Cyan
-            $win32ApiPath = Join-Path $global:RootDir "win32API.psm1"
+
+            # win32API.psm1のパスを解決（複数の方法でフォールバック）
+            $win32ApiPath = $null
+
+            # 方法1: $global:RootDir から取得
+            if ($global:RootDir -and (Test-Path (Join-Path $global:RootDir "win32API.psm1"))) {
+                $win32ApiPath = Join-Path $global:RootDir "win32API.psm1"
+                Write-Host "[EXE作成] RootDirから検出: $win32ApiPath" -ForegroundColor Gray
+            }
+            # 方法2: $global:folderPath から2階層上（03_history/XXXX → root）
+            elseif ($global:folderPath) {
+                $rootFromFolder = Split-Path (Split-Path $global:folderPath -Parent) -Parent
+                $pathFromFolder = Join-Path $rootFromFolder "win32API.psm1"
+                if (Test-Path $pathFromFolder) {
+                    $win32ApiPath = $pathFromFolder
+                    Write-Host "[EXE作成] folderPathから検出: $win32ApiPath" -ForegroundColor Gray
+                }
+            }
+            # 方法3: 出力ファイルから3階層上（03_history/XXXX/output.ps1 → root）
+            if (-not $win32ApiPath -and $生成結果.outputPath) {
+                $rootFromOutput = Split-Path (Split-Path (Split-Path $生成結果.outputPath -Parent) -Parent) -Parent
+                $pathFromOutput = Join-Path $rootFromOutput "win32API.psm1"
+                if (Test-Path $pathFromOutput) {
+                    $win32ApiPath = $pathFromOutput
+                    Write-Host "[EXE作成] 出力パスから検出: $win32ApiPath" -ForegroundColor Gray
+                }
+            }
+
             $tempScriptPath = $生成結果.outputPath -replace '\.ps1$', '_combined.ps1'
 
-            if (Test-Path $win32ApiPath) {
+            if ($win32ApiPath -and (Test-Path $win32ApiPath)) {
                 # win32API.psm1の内容を読み込み
                 $win32ApiContent = Get-Content -Path $win32ApiPath -Raw -Encoding UTF8
 
