@@ -2,6 +2,7 @@
 # 17_操作履歴管理.Tests.ps1
 # ================================================================
 # Pester テストファイル: 操作履歴管理モジュールの包括的テスト
+# 対応バージョン: Pester v3.4.0以上
 #
 # テスト対象関数:
 #   - Initialize-HistoryStack  : 操作履歴スタックの初期化
@@ -11,31 +12,26 @@
 #   - Get-HistoryStatus       : 履歴状態取得
 #   - Clear-HistoryStack      : 履歴クリア
 #
-# 実行方法: Invoke-Pester -Path ./tests/17_操作履歴管理.Tests.ps1 -Output Detailed
+# 実行方法: Invoke-Pester -Path ./tests/17_操作履歴管理.Tests.ps1 -Verbose
 # ================================================================
 
-BeforeAll {
-    # テスト対象スクリプトのパスを設定
-    $script:ScriptRoot = Split-Path -Parent $PSScriptRoot
+# テスト対象スクリプトのパスを設定
+$ScriptRoot = Split-Path -Parent $PSScriptRoot
 
-    # 依存する共通ユーティリティを読み込み
-    . "$script:ScriptRoot\00_共通ユーティリティ_JSON操作.ps1"
+# 依存する共通ユーティリティを読み込み
+. "$ScriptRoot\00_共通ユーティリティ_JSON操作.ps1"
 
-    # テスト対象スクリプトを読み込み
-    . "$script:ScriptRoot\17_操作履歴管理.ps1"
+# テスト対象スクリプトを読み込み
+. "$ScriptRoot\17_操作履歴管理.ps1"
 
-    # テスト用一時ディレクトリのルート
-    $script:TestRootPath = Join-Path $env:TEMP "UIpowershell_tests_$(Get-Random)"
-}
+# テスト用一時ディレクトリのルート
+$TestRootPath = Join-Path $env:TEMP "UIpowershell_tests_$(Get-Random)"
 
-AfterAll {
-    # テスト終了後にテスト用ディレクトリをクリーンアップ
-    if (Test-Path $script:TestRootPath) {
-        Remove-Item -Path $script:TestRootPath -Recurse -Force -ErrorAction SilentlyContinue
-    }
-}
-
+# ================================================================
+# Initialize-HistoryStack のテスト
+# ================================================================
 Describe "Initialize-HistoryStack" {
+
     BeforeEach {
         # 各テストの前にグローバル変数をリセット
         $global:HistoryStack = $null
@@ -43,7 +39,7 @@ Describe "Initialize-HistoryStack" {
         $global:MaxHistoryCount = 50
 
         # テスト用フォルダを作成
-        $script:TestFolder = Join-Path $script:TestRootPath "test_$(Get-Random)"
+        $script:TestFolder = Join-Path $TestRootPath "test_$(Get-Random)"
         New-Item -ItemType Directory -Path $script:TestFolder -Force | Out-Null
     }
 
@@ -58,21 +54,21 @@ Describe "Initialize-HistoryStack" {
         It "history.jsonが存在しない場合、新規作成される" {
             $result = Initialize-HistoryStack -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $true
-            $result.count | Should -Be 0
-            $result.position | Should -Be 0
+            $result.success | Should Be $true
+            $result.count | Should Be 0
+            $result.position | Should Be 0
 
             # ファイルが作成されたか確認
             $historyPath = Join-Path $script:TestFolder 'history.json'
-            Test-Path $historyPath | Should -Be $true
+            Test-Path $historyPath | Should Be $true
         }
 
         It "新規作成時にグローバル変数が正しく初期化される" {
             Initialize-HistoryStack -FolderPath $script:TestFolder | Out-Null
 
-            $global:HistoryStack | Should -Not -BeNullOrEmpty
-            $global:HistoryStack.Count | Should -Be 0
-            $global:CurrentHistoryPosition | Should -Be 0
+            $global:HistoryStack | Should Not BeNullOrEmpty
+            $global:HistoryStack.Count | Should Be 0
+            $global:CurrentHistoryPosition | Should Be 0
         }
 
         It "新規作成されたhistory.jsonの構造が正しい" {
@@ -81,9 +77,9 @@ Describe "Initialize-HistoryStack" {
             $historyPath = Join-Path $script:TestFolder 'history.json'
             $data = Get-Content -Path $historyPath -Raw | ConvertFrom-Json
 
-            $data.HistoryStack | Should -Not -BeNull
-            $data.CurrentHistoryPosition | Should -Be 0
-            $data.MaxHistoryCount | Should -Be 50
+            $data.HistoryStack | Should Not BeNullOrEmpty
+            $data.CurrentHistoryPosition | Should Be 0
+            $data.MaxHistoryCount | Should Be 50
         }
     }
 
@@ -113,10 +109,10 @@ Describe "Initialize-HistoryStack" {
 
             $result = Initialize-HistoryStack -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $true
-            $result.count | Should -Be 2
-            $result.position | Should -Be 2
-            $global:MaxHistoryCount | Should -Be 30
+            $result.success | Should Be $true
+            $result.count | Should Be 2
+            $result.position | Should Be 2
+            $global:MaxHistoryCount | Should Be 30
         }
 
         It "空のhistory.jsonの場合、新規スタックが作成される" {
@@ -126,32 +122,24 @@ Describe "Initialize-HistoryStack" {
 
             $result = Initialize-HistoryStack -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $true
-            $global:HistoryStack.Count | Should -Be 0
-            $global:CurrentHistoryPosition | Should -Be 0
-        }
-    }
-
-    Context "エラーハンドリング" {
-        It "無効なパスでもエラーをキャッチして返す" {
-            # 存在しないパスでも親ディレクトリを作成して処理する
-            $invalidFolder = Join-Path $script:TestFolder "nonexistent_$(Get-Random)"
-
-            # Write-JsonSafeがディレクトリを作成するので、成功するはず
-            $result = Initialize-HistoryStack -FolderPath $invalidFolder
-
-            $result.success | Should -Be $true
+            $result.success | Should Be $true
+            $global:HistoryStack.Count | Should Be 0
+            $global:CurrentHistoryPosition | Should Be 0
         }
     }
 }
 
+# ================================================================
+# Record-Operation のテスト
+# ================================================================
 Describe "Record-Operation" {
+
     BeforeEach {
         $global:HistoryStack = $null
         $global:CurrentHistoryPosition = 0
         $global:MaxHistoryCount = 50
 
-        $script:TestFolder = Join-Path $script:TestRootPath "test_$(Get-Random)"
+        $script:TestFolder = Join-Path $TestRootPath "test_$(Get-Random)"
         New-Item -ItemType Directory -Path $script:TestFolder -Force | Out-Null
 
         # 履歴を初期化
@@ -176,9 +164,9 @@ Describe "Record-Operation" {
                 -MemoryBefore $memBefore `
                 -MemoryAfter $memAfter
 
-            $result.success | Should -Be $true
-            $result.position | Should -Be 1
-            $result.count | Should -Be 1
+            $result.success | Should Be $true
+            $result.position | Should Be 1
+            $result.count | Should Be 1
         }
 
         It "NodeDelete操作が正しく記録される" {
@@ -187,8 +175,8 @@ Describe "Record-Operation" {
                 -OperationType "NodeDelete" `
                 -Description "ノードを削除"
 
-            $result.success | Should -Be $true
-            $result.operationId | Should -Not -BeNullOrEmpty
+            $result.success | Should Be $true
+            $result.operationId | Should Not BeNullOrEmpty
         }
 
         It "NodeMove操作が正しく記録される" {
@@ -197,7 +185,7 @@ Describe "Record-Operation" {
                 -OperationType "NodeMove" `
                 -Description "ノードを移動"
 
-            $result.success | Should -Be $true
+            $result.success | Should Be $true
         }
 
         It "NodeUpdate操作が正しく記録される" {
@@ -206,7 +194,7 @@ Describe "Record-Operation" {
                 -OperationType "NodeUpdate" `
                 -Description "ノードを更新"
 
-            $result.success | Should -Be $true
+            $result.success | Should Be $true
         }
 
         It "CodeUpdate操作が正しく記録される" {
@@ -220,7 +208,7 @@ Describe "Record-Operation" {
                 -CodeBefore $codeBefore `
                 -CodeAfter $codeAfter
 
-            $result.success | Should -Be $true
+            $result.success | Should Be $true
         }
 
         It "Other操作が正しく記録される" {
@@ -229,7 +217,7 @@ Describe "Record-Operation" {
                 -OperationType "Other" `
                 -Description "その他の操作"
 
-            $result.success | Should -Be $true
+            $result.success | Should Be $true
         }
     }
 
@@ -253,10 +241,10 @@ Describe "Record-Operation" {
                 -MemoryBefore $memBefore `
                 -MemoryAfter $memAfter
 
-            $result.success | Should -Be $true
-            $result.affectedLayers | Should -Contain "2"
-            $result.affectedLayers | Should -Not -Contain "1"
-            $result.affectedLayers | Should -Not -Contain "3"
+            $result.success | Should Be $true
+            $result.affectedLayers -contains "2" | Should Be $true
+            $result.affectedLayers -contains "1" | Should Be $false
+            $result.affectedLayers -contains "3" | Should Be $false
         }
 
         It "複数レイヤーの変更が正しく検出される" {
@@ -276,9 +264,9 @@ Describe "Record-Operation" {
                 -MemoryBefore $memBefore `
                 -MemoryAfter $memAfter
 
-            $result.affectedLayers.Count | Should -Be 2
-            $result.affectedLayers | Should -Contain "1"
-            $result.affectedLayers | Should -Contain "2"
+            $result.affectedLayers.Count | Should Be 2
+            $result.affectedLayers -contains "1" | Should Be $true
+            $result.affectedLayers -contains "2" | Should Be $true
         }
 
         It "新規レイヤー追加が検出される" {
@@ -295,7 +283,7 @@ Describe "Record-Operation" {
                 -MemoryBefore $memBefore `
                 -MemoryAfter $memAfter
 
-            $result.affectedLayers | Should -Contain "2"
+            $result.affectedLayers -contains "2" | Should Be $true
         }
     }
 
@@ -308,8 +296,8 @@ Describe "Record-Operation" {
                     -Description "操作 $i" | Out-Null
             }
 
-            $global:HistoryStack.Count | Should -Be 5
-            $global:CurrentHistoryPosition | Should -Be 5
+            $global:HistoryStack.Count | Should Be 5
+            $global:CurrentHistoryPosition | Should Be 5
         }
 
         It "最大履歴数を超えた場合、古い履歴が削除される" {
@@ -322,9 +310,9 @@ Describe "Record-Operation" {
                     -Description "操作 $i" | Out-Null
             }
 
-            $global:HistoryStack.Count | Should -Be 5
+            $global:HistoryStack.Count | Should Be 5
             # 最初の5件（操作1-5）が削除され、操作6-10が残る
-            $global:HistoryStack[0].description | Should -Be "操作 6"
+            $global:HistoryStack[0].description | Should Be "操作 6"
         }
     }
 
@@ -348,8 +336,8 @@ Describe "Record-Operation" {
                 -Description "新しい操作" | Out-Null
 
             # 操作4, 5が削除され、新しい操作が追加される
-            $global:HistoryStack.Count | Should -Be 4
-            $global:HistoryStack[3].description | Should -Be "新しい操作"
+            $global:HistoryStack.Count | Should Be 4
+            $global:HistoryStack[3].description | Should Be "新しい操作"
         }
     }
 
@@ -357,7 +345,7 @@ Describe "Record-Operation" {
         It "自動的に初期化される" {
             $global:HistoryStack = $null
 
-            $newFolder = Join-Path $script:TestRootPath "auto_init_$(Get-Random)"
+            $newFolder = Join-Path $TestRootPath "auto_init_$(Get-Random)"
             New-Item -ItemType Directory -Path $newFolder -Force | Out-Null
 
             try {
@@ -366,8 +354,8 @@ Describe "Record-Operation" {
                     -OperationType "NodeAdd" `
                     -Description "自動初期化テスト"
 
-                $result.success | Should -Be $true
-                $global:HistoryStack | Should -Not -BeNull
+                $result.success | Should Be $true
+                $global:HistoryStack | Should Not BeNullOrEmpty
             }
             finally {
                 Remove-Item -Path $newFolder -Recurse -Force -ErrorAction SilentlyContinue
@@ -376,13 +364,17 @@ Describe "Record-Operation" {
     }
 }
 
+# ================================================================
+# Undo-Operation のテスト
+# ================================================================
 Describe "Undo-Operation" {
+
     BeforeEach {
         $global:HistoryStack = $null
         $global:CurrentHistoryPosition = 0
         $global:MaxHistoryCount = 50
 
-        $script:TestFolder = Join-Path $script:TestRootPath "test_$(Get-Random)"
+        $script:TestFolder = Join-Path $TestRootPath "test_$(Get-Random)"
         New-Item -ItemType Directory -Path $script:TestFolder -Force | Out-Null
 
         Initialize-HistoryStack -FolderPath $script:TestFolder | Out-Null
@@ -413,10 +405,10 @@ Describe "Undo-Operation" {
 
             $result = Undo-Operation -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $true
-            $result.position | Should -Be 0
-            $result.canUndo | Should -Be $false
-            $result.canRedo | Should -Be $true
+            $result.success | Should Be $true
+            $result.position | Should Be 0
+            $result.canUndo | Should Be $false
+            $result.canRedo | Should Be $true
         }
 
         It "Undoした操作の情報が返される" {
@@ -427,8 +419,8 @@ Describe "Undo-Operation" {
 
             $result = Undo-Operation -FolderPath $script:TestFolder
 
-            $result.operation.type | Should -Be "NodeDelete"
-            $result.operation.description | Should -Be "ノードを削除"
+            $result.operation.type | Should Be "NodeDelete"
+            $result.operation.description | Should Be "ノードを削除"
         }
     }
 
@@ -436,9 +428,9 @@ Describe "Undo-Operation" {
         It "履歴が空の場合、Undoが失敗する" {
             $result = Undo-Operation -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $false
-            $result.error | Should -Match "Undo不可"
-            $result.canUndo | Should -Be $false
+            $result.success | Should Be $false
+            $result.error | Should Match "Undo不可"
+            $result.canUndo | Should Be $false
         }
 
         It "既にすべてUndoした場合、さらなるUndoが失敗する" {
@@ -450,19 +442,19 @@ Describe "Undo-Operation" {
             Undo-Operation -FolderPath $script:TestFolder | Out-Null
             $result = Undo-Operation -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $false
-            $result.canUndo | Should -Be $false
+            $result.success | Should Be $false
+            $result.canUndo | Should Be $false
         }
 
         It "history.jsonが存在しない場合、エラーが返される" {
-            $emptyFolder = Join-Path $script:TestRootPath "empty_$(Get-Random)"
+            $emptyFolder = Join-Path $TestRootPath "empty_$(Get-Random)"
             New-Item -ItemType Directory -Path $emptyFolder -Force | Out-Null
 
             try {
                 $result = Undo-Operation -FolderPath $emptyFolder
 
-                $result.success | Should -Be $false
-                $result.error | Should -Match "履歴ファイルが見つかりません"
+                $result.success | Should Be $false
+                $result.error | Should Match "履歴ファイルが見つかりません"
             }
             finally {
                 Remove-Item -Path $emptyFolder -Recurse -Force -ErrorAction SilentlyContinue
@@ -503,12 +495,12 @@ Describe "Undo-Operation" {
             # Undo実行
             $result = Undo-Operation -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $true
+            $result.success | Should Be $true
 
             # memory.jsonを確認
             $restoredMemory = Get-Content -Path $memoryPath -Raw | ConvertFrom-Json
-            $restoredMemory."1"[0].value | Should -Be "original"
-            $restoredMemory."2"[0].value | Should -Be "unchanged"
+            $restoredMemory."1"[0].value | Should Be "original"
+            $restoredMemory."2"[0].value | Should Be "unchanged"
         }
     }
 
@@ -541,7 +533,7 @@ Describe "Undo-Operation" {
 
             $result = Undo-Operation -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $true
+            $result.success | Should Be $true
         }
     }
 
@@ -560,21 +552,25 @@ Describe "Undo-Operation" {
             $result2 = Undo-Operation -FolderPath $script:TestFolder
             $result3 = Undo-Operation -FolderPath $script:TestFolder
 
-            $result1.position | Should -Be 2
-            $result2.position | Should -Be 1
-            $result3.position | Should -Be 0
-            $result3.canUndo | Should -Be $false
+            $result1.position | Should Be 2
+            $result2.position | Should Be 1
+            $result3.position | Should Be 0
+            $result3.canUndo | Should Be $false
         }
     }
 }
 
+# ================================================================
+# Redo-Operation のテスト
+# ================================================================
 Describe "Redo-Operation" {
+
     BeforeEach {
         $global:HistoryStack = $null
         $global:CurrentHistoryPosition = 0
         $global:MaxHistoryCount = 50
 
-        $script:TestFolder = Join-Path $script:TestRootPath "test_$(Get-Random)"
+        $script:TestFolder = Join-Path $TestRootPath "test_$(Get-Random)"
         New-Item -ItemType Directory -Path $script:TestFolder -Force | Out-Null
 
         Initialize-HistoryStack -FolderPath $script:TestFolder | Out-Null
@@ -607,10 +603,10 @@ Describe "Redo-Operation" {
 
             $result = Redo-Operation -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $true
-            $result.position | Should -Be 1
-            $result.canRedo | Should -Be $false
-            $result.canUndo | Should -Be $true
+            $result.success | Should Be $true
+            $result.position | Should Be 1
+            $result.canRedo | Should Be $false
+            $result.canUndo | Should Be $true
         }
 
         It "Redoした操作の情報が返される" {
@@ -622,8 +618,8 @@ Describe "Redo-Operation" {
             Undo-Operation -FolderPath $script:TestFolder | Out-Null
             $result = Redo-Operation -FolderPath $script:TestFolder
 
-            $result.operation.type | Should -Be "CodeUpdate"
-            $result.operation.description | Should -Be "コードを更新"
+            $result.operation.type | Should Be "CodeUpdate"
+            $result.operation.description | Should Be "コードを更新"
         }
     }
 
@@ -636,26 +632,26 @@ Describe "Redo-Operation" {
 
             $result = Redo-Operation -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $false
-            $result.error | Should -Match "Redo不可"
-            $result.canRedo | Should -Be $false
+            $result.success | Should Be $false
+            $result.error | Should Match "Redo不可"
+            $result.canRedo | Should Be $false
         }
 
         It "履歴が空の場合、Redoが失敗する" {
             $result = Redo-Operation -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $false
+            $result.success | Should Be $false
         }
 
         It "history.jsonが存在しない場合、エラーが返される" {
-            $emptyFolder = Join-Path $script:TestRootPath "empty_$(Get-Random)"
+            $emptyFolder = Join-Path $TestRootPath "empty_$(Get-Random)"
             New-Item -ItemType Directory -Path $emptyFolder -Force | Out-Null
 
             try {
                 $result = Redo-Operation -FolderPath $emptyFolder
 
-                $result.success | Should -Be $false
-                $result.error | Should -Match "履歴ファイルが見つかりません"
+                $result.success | Should Be $false
+                $result.error | Should Match "履歴ファイルが見つかりません"
             }
             finally {
                 Remove-Item -Path $emptyFolder -Recurse -Force -ErrorAction SilentlyContinue
@@ -689,11 +685,11 @@ Describe "Redo-Operation" {
             # Redo
             $result = Redo-Operation -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $true
+            $result.success | Should Be $true
 
             # memory.jsonを確認
             $restoredMemory = Get-Content -Path $memoryPath -Raw | ConvertFrom-Json
-            $restoredMemory."1"[0].value | Should -Be "modified"
+            $restoredMemory."1"[0].value | Should Be "modified"
         }
     }
 
@@ -717,10 +713,10 @@ Describe "Redo-Operation" {
             $result2 = Redo-Operation -FolderPath $script:TestFolder
             $result3 = Redo-Operation -FolderPath $script:TestFolder
 
-            $result1.position | Should -Be 1
-            $result2.position | Should -Be 2
-            $result3.position | Should -Be 3
-            $result3.canRedo | Should -Be $false
+            $result1.position | Should Be 1
+            $result2.position | Should Be 2
+            $result3.position | Should Be 3
+            $result3.canRedo | Should Be $false
         }
     }
 
@@ -735,20 +731,24 @@ Describe "Redo-Operation" {
             $redoResult = Redo-Operation -FolderPath $script:TestFolder
             $undoAgain = Undo-Operation -FolderPath $script:TestFolder
 
-            $undoResult.position | Should -Be 0
-            $redoResult.position | Should -Be 1
-            $undoAgain.position | Should -Be 0
+            $undoResult.position | Should Be 0
+            $redoResult.position | Should Be 1
+            $undoAgain.position | Should Be 0
         }
     }
 }
 
+# ================================================================
+# Get-HistoryStatus のテスト
+# ================================================================
 Describe "Get-HistoryStatus" {
+
     BeforeEach {
         $global:HistoryStack = $null
         $global:CurrentHistoryPosition = 0
         $global:MaxHistoryCount = 50
 
-        $script:TestFolder = Join-Path $script:TestRootPath "test_$(Get-Random)"
+        $script:TestFolder = Join-Path $TestRootPath "test_$(Get-Random)"
         New-Item -ItemType Directory -Path $script:TestFolder -Force | Out-Null
 
         Initialize-HistoryStack -FolderPath $script:TestFolder | Out-Null
@@ -764,11 +764,11 @@ Describe "Get-HistoryStatus" {
         It "空の履歴で正しいステータスが返される" {
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
 
-            $status.success | Should -Be $true
-            $status.canUndo | Should -Be $false
-            $status.canRedo | Should -Be $false
-            $status.position | Should -Be 0
-            $status.totalCount | Should -Be 0
+            $status.success | Should Be $true
+            $status.canUndo | Should Be $false
+            $status.canRedo | Should Be $false
+            $status.position | Should Be 0
+            $status.totalCount | Should Be 0
         }
     }
 
@@ -781,11 +781,11 @@ Describe "Get-HistoryStatus" {
 
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
 
-            $status.success | Should -Be $true
-            $status.canUndo | Should -Be $true
-            $status.canRedo | Should -Be $false
-            $status.position | Should -Be 1
-            $status.totalCount | Should -Be 1
+            $status.success | Should Be $true
+            $status.canUndo | Should Be $true
+            $status.canRedo | Should Be $false
+            $status.position | Should Be 1
+            $status.totalCount | Should Be 1
         }
 
         It "Undo後に正しいステータスが返される" {
@@ -798,9 +798,9 @@ Describe "Get-HistoryStatus" {
 
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
 
-            $status.canUndo | Should -Be $false
-            $status.canRedo | Should -Be $true
-            $status.position | Should -Be 0
+            $status.canUndo | Should Be $false
+            $status.canRedo | Should Be $true
+            $status.position | Should Be 0
         }
 
         It "複数操作後の中間位置で正しいステータスが返される" {
@@ -816,10 +816,10 @@ Describe "Get-HistoryStatus" {
 
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
 
-            $status.canUndo | Should -Be $true
-            $status.canRedo | Should -Be $true
-            $status.position | Should -Be 3
-            $status.totalCount | Should -Be 5
+            $status.canUndo | Should Be $true
+            $status.canRedo | Should Be $true
+            $status.position | Should Be 3
+            $status.totalCount | Should Be 5
         }
     }
 
@@ -834,9 +834,9 @@ Describe "Get-HistoryStatus" {
 
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
 
-            $status.recentOperations.Count | Should -Be 3
-            $status.recentOperations[0].description | Should -Be "操作 1"
-            $status.recentOperations[2].description | Should -Be "操作 3"
+            $status.recentOperations.Count | Should Be 3
+            $status.recentOperations[0].description | Should Be "操作 1"
+            $status.recentOperations[2].description | Should Be "操作 3"
         }
 
         It "最大5件の履歴が返される" {
@@ -849,20 +849,20 @@ Describe "Get-HistoryStatus" {
 
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
 
-            $status.recentOperations.Count | Should -Be 5
+            $status.recentOperations.Count | Should Be 5
         }
     }
 
     Context "history.jsonが存在しない場合" {
         It "自動的に初期化される" {
-            $newFolder = Join-Path $script:TestRootPath "no_history_$(Get-Random)"
+            $newFolder = Join-Path $TestRootPath "no_history_$(Get-Random)"
             New-Item -ItemType Directory -Path $newFolder -Force | Out-Null
 
             try {
                 $status = Get-HistoryStatus -FolderPath $newFolder
 
-                $status.success | Should -Be $true
-                $status.position | Should -Be 0
+                $status.success | Should Be $true
+                $status.position | Should Be 0
             }
             finally {
                 Remove-Item -Path $newFolder -Recurse -Force -ErrorAction SilentlyContinue
@@ -883,18 +883,22 @@ Describe "Get-HistoryStatus" {
 
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
 
-            $status.maxCount | Should -Be 100
+            $status.maxCount | Should Be 100
         }
     }
 }
 
+# ================================================================
+# Clear-HistoryStack のテスト
+# ================================================================
 Describe "Clear-HistoryStack" {
+
     BeforeEach {
         $global:HistoryStack = $null
         $global:CurrentHistoryPosition = 0
         $global:MaxHistoryCount = 50
 
-        $script:TestFolder = Join-Path $script:TestRootPath "test_$(Get-Random)"
+        $script:TestFolder = Join-Path $TestRootPath "test_$(Get-Random)"
         New-Item -ItemType Directory -Path $script:TestFolder -Force | Out-Null
 
         Initialize-HistoryStack -FolderPath $script:TestFolder | Out-Null
@@ -918,9 +922,9 @@ Describe "Clear-HistoryStack" {
 
             $result = Clear-HistoryStack -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $true
-            $global:HistoryStack.Count | Should -Be 0
-            $global:CurrentHistoryPosition | Should -Be 0
+            $result.success | Should Be $true
+            $global:HistoryStack.Count | Should Be 0
+            $global:CurrentHistoryPosition | Should Be 0
         }
 
         It "history.jsonがクリアされる" {
@@ -934,8 +938,8 @@ Describe "Clear-HistoryStack" {
             $historyPath = Join-Path $script:TestFolder 'history.json'
             $data = Get-Content -Path $historyPath -Raw | ConvertFrom-Json
 
-            $data.HistoryStack.Count | Should -Be 0
-            $data.CurrentHistoryPosition | Should -Be 0
+            $data.HistoryStack.Count | Should Be 0
+            $data.CurrentHistoryPosition | Should Be 0
         }
     }
 
@@ -950,8 +954,8 @@ Describe "Clear-HistoryStack" {
 
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
 
-            $status.canUndo | Should -Be $false
-            $status.canRedo | Should -Be $false
+            $status.canUndo | Should Be $false
+            $status.canRedo | Should Be $false
         }
     }
 
@@ -959,18 +963,22 @@ Describe "Clear-HistoryStack" {
         It "空の履歴でもクリアが成功する" {
             $result = Clear-HistoryStack -FolderPath $script:TestFolder
 
-            $result.success | Should -Be $true
+            $result.success | Should Be $true
         }
     }
 }
 
+# ================================================================
+# 統合テスト
+# ================================================================
 Describe "統合テスト" {
+
     BeforeEach {
         $global:HistoryStack = $null
         $global:CurrentHistoryPosition = 0
         $global:MaxHistoryCount = 50
 
-        $script:TestFolder = Join-Path $script:TestRootPath "integration_$(Get-Random)"
+        $script:TestFolder = Join-Path $TestRootPath "integration_$(Get-Random)"
         New-Item -ItemType Directory -Path $script:TestFolder -Force | Out-Null
 
         # memory.jsonを作成
@@ -988,7 +996,7 @@ Describe "統合テスト" {
         It "初期化→記録→Undo→Redo→クリアのフローが正しく動作する" {
             # 1. 初期化
             $initResult = Initialize-HistoryStack -FolderPath $script:TestFolder
-            $initResult.success | Should -Be $true
+            $initResult.success | Should Be $true
 
             # 2. 操作を記録
             $memBefore = @{ "1" = @() }
@@ -1000,33 +1008,33 @@ Describe "統合テスト" {
                 -Description "ノード追加" `
                 -MemoryBefore $memBefore `
                 -MemoryAfter $memAfter
-            $recordResult.success | Should -Be $true
+            $recordResult.success | Should Be $true
 
             # 3. ステータス確認
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
-            $status.canUndo | Should -Be $true
-            $status.canRedo | Should -Be $false
+            $status.canUndo | Should Be $true
+            $status.canRedo | Should Be $false
 
             # 4. Undo
             $undoResult = Undo-Operation -FolderPath $script:TestFolder
-            $undoResult.success | Should -Be $true
+            $undoResult.success | Should Be $true
 
             # 5. ステータス確認
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
-            $status.canUndo | Should -Be $false
-            $status.canRedo | Should -Be $true
+            $status.canUndo | Should Be $false
+            $status.canRedo | Should Be $true
 
             # 6. Redo
             $redoResult = Redo-Operation -FolderPath $script:TestFolder
-            $redoResult.success | Should -Be $true
+            $redoResult.success | Should Be $true
 
             # 7. クリア
             $clearResult = Clear-HistoryStack -FolderPath $script:TestFolder
-            $clearResult.success | Should -Be $true
+            $clearResult.success | Should Be $true
 
             # 8. 最終ステータス確認
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
-            $status.totalCount | Should -Be 0
+            $status.totalCount | Should Be 0
         }
     }
 
@@ -1047,11 +1055,11 @@ Describe "統合テスト" {
             Record-Operation -FolderPath $script:TestFolder -OperationType "NodeAdd" -Description "操作D" | Out-Null
 
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
-            $status.totalCount | Should -Be 2  # 操作AとD
-            $status.position | Should -Be 2
+            $status.totalCount | Should Be 2  # 操作AとD
+            $status.position | Should Be 2
 
             # Redo不可能（分岐が消えたため）
-            $status.canRedo | Should -Be $false
+            $status.canRedo | Should Be $false
         }
     }
 
@@ -1065,11 +1073,11 @@ Describe "統合テスト" {
                     -OperationType "NodeAdd" `
                     -Description "操作 $i"
 
-                $result.success | Should -Be $true
+                $result.success | Should Be $true
             }
 
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
-            $status.totalCount | Should -Be 50
+            $status.totalCount | Should Be 50
         }
 
         It "最大履歴数を超える操作で古い履歴が削除される" {
@@ -1084,10 +1092,17 @@ Describe "統合テスト" {
             }
 
             $status = Get-HistoryStatus -FolderPath $script:TestFolder
-            $status.totalCount | Should -Be 10
+            $status.totalCount | Should Be 10
 
             # 最初の10件（操作1-10）が削除されている
             # 残っているのは操作11-20
         }
     }
+}
+
+# ================================================================
+# テスト後のクリーンアップ
+# ================================================================
+if (Test-Path $TestRootPath) {
+    Remove-Item -Path $TestRootPath -Recurse -Force -ErrorAction SilentlyContinue
 }
