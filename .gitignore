@@ -8,5 +8,8 @@
 03_history/**/*_snapshot.json
 03_history/**/snapshot_info.json
 
+# 環境固有の設定ファイル（フォルダパス情報）
+03_history/メイン.json
+
 # ログファイル（実行時に生成される）
 logs/*.log
