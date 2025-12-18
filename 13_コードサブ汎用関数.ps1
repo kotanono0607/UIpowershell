@@ -1543,6 +1543,7 @@ function コード結果を表示 {
         $ボタン_コピー.Location = New-Object System.Drawing.Point(20, $ボタンY)
         $ボタン_ファイル開く.Location = New-Object System.Drawing.Point(160, $ボタンY)
         $ボタン_EXE作成.Location = New-Object System.Drawing.Point(320, $ボタンY)
+        $ボタン_実行.Location = New-Object System.Drawing.Point(460, $ボタンY)
         $ボタン_閉じる.Location = New-Object System.Drawing.Point(($フォーム.ClientSize.Width - 120), $ボタンY)
     })
 
@@ -1577,6 +1578,14 @@ function コード結果を表示 {
     if (-not $生成結果.outputPath) {
         $ボタン_EXE作成.Enabled = $false
     }
+
+    # 実行ボタン
+    $ボタン_実行 = New-Object System.Windows.Forms.Button
+    $ボタン_実行.Text = "🔥 実行"
+    $ボタン_実行.Location = New-Object System.Drawing.Point(460, 600)
+    $ボタン_実行.Size = New-Object System.Drawing.Size(100, 35)
+    $ボタン_実行.BackColor = [System.Drawing.Color]::FromArgb(255, 200, 150)  # Orange
+    $フォーム.Controls.Add($ボタン_実行)
 
     # 閉じるボタン
     $ボタン_閉じる = New-Object System.Windows.Forms.Button
@@ -1777,6 +1786,74 @@ $originalScript
             [System.Windows.Forms.MessageBox]::Show(
                 "EXE作成中にエラーが発生しました:`n`n$_",
                 "EXE作成エラー",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Error
+            ) | Out-Null
+        }
+    })
+
+    # 実行ボタンクリックイベント
+    $ボタン_実行.Add_Click({
+        try {
+            Write-Host "[実行] 生成コードを実行します..." -ForegroundColor Cyan
+
+            # テキストボックスの内容を取得（編集されている可能性あり）
+            $実行コード = $テキスト_コード.Text
+
+            if ([string]::IsNullOrWhiteSpace($実行コード)) {
+                [System.Windows.Forms.MessageBox]::Show(
+                    "実行するコードがありません。",
+                    "エラー",
+                    [System.Windows.Forms.MessageBoxButtons]::OK,
+                    [System.Windows.Forms.MessageBoxIcon]::Warning
+                ) | Out-Null
+                return
+            }
+
+            # 確認ダイアログ
+            $確認結果 = [System.Windows.Forms.MessageBox]::Show(
+                "生成されたコードを実行しますか？`n`n※ マウス・キーボード操作が含まれる場合、`n　 実行中は操作しないでください。",
+                "実行確認",
+                [System.Windows.Forms.MessageBoxButtons]::YesNo,
+                [System.Windows.Forms.MessageBoxIcon]::Question
+            )
+
+            if ($確認結果 -ne [System.Windows.Forms.DialogResult]::Yes) {
+                Write-Host "[実行] キャンセルされました" -ForegroundColor Yellow
+                return
+            }
+
+            # win32API.psm1を読み込み
+            $win32ApiPath = Join-Path $global:RootDir "win32API.psm1"
+            if (Test-Path $win32ApiPath) {
+                Import-Module $win32ApiPath -Force -ErrorAction SilentlyContinue
+                Write-Host "[実行] win32API.psm1を読み込みました" -ForegroundColor Gray
+            }
+
+            # 汎用関数を読み込み
+            $汎用関数パス = Join-Path $global:RootDir "13_コードサブ汎用関数.ps1"
+            if (Test-Path $汎用関数パス) {
+                . $汎用関数パス
+                Write-Host "[実行] 汎用関数を読み込みました" -ForegroundColor Gray
+            }
+
+            # スクリプトを実行
+            Write-Host "[実行] コード実行開始..." -ForegroundColor Cyan
+            $output = Invoke-Expression $実行コード 2>&1 | Out-String
+
+            Write-Host "[実行] ✅ 実行完了" -ForegroundColor Green
+            [System.Windows.Forms.MessageBox]::Show(
+                "🔥 コード実行完了！`n`n出力:`n$output",
+                "実行完了",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Information
+            ) | Out-Null
+
+        } catch {
+            Write-Host "[実行] ❌ エラー: $_" -ForegroundColor Red
+            [System.Windows.Forms.MessageBox]::Show(
+                "実行中にエラーが発生しました:`n`n$($_.Exception.Message)",
+                "実行エラー",
                 [System.Windows.Forms.MessageBoxButtons]::OK,
                 [System.Windows.Forms.MessageBoxIcon]::Error
             ) | Out-Null
