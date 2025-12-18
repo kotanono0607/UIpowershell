@@ -1823,18 +1823,49 @@ $originalScript
                 return
             }
 
-            # win32API.psm1を読み込み
-            $win32ApiPath = Join-Path $global:RootDir "win32API.psm1"
-            if (Test-Path $win32ApiPath) {
-                Import-Module $win32ApiPath -Force -ErrorAction SilentlyContinue
-                Write-Host "[実行] win32API.psm1を読み込みました" -ForegroundColor Gray
+            # RootDirを解決（複数の方法でフォールバック）
+            $resolvedRootDir = $null
+
+            # 方法1: $global:RootDir から取得
+            if ($global:RootDir -and (Test-Path $global:RootDir)) {
+                $resolvedRootDir = $global:RootDir
+                Write-Host "[実行] RootDirから検出: $resolvedRootDir" -ForegroundColor Gray
+            }
+            # 方法2: $global:folderPath から2階層上（03_history/XXXX → root）
+            elseif ($global:folderPath) {
+                $rootFromFolder = Split-Path (Split-Path $global:folderPath -Parent) -Parent
+                if (Test-Path $rootFromFolder) {
+                    $resolvedRootDir = $rootFromFolder
+                    Write-Host "[実行] folderPathから検出: $resolvedRootDir" -ForegroundColor Gray
+                }
+            }
+            # 方法3: 出力ファイルから3階層上（03_history/XXXX/output.ps1 → root）
+            if (-not $resolvedRootDir -and $生成結果.outputPath) {
+                $rootFromOutput = Split-Path (Split-Path (Split-Path $生成結果.outputPath -Parent) -Parent) -Parent
+                if (Test-Path $rootFromOutput) {
+                    $resolvedRootDir = $rootFromOutput
+                    Write-Host "[実行] 出力パスから検出: $resolvedRootDir" -ForegroundColor Gray
+                }
             }
 
-            # 汎用関数を読み込み
-            $汎用関数パス = Join-Path $global:RootDir "13_コードサブ汎用関数.ps1"
-            if (Test-Path $汎用関数パス) {
-                . $汎用関数パス
-                Write-Host "[実行] 汎用関数を読み込みました" -ForegroundColor Gray
+            if (-not $resolvedRootDir) {
+                Write-Host "[実行] ⚠ RootDirを解決できませんでした" -ForegroundColor Yellow
+            }
+
+            # win32API.psm1を読み込み
+            if ($resolvedRootDir) {
+                $win32ApiPath = Join-Path $resolvedRootDir "win32API.psm1"
+                if (Test-Path $win32ApiPath) {
+                    Import-Module $win32ApiPath -Force -ErrorAction SilentlyContinue
+                    Write-Host "[実行] win32API.psm1を読み込みました" -ForegroundColor Gray
+                }
+
+                # 汎用関数を読み込み
+                $汎用関数パス = Join-Path $resolvedRootDir "13_コードサブ汎用関数.ps1"
+                if (Test-Path $汎用関数パス) {
+                    . $汎用関数パス
+                    Write-Host "[実行] 汎用関数を読み込みました" -ForegroundColor Gray
+                }
             }
 
             # スクリプトを実行
