@@ -5,7 +5,7 @@ function 5_2 {
     # フォームの作成
     $フォーム = New-Object System.Windows.Forms.Form
     $フォーム.Text = "URLを開く"
-    $フォーム.Size = New-Object System.Drawing.Size(450, 220)
+    $フォーム.Size = New-Object System.Drawing.Size(450, 290)
     $フォーム.StartPosition = "CenterScreen"
     $フォーム.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
     $フォーム.MaximizeBox = $false
@@ -46,6 +46,35 @@ function 5_2 {
     $参照ボタン.Size = New-Object System.Drawing.Size(80, 25)
     $参照ボタン.Enabled = $false
     $フォーム.Controls.Add($参照ボタン)
+
+    # オプションラベル
+    $オプションラベル = New-Object System.Windows.Forms.Label
+    $オプションラベル.Text = "オプション（Edge使用）:"
+    $オプションラベル.Location = New-Object System.Drawing.Point(10, 135)
+    $オプションラベル.AutoSize = $true
+    $オプションラベル.ForeColor = [System.Drawing.Color]::Gray
+    $フォーム.Controls.Add($オプションラベル)
+
+    # チェックボックス: 新規ウインドウ
+    $チェック新規 = New-Object System.Windows.Forms.CheckBox
+    $チェック新規.Text = "新規ウインドウ"
+    $チェック新規.Location = New-Object System.Drawing.Point(20, 155)
+    $チェック新規.AutoSize = $true
+    $フォーム.Controls.Add($チェック新規)
+
+    # チェックボックス: シークレットモード
+    $チェックシークレット = New-Object System.Windows.Forms.CheckBox
+    $チェックシークレット.Text = "シークレットモード"
+    $チェックシークレット.Location = New-Object System.Drawing.Point(140, 155)
+    $チェックシークレット.AutoSize = $true
+    $フォーム.Controls.Add($チェックシークレット)
+
+    # チェックボックス: フルスクリーン
+    $チェックフルスクリーン = New-Object System.Windows.Forms.CheckBox
+    $チェックフルスクリーン.Text = "フルスクリーン"
+    $チェックフルスクリーン.Location = New-Object System.Drawing.Point(280, 155)
+    $チェックフルスクリーン.AutoSize = $true
+    $フォーム.Controls.Add($チェックフルスクリーン)
 
     # ラジオボタン切り替え時の処理
     $ラジオURL.Add_CheckedChanged({
@@ -101,7 +130,7 @@ function 5_2 {
     # OKボタン
     $OKボタン = New-Object System.Windows.Forms.Button
     $OKボタン.Text = "OK"
-    $OKボタン.Location = New-Object System.Drawing.Point(250, 145)
+    $OKボタン.Location = New-Object System.Drawing.Point(250, 200)
     $OKボタン.Size = New-Object System.Drawing.Size(75, 25)
     $OKボタン.DialogResult = [System.Windows.Forms.DialogResult]::OK
     $フォーム.AcceptButton = $OKボタン
@@ -110,7 +139,7 @@ function 5_2 {
     # キャンセルボタン
     $キャンセルボタン = New-Object System.Windows.Forms.Button
     $キャンセルボタン.Text = "キャンセル"
-    $キャンセルボタン.Location = New-Object System.Drawing.Point(335, 145)
+    $キャンセルボタン.Location = New-Object System.Drawing.Point(335, 200)
     $キャンセルボタン.Size = New-Object System.Drawing.Size(75, 25)
     $キャンセルボタン.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
     $フォーム.CancelButton = $キャンセルボタン
@@ -122,7 +151,19 @@ function 5_2 {
     if ($結果 -eq [System.Windows.Forms.DialogResult]::OK) {
         $URL = $テキストボックス.Text.Trim()
         if ($URL -and $URL -ne "https://") {
-            return "URLを開く -URL `"$URL`""
+            # オプションスイッチを構築
+            $オプション = ""
+            if ($チェック新規.Checked) {
+                $オプション += " -新規ウインドウ"
+            }
+            if ($チェックシークレット.Checked) {
+                $オプション += " -シークレットモード"
+            }
+            if ($チェックフルスクリーン.Checked) {
+                $オプション += " -フルスクリーン"
+            }
+
+            return "URLを開く -URL `"$URL`"$オプション"
         }
     }
 
