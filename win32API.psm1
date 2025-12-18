@@ -1306,6 +1306,16 @@ function 指定アプリ起動 {
     Start-Process @params
 }
 
+# URLを開く Ver1.0
+function URLを開く {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$URL
+    )
+
+    Start-Process $URL
+}
+
 # ウインドウ存在確認 Ver1.3
 function ウインドウ存在確認 {
     <#
