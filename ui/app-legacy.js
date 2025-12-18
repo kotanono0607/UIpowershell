@@ -7277,6 +7277,12 @@ async function executeNodeFunction(functionName, params = {}, timeoutMs = 300000
                 throw new Error(`API Error: ${response.status} - ${result.error || response.statusText}`);
             }
 
+            // キャンセルされた場合はnullを返す（エラーではない）
+            if (result.cancelled) {
+                console.log(`[ノード関数実行] ユーザーがキャンセルしました`);
+                return null;
+            }
+
             if (result.success && result.code) {
                 console.log(`[ノード関数実行] 成功 - コード長: ${result.code.length}文字`);
                 return result.code;
