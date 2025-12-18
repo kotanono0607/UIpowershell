@@ -2461,11 +2461,38 @@ async function addNodeToLayer(setting) {
                 console.log('[addNodeToLayer] ✅ コード生成成功');
                 console.log('[addNodeToLayer] 生成されたコード:', generatedCode.substring(0, 100) + '...');
             } else {
-                console.warn('[addNodeToLayer] ⚠ コード生成が null を返しました');
+                // キャンセルされた場合：作成済みのノードを削除
+                console.warn('[addNodeToLayer] ⚠ コード生成がキャンセルされました - ノードを削除します');
+
+                // nodes配列から削除
+                const nodeIndex = nodes.findIndex(n => n.id === node.id);
+                if (nodeIndex !== -1) {
+                    nodes.splice(nodeIndex, 1);
+                }
+
+                // layerStructureから削除
+                const layerIndex = layerStructure[leftVisibleLayer].nodes.findIndex(n => n.id === node.id);
+                if (layerIndex !== -1) {
+                    layerStructure[leftVisibleLayer].nodes.splice(layerIndex, 1);
+                }
+
+                console.log('[addNodeToLayer] ノード削除完了 - 処理を中止します');
+                return;
             }
         } catch (error) {
             console.error('[addNodeToLayer] ❌ generateCode() でエラーが発生しました:', error);
             console.error('[addNodeToLayer] スタックトレース:', error.stack);
+
+            // エラー時もノードを削除
+            const nodeIndex = nodes.findIndex(n => n.id === node.id);
+            if (nodeIndex !== -1) {
+                nodes.splice(nodeIndex, 1);
+            }
+            const layerIndex = layerStructure[leftVisibleLayer].nodes.findIndex(n => n.id === node.id);
+            if (layerIndex !== -1) {
+                layerStructure[leftVisibleLayer].nodes.splice(layerIndex, 1);
+            }
+            return;
         }
 
         // ★修正：画面を再描画（矢印も更新される）
