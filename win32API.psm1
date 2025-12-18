@@ -325,33 +325,70 @@ function 指定秒待機 {
     )
     Start-Sleep -Seconds $秒数
 }
-# 指定したキー操作を実行する関数 - Ver 1.0
+# 指定したキー操作を実行する関数 - Ver 2.0
 function キー操作 {
     param(
         [Parameter(Mandatory=$true)]
-        [ValidateSet("Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+F", "Alt+F4", "Del", "Enter", "Tab", "Shift+Tab", "PageUp", "PageDown", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Esc")]
+        [ValidateSet(
+            "Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+X", "Ctrl+Z", "Ctrl+Y", "Ctrl+S", "Ctrl+F", "Ctrl+N", "Ctrl+O", "Ctrl+P", "Ctrl+W",
+            "Alt+F4", "Alt+Tab",
+            "Enter", "Tab", "Shift+Tab", "Esc", "Del", "Backspace", "Space",
+            "Home", "End", "PageUp", "PageDown",
+            "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+            "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"
+        )]
         [string]$キーコマンド
     )
     switch ($キーコマンド) {
+        # Ctrl系
         "Ctrl+A" { [System.Windows.Forms.SendKeys]::SendWait("^a") }
         "Ctrl+C" { [System.Windows.Forms.SendKeys]::SendWait("^c") }
         "Ctrl+V" { [System.Windows.Forms.SendKeys]::SendWait("^v") }
+        "Ctrl+X" { [System.Windows.Forms.SendKeys]::SendWait("^x") }
+        "Ctrl+Z" { [System.Windows.Forms.SendKeys]::SendWait("^z") }
+        "Ctrl+Y" { [System.Windows.Forms.SendKeys]::SendWait("^y") }
+        "Ctrl+S" { [System.Windows.Forms.SendKeys]::SendWait("^s") }
         "Ctrl+F" { [System.Windows.Forms.SendKeys]::SendWait("^f") }
+        "Ctrl+N" { [System.Windows.Forms.SendKeys]::SendWait("^n") }
+        "Ctrl+O" { [System.Windows.Forms.SendKeys]::SendWait("^o") }
+        "Ctrl+P" { [System.Windows.Forms.SendKeys]::SendWait("^p") }
+        "Ctrl+W" { [System.Windows.Forms.SendKeys]::SendWait("^w") }
+        # Alt系
         "Alt+F4" { [System.Windows.Forms.SendKeys]::SendWait("%{F4}") }
-        "Del" { [System.Windows.Forms.SendKeys]::SendWait("{DEL}") }
+        "Alt+Tab" { [System.Windows.Forms.SendKeys]::SendWait("%{TAB}") }
+        # 基本キー
         "Enter" { [System.Windows.Forms.SendKeys]::SendWait("~") }
         "Tab" { [System.Windows.Forms.SendKeys]::SendWait("{TAB}") }
         "Shift+Tab" { [System.Windows.Forms.SendKeys]::SendWait("+{TAB}") }
+        "Esc" { [System.Windows.Forms.SendKeys]::SendWait("{ESC}") }
+        "Del" { [System.Windows.Forms.SendKeys]::SendWait("{DEL}") }
+        "Backspace" { [System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE}") }
+        "Space" { [System.Windows.Forms.SendKeys]::SendWait(" ") }
+        # ナビゲーション
+        "Home" { [System.Windows.Forms.SendKeys]::SendWait("{HOME}") }
+        "End" { [System.Windows.Forms.SendKeys]::SendWait("{END}") }
         "PageUp" { [System.Windows.Forms.SendKeys]::SendWait("{PGUP}") }
         "PageDown" { [System.Windows.Forms.SendKeys]::SendWait("{PGDN}") }
+        # 矢印キー
         "ArrowUp" { [System.Windows.Forms.SendKeys]::SendWait("{UP}") }
         "ArrowDown" { [System.Windows.Forms.SendKeys]::SendWait("{DOWN}") }
         "ArrowLeft" { [System.Windows.Forms.SendKeys]::SendWait("{LEFT}") }
         "ArrowRight" { [System.Windows.Forms.SendKeys]::SendWait("{RIGHT}") }
-        "Esc" { [System.Windows.Forms.SendKeys]::SendWait("{ESC}") }
+        # ファンクションキー
+        "F1" { [System.Windows.Forms.SendKeys]::SendWait("{F1}") }
+        "F2" { [System.Windows.Forms.SendKeys]::SendWait("{F2}") }
+        "F3" { [System.Windows.Forms.SendKeys]::SendWait("{F3}") }
+        "F4" { [System.Windows.Forms.SendKeys]::SendWait("{F4}") }
+        "F5" { [System.Windows.Forms.SendKeys]::SendWait("{F5}") }
+        "F6" { [System.Windows.Forms.SendKeys]::SendWait("{F6}") }
+        "F7" { [System.Windows.Forms.SendKeys]::SendWait("{F7}") }
+        "F8" { [System.Windows.Forms.SendKeys]::SendWait("{F8}") }
+        "F9" { [System.Windows.Forms.SendKeys]::SendWait("{F9}") }
+        "F10" { [System.Windows.Forms.SendKeys]::SendWait("{F10}") }
+        "F11" { [System.Windows.Forms.SendKeys]::SendWait("{F11}") }
+        "F12" { [System.Windows.Forms.SendKeys]::SendWait("{F12}") }
         default { Write-Host "指定されたキーコマンドはサポートされていません。" }
     }
-
 }function キーワード検索 {
     param(
         [Parameter(Mandatory=$true)]
