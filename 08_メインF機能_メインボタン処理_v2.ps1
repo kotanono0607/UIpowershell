@@ -580,11 +580,12 @@ function フォルダ作成イベント_v2 {
                 $jsonData = $existingData
             }
         }
-        $jsonData.フォルダパス = $フォルダパス
+        # 相対パス（フォルダ名のみ）を保存（環境非依存）
+        $jsonData.フォルダパス = $FolderName
 
         Write-JsonSafe -Path $jsonFilePath -Data $jsonData -Depth 10 -Silent $true
 
-        # グローバル変数を更新
+        # グローバル変数を更新（実行時はフルパス）
         $global:folderPath = $フォルダパス
         $global:JSONPath = "$global:folderPath\variables.json"
 
@@ -706,11 +707,12 @@ function フォルダ切替イベント_v2 {
         # JSONファイルへの保存
         $jsonFilePath = Join-Path -Path $保存先ディレクトリ -ChildPath "メイン.json"
 
-        $jsonData = @{ フォルダパス = $選択フォルダパス }
+        # 相対パス（フォルダ名のみ）を保存（環境非依存）
+        $jsonData = @{ フォルダパス = $FolderName }
         if (Test-Path -Path $jsonFilePath) {
             $existingData = Read-JsonSafe -Path $jsonFilePath -Required $false -Silent $true
             if ($existingData) {
-                $existingData.フォルダパス = $選択フォルダパス
+                $existingData.フォルダパス = $FolderName
                 $jsonData = $existingData
             }
         }
