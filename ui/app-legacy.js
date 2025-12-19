@@ -9814,16 +9814,6 @@ function updateRobotNodeCount() {
 // ロボットの背景色を選択（プリセットカラー）
 function selectRobotBgColor(element) {
     const color = element.dataset.color;
-    const bgClass = element.dataset.bgclass;
-    const avatar = document.getElementById('robot-avatar');
-
-    // アバター背景色クラスを切り替え
-    if (avatar && bgClass) {
-        // 既存の背景色クラスを削除
-        avatar.classList.remove('bg-blue', 'bg-orange', 'bg-green', 'bg-pink', 'bg-purple', 'bg-gray');
-        // 新しい背景色クラスを追加
-        avatar.classList.add(bgClass);
-    }
 
     // 選択状態を更新
     document.querySelectorAll('.robot-bgcolor-circle').forEach(circle => {
@@ -9831,8 +9821,50 @@ function selectRobotBgColor(element) {
     });
     element.classList.add('selected');
 
-    console.log('[ロボット] 背景色を変更:', color, bgClass);
+    // Canvasで背景色付き画像を生成
+    generateRobotImageWithBg(color);
+
+    console.log('[ロボット] 背景色を変更:', color);
     saveRobotProfile();
+}
+
+// 背景色付きロボット画像を生成
+function generateRobotImageWithBg(bgColor) {
+    const avatarImg = document.getElementById('robot-avatar-img');
+    if (!avatarImg) return;
+
+    // 元のロボット画像を読み込み
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const size = 200; // 高解像度
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // 背景色で円を描画
+        ctx.fillStyle = bgColor;
+        ctx.beginPath();
+        ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ロボット画像を中央に描画
+        const imgSize = size * 0.75;
+        const offset = (size - imgSize) / 2;
+        ctx.drawImage(img, offset, offset, imgSize, imgSize);
+
+        // アバター画像を更新
+        avatarImg.src = canvas.toDataURL('image/png');
+    };
+
+    // 現在のソースがdata URLかチェック
+    if (avatarImg.src.startsWith('data:')) {
+        // 既にカスタム画像の場合、元のrobo.pngを使用
+        img.src = 'robo.png';
+    } else {
+        img.src = avatarImg.src || 'robo.png';
+    }
 }
 
 // 現在選択されている背景色を取得
@@ -9918,25 +9950,26 @@ async function loadRobotProfile() {
 
             // 背景色を復元
             if (profile.bgcolor) {
-                const avatar = document.getElementById('robot-avatar');
-                // 対応する色の円を見つけてクラスを適用
+                // 対応する色の円を選択状態にする
                 document.querySelectorAll('.robot-bgcolor-circle').forEach(circle => {
                     circle.classList.remove('selected');
                     if (circle.dataset.color === profile.bgcolor) {
                         circle.classList.add('selected');
-                        // アバターの背景色クラスを切り替え
-                        if (avatar && circle.dataset.bgclass) {
-                            avatar.classList.remove('bg-blue', 'bg-orange', 'bg-green', 'bg-pink', 'bg-purple', 'bg-gray');
-                            avatar.classList.add(circle.dataset.bgclass);
-                        }
                     }
                 });
+                // Canvas で背景色付き画像を生成
+                generateRobotImageWithBg(profile.bgcolor);
             }
 
             console.log('[ロボット] プロファイルを読み込みました');
+        } else {
+            // プロファイルがない場合、デフォルト背景色で画像を生成
+            generateRobotImageWithBg('#e8f4fc');
         }
     } catch (error) {
         console.error('[ロボット] 読み込みエラー:', error);
+        // エラー時もデフォルト背景色で画像を生成
+        generateRobotImageWithBg('#e8f4fc');
     }
 }
 
