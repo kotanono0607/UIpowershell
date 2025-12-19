@@ -529,15 +529,16 @@ Start-PodeServer {
     Write-Host "停止するには Ctrl+C を押してください" -ForegroundColor Yellow
     Write-Host ""
 
-    # ブラウザ自動起動（サーバー起動完了イベントで実行）
+    # ブラウザ自動起動（バックグラウンドジョブで非同期実行）
     if ($global:ShouldOpenBrowser) {
-        Register-PodeEvent -Type Start -Name 'OpenBrowser' -ScriptBlock {
-            $url = "http://localhost:$($global:ServerPort)/index-legacy.html"
-            $healthUrl = "http://localhost:$($global:ServerPort)/api/health"
+        $port = $global:ServerPort
+        Start-Job -ScriptBlock {
+            param($serverPort)
+            $url = "http://localhost:$serverPort/index-legacy.html"
+            $healthUrl = "http://localhost:$serverPort/api/health"
 
             # サーバーが応答可能になるまで待機
-            Write-Host "[ブラウザ] サーバーの起動を確認しています..." -ForegroundColor Cyan
-            $maxRetries = 10  # 最大10回リトライ（10秒）
+            $maxRetries = 15  # 最大15回リトライ（15秒）
             $retryCount = 0
             $serverReady = $false
 
@@ -546,18 +547,14 @@ Start-PodeServer {
                     $response = Invoke-WebRequest -Uri $healthUrl -Method GET -TimeoutSec 1 -ErrorAction Stop
                     if ($response.StatusCode -eq 200) {
                         $serverReady = $true
-                        Write-Host "[ブラウザ] サーバー起動確認OK" -ForegroundColor Green
                     }
                 } catch {
                     $retryCount++
-                    Start-Sleep -Milliseconds 1000
+                    Start-Sleep -Seconds 1
                 }
             }
 
-            if (-not $serverReady) {
-                Write-Host "[警告] サーバーの起動確認がタイムアウトしました" -ForegroundColor Yellow
-                Write-Host "        手動でブラウザを開いてください: $url" -ForegroundColor Yellow
-            } else {
+            if ($serverReady) {
                 # Microsoft Edge専用で起動（Chromeと分離）
                 $edgePaths = @(
                     "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe",
@@ -567,24 +564,16 @@ Start-PodeServer {
                 # UIpowershell専用のプロファイルディレクトリ
                 $userDataDir = "$env:TEMP\UIpowershell-Edge-Profile"
 
-                $edgeFound = $false
                 foreach ($edgePath in $edgePaths) {
                     if (Test-Path $edgePath) {
-                        Write-Host "[ブラウザ] Microsoft Edge（UIpowershell専用）を最大化アプリモードで起動します" -ForegroundColor Green
-                        Write-Host "           URL: $url" -ForegroundColor Cyan
                         # --app モードで起動（タブなし、独立ウインドウ、最大化、専用プロファイル）
                         Start-Process $edgePath -ArgumentList "--app=$url --start-maximized --user-data-dir=`"$userDataDir`""
-                        $edgeFound = $true
                         break
                     }
                 }
-
-                if (-not $edgeFound) {
-                    Write-Host "[警告] Microsoft Edgeが見つかりません" -ForegroundColor Yellow
-                    Write-Host "        手動でブラウザを開いてください: $url" -ForegroundColor Yellow
-                }
             }
-        }
+        } -ArgumentList $port | Out-Null
+        Write-Host "[ブラウザ] サーバー起動確認後にブラウザを自動起動します..." -ForegroundColor Cyan
     }
 
 } # Start-PodeServer ブロックの終了
