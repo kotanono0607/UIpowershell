@@ -1865,6 +1865,57 @@ $originalScript
 
                         Write-Host "[EXE作成] ✅ ロボットアイコンを変換しました: $iconPath" -ForegroundColor Green
                     }
+                    # 画像が空でもbgcolorがある場合、robo.pngに背景色を合成
+                    elseif ($profileContent.bgcolor) {
+                        Write-Host "[EXE作成] 画像データなし、背景色から生成します: $($profileContent.bgcolor)" -ForegroundColor Yellow
+
+                        # robo.pngのパスを検索
+                        $roboPngPath = $null
+                        $profileDir = Split-Path $robotProfilePath -Parent
+                        $uiDir = Join-Path $profileDir "ui"
+                        if (Test-Path (Join-Path $uiDir "robo.png")) {
+                            $roboPngPath = Join-Path $uiDir "robo.png"
+                        } elseif (Test-Path (Join-Path $profileDir "robo.png")) {
+                            $roboPngPath = Join-Path $profileDir "robo.png"
+                        }
+
+                        if ($roboPngPath) {
+                            Add-Type -AssemblyName System.Drawing
+
+                            $iconSize = 256
+                            $resized = New-Object System.Drawing.Bitmap($iconSize, $iconSize)
+                            $graphics = [System.Drawing.Graphics]::FromImage($resized)
+                            $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+                            $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+
+                            # 背景色で円を描画
+                            $bgColor = [System.Drawing.ColorTranslator]::FromHtml($profileContent.bgcolor)
+                            $brush = New-Object System.Drawing.SolidBrush($bgColor)
+                            $graphics.FillEllipse($brush, 0, 0, $iconSize, $iconSize)
+                            $brush.Dispose()
+
+                            # ロボット画像を中央に描画
+                            $robotBitmap = [System.Drawing.Bitmap]::FromFile($roboPngPath)
+                            $imgSize = [int]($iconSize * 0.75)
+                            $offset = [int](($iconSize - $imgSize) / 2)
+                            $graphics.DrawImage($robotBitmap, $offset, $offset, $imgSize, $imgSize)
+                            $robotBitmap.Dispose()
+                            $graphics.Dispose()
+
+                            # ICOファイルとして保存
+                            $iconPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_$(Get-Date -Format 'yyyyMMddHHmmss').ico")
+                            $icon = [System.Drawing.Icon]::FromHandle($resized.GetHicon())
+                            $fileStream = [System.IO.FileStream]::new($iconPath, [System.IO.FileMode]::Create)
+                            $icon.Save($fileStream)
+                            $fileStream.Close()
+
+                            $resized.Dispose()
+
+                            Write-Host "[EXE作成] ✅ 背景色付きアイコンを生成しました: $iconPath" -ForegroundColor Green
+                        } else {
+                            Write-Host "[EXE作成] ⚠ robo.pngが見つかりません" -ForegroundColor Yellow
+                        }
+                    }
                 } catch {
                     Write-Host "[EXE作成] ⚠ アイコン変換エラー: $($_.Exception.Message)" -ForegroundColor Yellow
                     $iconPath = $null
