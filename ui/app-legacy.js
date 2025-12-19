@@ -1965,6 +1965,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log(`✅ UIpowershell 初期化完了 [Version: ${APP_VERSION}]`);
     console.log('═══════════════════════════════════════════════');
 
+    // ロボットプロファイルを読み込み
+    await loadRobotProfile();
+    setupRobotProfileAutoSave();
+    await writeControlLog('✅ [INIT] ロボットプロファイル読み込み完了');
+
     // コントロールログ: 初期化完了、ノード生成可能
     await writeControlLog('🎉 [READY] 初期化完了 - ノード生成可能');
 
@@ -9807,6 +9812,9 @@ function updateRobotImage(input) {
             avatarDiv.insertBefore(img, overlay);
 
             console.log('[ロボット] 画像が更新されました');
+
+            // 画像更新後にプロファイルを保存
+            saveRobotProfile();
         };
 
         reader.readAsDataURL(file);
@@ -9820,4 +9828,118 @@ function updateRobotNodeCount() {
     if (countElement) {
         countElement.textContent = nodeCount;
     }
+}
+
+// ロボットプロファイルを保存
+async function saveRobotProfile() {
+    try {
+        const profile = {
+            name: document.getElementById('robot-name')?.value || '',
+            author: document.getElementById('robot-author')?.value || '',
+            role: document.getElementById('robot-role')?.value || '',
+            memo: document.getElementById('robot-memo')?.value || '',
+            image: getRobotImageData()
+        };
+
+        const response = await fetch('/api/robot-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profile)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            console.log('[ロボット] プロファイルを保存しました');
+        } else {
+            console.error('[ロボット] 保存エラー:', result.error);
+        }
+    } catch (error) {
+        console.error('[ロボット] 保存エラー:', error);
+    }
+}
+
+// ロボット画像のデータURLを取得
+function getRobotImageData() {
+    const img = document.querySelector('#robot-avatar .robot-avatar-img');
+    if (img && img.src) {
+        return img.src;
+    }
+    return '';
+}
+
+// ロボットプロファイルを読み込み
+async function loadRobotProfile() {
+    try {
+        const response = await fetch('/api/robot-profile');
+        const result = await response.json();
+
+        if (result.success && result.profile) {
+            const profile = result.profile;
+
+            // フィールドに値を設定
+            if (document.getElementById('robot-name')) {
+                document.getElementById('robot-name').value = profile.name || '';
+            }
+            if (document.getElementById('robot-author')) {
+                document.getElementById('robot-author').value = profile.author || '';
+            }
+            if (document.getElementById('robot-role')) {
+                document.getElementById('robot-role').value = profile.role || '';
+            }
+            if (document.getElementById('robot-memo')) {
+                document.getElementById('robot-memo').value = profile.memo || '';
+            }
+
+            // 画像を復元
+            if (profile.image) {
+                const avatarDiv = document.getElementById('robot-avatar');
+                const emojiSpan = avatarDiv?.querySelector('.robot-avatar-emoji');
+
+                if (avatarDiv) {
+                    // 既存の画像を削除
+                    const existingImg = avatarDiv.querySelector('.robot-avatar-img');
+                    if (existingImg) {
+                        existingImg.remove();
+                    }
+
+                    // 絵文字を非表示
+                    if (emojiSpan) {
+                        emojiSpan.style.display = 'none';
+                    }
+
+                    // 画像を作成
+                    const img = document.createElement('img');
+                    img.src = profile.image;
+                    img.className = 'robot-avatar-img';
+                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
+
+                    const overlay = avatarDiv.querySelector('.robot-avatar-overlay');
+                    avatarDiv.insertBefore(img, overlay);
+                }
+            }
+
+            console.log('[ロボット] プロファイルを読み込みました');
+        }
+    } catch (error) {
+        console.error('[ロボット] 読み込みエラー:', error);
+    }
+}
+
+// ロボットプロファイルの自動保存を設定
+function setupRobotProfileAutoSave() {
+    const fields = ['robot-name', 'robot-author', 'robot-role', 'robot-memo'];
+
+    fields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            // 入力が止まってから500ms後に保存
+            let saveTimeout;
+            element.addEventListener('input', () => {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(saveRobotProfile, 500);
+            });
+        }
+    });
+
+    console.log('[ロボット] 自動保存を設定しました');
 }

@@ -2985,6 +2985,82 @@ Add-PodeRoute -Method Post -Path "/api/shutdown" -ScriptBlock {
     }
 }
 
+# ------------------------------
+# ロボットプロファイル取得
+# ------------------------------
+Add-PodeRoute -Method Get -Path "/api/robot-profile" -ScriptBlock {
+    try {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $profilePath = Join-Path $RootDir "robot-profile.json"
+
+        if (Test-Path $profilePath) {
+            $content = Get-Content -Path $profilePath -Raw -Encoding UTF8
+            $profile = $content | ConvertFrom-Json
+            $result = @{
+                success = $true
+                profile = $profile
+            }
+        } else {
+            # デフォルトプロファイル
+            $result = @{
+                success = $true
+                profile = @{
+                    name = ""
+                    author = ""
+                    role = ""
+                    memo = ""
+                    image = ""
+                }
+            }
+        }
+        Write-PodeJsonResponse -Value $result
+    } catch {
+        Set-PodeResponseStatus -Code 500
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
+# ------------------------------
+# ロボットプロファイル保存
+# ------------------------------
+Add-PodeRoute -Method Post -Path "/api/robot-profile" -ScriptBlock {
+    try {
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $profilePath = Join-Path $RootDir "robot-profile.json"
+
+        $body = $WebEvent.Data
+        $profile = @{
+            name = if ($body.name) { $body.name } else { "" }
+            author = if ($body.author) { $body.author } else { "" }
+            role = if ($body.role) { $body.role } else { "" }
+            memo = if ($body.memo) { $body.memo } else { "" }
+            image = if ($body.image) { $body.image } else { "" }
+        }
+
+        $json = $profile | ConvertTo-Json -Depth 10
+        $json | Out-File -FilePath $profilePath -Encoding UTF8 -Force
+
+        Write-Host "[API] ロボットプロファイルを保存しました: $profilePath" -ForegroundColor Green
+
+        $result = @{
+            success = $true
+            message = "プロファイルを保存しました"
+        }
+        Write-PodeJsonResponse -Value $result
+    } catch {
+        Set-PodeResponseStatus -Code 500
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
 # ==============================================================================
 # 変換完了
 # ==============================================================================
