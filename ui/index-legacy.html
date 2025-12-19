@@ -46,16 +46,81 @@
 
     <!-- メインコンテナ: 2ペイン構成（レイヤーナビゲーション） -->
     <div id="main-container">
-        <!-- 左側：操作パネル（カテゴリー切り替え） -->
+        <!-- 左側：操作パネル（タブ式） -->
         <div id="left-panel">
-            <!-- カテゴリー切り替えボタン（カテゴリ設定.jsonから動的生成） -->
-            <div id="category-buttons">
-                <!-- カテゴリ設定.jsonから動的に生成 -->
+            <!-- タブヘッダー -->
+            <div id="left-panel-tabs">
+                <div class="left-panel-tab active" data-tab="nodes" onclick="switchLeftPanelTab('nodes')">🧩 ノード</div>
+                <div class="left-panel-tab" data-tab="variables" onclick="switchLeftPanelTab('variables')">📦 変数</div>
+                <div class="left-panel-tab" data-tab="connection" onclick="switchLeftPanelTab('connection')">🔌 接続</div>
+                <div class="left-panel-tab" data-tab="robot" onclick="switchLeftPanelTab('robot')">🤖 ロボット</div>
             </div>
 
-            <!-- ノード追加ボタンパネル（カテゴリ設定.jsonから動的生成） -->
-            <div id="node-buttons-container">
-                <!-- カテゴリ設定.jsonから動的に生成 -->
+            <!-- タブコンテンツ: ノード -->
+            <div id="tab-content-nodes" class="left-panel-tab-content active">
+                <!-- カテゴリー切り替えボタン（カテゴリ設定.jsonから動的生成） -->
+                <div id="category-buttons">
+                    <!-- カテゴリ設定.jsonから動的に生成 -->
+                </div>
+
+                <!-- ノード追加ボタンパネル（カテゴリ設定.jsonから動的生成） -->
+                <div id="node-buttons-container">
+                    <!-- カテゴリ設定.jsonから動的に生成 -->
+                </div>
+            </div>
+
+            <!-- タブコンテンツ: 変数 -->
+            <div id="tab-content-variables" class="left-panel-tab-content">
+                <div class="tab-content-placeholder">
+                    <div class="placeholder-icon">📦</div>
+                    <div class="placeholder-title">変数管理</div>
+                    <div class="placeholder-text">変数の一覧と管理</div>
+                    <button class="placeholder-button" onclick="openVariableModal()">変数を管理</button>
+                </div>
+            </div>
+
+            <!-- タブコンテンツ: 接続 -->
+            <div id="tab-content-connection" class="left-panel-tab-content">
+                <div class="tab-content-placeholder">
+                    <div class="placeholder-icon">🔌</div>
+                    <div class="placeholder-title">接続管理</div>
+                    <div class="placeholder-text">外部ツールとの接続</div>
+                    <div class="connection-status">
+                        <div class="connection-item">
+                            <span class="connection-icon">📊</span>
+                            <span class="connection-name">Excel</span>
+                            <span class="connection-badge disconnected">未接続</span>
+                        </div>
+                        <div class="connection-item">
+                            <span class="connection-icon">🌐</span>
+                            <span class="connection-name">ブラウザ</span>
+                            <span class="connection-badge disconnected">未接続</span>
+                        </div>
+                        <div class="connection-item">
+                            <span class="connection-icon">🗄️</span>
+                            <span class="connection-name">データベース</span>
+                            <span class="connection-badge disconnected">未接続</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- タブコンテンツ: ロボット -->
+            <div id="tab-content-robot" class="left-panel-tab-content">
+                <div class="tab-content-placeholder">
+                    <div class="placeholder-icon robot-icon">🤖</div>
+                    <div class="placeholder-title">ロボット</div>
+                    <div class="robot-status">
+                        <div class="robot-status-item">
+                            <span class="status-label">状態:</span>
+                            <span class="status-value status-idle">待機中</span>
+                        </div>
+                        <div class="robot-status-item">
+                            <span class="status-label">実行回数:</span>
+                            <span class="status-value">0</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

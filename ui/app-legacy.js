@@ -9735,3 +9735,28 @@ if (document.readyState === 'loading') {
         updateUndoRedoButtons();  // initializeHistory()の代わりに直接ボタン状態を更新
     }, 1000);
 }
+
+// ============================================
+// 左パネル タブ切り替え
+// ============================================
+function switchLeftPanelTab(tabId) {
+    console.log(`[タブ] 切り替え: ${tabId}`);
+
+    // タブヘッダーのアクティブ状態を更新
+    document.querySelectorAll('.left-panel-tab').forEach(tab => {
+        if (tab.dataset.tab === tabId) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+
+    // タブコンテンツの表示/非表示を切り替え
+    document.querySelectorAll('.left-panel-tab-content').forEach(content => {
+        if (content.id === `tab-content-${tabId}`) {
+            content.classList.add('active');
+        } else {
+            content.classList.remove('active');
+        }
+    });
+}
