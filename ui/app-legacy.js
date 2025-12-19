@@ -9818,7 +9818,7 @@ function selectRobotBgColor(element) {
 
     // アバター背景色を即座に変更
     if (avatar) {
-        avatar.style.background = color;
+        avatar.style.setProperty('background', color, 'important');
     }
 
     // 選択状態を更新
@@ -9916,7 +9916,7 @@ async function loadRobotProfile() {
             if (profile.bgcolor) {
                 const avatar = document.getElementById('robot-avatar');
                 if (avatar) {
-                    avatar.style.background = profile.bgcolor;
+                    avatar.style.setProperty('background', profile.bgcolor, 'important');
                 }
                 // 対応する色の円を選択状態にする
                 document.querySelectorAll('.robot-bgcolor-circle').forEach(circle => {
