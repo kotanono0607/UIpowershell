@@ -1850,17 +1850,16 @@ $originalScript
                         $graphics = [System.Drawing.Graphics]::FromImage($resized)
                         $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
 
-                        # 背景色で全体を塗りつぶし（透明部分対策）
+                        # 背景色で全体をクリア（透明部分対策）
                         $bgColorValue = $profileContent.bgcolor
                         Write-Host "[EXE作成] 背景色値: '$bgColorValue'" -ForegroundColor Cyan
                         if ($bgColorValue -and $bgColorValue -ne "") {
                             try {
                                 $bgColor = [System.Drawing.ColorTranslator]::FromHtml($bgColorValue)
                                 Write-Host "[EXE作成] 背景色変換成功: R=$($bgColor.R), G=$($bgColor.G), B=$($bgColor.B)" -ForegroundColor Green
-                                $brush = New-Object System.Drawing.SolidBrush($bgColor)
-                                $graphics.FillRectangle($brush, 0, 0, $iconSize, $iconSize)
-                                $brush.Dispose()
-                                Write-Host "[EXE作成] 背景色塗りつぶし完了" -ForegroundColor Green
+                                # Clear()を使用して背景を完全に塗りつぶす
+                                $graphics.Clear($bgColor)
+                                Write-Host "[EXE作成] 背景色クリア完了" -ForegroundColor Green
                             } catch {
                                 Write-Host "[EXE作成] 背景色変換エラー: $($_.Exception.Message)" -ForegroundColor Red
                             }
@@ -1868,6 +1867,8 @@ $originalScript
                             Write-Host "[EXE作成] 背景色が設定されていません" -ForegroundColor Yellow
                         }
 
+                        # CompositingModeを設定して透明部分を正しく処理
+                        $graphics.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceOver
                         $graphics.DrawImage($bitmap, 0, 0, $iconSize, $iconSize)
                         $graphics.Dispose()
 
