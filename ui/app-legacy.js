@@ -9811,14 +9811,30 @@ function updateRobotNodeCount() {
     }
 }
 
-// ロボットの背景色を更新
-function updateRobotBgColor(color) {
+// ロボットの背景色を選択（プリセットカラー）
+function selectRobotBgColor(element) {
+    const color = element.dataset.color;
     const avatar = document.getElementById('robot-avatar');
+
+    // アバター背景色を即座に変更
     if (avatar) {
         avatar.style.backgroundColor = color;
-        console.log('[ロボット] 背景色を変更:', color);
-        saveRobotProfile();
     }
+
+    // 選択状態を更新
+    document.querySelectorAll('.robot-bgcolor-circle').forEach(circle => {
+        circle.classList.remove('selected');
+    });
+    element.classList.add('selected');
+
+    console.log('[ロボット] 背景色を変更:', color);
+    saveRobotProfile();
+}
+
+// 現在選択されている背景色を取得
+function getSelectedBgColor() {
+    const selected = document.querySelector('.robot-bgcolor-circle.selected');
+    return selected ? selected.dataset.color : '#e8f4fc';
 }
 
 // ロボットプロファイルを保存
@@ -9830,7 +9846,7 @@ async function saveRobotProfile() {
             role: document.getElementById('robot-role')?.value || '',
             memo: document.getElementById('robot-memo')?.value || '',
             image: getRobotImageData(),
-            bgcolor: document.getElementById('robot-bgcolor')?.value || '#e8f4fc'
+            bgcolor: getSelectedBgColor()
         };
 
         const response = await fetch('/api/robot-profile', {
@@ -9899,13 +9915,16 @@ async function loadRobotProfile() {
             // 背景色を復元
             if (profile.bgcolor) {
                 const avatar = document.getElementById('robot-avatar');
-                const bgcolorInput = document.getElementById('robot-bgcolor');
                 if (avatar) {
                     avatar.style.backgroundColor = profile.bgcolor;
                 }
-                if (bgcolorInput) {
-                    bgcolorInput.value = profile.bgcolor;
-                }
+                // 対応する色の円を選択状態にする
+                document.querySelectorAll('.robot-bgcolor-circle').forEach(circle => {
+                    circle.classList.remove('selected');
+                    if (circle.dataset.color === profile.bgcolor) {
+                        circle.classList.add('selected');
+                    }
+                });
             }
 
             console.log('[ロボット] プロファイルを読み込みました');

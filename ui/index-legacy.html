@@ -118,9 +118,13 @@
                         </div>
                         <input type="file" id="robot-image-input" accept="image/*" style="display:none" onchange="updateRobotImage(this)">
                         <!-- 背景色選択 -->
-                        <div class="robot-bgcolor-picker">
-                            <label>背景色:</label>
-                            <input type="color" id="robot-bgcolor" value="#e8f4fc" onchange="updateRobotBgColor(this.value)">
+                        <div class="robot-bgcolor-presets">
+                            <div class="robot-bgcolor-circle selected" data-color="#e8f4fc" onclick="selectRobotBgColor(this)" style="background:#e8f4fc"></div>
+                            <div class="robot-bgcolor-circle" data-color="#fff3e0" onclick="selectRobotBgColor(this)" style="background:#fff3e0"></div>
+                            <div class="robot-bgcolor-circle" data-color="#e8f5e9" onclick="selectRobotBgColor(this)" style="background:#e8f5e9"></div>
+                            <div class="robot-bgcolor-circle" data-color="#fce4ec" onclick="selectRobotBgColor(this)" style="background:#fce4ec"></div>
+                            <div class="robot-bgcolor-circle" data-color="#ede7f6" onclick="selectRobotBgColor(this)" style="background:#ede7f6"></div>
+                            <div class="robot-bgcolor-circle" data-color="#e0e0e0" onclick="selectRobotBgColor(this)" style="background:#e0e0e0"></div>
                         </div>
                     </div>
 
