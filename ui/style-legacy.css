@@ -518,6 +518,14 @@ body::after {
     border-color: #1976d2;
 }
 
+/* 背景色クラス */
+.robot-avatar.bg-blue { background: #e8f4fc !important; }
+.robot-avatar.bg-orange { background: #fff3e0 !important; }
+.robot-avatar.bg-green { background: #e8f5e9 !important; }
+.robot-avatar.bg-pink { background: #fce4ec !important; }
+.robot-avatar.bg-purple { background: #ede7f6 !important; }
+.robot-avatar.bg-gray { background: #e0e0e0 !important; }
+
 .robot-avatar:hover {
     transform: scale(1.05);
 }
