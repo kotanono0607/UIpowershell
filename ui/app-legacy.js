@@ -9759,4 +9759,65 @@ function switchLeftPanelTab(tabId) {
             content.classList.remove('active');
         }
     });
+
+    // ロボットタブに切り替えた時、ノード数を更新
+    if (tabId === 'robot') {
+        updateRobotNodeCount();
+    }
+}
+
+// ============================================
+// ロボットプロファイル機能
+// ============================================
+
+// ロボット画像選択ダイアログを開く
+function selectRobotImage() {
+    document.getElementById('robot-image-input').click();
+}
+
+// ロボット画像を更新
+function updateRobotImage(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const avatarDiv = document.getElementById('robot-avatar');
+            const emojiSpan = avatarDiv.querySelector('.robot-avatar-emoji');
+
+            // 既存の画像があれば削除
+            const existingImg = avatarDiv.querySelector('.robot-avatar-img');
+            if (existingImg) {
+                existingImg.remove();
+            }
+
+            // 絵文字を非表示
+            if (emojiSpan) {
+                emojiSpan.style.display = 'none';
+            }
+
+            // 新しい画像を作成
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'robot-avatar-img';
+            img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
+
+            // オーバーレイの前に挿入
+            const overlay = avatarDiv.querySelector('.robot-avatar-overlay');
+            avatarDiv.insertBefore(img, overlay);
+
+            console.log('[ロボット] 画像が更新されました');
+        };
+
+        reader.readAsDataURL(file);
+    }
+}
+
+// ロボットのノード数を更新
+function updateRobotNodeCount() {
+    const nodeCount = nodes ? nodes.length : 0;
+    const countElement = document.getElementById('robot-node-count');
+    if (countElement) {
+        countElement.textContent = nodeCount;
+    }
 }

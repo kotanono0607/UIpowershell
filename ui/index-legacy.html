@@ -107,17 +107,39 @@
 
             <!-- タブコンテンツ: ロボット -->
             <div id="tab-content-robot" class="left-panel-tab-content">
-                <div class="tab-content-placeholder">
-                    <div class="placeholder-icon robot-icon">🤖</div>
-                    <div class="placeholder-title">ロボット</div>
-                    <div class="robot-status">
-                        <div class="robot-status-item">
-                            <span class="status-label">状態:</span>
-                            <span class="status-value status-idle">待機中</span>
+                <div class="robot-profile-card">
+                    <!-- ロボット画像 -->
+                    <div class="robot-avatar-section">
+                        <div class="robot-avatar" id="robot-avatar" onclick="selectRobotImage()">
+                            <span class="robot-avatar-emoji">🤖</span>
+                            <div class="robot-avatar-overlay">
+                                <span>📷</span>
+                            </div>
                         </div>
-                        <div class="robot-status-item">
-                            <span class="status-label">実行回数:</span>
-                            <span class="status-value">0</span>
+                        <input type="file" id="robot-image-input" accept="image/*" style="display:none" onchange="updateRobotImage(this)">
+                    </div>
+
+                    <!-- ロボット情報 -->
+                    <div class="robot-info-section">
+                        <div class="robot-info-item">
+                            <span class="robot-info-label">名前</span>
+                            <input type="text" class="robot-info-input" id="robot-name" value="ロボくん" placeholder="ロボットの名前">
+                        </div>
+                        <div class="robot-info-item">
+                            <span class="robot-info-label">作成者</span>
+                            <input type="text" class="robot-info-input" id="robot-author" value="" placeholder="作成者名">
+                        </div>
+                        <div class="robot-info-item">
+                            <span class="robot-info-label">役割</span>
+                            <input type="text" class="robot-info-input" id="robot-role" value="" placeholder="このロボットの役割">
+                        </div>
+                        <div class="robot-info-item">
+                            <span class="robot-info-label">ノード数</span>
+                            <span class="robot-info-value" id="robot-node-count">0</span>
+                        </div>
+                        <div class="robot-info-item robot-memo-item">
+                            <span class="robot-info-label">メモ</span>
+                            <textarea class="robot-info-textarea" id="robot-memo" placeholder="メモを入力..."></textarea>
                         </div>
                     </div>
                 </div>
