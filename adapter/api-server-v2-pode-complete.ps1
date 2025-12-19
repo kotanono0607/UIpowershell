@@ -529,8 +529,38 @@ Start-PodeServer {
     Write-Host "停止するには Ctrl+C を押してください" -ForegroundColor Yellow
     Write-Host ""
 
-    # ブラウザ自動起動は実行.bat側で行う（サーバー起動確認後に開くため）
-    # -AutoOpenBrowser オプションは互換性のため残すが、実行.bat経由での起動を推奨
+    # ブラウザ自動起動（Edge専用 - Chrome分離）
+    if ($global:ShouldOpenBrowser) {
+        Start-Sleep -Seconds 1
+        $url = "http://localhost:$global:ServerPort/index-legacy.html"
+
+        # Microsoft Edge専用で起動（Chromeと分離）
+        $edgePaths = @(
+            "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe",
+            "${env:ProgramFiles}\Microsoft\Edge\Application\msedge.exe"
+        )
+
+        # UIpowershell専用のプロファイルディレクトリ（ウィンドウサイズの記憶をリセット）
+        $userDataDir = "$env:TEMP\UIpowershell-Edge-Profile"
+
+        $edgeFound = $false
+        foreach ($edgePath in $edgePaths) {
+            if (Test-Path $edgePath) {
+                Write-Host "[ブラウザ] Microsoft Edge（UIpowershell専用）を最大化アプリモードで起動します" -ForegroundColor Green
+                Write-Host "           URL: $url" -ForegroundColor Cyan
+                Write-Host "           プロファイル: $userDataDir" -ForegroundColor Gray
+                # --app モードで起動（タブなし、独立ウインドウ、最大化、専用プロファイル）
+                Start-Process $edgePath -ArgumentList "--app=$url --start-maximized --user-data-dir=`"$userDataDir`""
+                $edgeFound = $true
+                break
+            }
+        }
+
+        if (-not $edgeFound) {
+            Write-Host "[警告] Microsoft Edgeが見つかりません" -ForegroundColor Yellow
+            Write-Host "        手動でブラウザを開いてください: $url" -ForegroundColor Yellow
+        }
+    }
 
 } # Start-PodeServer ブロックの終了
 
