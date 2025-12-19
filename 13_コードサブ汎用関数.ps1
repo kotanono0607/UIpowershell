@@ -1702,13 +1702,12 @@ function コード結果を表示 {
         try {
             Write-Host "[EXE作成] ps2exeによるEXE変換を開始..." -ForegroundColor Cyan
 
-            # ps2exeモジュールのパス
-            $ps2exeModulePath = "C:\Users\hello\Documents\WindowsPowerShell\Modules\ps2exe\1.0.15\ps2exe.psm1"
-
-            # モジュールの存在確認
-            if (-not (Test-Path $ps2exeModulePath)) {
-                throw "ps2exeモジュールが見つかりません: $ps2exeModulePath"
+            # ps2exeモジュールの存在確認
+            $ps2exeModule = Get-Module -ListAvailable -Name ps2exe | Select-Object -First 1
+            if (-not $ps2exeModule) {
+                throw "ps2exeモジュールがインストールされていません。`nInstall-Module ps2exe でインストールしてください。"
             }
+            Write-Host "[EXE作成] ps2exeモジュール検出: $($ps2exeModule.ModuleBase)" -ForegroundColor Gray
 
             # 出力EXEパス（.ps1 → .exe）
             $exePath = $生成結果.outputPath -replace '\.ps1$', '.exe'
@@ -1792,7 +1791,7 @@ $originalScript
             }
 
             # ps2exeを実行
-            Import-Module $ps2exeModulePath -Force
+            Import-Module ps2exe -Force
             Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath -noConsole
 
             # 一時ファイルを削除
