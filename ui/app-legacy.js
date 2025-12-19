@@ -9821,15 +9821,14 @@ function selectRobotBgColor(element) {
     });
     element.classList.add('selected');
 
-    // Canvasで背景色付き画像を生成
-    generateRobotImageWithBg(color);
+    // Canvasで背景色付き画像を生成（完了後に保存）
+    generateRobotImageWithBg(color, true);
 
     console.log('[ロボット] 背景色を変更:', color);
-    saveRobotProfile();
 }
 
 // 背景色付きロボット画像を生成
-function generateRobotImageWithBg(bgColor) {
+function generateRobotImageWithBg(bgColor, saveAfter = false) {
     const avatarImg = document.getElementById('robot-avatar-img');
     if (!avatarImg) return;
 
@@ -9856,15 +9855,15 @@ function generateRobotImageWithBg(bgColor) {
 
         // アバター画像を更新
         avatarImg.src = canvas.toDataURL('image/png');
+
+        // 画像生成完了後に保存
+        if (saveAfter) {
+            saveRobotProfile();
+        }
     };
 
-    // 現在のソースがdata URLかチェック
-    if (avatarImg.src.startsWith('data:')) {
-        // 既にカスタム画像の場合、元のrobo.pngを使用
-        img.src = 'robo.png';
-    } else {
-        img.src = avatarImg.src || 'robo.png';
-    }
+    // 常にrobo.pngを元画像として使用
+    img.src = 'robo.png';
 }
 
 // 現在選択されている背景色を取得
