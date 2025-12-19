@@ -1831,62 +1831,11 @@ $originalScript
                     Write-Host "[EXE作成] ロボットアイコンを読み込み中..." -ForegroundColor Cyan
                     $profileContent = Get-Content -Path $robotProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
 
-                    if ($profileContent.image -and $profileContent.image.StartsWith("data:image/png;base64,")) {
-                        # Base64データを抽出
-                        $base64Data = $profileContent.image -replace "data:image/png;base64,", ""
-                        $imageBytes = [Convert]::FromBase64String($base64Data)
+                    # bgcolorがある場合は、常にrobo.pngから直接生成（透明度問題を回避）
+                    $bgColorValue = $profileContent.bgcolor
+                    Write-Host "[EXE作成] 背景色値: '$bgColorValue'" -ForegroundColor Cyan
 
-                        # 一時PNGファイルに保存
-                        $tempPngPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_$(Get-Date -Format 'yyyyMMddHHmmss').png")
-                        [System.IO.File]::WriteAllBytes($tempPngPath, $imageBytes)
-
-                        # PNGをICOに変換
-                        Add-Type -AssemblyName System.Drawing
-                        $bitmap = [System.Drawing.Bitmap]::FromFile($tempPngPath)
-
-                        # 256x256にリサイズ（大きいアイコン）
-                        $iconSize = 256
-                        $resized = New-Object System.Drawing.Bitmap($iconSize, $iconSize)
-                        $graphics = [System.Drawing.Graphics]::FromImage($resized)
-                        $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-
-                        # 背景色で全体をクリア（透明部分対策）
-                        $bgColorValue = $profileContent.bgcolor
-                        Write-Host "[EXE作成] 背景色値: '$bgColorValue'" -ForegroundColor Cyan
-                        if ($bgColorValue -and $bgColorValue -ne "") {
-                            try {
-                                $bgColor = [System.Drawing.ColorTranslator]::FromHtml($bgColorValue)
-                                Write-Host "[EXE作成] 背景色変換成功: R=$($bgColor.R), G=$($bgColor.G), B=$($bgColor.B)" -ForegroundColor Green
-                                # Clear()を使用して背景を完全に塗りつぶす
-                                $graphics.Clear($bgColor)
-                                Write-Host "[EXE作成] 背景色クリア完了" -ForegroundColor Green
-                            } catch {
-                                Write-Host "[EXE作成] 背景色変換エラー: $($_.Exception.Message)" -ForegroundColor Red
-                            }
-                        } else {
-                            Write-Host "[EXE作成] 背景色が設定されていません" -ForegroundColor Yellow
-                        }
-
-                        # CompositingModeを設定して透明部分を正しく処理
-                        $graphics.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceOver
-                        $graphics.DrawImage($bitmap, 0, 0, $iconSize, $iconSize)
-                        $graphics.Dispose()
-
-                        # ICOファイルとして保存
-                        $iconPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_$(Get-Date -Format 'yyyyMMddHHmmss').ico")
-                        $icon = [System.Drawing.Icon]::FromHandle($resized.GetHicon())
-                        $fileStream = [System.IO.FileStream]::new($iconPath, [System.IO.FileMode]::Create)
-                        $icon.Save($fileStream)
-                        $fileStream.Close()
-
-                        $bitmap.Dispose()
-                        $resized.Dispose()
-                        Remove-Item -Path $tempPngPath -Force -ErrorAction SilentlyContinue
-
-                        Write-Host "[EXE作成] ✅ ロボットアイコンを変換しました: $iconPath" -ForegroundColor Green
-                    }
-                    # 画像が空でもbgcolorがある場合、robo.pngに背景色を合成
-                    elseif ($profileContent.bgcolor) {
+                    if ($bgColorValue -and $bgColorValue -ne "") {
                         Write-Host "[EXE作成] 画像データなし、背景色から生成します: $($profileContent.bgcolor)" -ForegroundColor Yellow
 
                         # robo.pngのパスを検索
