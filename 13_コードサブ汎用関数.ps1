@@ -1797,12 +1797,71 @@ $originalScript
                 $inputFileForExe = $生成結果.outputPath
             }
 
+            # ロボットアイコンをICOファイルに変換
+            $iconPath = $null
+            $robotProfilePath = if ($global:RootDir) { Join-Path $global:RootDir "robot-profile.json" } else { $null }
+
+            if ($robotProfilePath -and (Test-Path $robotProfilePath)) {
+                try {
+                    Write-Host "[EXE作成] ロボットアイコンを読み込み中..." -ForegroundColor Cyan
+                    $profileContent = Get-Content -Path $robotProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+
+                    if ($profileContent.image -and $profileContent.image.StartsWith("data:image/png;base64,")) {
+                        # Base64データを抽出
+                        $base64Data = $profileContent.image -replace "data:image/png;base64,", ""
+                        $imageBytes = [Convert]::FromBase64String($base64Data)
+
+                        # 一時PNGファイルに保存
+                        $tempPngPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_$(Get-Date -Format 'yyyyMMddHHmmss').png")
+                        [System.IO.File]::WriteAllBytes($tempPngPath, $imageBytes)
+
+                        # PNGをICOに変換
+                        Add-Type -AssemblyName System.Drawing
+                        $bitmap = [System.Drawing.Bitmap]::FromFile($tempPngPath)
+
+                        # 32x32にリサイズ
+                        $iconSize = 32
+                        $resized = New-Object System.Drawing.Bitmap($iconSize, $iconSize)
+                        $graphics = [System.Drawing.Graphics]::FromImage($resized)
+                        $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+                        $graphics.DrawImage($bitmap, 0, 0, $iconSize, $iconSize)
+                        $graphics.Dispose()
+
+                        # ICOファイルとして保存
+                        $iconPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_$(Get-Date -Format 'yyyyMMddHHmmss').ico")
+                        $icon = [System.Drawing.Icon]::FromHandle($resized.GetHicon())
+                        $fileStream = [System.IO.FileStream]::new($iconPath, [System.IO.FileMode]::Create)
+                        $icon.Save($fileStream)
+                        $fileStream.Close()
+
+                        $bitmap.Dispose()
+                        $resized.Dispose()
+                        Remove-Item -Path $tempPngPath -Force -ErrorAction SilentlyContinue
+
+                        Write-Host "[EXE作成] ✅ ロボットアイコンを変換しました: $iconPath" -ForegroundColor Green
+                    }
+                } catch {
+                    Write-Host "[EXE作成] ⚠ アイコン変換エラー: $($_.Exception.Message)" -ForegroundColor Yellow
+                    $iconPath = $null
+                }
+            }
+
             # ps2exeを実行（メタ情報付き）
             Import-Module ps2exe -Force
             Write-Host "[EXE作成] メタ情報: タイトル=$metaTitle, バージョン=$metaVersion" -ForegroundColor Gray
-            Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath -noConsole `
-                -title $metaTitle -description $metaDescription -product $metaProduct `
-                -version $metaVersion -copyright $metaCopyright
+
+            if ($iconPath -and (Test-Path $iconPath)) {
+                Write-Host "[EXE作成] カスタムアイコンを使用: $iconPath" -ForegroundColor Cyan
+                Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath -noConsole `
+                    -title $metaTitle -description $metaDescription -product $metaProduct `
+                    -version $metaVersion -copyright $metaCopyright -iconFile $iconPath
+                # 一時ICOファイルを削除
+                Remove-Item -Path $iconPath -Force -ErrorAction SilentlyContinue
+            } else {
+                Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath -noConsole `
+                    -title $metaTitle -description $metaDescription -product $metaProduct `
+                    -version $metaVersion -copyright $metaCopyright
+            }
 
             # 一時ファイルを削除
             if ((Test-Path $tempScriptPath) -and ($tempScriptPath -ne $生成結果.outputPath)) {
