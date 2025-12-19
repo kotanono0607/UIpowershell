@@ -1940,7 +1940,7 @@ button:active, .button:active {
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--base-bg);
+    background: #e0e5ec;
     z-index: 100;
     display: flex;
     flex-direction: column;
