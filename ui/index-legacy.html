@@ -71,11 +71,65 @@
 
             <!-- タブコンテンツ: 変数 -->
             <div id="tab-content-variables" class="left-panel-tab-content">
-                <div class="tab-content-placeholder">
-                    <div class="placeholder-icon">📦</div>
-                    <div class="placeholder-title">変数管理</div>
-                    <div class="placeholder-text">変数の一覧と管理</div>
-                    <button class="placeholder-button" onclick="openVariableModal()">変数を管理</button>
+                <div class="variables-panel">
+                    <!-- ヘッダー: 追加ボタン -->
+                    <div class="variables-header">
+                        <span class="variables-title">変数一覧</span>
+                        <button class="variables-add-btn" onclick="showVariableEditor(null)">＋ 追加</button>
+                    </div>
+
+                    <!-- 変数リスト -->
+                    <div class="variables-list" id="variables-list">
+                        <!-- 動的に生成 -->
+                    </div>
+
+                    <!-- 変数エディタ（モーダル風） -->
+                    <div class="variable-editor" id="variable-editor" style="display: none;">
+                        <div class="variable-editor-header">
+                            <span id="variable-editor-title">変数を追加</span>
+                            <button class="variable-editor-close" onclick="hideVariableEditor()">✕</button>
+                        </div>
+                        <div class="variable-editor-body">
+                            <div class="variable-editor-field">
+                                <label>変数名</label>
+                                <input type="text" id="variable-name-input" placeholder="変数名を入力">
+                            </div>
+                            <div class="variable-editor-field">
+                                <label>データ型</label>
+                                <select id="variable-type-select" onchange="onVariableTypeChange()">
+                                    <option value="単一値">単一値</option>
+                                    <option value="一次元">一次元</option>
+                                    <option value="二次元">二次元</option>
+                                </select>
+                            </div>
+                            <!-- 単一値・一次元用テキストエリア -->
+                            <div class="variable-editor-field" id="variable-value-field">
+                                <label>値</label>
+                                <textarea id="variable-value-input" placeholder="値を入力（一次元の場合は改行区切り）"></textarea>
+                            </div>
+                            <!-- 二次元用グリッドエディタ -->
+                            <div class="variable-editor-field" id="variable-grid-field" style="display: none;">
+                                <label>二次元配列</label>
+                                <div class="grid-editor-controls">
+                                    <button onclick="addGridRow()">＋行</button>
+                                    <button onclick="addGridCol()">＋列</button>
+                                    <button onclick="removeGridRow()">－行</button>
+                                    <button onclick="removeGridCol()">－列</button>
+                                </div>
+                                <div class="grid-editor-container">
+                                    <table class="grid-editor-table" id="grid-editor-table">
+                                        <tbody id="grid-editor-body">
+                                            <!-- 動的に生成 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="variable-editor-footer">
+                            <button class="variable-editor-cancel" onclick="hideVariableEditor()">キャンセル</button>
+                            <button class="variable-editor-save" onclick="saveVariable()">保存</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
