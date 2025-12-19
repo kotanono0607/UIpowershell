@@ -1849,6 +1849,15 @@ $originalScript
                         $resized = New-Object System.Drawing.Bitmap($iconSize, $iconSize)
                         $graphics = [System.Drawing.Graphics]::FromImage($resized)
                         $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+
+                        # 背景色で全体を塗りつぶし（透明部分対策）
+                        if ($profileContent.bgcolor) {
+                            $bgColor = [System.Drawing.ColorTranslator]::FromHtml($profileContent.bgcolor)
+                            $brush = New-Object System.Drawing.SolidBrush($bgColor)
+                            $graphics.FillRectangle($brush, 0, 0, $iconSize, $iconSize)
+                            $brush.Dispose()
+                        }
+
                         $graphics.DrawImage($bitmap, 0, 0, $iconSize, $iconSize)
                         $graphics.Dispose()
 
