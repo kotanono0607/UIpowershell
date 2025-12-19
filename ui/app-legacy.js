@@ -5018,82 +5018,353 @@ function updateNavigationButtons() {
 }
 
 // ============================================
-// 変数管理
+// 変数管理（タブ内実装版）
 // ============================================
 
+// 編集中の変数名（null = 新規追加）
+let editingVariableName = null;
+
+// 変数一覧を読み込み、タブに表示
 async function loadVariables() {
     try {
         const result = await callApi('/variables');
         if (result.success) {
             variables = result.variables || {};
             console.log('変数読み込み完了:', Object.keys(variables).length, '個');
+            renderVariablesList();
         }
     } catch (error) {
         console.error('変数読み込み失敗:', error);
     }
 }
 
-// ============================================
-// 変数管理モーダル（PowerShell Windows Forms版に移行）
-// ============================================
+// 変数リストを描画
+function renderVariablesList() {
+    const container = document.getElementById('variables-list');
+    if (!container) return;
 
-async function openVariableModal() {
-    console.log('✅ [変数管理] モーダルを開く（PowerShell Windows Forms版）');
+    // 変数データを配列に変換
+    let varList = [];
+    if (Array.isArray(variables)) {
+        varList = variables;
+    } else if (typeof variables === 'object') {
+        varList = Object.entries(variables).map(([name, data]) => ({
+            name: name,
+            value: data.value || data,
+            type: data.type || '単一値',
+            displayValue: data.displayValue || String(data.value || data)
+        }));
+    }
 
-    try {
-        // API経由でPowerShell Windows Forms ダイアログを表示
-        const response = await fetch(`${API_BASE}/variables/manage`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
+    if (varList.length === 0) {
+        container.innerHTML = `
+            <div class="variables-empty">
+                <div class="variables-empty-icon">📦</div>
+                <div class="variables-empty-text">変数がありません<br>「＋ 追加」ボタンで作成できます</div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = varList.map(v => `
+        <div class="variable-item" onclick="showVariableEditor('${escapeHtml(v.name)}')">
+            <div class="variable-item-info">
+                <div class="variable-item-name">${escapeHtml(v.name)}</div>
+                <div class="variable-item-meta">
+                    <span class="variable-item-type">${escapeHtml(v.type)}</span>
+                    <span class="variable-item-value">${escapeHtml(v.displayValue || '')}</span>
+                </div>
+            </div>
+            <div class="variable-item-actions">
+                <button class="variable-item-btn delete" onclick="event.stopPropagation(); deleteVariableConfirm('${escapeHtml(v.name)}')">🗑</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// HTMLエスケープ関数
+function escapeHtml(text) {
+    if (text == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+// 変数エディタを表示
+function showVariableEditor(name) {
+    editingVariableName = name;
+    const editor = document.getElementById('variable-editor');
+    const title = document.getElementById('variable-editor-title');
+    const nameInput = document.getElementById('variable-name-input');
+    const typeSelect = document.getElementById('variable-type-select');
+    const valueInput = document.getElementById('variable-value-input');
+
+    if (name) {
+        // 編集モード
+        title.textContent = '変数を編集';
+        nameInput.value = name;
+        nameInput.disabled = true; // 名前は変更不可
+
+        // 変数データを取得
+        let varData = null;
+        if (Array.isArray(variables)) {
+            varData = variables.find(v => v.name === name);
+        } else if (variables[name]) {
+            varData = variables[name];
+            if (typeof varData !== 'object') {
+                varData = { value: varData, type: '単一値' };
             }
-        });
-
-        const result = await response.json();
-
-        if (result.cancelled) {
-            console.log('✅ [変数管理] キャンセルされました');
-            return;
         }
 
-        if (result.success) {
-            console.log('✅ [変数管理] 変数管理が完了しました');
-            console.log(`✅ [変数管理] 変更: 追加=${result.changes.追加}, 更新=${result.changes.更新}, 削除=${result.changes.削除}`);
+        if (varData) {
+            typeSelect.value = varData.type || '単一値';
+            onVariableTypeChange();
 
-            // 変数リストを再読み込み
-            await loadVariables();
+            if (varData.type === '二次元') {
+                initGridEditor(varData.value);
+            } else if (varData.type === '一次元') {
+                valueInput.value = Array.isArray(varData.value) ? varData.value.join('\n') : String(varData.value || '');
+            } else {
+                valueInput.value = String(varData.value || '');
+            }
+        }
+    } else {
+        // 新規追加モード
+        title.textContent = '変数を追加';
+        nameInput.value = '';
+        nameInput.disabled = false;
+        typeSelect.value = '単一値';
+        valueInput.value = '';
+        onVariableTypeChange();
+        initGridEditor([['']]);
+    }
+
+    editor.style.display = 'flex';
+}
+
+// 変数エディタを非表示
+function hideVariableEditor() {
+    const editor = document.getElementById('variable-editor');
+    editor.style.display = 'none';
+    editingVariableName = null;
+}
+
+// データ型変更時の処理
+function onVariableTypeChange() {
+    const typeSelect = document.getElementById('variable-type-select');
+    const valueField = document.getElementById('variable-value-field');
+    const gridField = document.getElementById('variable-grid-field');
+    const valueInput = document.getElementById('variable-value-input');
+
+    if (typeSelect.value === '二次元') {
+        valueField.style.display = 'none';
+        gridField.style.display = 'block';
+        // グリッドが空の場合は初期化
+        const tbody = document.getElementById('grid-editor-body');
+        if (!tbody.children.length) {
+            initGridEditor([['']]);
+        }
+    } else {
+        valueField.style.display = 'block';
+        gridField.style.display = 'none';
+
+        // プレースホルダーを更新
+        if (typeSelect.value === '一次元') {
+            valueInput.placeholder = '値を入力（改行区切りで配列になります）';
         } else {
-            console.error('❌ [変数管理] エラー:', result.error);
-            await showAlertDialog(`変数管理エラー: ${result.error}`, '変数管理エラー');
+            valueInput.placeholder = '値を入力';
         }
-
-    } catch (error) {
-        console.error('❌ [変数管理] 予期しないエラー:', error);
-        await showAlertDialog(`変数管理中にエラーが発生しました: ${error.message}`, 'エラー');
     }
 }
 
-function closeVariableModal() {
-    console.log('[変数管理] closeVariableModal() は廃止されました（PowerShell Windows Forms版に移行）');
+// 変数を保存
+async function saveVariable() {
+    const nameInput = document.getElementById('variable-name-input');
+    const typeSelect = document.getElementById('variable-type-select');
+    const valueInput = document.getElementById('variable-value-input');
+
+    const name = nameInput.value.trim();
+    const type = typeSelect.value;
+
+    if (!name) {
+        await showAlertDialog('変数名を入力してください', 'エラー');
+        return;
+    }
+
+    let value;
+    if (type === '二次元') {
+        value = getGridData();
+    } else if (type === '一次元') {
+        value = valueInput.value.split('\n').filter(line => line !== '');
+    } else {
+        value = valueInput.value;
+    }
+
+    try {
+        let result;
+        if (editingVariableName) {
+            // 更新
+            result = await fetch(`${API_BASE}/variables/${encodeURIComponent(name)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ value, type })
+            }).then(r => r.json());
+        } else {
+            // 新規追加
+            result = await fetch(`${API_BASE}/variables`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, value, type })
+            }).then(r => r.json());
+        }
+
+        if (result.success) {
+            console.log(`✅ [変数] ${editingVariableName ? '更新' : '追加'}成功: ${name}`);
+            hideVariableEditor();
+            await loadVariables();
+        } else {
+            await showAlertDialog(`変数の保存に失敗しました: ${result.error}`, 'エラー');
+        }
+    } catch (error) {
+        console.error('変数保存エラー:', error);
+        await showAlertDialog(`変数の保存中にエラーが発生しました: ${error.message}`, 'エラー');
+    }
 }
 
-function renderVariableTable() {
-    console.log('[変数管理] renderVariableTable() は廃止されました（PowerShell Windows Forms版に移行）');
+// 変数削除の確認
+async function deleteVariableConfirm(name) {
+    const confirmed = await showConfirmDialog(`変数「${name}」を削除しますか？`, '変数の削除');
+    if (confirmed) {
+        await deleteVariable(name);
+    }
 }
 
-async function addVariablePrompt() {
-    console.log('[変数管理] addVariablePrompt() は廃止されました（PowerShell Windows Forms版に移行）');
-    console.log('[変数管理] 代わりに openVariableModal() を使用してください');
-}
-
-async function editVariable(name) {
-    console.log('[変数管理] editVariable() は廃止されました（PowerShell Windows Forms版に移行）');
-    console.log('[変数管理] 代わりに openVariableModal() を使用してください');
-}
-
+// 変数を削除
 async function deleteVariable(name) {
-    console.log('[変数管理] deleteVariable() は廃止されました（PowerShell Windows Forms版に移行）');
-    console.log('[変数管理] 代わりに openVariableModal() を使用してください');
+    try {
+        const result = await fetch(`${API_BASE}/variables/${encodeURIComponent(name)}`, {
+            method: 'DELETE'
+        }).then(r => r.json());
+
+        if (result.success) {
+            console.log(`✅ [変数] 削除成功: ${name}`);
+            await loadVariables();
+        } else {
+            await showAlertDialog(`変数の削除に失敗しました: ${result.error}`, 'エラー');
+        }
+    } catch (error) {
+        console.error('変数削除エラー:', error);
+        await showAlertDialog(`変数の削除中にエラーが発生しました: ${error.message}`, 'エラー');
+    }
+}
+
+// ============================================
+// 二次元配列グリッドエディタ
+// ============================================
+
+// グリッドを初期化
+function initGridEditor(data) {
+    const tbody = document.getElementById('grid-editor-body');
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        data = [['']];
+    }
+
+    // 行数と列数を取得
+    const rows = data.length;
+    const cols = Math.max(...data.map(row => Array.isArray(row) ? row.length : 1), 1);
+
+    tbody.innerHTML = '';
+    for (let i = 0; i < rows; i++) {
+        const tr = document.createElement('tr');
+        for (let j = 0; j < cols; j++) {
+            const td = document.createElement('td');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = (data[i] && data[i][j]) ? String(data[i][j]) : '';
+            td.appendChild(input);
+            tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+    }
+}
+
+// グリッドデータを取得
+function getGridData() {
+    const tbody = document.getElementById('grid-editor-body');
+    const rows = tbody.querySelectorAll('tr');
+    const data = [];
+
+    rows.forEach(tr => {
+        const rowData = [];
+        tr.querySelectorAll('input').forEach(input => {
+            rowData.push(input.value);
+        });
+        data.push(rowData);
+    });
+
+    return data;
+}
+
+// 行を追加
+function addGridRow() {
+    const tbody = document.getElementById('grid-editor-body');
+    const cols = tbody.firstChild ? tbody.firstChild.children.length : 1;
+
+    const tr = document.createElement('tr');
+    for (let j = 0; j < cols; j++) {
+        const td = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = 'text';
+        td.appendChild(input);
+        tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+}
+
+// 列を追加
+function addGridCol() {
+    const tbody = document.getElementById('grid-editor-body');
+    const rows = tbody.querySelectorAll('tr');
+
+    if (rows.length === 0) {
+        addGridRow();
+        return;
+    }
+
+    rows.forEach(tr => {
+        const td = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = 'text';
+        td.appendChild(input);
+        tr.appendChild(td);
+    });
+}
+
+// 行を削除
+function removeGridRow() {
+    const tbody = document.getElementById('grid-editor-body');
+    if (tbody.children.length > 1) {
+        tbody.removeChild(tbody.lastChild);
+    }
+}
+
+// 列を削除
+function removeGridCol() {
+    const tbody = document.getElementById('grid-editor-body');
+    const rows = tbody.querySelectorAll('tr');
+
+    rows.forEach(tr => {
+        if (tr.children.length > 1) {
+            tr.removeChild(tr.lastChild);
+        }
+    });
+}
+
+// 旧関数（互換性のため残す）
+async function openVariableModal() {
+    // タブに切り替えてエディタを開く
+    switchLeftPanelTab('variables');
+    showVariableEditor(null);
 }
 
 // ============================================
@@ -9768,6 +10039,11 @@ function switchLeftPanelTab(tabId) {
     // ロボットタブに切り替えた時、ノード数を更新
     if (tabId === 'robot') {
         updateRobotNodeCount();
+    }
+
+    // 変数タブに切り替えた時、変数リストを描画
+    if (tabId === 'variables') {
+        renderVariablesList();
     }
 }
 

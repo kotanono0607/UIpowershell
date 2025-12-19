@@ -1791,3 +1791,361 @@ button:active, .button:active {
     position: absolute;
     z-index: 2;
 }
+
+/* ============================================
+   変数タブ スタイル
+   ============================================ */
+
+.variables-panel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    overflow: hidden;
+}
+
+.variables-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.variables-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.variables-add-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    background: var(--base-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+    box-shadow:
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+    transition: all 0.2s ease;
+}
+
+.variables-add-btn:hover {
+    box-shadow:
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+/* 変数リスト */
+.variables-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.variable-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--base-bg);
+    border-radius: 8px;
+    box-shadow:
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.variable-item:hover {
+    box-shadow:
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+.variable-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.variable-item-name {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.variable-item-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+.variable-item-type {
+    padding: 2px 6px;
+    background: #e3f2fd;
+    color: #1976d2;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.variable-item-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100px;
+}
+
+.variable-item-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.variable-item-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: var(--base-bg);
+    cursor: pointer;
+    font-size: 12px;
+    box-shadow:
+        2px 2px 4px var(--shadow-dark),
+        -2px -2px 4px var(--shadow-light);
+    transition: all 0.2s ease;
+}
+
+.variable-item-btn:hover {
+    box-shadow:
+        inset 1px 1px 2px var(--shadow-dark),
+        inset -1px -1px 2px var(--shadow-light);
+}
+
+.variable-item-btn.delete:hover {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* 変数エディタ */
+.variable-editor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--base-bg);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+}
+
+.variable-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 12px;
+}
+
+.variable-editor-header span {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.variable-editor-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: var(--base-bg);
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow:
+        2px 2px 4px var(--shadow-dark),
+        -2px -2px 4px var(--shadow-light);
+}
+
+.variable-editor-close:hover {
+    box-shadow:
+        inset 1px 1px 2px var(--shadow-dark),
+        inset -1px -1px 2px var(--shadow-light);
+}
+
+.variable-editor-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.variable-editor-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.variable-editor-field label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.variable-editor-field input,
+.variable-editor-field select,
+.variable-editor-field textarea {
+    padding: 10px 12px;
+    font-size: 13px;
+    border: none;
+    border-radius: 8px;
+    background: var(--base-bg);
+    color: var(--text-primary);
+    box-shadow:
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
+}
+
+.variable-editor-field input:focus,
+.variable-editor-field select:focus,
+.variable-editor-field textarea:focus {
+    outline: none;
+    box-shadow:
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light),
+        0 0 0 2px #2196F3;
+}
+
+.variable-editor-field textarea {
+    min-height: 100px;
+    resize: vertical;
+    font-family: monospace;
+}
+
+.variable-editor-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    margin-top: 12px;
+}
+
+.variable-editor-cancel,
+.variable-editor-save {
+    padding: 8px 16px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow:
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+    transition: all 0.2s ease;
+}
+
+.variable-editor-cancel {
+    background: var(--base-bg);
+    color: var(--text-secondary);
+}
+
+.variable-editor-save {
+    background: #2196F3;
+    color: white;
+}
+
+.variable-editor-cancel:hover,
+.variable-editor-save:hover {
+    box-shadow:
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+/* 二次元グリッドエディタ */
+.grid-editor-controls {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.grid-editor-controls button {
+    padding: 4px 10px;
+    font-size: 11px;
+    border: none;
+    border-radius: 4px;
+    background: var(--base-bg);
+    cursor: pointer;
+    box-shadow:
+        2px 2px 4px var(--shadow-dark),
+        -2px -2px 4px var(--shadow-light);
+}
+
+.grid-editor-controls button:hover {
+    box-shadow:
+        inset 1px 1px 2px var(--shadow-dark),
+        inset -1px -1px 2px var(--shadow-light);
+}
+
+.grid-editor-container {
+    max-height: 200px;
+    overflow: auto;
+    border-radius: 8px;
+    background: var(--base-bg);
+    box-shadow:
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
+}
+
+.grid-editor-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.grid-editor-table td {
+    padding: 2px;
+}
+
+.grid-editor-table input {
+    width: 100%;
+    min-width: 60px;
+    padding: 6px 8px;
+    font-size: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: white;
+}
+
+.grid-editor-table input:focus {
+    outline: none;
+    border-color: #2196F3;
+}
+
+/* 空の変数リスト */
+.variables-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.variables-empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.variables-empty-text {
+    font-size: 13px;
+}
