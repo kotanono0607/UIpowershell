@@ -1888,10 +1888,10 @@ $originalScript
                             $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
                             $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-                            # 背景色で円を描画
+                            # 背景色で全体を塗りつぶし
                             $bgColor = [System.Drawing.ColorTranslator]::FromHtml($profileContent.bgcolor)
                             $brush = New-Object System.Drawing.SolidBrush($bgColor)
-                            $graphics.FillEllipse($brush, 0, 0, $iconSize, $iconSize)
+                            $graphics.FillRectangle($brush, 0, 0, $iconSize, $iconSize)
                             $brush.Dispose()
 
                             # ロボット画像を中央に描画
