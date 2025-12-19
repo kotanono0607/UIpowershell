@@ -550,7 +550,7 @@ body::after {
     padding: 8px 12px;
     font-size: 13px;
     border: none;
-    border-radius: 8px;
+    border-radius: 0;
     background: var(--bg-color);
     color: var(--text-primary);
     box-shadow:
