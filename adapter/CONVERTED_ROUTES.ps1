@@ -3010,6 +3010,7 @@ Add-PodeRoute -Method Get -Path "/api/robot-profile" -ScriptBlock {
                     role = ""
                     memo = ""
                     image = ""
+                    bgcolor = "#e8f4fc"
                 }
             }
         }
@@ -3039,6 +3040,7 @@ Add-PodeRoute -Method Post -Path "/api/robot-profile" -ScriptBlock {
             role = if ($body.role) { $body.role } else { "" }
             memo = if ($body.memo) { $body.memo } else { "" }
             image = if ($body.image) { $body.image } else { "" }
+            bgcolor = if ($body.bgcolor) { $body.bgcolor } else { "#e8f4fc" }
         }
 
         $json = $profile | ConvertTo-Json -Depth 10
