@@ -1799,7 +1799,32 @@ $originalScript
 
             # ロボットアイコンをICOファイルに変換
             $iconPath = $null
-            $robotProfilePath = if ($global:RootDir) { Join-Path $global:RootDir "robot-profile.json" } else { $null }
+            $robotProfilePath = $null
+
+            # robot-profile.jsonのパスを解決（複数の方法でフォールバック）
+            # 方法1: $global:RootDir から取得
+            if ($global:RootDir -and (Test-Path (Join-Path $global:RootDir "robot-profile.json"))) {
+                $robotProfilePath = Join-Path $global:RootDir "robot-profile.json"
+                Write-Host "[EXE作成] RootDirからプロファイル検出: $robotProfilePath" -ForegroundColor Gray
+            }
+            # 方法2: $global:folderPath から2階層上
+            elseif ($global:folderPath) {
+                $rootFromFolder = Split-Path (Split-Path $global:folderPath -Parent) -Parent
+                $pathFromFolder = Join-Path $rootFromFolder "robot-profile.json"
+                if (Test-Path $pathFromFolder) {
+                    $robotProfilePath = $pathFromFolder
+                    Write-Host "[EXE作成] folderPathからプロファイル検出: $robotProfilePath" -ForegroundColor Gray
+                }
+            }
+            # 方法3: 出力ファイルから3階層上
+            if (-not $robotProfilePath -and $生成結果.outputPath) {
+                $rootFromOutput = Split-Path (Split-Path (Split-Path $生成結果.outputPath -Parent) -Parent) -Parent
+                $pathFromOutput = Join-Path $rootFromOutput "robot-profile.json"
+                if (Test-Path $pathFromOutput) {
+                    $robotProfilePath = $pathFromOutput
+                    Write-Host "[EXE作成] 出力パスからプロファイル検出: $robotProfilePath" -ForegroundColor Gray
+                }
+            }
 
             if ($robotProfilePath -and (Test-Path $robotProfilePath)) {
                 try {
