@@ -1844,8 +1844,8 @@ $originalScript
                         Add-Type -AssemblyName System.Drawing
                         $bitmap = [System.Drawing.Bitmap]::FromFile($tempPngPath)
 
-                        # 32x32にリサイズ
-                        $iconSize = 32
+                        # 256x256にリサイズ（大きいアイコン）
+                        $iconSize = 256
                         $resized = New-Object System.Drawing.Bitmap($iconSize, $iconSize)
                         $graphics = [System.Drawing.Graphics]::FromImage($resized)
                         $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
