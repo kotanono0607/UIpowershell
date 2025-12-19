@@ -9787,29 +9787,10 @@ function updateRobotImage(input) {
         const reader = new FileReader();
 
         reader.onload = function(e) {
-            const avatarDiv = document.getElementById('robot-avatar');
-            const emojiSpan = avatarDiv.querySelector('.robot-avatar-emoji');
-
-            // 既存の画像があれば削除
-            const existingImg = avatarDiv.querySelector('.robot-avatar-img');
-            if (existingImg) {
-                existingImg.remove();
+            const avatarImg = document.getElementById('robot-avatar-img');
+            if (avatarImg) {
+                avatarImg.src = e.target.result;
             }
-
-            // 絵文字を非表示
-            if (emojiSpan) {
-                emojiSpan.style.display = 'none';
-            }
-
-            // 新しい画像を作成
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.className = 'robot-avatar-img';
-            img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
-
-            // オーバーレイの前に挿入
-            const overlay = avatarDiv.querySelector('.robot-avatar-overlay');
-            avatarDiv.insertBefore(img, overlay);
 
             console.log('[ロボット] 画像が更新されました');
 
@@ -9830,6 +9811,16 @@ function updateRobotNodeCount() {
     }
 }
 
+// ロボットの背景色を更新
+function updateRobotBgColor(color) {
+    const avatar = document.getElementById('robot-avatar');
+    if (avatar) {
+        avatar.style.backgroundColor = color;
+        console.log('[ロボット] 背景色を変更:', color);
+        saveRobotProfile();
+    }
+}
+
 // ロボットプロファイルを保存
 async function saveRobotProfile() {
     try {
@@ -9838,7 +9829,8 @@ async function saveRobotProfile() {
             author: document.getElementById('robot-author')?.value || '',
             role: document.getElementById('robot-role')?.value || '',
             memo: document.getElementById('robot-memo')?.value || '',
-            image: getRobotImageData()
+            image: getRobotImageData(),
+            bgcolor: document.getElementById('robot-bgcolor')?.value || '#e8f4fc'
         };
 
         const response = await fetch('/api/robot-profile', {
@@ -9860,8 +9852,12 @@ async function saveRobotProfile() {
 
 // ロボット画像のデータURLを取得
 function getRobotImageData() {
-    const img = document.querySelector('#robot-avatar .robot-avatar-img');
+    const img = document.getElementById('robot-avatar-img');
     if (img && img.src) {
+        // デフォルトのrobo.pngの場合は空文字を返す
+        if (img.src.endsWith('robo.png')) {
+            return '';
+        }
         return img.src;
     }
     return '';
@@ -9891,30 +9887,24 @@ async function loadRobotProfile() {
             }
 
             // 画像を復元
-            if (profile.image) {
+            if (profile.image && !profile.image.includes('robo.png')) {
                 const avatarDiv = document.getElementById('robot-avatar');
-                const emojiSpan = avatarDiv?.querySelector('.robot-avatar-emoji');
+                const avatarImg = document.getElementById('robot-avatar-img');
 
-                if (avatarDiv) {
-                    // 既存の画像を削除
-                    const existingImg = avatarDiv.querySelector('.robot-avatar-img');
-                    if (existingImg) {
-                        existingImg.remove();
-                    }
+                if (avatarImg) {
+                    avatarImg.src = profile.image;
+                }
+            }
 
-                    // 絵文字を非表示
-                    if (emojiSpan) {
-                        emojiSpan.style.display = 'none';
-                    }
-
-                    // 画像を作成
-                    const img = document.createElement('img');
-                    img.src = profile.image;
-                    img.className = 'robot-avatar-img';
-                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
-
-                    const overlay = avatarDiv.querySelector('.robot-avatar-overlay');
-                    avatarDiv.insertBefore(img, overlay);
+            // 背景色を復元
+            if (profile.bgcolor) {
+                const avatar = document.getElementById('robot-avatar');
+                const bgcolorInput = document.getElementById('robot-bgcolor');
+                if (avatar) {
+                    avatar.style.backgroundColor = profile.bgcolor;
+                }
+                if (bgcolorInput) {
+                    bgcolorInput.value = profile.bgcolor;
                 }
             }
 

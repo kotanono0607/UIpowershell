@@ -111,12 +111,17 @@
                     <!-- ロボット画像 -->
                     <div class="robot-avatar-section">
                         <div class="robot-avatar" id="robot-avatar" onclick="selectRobotImage()">
-                            <span class="robot-avatar-emoji">🤖</span>
+                            <img src="robo.png" class="robot-avatar-img" id="robot-avatar-img">
                             <div class="robot-avatar-overlay">
                                 <span>📷</span>
                             </div>
                         </div>
                         <input type="file" id="robot-image-input" accept="image/*" style="display:none" onchange="updateRobotImage(this)">
+                        <!-- 背景色選択 -->
+                        <div class="robot-bgcolor-picker">
+                            <label>背景色:</label>
+                            <input type="color" id="robot-bgcolor" value="#e8f4fc" onchange="updateRobotBgColor(this.value)">
+                        </div>
                     </div>
 
                     <!-- ロボット情報 -->
