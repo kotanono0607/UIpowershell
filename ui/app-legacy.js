@@ -9814,11 +9814,15 @@ function updateRobotNodeCount() {
 // ロボットの背景色を選択（プリセットカラー）
 function selectRobotBgColor(element) {
     const color = element.dataset.color;
+    const bgClass = element.dataset.bgclass;
     const avatar = document.getElementById('robot-avatar');
 
-    // アバター背景色を即座に変更
-    if (avatar) {
-        avatar.style.setProperty('background', color, 'important');
+    // アバター背景色クラスを切り替え
+    if (avatar && bgClass) {
+        // 既存の背景色クラスを削除
+        avatar.classList.remove('bg-blue', 'bg-orange', 'bg-green', 'bg-pink', 'bg-purple', 'bg-gray');
+        // 新しい背景色クラスを追加
+        avatar.classList.add(bgClass);
     }
 
     // 選択状態を更新
@@ -9827,7 +9831,7 @@ function selectRobotBgColor(element) {
     });
     element.classList.add('selected');
 
-    console.log('[ロボット] 背景色を変更:', color);
+    console.log('[ロボット] 背景色を変更:', color, bgClass);
     saveRobotProfile();
 }
 
@@ -9915,14 +9919,16 @@ async function loadRobotProfile() {
             // 背景色を復元
             if (profile.bgcolor) {
                 const avatar = document.getElementById('robot-avatar');
-                if (avatar) {
-                    avatar.style.setProperty('background', profile.bgcolor, 'important');
-                }
-                // 対応する色の円を選択状態にする
+                // 対応する色の円を見つけてクラスを適用
                 document.querySelectorAll('.robot-bgcolor-circle').forEach(circle => {
                     circle.classList.remove('selected');
                     if (circle.dataset.color === profile.bgcolor) {
                         circle.classList.add('selected');
+                        // アバターの背景色クラスを切り替え
+                        if (avatar && circle.dataset.bgclass) {
+                            avatar.classList.remove('bg-blue', 'bg-orange', 'bg-green', 'bg-pink', 'bg-purple', 'bg-gray');
+                            avatar.classList.add(circle.dataset.bgclass);
+                        }
                     }
                 });
             }
