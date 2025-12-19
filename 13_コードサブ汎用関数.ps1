@@ -1715,18 +1715,164 @@ function コード結果を表示 {
             Write-Host "[EXE作成] 入力: $($生成結果.outputPath)" -ForegroundColor Gray
             Write-Host "[EXE作成] 出力: $exePath" -ForegroundColor Gray
 
-            # 確認ダイアログ
-            $確認結果 = [System.Windows.Forms.MessageBox]::Show(
-                "EXEファイルを作成しますか？`n`n出力先: $exePath",
-                "EXE作成確認",
-                [System.Windows.Forms.MessageBoxButtons]::YesNo,
-                [System.Windows.Forms.MessageBoxIcon]::Question
-            )
+            # メタ情報入力ダイアログ
+            $メタフォーム = New-Object System.Windows.Forms.Form
+            $メタフォーム.Text = "EXE作成 - メタ情報設定"
+            $メタフォーム.Size = New-Object System.Drawing.Size(500, 420)
+            $メタフォーム.StartPosition = "CenterParent"
+            $メタフォーム.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
+            $メタフォーム.MaximizeBox = $false
+            $メタフォーム.MinimizeBox = $false
 
-            if ($確認結果 -ne [System.Windows.Forms.DialogResult]::Yes) {
+            $y = 20
+
+            # 出力先表示
+            $ラベル_出力先 = New-Object System.Windows.Forms.Label
+            $ラベル_出力先.Text = "出力先: $exePath"
+            $ラベル_出力先.Location = New-Object System.Drawing.Point(20, $y)
+            $ラベル_出力先.Size = New-Object System.Drawing.Size(440, 20)
+            $ラベル_出力先.Font = New-Object System.Drawing.Font("メイリオ", 9)
+            $メタフォーム.Controls.Add($ラベル_出力先)
+            $y += 35
+
+            # タイトル
+            $ラベル_タイトル = New-Object System.Windows.Forms.Label
+            $ラベル_タイトル.Text = "タイトル:"
+            $ラベル_タイトル.Location = New-Object System.Drawing.Point(20, $y)
+            $ラベル_タイトル.Size = New-Object System.Drawing.Size(100, 20)
+            $メタフォーム.Controls.Add($ラベル_タイトル)
+            $テキスト_タイトル = New-Object System.Windows.Forms.TextBox
+            $テキスト_タイトル.Location = New-Object System.Drawing.Point(130, $y)
+            $テキスト_タイトル.Size = New-Object System.Drawing.Size(330, 25)
+            $テキスト_タイトル.Text = "RPA自動化ツール"
+            $メタフォーム.Controls.Add($テキスト_タイトル)
+            $y += 35
+
+            # 説明
+            $ラベル_説明 = New-Object System.Windows.Forms.Label
+            $ラベル_説明.Text = "説明:"
+            $ラベル_説明.Location = New-Object System.Drawing.Point(20, $y)
+            $ラベル_説明.Size = New-Object System.Drawing.Size(100, 20)
+            $メタフォーム.Controls.Add($ラベル_説明)
+            $テキスト_説明 = New-Object System.Windows.Forms.TextBox
+            $テキスト_説明.Location = New-Object System.Drawing.Point(130, $y)
+            $テキスト_説明.Size = New-Object System.Drawing.Size(330, 25)
+            $テキスト_説明.Text = "UIpowershellで生成された自動化スクリプト"
+            $メタフォーム.Controls.Add($テキスト_説明)
+            $y += 35
+
+            # 会社名
+            $ラベル_会社名 = New-Object System.Windows.Forms.Label
+            $ラベル_会社名.Text = "会社名:"
+            $ラベル_会社名.Location = New-Object System.Drawing.Point(20, $y)
+            $ラベル_会社名.Size = New-Object System.Drawing.Size(100, 20)
+            $メタフォーム.Controls.Add($ラベル_会社名)
+            $テキスト_会社名 = New-Object System.Windows.Forms.TextBox
+            $テキスト_会社名.Location = New-Object System.Drawing.Point(130, $y)
+            $テキスト_会社名.Size = New-Object System.Drawing.Size(330, 25)
+            $メタフォーム.Controls.Add($テキスト_会社名)
+            $y += 35
+
+            # 製品名
+            $ラベル_製品名 = New-Object System.Windows.Forms.Label
+            $ラベル_製品名.Text = "製品名:"
+            $ラベル_製品名.Location = New-Object System.Drawing.Point(20, $y)
+            $ラベル_製品名.Size = New-Object System.Drawing.Size(100, 20)
+            $メタフォーム.Controls.Add($ラベル_製品名)
+            $テキスト_製品名 = New-Object System.Windows.Forms.TextBox
+            $テキスト_製品名.Location = New-Object System.Drawing.Point(130, $y)
+            $テキスト_製品名.Size = New-Object System.Drawing.Size(330, 25)
+            $テキスト_製品名.Text = "UIpowershell RPA"
+            $メタフォーム.Controls.Add($テキスト_製品名)
+            $y += 35
+
+            # バージョン
+            $ラベル_バージョン = New-Object System.Windows.Forms.Label
+            $ラベル_バージョン.Text = "バージョン:"
+            $ラベル_バージョン.Location = New-Object System.Drawing.Point(20, $y)
+            $ラベル_バージョン.Size = New-Object System.Drawing.Size(100, 20)
+            $メタフォーム.Controls.Add($ラベル_バージョン)
+            $テキスト_バージョン = New-Object System.Windows.Forms.TextBox
+            $テキスト_バージョン.Location = New-Object System.Drawing.Point(130, $y)
+            $テキスト_バージョン.Size = New-Object System.Drawing.Size(150, 25)
+            $テキスト_バージョン.Text = "1.0.0.0"
+            $メタフォーム.Controls.Add($テキスト_バージョン)
+            $y += 35
+
+            # 著作権
+            $ラベル_著作権 = New-Object System.Windows.Forms.Label
+            $ラベル_著作権.Text = "著作権:"
+            $ラベル_著作権.Location = New-Object System.Drawing.Point(20, $y)
+            $ラベル_著作権.Size = New-Object System.Drawing.Size(100, 20)
+            $メタフォーム.Controls.Add($ラベル_著作権)
+            $テキスト_著作権 = New-Object System.Windows.Forms.TextBox
+            $テキスト_著作権.Location = New-Object System.Drawing.Point(130, $y)
+            $テキスト_著作権.Size = New-Object System.Drawing.Size(330, 25)
+            $テキスト_著作権.Text = "Copyright $(Get-Date -Format 'yyyy')"
+            $メタフォーム.Controls.Add($テキスト_著作権)
+            $y += 35
+
+            # アイコンファイル
+            $ラベル_アイコン = New-Object System.Windows.Forms.Label
+            $ラベル_アイコン.Text = "アイコン:"
+            $ラベル_アイコン.Location = New-Object System.Drawing.Point(20, $y)
+            $ラベル_アイコン.Size = New-Object System.Drawing.Size(100, 20)
+            $メタフォーム.Controls.Add($ラベル_アイコン)
+            $テキスト_アイコン = New-Object System.Windows.Forms.TextBox
+            $テキスト_アイコン.Location = New-Object System.Drawing.Point(130, $y)
+            $テキスト_アイコン.Size = New-Object System.Drawing.Size(250, 25)
+            $メタフォーム.Controls.Add($テキスト_アイコン)
+            $ボタン_参照 = New-Object System.Windows.Forms.Button
+            $ボタン_参照.Text = "参照..."
+            $ボタン_参照.Location = New-Object System.Drawing.Point(390, $y)
+            $ボタン_参照.Size = New-Object System.Drawing.Size(70, 25)
+            $ボタン_参照.Add_Click({
+                $openDialog = New-Object System.Windows.Forms.OpenFileDialog
+                $openDialog.Filter = "アイコンファイル (*.ico)|*.ico"
+                $openDialog.Title = "アイコンファイルを選択"
+                if ($openDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                    $テキスト_アイコン.Text = $openDialog.FileName
+                }
+            })
+            $メタフォーム.Controls.Add($ボタン_参照)
+            $y += 50
+
+            # ボタン
+            $ボタン_作成 = New-Object System.Windows.Forms.Button
+            $ボタン_作成.Text = "EXE作成"
+            $ボタン_作成.Location = New-Object System.Drawing.Point(130, $y)
+            $ボタン_作成.Size = New-Object System.Drawing.Size(100, 35)
+            $ボタン_作成.BackColor = [System.Drawing.Color]::FromArgb(255, 200, 150)
+            $ボタン_作成.DialogResult = [System.Windows.Forms.DialogResult]::OK
+            $メタフォーム.Controls.Add($ボタン_作成)
+
+            $ボタン_キャンセル = New-Object System.Windows.Forms.Button
+            $ボタン_キャンセル.Text = "キャンセル"
+            $ボタン_キャンセル.Location = New-Object System.Drawing.Point(250, $y)
+            $ボタン_キャンセル.Size = New-Object System.Drawing.Size(100, 35)
+            $ボタン_キャンセル.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+            $メタフォーム.Controls.Add($ボタン_キャンセル)
+
+            $メタフォーム.AcceptButton = $ボタン_作成
+            $メタフォーム.CancelButton = $ボタン_キャンセル
+
+            $ダイアログ結果 = $メタフォーム.ShowDialog()
+
+            if ($ダイアログ結果 -ne [System.Windows.Forms.DialogResult]::OK) {
                 Write-Host "[EXE作成] キャンセルされました" -ForegroundColor Yellow
                 return
             }
+
+            # メタ情報を取得
+            $metaTitle = $テキスト_タイトル.Text
+            $metaDescription = $テキスト_説明.Text
+            $metaCompany = $テキスト_会社名.Text
+            $metaProduct = $テキスト_製品名.Text
+            $metaVersion = $テキスト_バージョン.Text
+            $metaCopyright = $テキスト_著作権.Text
+            $metaIcon = $テキスト_アイコン.Text
+
+            $メタフォーム.Dispose()
 
             # win32API.psm1を埋め込んだ一時ファイルを作成
             Write-Host "[EXE作成] win32API.psm1を埋め込みます..." -ForegroundColor Cyan
@@ -1790,9 +1936,24 @@ $originalScript
                 $inputFileForExe = $生成結果.outputPath
             }
 
-            # ps2exeを実行
+            # ps2exeを実行（メタ情報付き）
             Import-Module ps2exe -Force
-            Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath -noConsole
+            $ps2exeParams = @{
+                inputFile = $inputFileForExe
+                outputFile = $exePath
+                noConsole = $true
+            }
+            # メタ情報を追加（空でない場合のみ）
+            if ($metaTitle) { $ps2exeParams['title'] = $metaTitle }
+            if ($metaDescription) { $ps2exeParams['description'] = $metaDescription }
+            if ($metaCompany) { $ps2exeParams['company'] = $metaCompany }
+            if ($metaProduct) { $ps2exeParams['product'] = $metaProduct }
+            if ($metaVersion) { $ps2exeParams['version'] = $metaVersion }
+            if ($metaCopyright) { $ps2exeParams['copyright'] = $metaCopyright }
+            if ($metaIcon -and (Test-Path $metaIcon)) { $ps2exeParams['iconFile'] = $metaIcon }
+
+            Write-Host "[EXE作成] メタ情報: タイトル=$metaTitle, バージョン=$metaVersion" -ForegroundColor Gray
+            Invoke-ps2exe @ps2exeParams
 
             # 一時ファイルを削除
             if ((Test-Path $tempScriptPath) -and ($tempScriptPath -ne $生成結果.outputPath)) {
