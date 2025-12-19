@@ -1849,19 +1849,20 @@ $originalScript
                         }
 
                         if ($roboPngPath) {
+                            Write-Host "[EXE作成] robo.png検出: $roboPngPath" -ForegroundColor Gray
                             Add-Type -AssemblyName System.Drawing
 
                             $iconSize = 256
-                            $resized = New-Object System.Drawing.Bitmap($iconSize, $iconSize)
+                            # 32bppArgbで明示的にビットマップを作成
+                            $resized = New-Object System.Drawing.Bitmap($iconSize, $iconSize, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
                             $graphics = [System.Drawing.Graphics]::FromImage($resized)
                             $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
                             $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
                             # 背景色で全体を塗りつぶし
                             $bgColor = [System.Drawing.ColorTranslator]::FromHtml($profileContent.bgcolor)
-                            $brush = New-Object System.Drawing.SolidBrush($bgColor)
-                            $graphics.FillRectangle($brush, 0, 0, $iconSize, $iconSize)
-                            $brush.Dispose()
+                            Write-Host "[EXE作成] 背景色: R=$($bgColor.R), G=$($bgColor.G), B=$($bgColor.B)" -ForegroundColor Cyan
+                            $graphics.Clear($bgColor)
 
                             # ロボット画像を中央に描画
                             $robotBitmap = [System.Drawing.Bitmap]::FromFile($roboPngPath)
@@ -1871,13 +1872,47 @@ $originalScript
                             $robotBitmap.Dispose()
                             $graphics.Dispose()
 
-                            # ICOファイルとして保存
-                            $iconPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_$(Get-Date -Format 'yyyyMMddHHmmss').ico")
-                            $icon = [System.Drawing.Icon]::FromHandle($resized.GetHicon())
-                            $fileStream = [System.IO.FileStream]::new($iconPath, [System.IO.FileMode]::Create)
-                            $icon.Save($fileStream)
-                            $fileStream.Close()
+                            # まずPNGとして保存（デバッグ用）
+                            $tempPngPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_debug.png")
+                            $resized.Save($tempPngPath, [System.Drawing.Imaging.ImageFormat]::Png)
+                            Write-Host "[EXE作成] デバッグPNG: $tempPngPath" -ForegroundColor Gray
 
+                            # ICOファイルとして保存（複数サイズ対応）
+                            $iconPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_$(Get-Date -Format 'yyyyMMddHHmmss').ico")
+
+                            # 直接ICOバイナリを生成
+                            $ms = New-Object System.IO.MemoryStream
+                            $bw = New-Object System.IO.BinaryWriter($ms)
+
+                            # ICOヘッダー
+                            $bw.Write([int16]0)      # 予約（0）
+                            $bw.Write([int16]1)      # タイプ（1=ICO）
+                            $bw.Write([int16]1)      # 画像数
+
+                            # 画像エントリ
+                            $bw.Write([byte]0)       # 幅（0=256）
+                            $bw.Write([byte]0)       # 高さ（0=256）
+                            $bw.Write([byte]0)       # カラーパレット数
+                            $bw.Write([byte]0)       # 予約
+                            $bw.Write([int16]1)      # カラープレーン
+                            $bw.Write([int16]32)     # ビット深度
+
+                            # PNG データを取得
+                            $pngMs = New-Object System.IO.MemoryStream
+                            $resized.Save($pngMs, [System.Drawing.Imaging.ImageFormat]::Png)
+                            $pngData = $pngMs.ToArray()
+                            $pngMs.Dispose()
+
+                            $bw.Write([int32]$pngData.Length)  # データサイズ
+                            $bw.Write([int32]22)               # データオフセット
+
+                            # PNGデータを書き込み
+                            $bw.Write($pngData)
+
+                            # ファイルに保存
+                            [System.IO.File]::WriteAllBytes($iconPath, $ms.ToArray())
+                            $bw.Dispose()
+                            $ms.Dispose()
                             $resized.Dispose()
 
                             Write-Host "[EXE作成] ✅ 背景色付きアイコンを生成しました: $iconPath" -ForegroundColor Green
