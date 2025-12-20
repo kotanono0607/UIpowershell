@@ -205,6 +205,71 @@ Add-Type @"
     }
 "@
 
+# メインメニュー最小化用のAPI定義（モジュール内で使用）
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public class UIGetMainMenuHelper {
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+    public const int SW_MINIMIZE = 6;
+    public const int SW_RESTORE = 9;
+
+    public static IntPtr FindUIpowershellWindow() {
+        IntPtr result = IntPtr.Zero;
+        EnumWindows(delegate(IntPtr hWnd, IntPtr lParam) {
+            if (!IsWindowVisible(hWnd)) return true;
+            StringBuilder title = new StringBuilder(256);
+            GetWindowText(hWnd, title, title.Capacity);
+            if (title.ToString().StartsWith("UIpowershell")) {
+                result = hWnd;
+                return false;
+            }
+            return true;
+        }, IntPtr.Zero);
+        return result;
+    }
+}
+"@ -ErrorAction SilentlyContinue
+
+# モジュール内用のメインメニュー最小化関数
+function UIGet-メインメニューを最小化 {
+    try {
+        $handle = [UIGetMainMenuHelper]::FindUIpowershellWindow()
+        if ($handle -ne [IntPtr]::Zero) {
+            [UIGetMainMenuHelper]::ShowWindow($handle, [UIGetMainMenuHelper]::SW_MINIMIZE) | Out-Null
+            return $handle
+        }
+    } catch {
+        # エラー時は何もしない
+    }
+    return [IntPtr]::Zero
+}
+
+# モジュール内用のメインメニュー復元関数
+function UIGet-メインメニューを復元 {
+    param([IntPtr]$ハンドル)
+    try {
+        if ($ハンドル -ne [IntPtr]::Zero) {
+            [UIGetMainMenuHelper]::ShowWindow($ハンドル, [UIGetMainMenuHelper]::SW_RESTORE) | Out-Null
+        }
+    } catch {
+        # エラー時は何もしない
+    }
+}
 
 try {
     # フックを設定
@@ -779,7 +844,9 @@ while ($true) {
 
                 $listForm.Controls.Add($listBox)
                 $listForm.Controls.Add($okButton)
+                $menuHandle = UIGet-メインメニューを最小化
                 $listForm.ShowDialog()
+                UIGet-メインメニューを復元 -ハンドル $menuHandle
             } else {
                 # パターンが1つしかない場合、そのままログ出力
                 $selectedPattern = $patternsList[0]
@@ -796,7 +863,9 @@ while ($true) {
     # ハイライトフォームをモーダル表示
     #$ハイライトフォーム.ShowDialog()
     # 変更後
+    $menuHandle = UIGet-メインメニューを最小化
     $result = $ハイライトフォーム.ShowDialog()
+    UIGet-メインメニューを復元 -ハンドル $menuHandle
 
     $ハイライトフォーム.Activate()
 
