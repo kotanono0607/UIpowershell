@@ -2018,9 +2018,13 @@ function JSテキストクリック {
 })();
 "@
 
-    # DevTools コンソールを開く (Ctrl+Shift+J)
-    [System.Windows.Forms.SendKeys]::SendWait("^+j")
-    指定秒待機 -秒数 0.8
+    # DevTools を開く (F12) ※Ctrl+Shift+JはNotion等で誤動作するため
+    キー操作 -キーコマンド "F12"
+    指定秒待機 -秒数 1.0
+
+    # コンソールドロワーを開く (Esc)
+    キー操作 -キーコマンド "Esc"
+    指定秒待機 -秒数 0.5
 
     # JSコードをクリップボード経由で貼り付け
     文字列をクリップボードに格納 -文字列 $jsCode
