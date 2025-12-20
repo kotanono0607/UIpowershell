@@ -4545,11 +4545,16 @@ async function handlePinkNodeClickPopup(node) {
         // groupIdを数値に変換（空文字列の場合はnull）
         const groupId = groupIdFromScript ? parseInt(groupIdFromScript) : null;
         // parts[4]以降がscript（通常は空）
-        // Aquamarineノードの場合は|を_にデコード
-        let script = parts[4] || '';
-        if (color === 'Aquamarine' && script) {
+        // Aquamarineノードの場合、scriptに;が含まれるため、parts[4]以降を全て結合する
+        let script = '';
+        if (color === 'Aquamarine' && parts.length > 4) {
+            // parts[4]以降を;で結合してscriptを復元
+            script = parts.slice(4).join(';');
+            // |を_にデコード
             script = script.replace(/\|/g, '_');
-            console.log(`[展開処理] Aquamarineノードのscriptをデコード: ${script.substring(0, 50)}...`);
+            console.log(`[展開処理] Aquamarineノードのscriptをデコード: ${script.substring(0, 80)}...`);
+        } else {
+            script = parts[4] || '';
         }
 
         console.warn(`🔍🔍🔍 [展開処理] originalId="${originalId}", color=${color}, text="${text}", groupId=${groupId}, script="${script ? script.substring(0, 30) + '...' : '(なし)'}`);
