@@ -10279,5 +10279,16 @@ function setupRobotProfileAutoSave() {
         }
     });
 
+    // チェックボックスの変更も保存トリガーに追加
+    const checkboxes = ['robot-has-voice', 'robot-has-display'];
+    checkboxes.forEach(checkboxId => {
+        const element = document.getElementById(checkboxId);
+        if (element) {
+            element.addEventListener('change', () => {
+                saveRobotProfile();
+            });
+        }
+    });
+
     console.log('[ロボット] 自動保存を設定しました');
 }
