@@ -208,6 +208,69 @@ Add-Type @"
     }
 "@
 
+# メインメニュー最小化用のAPI定義（Invoke-UIlement内で定義）
+if (-not ([System.Management.Automation.PSTypeName]'MainMenuHelper').Type) {
+    Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public class MainMenuHelper {
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+    public const int SW_MINIMIZE = 6;
+    public const int SW_RESTORE = 9;
+
+    public static IntPtr FindUIpowershellWindow() {
+        IntPtr result = IntPtr.Zero;
+        EnumWindows(delegate(IntPtr hWnd, IntPtr lParam) {
+            if (!IsWindowVisible(hWnd)) return true;
+            StringBuilder title = new StringBuilder(256);
+            GetWindowText(hWnd, title, title.Capacity);
+            if (title.ToString().StartsWith("UIpowershell")) {
+                result = hWnd;
+                return false;
+            }
+            return true;
+        }, IntPtr.Zero);
+        return result;
+    }
+}
+"@
+}
+
+# メインメニュー最小化/復元関数
+function メインメニューを最小化 {
+    try {
+        $handle = [MainMenuHelper]::FindUIpowershellWindow()
+        if ($handle -ne [IntPtr]::Zero) {
+            [MainMenuHelper]::ShowWindow($handle, [MainMenuHelper]::SW_MINIMIZE) | Out-Null
+            return $handle
+        }
+    } catch { }
+    return [IntPtr]::Zero
+}
+
+function メインメニューを復元 {
+    param([IntPtr]$ハンドル)
+    try {
+        if ($ハンドル -ne [IntPtr]::Zero) {
+            [MainMenuHelper]::ShowWindow($ハンドル, [MainMenuHelper]::SW_RESTORE) | Out-Null
+        }
+    } catch { }
+}
+
 try {
     # フックを設定
     [InputHook]::SetMouseHook()
