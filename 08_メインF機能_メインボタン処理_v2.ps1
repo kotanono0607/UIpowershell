@@ -845,36 +845,43 @@ function ノードリストを展開 {
             # 処理済みとしてマーク
             [void]$処理済みID.Add($nodeId)
 
-            # Aquamarineノード（関数ノード）の場合はグローバル変数からscriptを取得
-            # コード.jsonではなくscriptプロパティを優先使用
-            if ($nodeColor -eq "Aquamarine" -and $global:現在のノード配列) {
-                Write-Host "[ノードリスト展開] 関数ノード検出 → グローバル配列からscriptを検索: $nodeId" -ForegroundColor Cyan
+            # Aquamarineノード（関数ノード）の場合
+            if ($nodeColor -eq "Aquamarine") {
+                Write-Host "[ノードリスト展開] 関数ノード検出: $nodeId" -ForegroundColor Cyan
 
-                # デバッグ: グローバル配列の内容を出力
-                Write-Host "[DEBUG] グローバル配列のノード一覧:" -ForegroundColor Yellow
-                foreach ($n in $global:現在のノード配列) {
-                    $nid = if ($n.id) { $n.id } elseif ($n.name) { $n.name } else { "unknown" }
-                    $ncolor = if ($n.color) { $n.color } else { "?" }
-                    $nscript = if ($n.script) { $n.script.Substring(0, [Math]::Min(30, $n.script.Length)) + "..." } else { "(なし)" }
-                    Write-Host "  - ID: $nid, 色: $ncolor, script: $nscript" -ForegroundColor Yellow
+                $aquamarineScript = $null
+
+                # まず、line自体にscriptが埋め込まれているかチェック（parts[4]以降）
+                # 形式: ID;Aquamarine;テキスト;groupId;scriptContent
+                # scriptContentは|でエンコードされている（_の代わり）
+                if ($parts.Count -gt 4) {
+                    # parts[4]以降を;で結合してscriptを復元
+                    $embeddedScript = ($parts[4..($parts.Count - 1)]) -join ";"
+                    if ($embeddedScript -and $embeddedScript.Trim() -ne "") {
+                        # |を_にデコード
+                        $aquamarineScript = $embeddedScript -replace "\|", "_"
+                        Write-Host "[ノードリスト展開] 埋め込みscriptを復元: $($aquamarineScript.Substring(0, [Math]::Min(80, $aquamarineScript.Length)))..." -ForegroundColor Cyan
+                    }
                 }
 
-                # ノードIDからscriptを取得（-1付きも考慮）
-                $aquamarineNode = $global:現在のノード配列 | Where-Object {
-                    $nid = if ($_.id) { $_.id } elseif ($_.name) { $_.name } else { "" }
-                    ($nid -eq $nodeId) -or ($nid -eq "$nodeId-1") -or ("$nid-1" -eq $nodeId)
-                } | Select-Object -First 1
+                # 埋め込みscriptがない場合、グローバル配列から検索（フォールバック）
+                if (-not $aquamarineScript -and $global:現在のノード配列) {
+                    Write-Host "[ノードリスト展開] 埋め込みscriptなし → グローバル配列から検索" -ForegroundColor Yellow
 
-                Write-Host "[DEBUG] マッチしたノード: $(if ($aquamarineNode) { $aquamarineNode.id } else { 'なし' })" -ForegroundColor Yellow
-                if ($aquamarineNode) {
-                    Write-Host "[DEBUG] script存在: $(if ($aquamarineNode.script) { 'あり' } else { 'なし' })" -ForegroundColor Yellow
+                    $aquamarineNode = $global:現在のノード配列 | Where-Object {
+                        $nid = if ($_.id) { $_.id } elseif ($_.name) { $_.name } else { "" }
+                        ($nid -eq $nodeId) -or ($nid -eq "$nodeId-1") -or ("$nid-1" -eq $nodeId)
+                    } | Select-Object -First 1
+
+                    if ($aquamarineNode -and $aquamarineNode.script) {
+                        $aquamarineScript = $aquamarineNode.script
+                        Write-Host "[ノードリスト展開] グローバル配列からscript取得成功" -ForegroundColor Cyan
+                    }
                 }
 
-                if ($aquamarineNode -and $aquamarineNode.script) {
-                    Write-Host "[ノードリスト展開] 関数ノードのscript取得成功: $($aquamarineNode.script.Substring(0, [Math]::Min(50, $aquamarineNode.script.Length)))..." -ForegroundColor Cyan
-
+                if ($aquamarineScript) {
                     # scriptをノードリスト形式に変換して再帰展開
-                    $scriptContent = $aquamarineNode.script -replace "_", "`n"
+                    $scriptContent = $aquamarineScript -replace "_", "`n"
                     $ノードリスト文字列 = "AAAA`n$scriptContent"
 
                     Write-Host "[ノードリスト展開] 関数ノードを再帰展開 (深度: $($再帰深度 + 1))" -ForegroundColor Cyan
