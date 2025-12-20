@@ -143,6 +143,9 @@ function 実行イベント_v2 {
     )
 
     try {
+        # ノード配列をグローバル変数に保存（ノードリストを展開で使用）
+        $global:現在のノード配列 = $ノード配列
+
         # ノード配列が空の場合
         if (-not $ノード配列 -or $ノード配列.Count -eq 0) {
             return @{
@@ -876,8 +879,39 @@ function ノードリストを展開 {
                     $output += "$innerNodeComment$entry`r`n"
                 }
             } else {
-                # エントリが見つからない場合、Pinkノードなら警告を出すがスキップ
-                if ($nodeColor -eq "Pink") {
+                # エントリが見つからない場合の処理
+
+                # Aquamarineノード（関数ノード）の場合はグローバル変数からscriptを取得
+                if ($nodeColor -eq "Aquamarine" -and $global:現在のノード配列) {
+                    Write-Host "[ノードリスト展開] 関数ノード検出 → グローバル配列からscriptを検索: $nodeId" -ForegroundColor Cyan
+
+                    # ノードIDからscriptを取得（-1付きも考慮）
+                    $aquamarineNode = $global:現在のノード配列 | Where-Object {
+                        $nid = if ($_.id) { $_.id } elseif ($_.name) { $_.name } else { "" }
+                        ($nid -eq $nodeId) -or ($nid -eq "$nodeId-1") -or ("$nid-1" -eq $nodeId)
+                    } | Select-Object -First 1
+
+                    if ($aquamarineNode -and $aquamarineNode.script) {
+                        Write-Host "[ノードリスト展開] 関数ノードのscript取得成功: $($aquamarineNode.script.Substring(0, [Math]::Min(50, $aquamarineNode.script.Length)))..." -ForegroundColor Cyan
+
+                        # scriptをノードリスト形式に変換して再帰展開
+                        $scriptContent = $aquamarineNode.script -replace "_", "`n"
+                        $ノードリスト文字列 = "AAAA`n$scriptContent"
+
+                        Write-Host "[ノードリスト展開] 関数ノードを再帰展開 (深度: $($再帰深度 + 1))" -ForegroundColor Cyan
+                        $entry = ノードリストを展開 -ノードリスト文字列 $ノードリスト文字列 -処理済みID $処理済みID -再帰深度 ($再帰深度 + 1)
+
+                        # 改行コードの正規化
+                        $entry = $entry -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
+
+                        # 関数ノード用のコメント
+                        $headerComment = "# [関数開始] $nodeText (ID: $nodeId)`r`n"
+                        $footerComment = "# [関数終了] $nodeText (ID: $nodeId)`r`n"
+                        $output += "$headerComment$entry`r`n$footerComment"
+                    } else {
+                        Write-Host "[ノードリスト展開] ⚠️ 関数ノード '$nodeId' のscriptが見つかりません（スキップ）" -ForegroundColor Yellow
+                    }
+                } elseif ($nodeColor -eq "Pink") {
                     Write-Host "[ノードリスト展開] ⚠️ Pinkノード '$nodeId' のエントリが見つかりません（スキップ）" -ForegroundColor Yellow
                 } else {
                     Write-Host "[ノードリスト展開] ⚠️ エントリが見つかりません: $nodeId（スキップ）" -ForegroundColor Yellow
