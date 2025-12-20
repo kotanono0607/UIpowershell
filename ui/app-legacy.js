@@ -3540,9 +3540,31 @@ function reorderNodesInLayer(layer) {
 
 function showContextMenu(e, node) {
     const menu = document.getElementById('context-menu');
-    menu.style.left = `${e.pageX}px`;
-    menu.style.top = `${e.pageY}px`;
+
+    // 一旦表示してサイズを取得（非表示状態で）
+    menu.style.visibility = 'hidden';
     menu.classList.add('show');
+
+    const menuRect = menu.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+
+    // X座標：右端を超える場合は左に表示
+    let x = e.pageX;
+    if (e.clientX + menuRect.width > viewportWidth) {
+        x = e.pageX - menuRect.width;
+    }
+
+    // Y座標：下端を超える場合は上に表示
+    let y = e.pageY;
+    if (e.clientY + menuRect.height > viewportHeight) {
+        y = e.pageY - menuRect.height;
+    }
+
+    // 位置を確定して表示
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    menu.style.visibility = 'visible';
 
     contextMenuTarget = node;
 
@@ -3594,9 +3616,31 @@ function showBoardContextMenu(e) {
     document.getElementById('context-menu').classList.remove('show');
 
     const menu = document.getElementById('board-context-menu');
-    menu.style.left = `${e.pageX}px`;
-    menu.style.top = `${e.pageY}px`;
+
+    // 一旦表示してサイズを取得（非表示状態で）
+    menu.style.visibility = 'hidden';
     menu.classList.add('show');
+
+    const menuRect = menu.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+
+    // X座標：右端を超える場合は左に表示
+    let x = e.pageX;
+    if (e.clientX + menuRect.width > viewportWidth) {
+        x = e.pageX - menuRect.width;
+    }
+
+    // Y座標：下端を超える場合は上に表示
+    let y = e.pageY;
+    if (e.clientY + menuRect.height > viewportHeight) {
+        y = e.pageY - menuRect.height;
+    }
+
+    // 位置を確定して表示
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    menu.style.visibility = 'visible';
 
     // クリック位置を保存（ノード作成時に使用）
     const container = e.target.closest('.node-list-container');
