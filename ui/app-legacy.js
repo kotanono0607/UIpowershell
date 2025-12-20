@@ -6818,6 +6818,26 @@ async function openNodeSettings(node) {
         // これをAAA形式に変換してダイアログに表示
         scriptContent = 'AAAA\n' + actualNode.script.replace(/_/g, '\n');
     }
+
+    // 関数ノード（Aquamarine）の場合、scriptプロパティから子ノード情報を見やすく整形して表示
+    if ((actualNode.color === 'Aquamarine' || isAquamarineColor(actualNode.color)) && actualNode.script) {
+        if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] 関数ノード: scriptプロパティから子ノード情報を取得');
+        // 関数ノードのscriptは子ノードのメタ情報（ID;色;テキスト;groupId）
+        // 見やすく整形して表示
+        const nodeList = actualNode.script.split('_');
+        const formattedList = nodeList.map((entry, index) => {
+            const parts = entry.split(';');
+            if (parts.length >= 3) {
+                const nodeId = parts[0];
+                const color = parts[1];
+                const text = parts[2];
+                return `[${index + 1}] ${text} (${color})`;
+            }
+            return entry;
+        }).join('\n');
+        scriptContent = `=== 関数に含まれるノード ===\n\n${formattedList}\n\n=== 元データ ===\n${actualNode.script.replace(/_/g, '\n')}`;
+    }
+
     if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] スクリプト取得:', scriptContent ? scriptContent.length : 0, '文字');
 
     // リクエストボディを作成
