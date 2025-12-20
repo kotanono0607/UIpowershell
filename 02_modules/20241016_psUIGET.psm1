@@ -237,7 +237,9 @@ public class PSUIGetMenuHelper {
             if (!IsWindowVisible(hWnd)) return true;
             StringBuilder title = new StringBuilder(256);
             GetWindowText(hWnd, title, title.Capacity);
-            if (title.ToString().StartsWith("UIpowershell")) {
+            string titleStr = title.ToString();
+            // UIpowershell または localhost:8080 を含むウィンドウを検索
+            if (titleStr.StartsWith("UIpowershell") || titleStr.Contains("UIpowershell") || titleStr.Contains("localhost:8080")) {
                 result = hWnd;
                 return false;
             }
