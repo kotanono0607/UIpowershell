@@ -1773,8 +1773,8 @@ function コード結果を表示 {
 
             # メタ情報をrobot-profile.jsonから設定
             $metaTitle = $robotName
-            $metaDescription = $robotRole
-            $metaProduct = $robotRole  # 製品名に役割を設定（プロパティに表示される）
+            $metaDescription = $robotRole   # ファイルの説明 = 役割
+            $metaProduct = $robotName       # 製品名 = ロボット名
             $metaVersion = $newVersion
             $metaCopyright = if ($robotAuthor -ne "") {
                 "Copyright $(Get-Date -Format 'yyyy') $robotAuthor"
@@ -2096,6 +2096,9 @@ $originalScript
                     # フォルダを開いてファイルを選択状態にする
                     Start-Process explorer.exe -ArgumentList "/select,`"$exePath`""
                 }
+
+                # ダイアログを閉じる
+                $フォーム.Close()
             } else {
                 throw "EXEファイルの作成に失敗しました"
             }
