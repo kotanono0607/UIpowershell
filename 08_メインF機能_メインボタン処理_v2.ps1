@@ -186,6 +186,13 @@ function 実行イベント_v2 {
             $buttonText = if ($button.text) { $button.text } elseif ($button.Text) { $button.Text } else { "" }
             $colorName = if ($button.color) { $button.color } elseif ($button.BackColor) { $button.BackColor } else { "White" }
 
+            # デバッグ: Aquamarineノードのscript確認
+            if ($colorName -eq "Aquamarine") {
+                Write-Host "[DEBUG] Aquamarineノード検出: $buttonName" -ForegroundColor Cyan
+                Write-Host "[DEBUG]   script存在: $(if ($button.script) { 'あり (' + $button.script.Substring(0, [Math]::Min(50, $button.script.Length)) + '...)' } else { 'なし' })" -ForegroundColor Cyan
+                Write-Host "[DEBUG]   全プロパティ: $($button | ConvertTo-Json -Compress)" -ForegroundColor Yellow
+            }
+
             # ボタン情報をコンソールに出力（デバッグモードのみ）
             if ($DebugMode) {
                 $buttonInfo = "ノード名: $buttonName, テキスト: $buttonText, 色: $colorName"
