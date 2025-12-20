@@ -1973,3 +1973,66 @@ function ページ先頭へスクロール {
 
     Write-Host "ページ先頭へスクロール完了" -ForegroundColor Green
 }
+
+# ========================================
+# ブラウザ JavaScript 操作関数
+# ========================================
+
+# テキスト要素をJSでクリック
+function JSテキストクリック {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ウインドウ名,
+
+        [Parameter(Mandatory=$true)]
+        [string]$検索テキスト,
+
+        [Parameter(Mandatory=$false)]
+        [ValidateSet("部分一致", "完全一致")]
+        [string]$一致方法 = "部分一致"
+    )
+
+    Write-Host "JSテキストクリック開始: '$検索テキスト' ($一致方法)" -ForegroundColor Cyan
+
+    # ウインドウをアクティブ化
+    特定タイトルウインドウをアクティブにする -タイトル $ウインドウ名
+    指定秒待機 -秒数 0.3
+
+    # JavaScript コード生成
+    if ($一致方法 -eq "完全一致") {
+        $xpath = "//*[text()='$検索テキスト']"
+    } else {
+        $xpath = "//*[contains(text(),'$検索テキスト')]"
+    }
+
+    $jsCode = @"
+(function(){
+    var el = document.evaluate("$xpath", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    if(el){ el.scrollIntoView({block:'center'}); el.click(); console.log('Clicked:', el); return 'OK'; }
+    else { console.log('Not found: $検索テキスト'); return 'NotFound'; }
+})();
+"@
+
+    # DevTools コンソールを開く (Ctrl+Shift+J)
+    ショートカットキー送信 -修飾キー "Ctrl+Shift" -キー "j"
+    指定秒待機 -秒数 0.8
+
+    # JSコードをクリップボード経由で貼り付け
+    $jsCode | Set-Clipboard
+    指定秒待機 -秒数 0.2
+
+    # 貼り付け (Ctrl+V)
+    ショートカットキー送信 -修飾キー "Ctrl" -キー "v"
+    指定秒待機 -秒数 0.3
+
+    # 実行 (Enter)
+    ショートカットキー送信 -キー "Enter"
+    指定秒待機 -秒数 0.3
+
+    # DevTools を閉じる (F12)
+    ショートカットキー送信 -キー "F12"
+    指定秒待機 -秒数 0.3
+
+    Write-Host "JSテキストクリック完了" -ForegroundColor Green
+}
+
