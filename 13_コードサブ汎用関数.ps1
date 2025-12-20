@@ -1772,8 +1772,9 @@ function コード結果を表示 {
             }
 
             # メタ情報をrobot-profile.jsonから設定
-            $metaTitle = $robotName
-            $metaDescription = $robotRole   # ファイルの説明 = 役割
+            # ps2exeでは -title がWindowsの「ファイルの説明」に表示される
+            $metaTitle = $robotRole         # ファイルの説明 = 役割
+            $metaDescription = $robotRole   # 説明 = 役割
             $metaProduct = $robotName       # 製品名 = ロボット名
             $metaVersion = $newVersion
             $metaCopyright = if ($robotAuthor -ne "") {
