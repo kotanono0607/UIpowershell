@@ -443,7 +443,9 @@
     })
 
     # フォームを表示（戻り値を無視）
+    $メインメニューハンドル = メインメニューを最小化
     $null = $form.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     # 関数の返り値としてループ構文プレビューの値を返す
     return $script:loopResult
@@ -991,7 +993,9 @@ function ShowConditionBuilder {
     })
 
     # フォーム表示
+    $メインメニューハンドル = メインメニューを最小化
     $null = $form.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     # ループビルダーからの場合は条件式のみ返す
     if ($IsFromLoopBuilder) {

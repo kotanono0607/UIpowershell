@@ -16,7 +16,9 @@ function Excelファイルとシート名を選択 {
     $ファイル選択ダイアログ.Title = "Excelファイルを選択してください"
 
     # ファイル選択ダイアログを表示
+    $メインメニューハンドル = メインメニューを最小化
     $選択結果 = $ファイル選択ダイアログ.ShowDialog($親フォーム)
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     if ($選択結果 -ne [System.Windows.Forms.DialogResult]::OK) {
         Write-Host "ファイルの選択がキャンセルされました。"
@@ -86,7 +88,9 @@ function Excelファイルとシート名を選択 {
         $シート選択フォーム.AcceptButton = $OKボタン
         $シート選択フォーム.CancelButton = $キャンセルボタン
 
+        $メインメニューハンドル2 = メインメニューを最小化
         $シート選択結果 = $シート選択フォーム.ShowDialog($親フォーム)
+        メインメニューを復元 -ハンドル $メインメニューハンドル2
 
         if ($シート選択結果 -ne [System.Windows.Forms.DialogResult]::OK) {
             Write-Host "シートの選択がキャンセルされました。"
