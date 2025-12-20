@@ -144,7 +144,13 @@ function 実行イベント_v2 {
 
     try {
         # ノード配列をグローバル変数に保存（ノードリストを展開で使用）
-        $global:現在のノード配列 = $ノード配列
+        # 全レイヤーノード配列が設定されていればそれを使用（関数ノード展開用）
+        if ($global:全レイヤーノード配列 -and $global:全レイヤーノード配列.Count -gt 0) {
+            $global:現在のノード配列 = $global:全レイヤーノード配列
+            Write-Host "[実行イベント_v2] 全レイヤーノード配列を使用: $($global:全レイヤーノード配列.Count)個" -ForegroundColor Cyan
+        } else {
+            $global:現在のノード配列 = $ノード配列
+        }
 
         # ノード配列が空の場合
         if (-not $ノード配列 -or $ノード配列.Count -eq 0) {

@@ -949,6 +949,14 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
         # 配列として確実に変換
         $nodeArray = @($body.nodes)
 
+        # 全レイヤーのノード配列（関数ノードのscript取得用）
+        if ($body.allNodes) {
+            $global:全レイヤーノード配列 = @($body.allNodes)
+            Write-Host "[実行] 全レイヤーノード数: $($global:全レイヤーノード配列.Count)" -ForegroundColor Gray
+        } else {
+            $global:全レイヤーノード配列 = $nodeArray
+        }
+
         # OutputPathとOpenFileのデフォルト値設定
         $outputPath = if ($body.outputPath) { $body.outputPath } else { $null }
         $openFile = if ($body.PSObject.Properties.Name -contains 'openFile') { [bool]$body.openFile } else { $false }
