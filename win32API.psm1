@@ -907,10 +907,8 @@ function ウインドウ待機 {
     }
 }
 # PowerShellにWPFを使うためのアセンブリを読み込む
-Add-Type -AssemblyName PresentationFramework
-
-# PowerShellにWPFを使うためのアセンブリを読み込む
-Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
 
 function デバッグ表示 {
     param (
@@ -919,54 +917,62 @@ function デバッグ表示 {
         [string]$追加項目 = ""
     )
 
-    # WPFウィンドウのXAMLを定義
-    $XAML = @"
-<Window
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="デバッグ表示" Height="100" Width="600" WindowStartupLocation="CenterScreen" Topmost="True"
-    WindowStyle="None">
-    <StackPanel VerticalAlignment="Center">
-        <TextBlock Name="MessageTextBlock" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
-        <StackPanel Name="WaitStackPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
-            <TextBlock Text="待機中..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
-            <Button Name="OkButton" Content="OK" HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" Margin="10"/>
-        </StackPanel>
-    </StackPanel>
-</Window>
-"@
+    # Windows Formsでフォームを作成
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = "デバッグ表示"
+    $form.Size = New-Object System.Drawing.Size(600, 100)
+    $form.StartPosition = "CenterScreen"
+    $form.TopMost = $true
+    $form.FormBorderStyle = "None"
+    $form.BackColor = [System.Drawing.Color]::White
 
-    # XAMLをXmlDocumentに読み込む
-    $XmlDocument = New-Object System.Xml.XmlDocument
-    $XmlDocument.LoadXml($XAML)
-    $Reader = New-Object System.Xml.XmlNodeReader $XmlDocument
+    # メッセージラベル
+    $label = New-Object System.Windows.Forms.Label
+    $label.Text = $表示文字
+    $label.AutoSize = $false
+    $label.Size = New-Object System.Drawing.Size(580, 40)
+    $label.Location = New-Object System.Drawing.Point(10, 20)
+    $label.TextAlign = "MiddleCenter"
+    $label.Font = New-Object System.Drawing.Font("メイリオ", 12)
+    $form.Controls.Add($label)
 
-    # XAMLからウィンドウを生成
-    $Window = [Windows.Markup.XamlReader]::Load($Reader)
-
-    # テキストブロックにテキストを設定
-    $TextBlock = $Window.FindName("MessageTextBlock")
-    $TextBlock.Text = $表示文字
-
-    # 追加項目が"待機"の場合、待機ボックスを表示
     if ($追加項目 -eq "待機") {
-        $WaitStackPanel = $Window.FindName("WaitStackPanel")
-        $WaitStackPanel.Visibility = "Visible"
-        
-        # OKボタンのクリックイベントを定義
-        $OkButton = $Window.FindName("OkButton")
-        $OkButton.Add_Click({
-            $Window.Close()
-        })
-        
-        # ウィンドウを表示してユーザーがOKを押すのを待つ
-        $Window.ShowDialog() | Out-Null
+        # 待機モード：OKボタンを表示
+        $label.Size = New-Object System.Drawing.Size(580, 30)
+        $label.Location = New-Object System.Drawing.Point(10, 10)
+
+        $waitLabel = New-Object System.Windows.Forms.Label
+        $waitLabel.Text = "待機中..."
+        $waitLabel.AutoSize = $false
+        $waitLabel.Size = New-Object System.Drawing.Size(580, 20)
+        $waitLabel.Location = New-Object System.Drawing.Point(10, 40)
+        $waitLabel.TextAlign = "MiddleCenter"
+        $form.Controls.Add($waitLabel)
+
+        $okButton = New-Object System.Windows.Forms.Button
+        $okButton.Text = "OK"
+        $okButton.Size = New-Object System.Drawing.Size(80, 30)
+        $okButton.Location = New-Object System.Drawing.Point(260, 60)
+        $okButton.Add_Click({ $form.Close() })
+        $form.Controls.Add($okButton)
+
+        $form.Size = New-Object System.Drawing.Size(600, 120)
+        $form.ShowDialog() | Out-Null
     } else {
-        # ウィンドウを表示して指定秒数後に閉じる
-        $Window.Show()
-        Start-Sleep -Seconds $表示時間秒
-        $Window.Close()
+        # 自動クローズモード：Timerで指定秒後に閉じる
+        $timer = New-Object System.Windows.Forms.Timer
+        $timer.Interval = $表示時間秒 * 1000
+        $timer.Add_Tick({
+            $timer.Stop()
+            $form.Close()
+        })
+        $timer.Start()
+
+        $form.ShowDialog() | Out-Null
+        $timer.Dispose()
     }
+
+    $form.Dispose()
 }
 
 
