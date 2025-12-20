@@ -2086,6 +2086,28 @@ $originalScript
                     }
                 }
 
+                # 強制停止用batファイルを生成
+                try {
+                    $exeFileName = [System.IO.Path]::GetFileNameWithoutExtension($exePath)
+                    $stopBatPath = Join-Path $outputDir "${exeFileName}_停止.bat"
+                    $stopBatContent = @"
+@echo off
+chcp 65001 > nul
+echo $exeFileName を強制停止します...
+taskkill /F /IM "$exeFileName.exe" 2>nul
+if %errorlevel% equ 0 (
+    echo 停止しました
+) else (
+    echo プロセスが見つかりませんでした
+)
+pause
+"@
+                    Set-Content -Path $stopBatPath -Value $stopBatContent -Encoding UTF8 -Force
+                    Write-Host "[EXE作成] ✅ 強制停止スクリプト作成: $stopBatPath" -ForegroundColor Green
+                } catch {
+                    Write-Host "[EXE作成] ⚠ 停止スクリプト作成エラー: $($_.Exception.Message)" -ForegroundColor Yellow
+                }
+
                 $開く結果 = [System.Windows.Forms.MessageBox]::Show(
                     "EXEファイルを作成しました！`n`n$exePath`n`nバージョン: $newVersion`n`nフォルダを開きますか？",
                     "EXE作成完了",
