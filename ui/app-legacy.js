@@ -9818,6 +9818,209 @@ function showConfirmDialog(message, title = '確認') {
     });
 }
 
+/**
+ * カスタムプロンプトダイアログを表示
+ * @param {string} message - 表示するメッセージ
+ * @param {string} title - ダイアログのタイトル（省略可）
+ * @param {string} defaultValue - 入力欄のデフォルト値（省略可）
+ * @returns {Promise<string|null>} ユーザーが入力した値、キャンセルでnull
+ */
+function showPromptDialog(message, title = '入力', defaultValue = '') {
+    return new Promise((resolve) => {
+        // 既存のダイアログを削除
+        const existingDialog = document.querySelector('.custom-dialog-overlay');
+        if (existingDialog) {
+            existingDialog.remove();
+        }
+
+        // オーバーレイを作成
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-dialog-overlay';
+        overlay.style.cssText = `
+            display: flex;
+            position: fixed;
+            z-index: 99999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        `;
+
+        // ダイアログコンテナを作成
+        const dialog = document.createElement('div');
+        dialog.className = 'custom-dialog';
+        dialog.style.cssText = `
+            background: #e0e5ec;
+            padding: 24px;
+            border-radius: 20px;
+            width: 450px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow:
+                12px 12px 24px rgba(163, 177, 198, 0.6),
+                -12px -12px 24px rgba(255, 255, 255, 0.5);
+            animation: dialogFadeIn 0.2s ease-out;
+        `;
+
+        // タイトル
+        const titleEl = document.createElement('div');
+        titleEl.style.cssText = `
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(127, 255, 212, 0.5);
+        `;
+        titleEl.textContent = title;
+
+        // メッセージ
+        const messageEl = document.createElement('div');
+        messageEl.style.cssText = `
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        `;
+        messageEl.textContent = message;
+
+        // 入力欄
+        const inputEl = document.createElement('input');
+        inputEl.type = 'text';
+        inputEl.value = defaultValue;
+        inputEl.style.cssText = `
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #e0e5ec;
+            color: #333;
+            margin-bottom: 24px;
+            box-sizing: border-box;
+            box-shadow:
+                inset 4px 4px 8px rgba(163, 177, 198, 0.4),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.4);
+            outline: none;
+        `;
+        inputEl.onfocus = () => {
+            inputEl.style.boxShadow = `
+                inset 4px 4px 8px rgba(163, 177, 198, 0.4),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.4),
+                0 0 0 2px rgba(127, 255, 212, 0.5)
+            `;
+        };
+        inputEl.onblur = () => {
+            inputEl.style.boxShadow = `
+                inset 4px 4px 8px rgba(163, 177, 198, 0.4),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.4)
+            `;
+        };
+
+        // ボタンコンテナ
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        `;
+
+        // キャンセルボタン
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'キャンセル';
+        cancelButton.style.cssText = `
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            background: #e0e5ec;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow:
+                4px 4px 8px rgba(163, 177, 198, 0.4),
+                -4px -4px 8px rgba(255, 255, 255, 0.4);
+        `;
+        cancelButton.onmouseenter = () => {
+            cancelButton.style.transform = 'scale(1.05)';
+            cancelButton.style.background = '#d0d5dc';
+        };
+        cancelButton.onmouseleave = () => {
+            cancelButton.style.transform = 'scale(1)';
+            cancelButton.style.background = '#e0e5ec';
+        };
+        cancelButton.onclick = () => {
+            overlay.remove();
+            resolve(null);
+        };
+
+        // OKボタン
+        const okButton = document.createElement('button');
+        okButton.textContent = 'OK';
+        okButton.style.cssText = `
+            padding: 10px 32px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            background: linear-gradient(135deg, rgb(127, 255, 212), rgb(100, 220, 180));
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow:
+                4px 4px 8px rgba(163, 177, 198, 0.4),
+                -4px -4px 8px rgba(255, 255, 255, 0.4);
+        `;
+        okButton.onmouseenter = () => {
+            okButton.style.transform = 'scale(1.05)';
+            okButton.style.boxShadow = '0 0 15px rgba(127, 255, 212, 0.5)';
+        };
+        okButton.onmouseleave = () => {
+            okButton.style.transform = 'scale(1)';
+            okButton.style.boxShadow = '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.4)';
+        };
+        okButton.onclick = () => {
+            const value = inputEl.value.trim();
+            overlay.remove();
+            resolve(value || null);
+        };
+
+        // 組み立て
+        buttonContainer.appendChild(cancelButton);
+        buttonContainer.appendChild(okButton);
+        dialog.appendChild(titleEl);
+        dialog.appendChild(messageEl);
+        dialog.appendChild(inputEl);
+        dialog.appendChild(buttonContainer);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        // 入力欄にフォーカス
+        inputEl.focus();
+        inputEl.select();
+
+        // キーボードイベント
+        overlay.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const value = inputEl.value.trim();
+                overlay.remove();
+                resolve(value || null);
+            } else if (e.key === 'Escape') {
+                overlay.remove();
+                resolve(null);
+            }
+        });
+    });
+}
+
 // CSSアニメーション追加
 (function addDialogStyles() {
     const style = document.createElement('style');
