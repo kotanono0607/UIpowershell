@@ -4554,6 +4554,25 @@ async function handlePinkNodeClickPopup(node) {
             }
         }
 
+        // Aquamarineノード（関数ノード）の場合、元のノードからscriptを復元
+        if (color === 'Aquamarine' && !script) {
+            // 元のノードをグローバル配列から検索（originalIdで検索）
+            const originalNode = nodes.find(n => n.id === originalId);
+            if (originalNode && originalNode.script) {
+                script = originalNode.script;
+                console.log(`[展開処理] Aquamarineノードのscriptを復元: ${script.substring(0, 50)}...`);
+            } else {
+                // userFunctionsからも検索
+                const funcNode = nodes.find(n => n.functionId && n.id === originalId);
+                if (funcNode && funcNode.script) {
+                    script = funcNode.script;
+                    console.log(`[展開処理] Aquamarineノードのscriptをfunctionノードから復元: ${script.substring(0, 50)}...`);
+                } else {
+                    console.warn(`[展開処理] ⚠ Aquamarineノード(${originalId})のscriptが見つかりません`);
+                }
+            }
+        }
+
         // 条件分岐の中間ノードは高さ1px、幅20px
         const isMiddleNode = (text === '条件分岐 中間' || color === 'Gray');
         const nodeHeight = isMiddleNode ? 1 : 40;
