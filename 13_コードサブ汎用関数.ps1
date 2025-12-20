@@ -1709,11 +1709,94 @@ function コード結果を表示 {
             }
             Write-Host "[EXE作成] ps2exeモジュール検出: $($ps2exeModule.ModuleBase)" -ForegroundColor Gray
 
-            # 出力EXEパス（.ps1 → .exe）
-            $exePath = $生成結果.outputPath -replace '\.ps1$', '.exe'
+            # robot-profile.jsonのパスを解決（メタデータ用に先に読み込む）
+            $robotProfilePath = $null
+            $profileContent = $null
+
+            # 方法1: $global:RootDir から取得
+            if ($global:RootDir -and (Test-Path (Join-Path $global:RootDir "robot-profile.json"))) {
+                $robotProfilePath = Join-Path $global:RootDir "robot-profile.json"
+            }
+            # 方法2: $global:folderPath から2階層上
+            elseif ($global:folderPath) {
+                $rootFromFolder = Split-Path (Split-Path $global:folderPath -Parent) -Parent
+                $pathFromFolder = Join-Path $rootFromFolder "robot-profile.json"
+                if (Test-Path $pathFromFolder) {
+                    $robotProfilePath = $pathFromFolder
+                }
+            }
+            # 方法3: 出力ファイルから3階層上
+            if (-not $robotProfilePath -and $生成結果.outputPath) {
+                $rootFromOutput = Split-Path (Split-Path (Split-Path $生成結果.outputPath -Parent) -Parent) -Parent
+                $pathFromOutput = Join-Path $rootFromOutput "robot-profile.json"
+                if (Test-Path $pathFromOutput) {
+                    $robotProfilePath = $pathFromOutput
+                }
+            }
+
+            # robot-profile.jsonを読み込み
+            if ($robotProfilePath -and (Test-Path $robotProfilePath)) {
+                $profileContent = Get-Content -Path $robotProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+                Write-Host "[EXE作成] プロファイル読み込み: $robotProfilePath" -ForegroundColor Gray
+            }
+
+            # バージョン自動インクリメント
+            $currentVersion = "1.0.0.0"
+            if ($profileContent -and $profileContent.version) {
+                $currentVersion = $profileContent.version
+            }
+            # バージョンをインクリメント（最後の数字を+1）
+            $versionParts = $currentVersion -split '\.'
+            if ($versionParts.Count -eq 4) {
+                $versionParts[3] = [int]$versionParts[3] + 1
+                $newVersion = $versionParts -join '.'
+            } else {
+                $newVersion = "1.0.0.1"
+            }
+
+            # ロボット名からメタデータとファイル名を設定
+            $robotName = if ($profileContent -and $profileContent.name -and $profileContent.name -ne "") {
+                $profileContent.name
+            } else {
+                "RPA自動化ツール"
+            }
+            $robotAuthor = if ($profileContent -and $profileContent.author -and $profileContent.author -ne "") {
+                $profileContent.author
+            } else {
+                ""
+            }
+            $robotRole = if ($profileContent -and $profileContent.role -and $profileContent.role -ne "") {
+                $profileContent.role
+            } else {
+                "UIpowershellで生成された自動化スクリプト"
+            }
+
+            # メタ情報をrobot-profile.jsonから設定
+            $metaTitle = $robotName
+            $metaDescription = $robotRole
+            $metaProduct = $robotName
+            $metaVersion = $newVersion
+            $metaCopyright = if ($robotAuthor -ne "") {
+                "Copyright $(Get-Date -Format 'yyyy') $robotAuthor"
+            } else {
+                "Copyright $(Get-Date -Format 'yyyy')"
+            }
+
+            # ファイル名をロボット名から生成（特殊文字をサニタイズ）
+            $safeFileName = $robotName -replace '[\\/:*?"<>|]', '_'  # Windowsで使えない文字を置換
+            $safeFileName = $safeFileName -replace '\s+', '_'        # 連続スペースをアンダースコアに
+            $safeFileName = $safeFileName.Trim('_')                  # 先頭・末尾のアンダースコアを削除
+            if ($safeFileName -eq "" -or $safeFileName -eq "_") {
+                $safeFileName = "output"
+            }
+
+            # 出力EXEパス（ロボット名.exe）
+            $outputDir = Split-Path $生成結果.outputPath -Parent
+            $exePath = Join-Path $outputDir "$safeFileName.exe"
 
             Write-Host "[EXE作成] 入力: $($生成結果.outputPath)" -ForegroundColor Gray
             Write-Host "[EXE作成] 出力: $exePath" -ForegroundColor Gray
+            Write-Host "[EXE作成] ロボット名: $robotName" -ForegroundColor Cyan
 
             # 確認ダイアログ
             $確認結果 = [System.Windows.Forms.MessageBox]::Show(
@@ -1727,13 +1810,6 @@ function コード結果を表示 {
                 Write-Host "[EXE作成] キャンセルされました" -ForegroundColor Yellow
                 return
             }
-
-            # デフォルトのメタ情報
-            $metaTitle = "RPA自動化ツール"
-            $metaDescription = "UIpowershellで生成された自動化スクリプト"
-            $metaProduct = "UIpowershell RPA"
-            $metaVersion = "1.0.0.0"
-            $metaCopyright = "Copyright $(Get-Date -Format 'yyyy')"
 
             # win32API.psm1を埋め込んだ一時ファイルを作成
             Write-Host "[EXE作成] win32API.psm1を埋め込みます..." -ForegroundColor Cyan
@@ -1797,46 +1873,93 @@ $originalScript
                 $inputFileForExe = $生成結果.outputPath
             }
 
-            # ロボットアイコンをICOファイルに変換
+            # ロボットアイコンをICOファイルに変換（$profileContentは既に読み込み済み）
             $iconPath = $null
-            $robotProfilePath = $null
 
-            # robot-profile.jsonのパスを解決（複数の方法でフォールバック）
-            # 方法1: $global:RootDir から取得
-            if ($global:RootDir -and (Test-Path (Join-Path $global:RootDir "robot-profile.json"))) {
-                $robotProfilePath = Join-Path $global:RootDir "robot-profile.json"
-                Write-Host "[EXE作成] RootDirからプロファイル検出: $robotProfilePath" -ForegroundColor Gray
-            }
-            # 方法2: $global:folderPath から2階層上
-            elseif ($global:folderPath) {
-                $rootFromFolder = Split-Path (Split-Path $global:folderPath -Parent) -Parent
-                $pathFromFolder = Join-Path $rootFromFolder "robot-profile.json"
-                if (Test-Path $pathFromFolder) {
-                    $robotProfilePath = $pathFromFolder
-                    Write-Host "[EXE作成] folderPathからプロファイル検出: $robotProfilePath" -ForegroundColor Gray
-                }
-            }
-            # 方法3: 出力ファイルから3階層上
-            if (-not $robotProfilePath -and $生成結果.outputPath) {
-                $rootFromOutput = Split-Path (Split-Path (Split-Path $生成結果.outputPath -Parent) -Parent) -Parent
-                $pathFromOutput = Join-Path $rootFromOutput "robot-profile.json"
-                if (Test-Path $pathFromOutput) {
-                    $robotProfilePath = $pathFromOutput
-                    Write-Host "[EXE作成] 出力パスからプロファイル検出: $robotProfilePath" -ForegroundColor Gray
-                }
-            }
-
-            if ($robotProfilePath -and (Test-Path $robotProfilePath)) {
+            if ($profileContent) {
                 try {
-                    Write-Host "[EXE作成] ロボットアイコンを読み込み中..." -ForegroundColor Cyan
-                    $profileContent = Get-Content -Path $robotProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+                    Write-Host "[EXE作成] ロボットアイコンを生成中..." -ForegroundColor Cyan
+                    Add-Type -AssemblyName System.Drawing
 
-                    # bgcolorがある場合は、常にrobo.pngから直接生成（透明度問題を回避）
-                    $bgColorValue = $profileContent.bgcolor
-                    Write-Host "[EXE作成] 背景色値: '$bgColorValue'" -ForegroundColor Cyan
+                    $iconSize = 256
+                    $resized = New-Object System.Drawing.Bitmap($iconSize, $iconSize, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+                    $graphics = [System.Drawing.Graphics]::FromImage($resized)
+                    $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+                    $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-                    if ($bgColorValue -and $bgColorValue -ne "") {
-                        Write-Host "[EXE作成] 画像データなし、背景色から生成します: $($profileContent.bgcolor)" -ForegroundColor Yellow
+                    # ユーザーがアップロードした画像があるかチェック
+                    $userImageData = $profileContent.image
+                    $hasUserImage = $userImageData -and $userImageData -ne "" -and $userImageData.StartsWith("data:image")
+
+                    if ($hasUserImage) {
+                        # ユーザー画像を使用
+                        Write-Host "[EXE作成] ユーザーアップロード画像を使用します" -ForegroundColor Cyan
+
+                        # Base64データから画像を作成
+                        $base64Data = $userImageData -replace '^data:image/[^;]+;base64,', ''
+                        $imageBytes = [Convert]::FromBase64String($base64Data)
+                        $ms = New-Object System.IO.MemoryStream($imageBytes, 0, $imageBytes.Length)
+                        $userBitmap = [System.Drawing.Bitmap]::FromStream($ms)
+
+                        # 背景色で塗りつぶし
+                        $bgColorValue = $profileContent.bgcolor
+                        if ($bgColorValue -and $bgColorValue -ne "") {
+                            $bgColor = [System.Drawing.ColorTranslator]::FromHtml($bgColorValue)
+                            $graphics.Clear($bgColor)
+                        } else {
+                            $graphics.Clear([System.Drawing.Color]::White)
+                        }
+
+                        # ユーザー画像を中央に描画
+                        $imgSize = [int]($iconSize * 0.85)
+                        $offsetPos = [int](($iconSize - $imgSize) / 2)
+                        $graphics.DrawImage($userBitmap, $offsetPos, $offsetPos, $imgSize, $imgSize)
+                        $userBitmap.Dispose()
+                        $ms.Dispose()
+                        $graphics.Dispose()
+
+                        # ICOファイルとして保存
+                        $iconPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_$(Get-Date -Format 'yyyyMMddHHmmss').ico")
+
+                        # 直接ICOバイナリを生成
+                        $icoMs = New-Object System.IO.MemoryStream
+                        $bw = New-Object System.IO.BinaryWriter($icoMs)
+
+                        # ICOヘッダー
+                        $bw.Write([int16]0)      # 予約（0）
+                        $bw.Write([int16]1)      # タイプ（1=ICO）
+                        $bw.Write([int16]1)      # 画像数
+
+                        # 画像エントリ
+                        $bw.Write([byte]0)       # 幅（0=256）
+                        $bw.Write([byte]0)       # 高さ（0=256）
+                        $bw.Write([byte]0)       # カラーパレット数
+                        $bw.Write([byte]0)       # 予約
+                        $bw.Write([int16]1)      # カラープレーン
+                        $bw.Write([int16]32)     # ビット深度
+
+                        # PNG データを取得
+                        $pngMs = New-Object System.IO.MemoryStream
+                        $resized.Save($pngMs, [System.Drawing.Imaging.ImageFormat]::Png)
+                        $pngData = $pngMs.ToArray()
+                        $pngMs.Dispose()
+
+                        $bw.Write([int32]$pngData.Length)  # データサイズ
+                        $bw.Write([int32]22)               # データオフセット
+
+                        # PNGデータを書き込み
+                        $bw.Write($pngData)
+
+                        # ファイルに保存
+                        [System.IO.File]::WriteAllBytes($iconPath, $icoMs.ToArray())
+                        $bw.Dispose()
+                        $icoMs.Dispose()
+                        $resized.Dispose()
+
+                        Write-Host "[EXE作成] ✅ ユーザー画像からアイコンを生成しました: $iconPath" -ForegroundColor Green
+                    } else {
+                        # robo.png + 背景色を使用（デフォルト）
+                        Write-Host "[EXE作成] デフォルト画像(robo.png + 背景色)を使用します" -ForegroundColor Cyan
 
                         # robo.pngのパスを検索
                         $roboPngPath = $null
@@ -1850,19 +1973,16 @@ $originalScript
 
                         if ($roboPngPath) {
                             Write-Host "[EXE作成] robo.png検出: $roboPngPath" -ForegroundColor Gray
-                            Add-Type -AssemblyName System.Drawing
-
-                            $iconSize = 256
-                            # 32bppArgbで明示的にビットマップを作成
-                            $resized = New-Object System.Drawing.Bitmap($iconSize, $iconSize, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
-                            $graphics = [System.Drawing.Graphics]::FromImage($resized)
-                            $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-                            $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
                             # 背景色で全体を塗りつぶし
-                            $bgColor = [System.Drawing.ColorTranslator]::FromHtml($profileContent.bgcolor)
-                            Write-Host "[EXE作成] 背景色: R=$($bgColor.R), G=$($bgColor.G), B=$($bgColor.B)" -ForegroundColor Cyan
-                            $graphics.Clear($bgColor)
+                            $bgColorValue = $profileContent.bgcolor
+                            if ($bgColorValue -and $bgColorValue -ne "") {
+                                $bgColor = [System.Drawing.ColorTranslator]::FromHtml($bgColorValue)
+                                Write-Host "[EXE作成] 背景色: R=$($bgColor.R), G=$($bgColor.G), B=$($bgColor.B)" -ForegroundColor Cyan
+                                $graphics.Clear($bgColor)
+                            } else {
+                                $graphics.Clear([System.Drawing.Color]::FromArgb(232, 244, 252))  # デフォルト薄いブルー
+                            }
 
                             # ロボット画像を中央に描画
                             $robotBitmap = [System.Drawing.Bitmap]::FromFile($roboPngPath)
@@ -1952,8 +2072,20 @@ $originalScript
             # 成功確認
             if (Test-Path $exePath) {
                 Write-Host "[EXE作成] ✅ EXE作成成功: $exePath" -ForegroundColor Green
+
+                # バージョンをrobot-profile.jsonに保存
+                if ($robotProfilePath -and (Test-Path $robotProfilePath)) {
+                    try {
+                        $profileContent.version = $newVersion
+                        $profileContent | ConvertTo-Json -Depth 10 | Set-Content -Path $robotProfilePath -Encoding UTF8 -Force
+                        Write-Host "[EXE作成] バージョン更新: $newVersion" -ForegroundColor Gray
+                    } catch {
+                        Write-Host "[EXE作成] ⚠ バージョン保存エラー: $($_.Exception.Message)" -ForegroundColor Yellow
+                    }
+                }
+
                 $開く結果 = [System.Windows.Forms.MessageBox]::Show(
-                    "EXEファイルを作成しました！`n`n$exePath`n`nフォルダを開きますか？",
+                    "EXEファイルを作成しました！`n`n$exePath`n`nバージョン: $newVersion`n`nフォルダを開きますか？",
                     "EXE作成完了",
                     [System.Windows.Forms.MessageBoxButtons]::YesNo,
                     [System.Windows.Forms.MessageBoxIcon]::Information
