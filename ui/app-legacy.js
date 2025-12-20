@@ -4650,6 +4650,29 @@ async function handlePinkNodeClickPopup(node) {
         console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
     }
 
+    // 親ノードのscriptを新しいIDで更新（展開後のノードで再生成）
+    const newScript = expandedNodes.map(n => {
+        const groupIdStr = (n.groupId !== null && n.groupId !== undefined) ? n.groupId : '';
+        // Aquamarineノードの場合はscriptも保存
+        const scriptStr = n.script || '';
+        return `${n.id};${n.color};${n.text};${groupIdStr};${scriptStr}`;
+    }).join('_');
+
+    console.log(`[展開処理] 親ノードのscriptを新しいIDで更新: ${newScript.substring(0, 100)}...`);
+    node.script = newScript;
+
+    // グローバル配列のノードも更新
+    const globalNode = nodes.find(n => n.id === node.id);
+    if (globalNode) {
+        globalNode.script = newScript;
+    }
+
+    // レイヤー構造のノードも更新
+    const layerNode = layerStructure[parentLayer].nodes.find(n => n.id === node.id);
+    if (layerNode) {
+        layerNode.script = newScript;
+    }
+
     // memory.json自動保存
     await saveMemoryJson();
 
