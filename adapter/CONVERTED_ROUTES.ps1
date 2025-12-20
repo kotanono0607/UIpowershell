@@ -3034,6 +3034,17 @@ Add-PodeRoute -Method Post -Path "/api/robot-profile" -ScriptBlock {
         $profilePath = Join-Path $RootDir "robot-profile.json"
 
         $body = $WebEvent.Data
+        # 既存のプロファイルを読み込んでバージョンを保持
+        $existingVersion = "1.0.0.0"
+        if (Test-Path $profilePath) {
+            try {
+                $existingProfile = Get-Content -Path $profilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+                if ($existingProfile.version) {
+                    $existingVersion = $existingProfile.version
+                }
+            } catch { }
+        }
+
         $profile = @{
             name = if ($body.name) { $body.name } else { "" }
             author = if ($body.author) { $body.author } else { "" }
@@ -3041,6 +3052,9 @@ Add-PodeRoute -Method Post -Path "/api/robot-profile" -ScriptBlock {
             memo = if ($body.memo) { $body.memo } else { "" }
             image = if ($body.image) { $body.image } else { "" }
             bgcolor = if ($body.bgcolor) { $body.bgcolor } else { "#e8f4fc" }
+            hasVoice = if ($null -ne $body.hasVoice) { [bool]$body.hasVoice } else { $true }
+            hasDisplay = if ($null -ne $body.hasDisplay) { [bool]$body.hasDisplay } else { $true }
+            version = $existingVersion
         }
 
         $json = $profile | ConvertTo-Json -Depth 10
