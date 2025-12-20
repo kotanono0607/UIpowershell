@@ -2045,3 +2045,94 @@ function JSテキストクリック {
     Write-Host "JSテキストクリック完了" -ForegroundColor Green
 }
 
+# ========================================
+# テキスト要素クリック（UI Automation版）
+# ========================================
+
+# 見えているテキストを検索してクリック
+function テキスト要素クリック {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ウインドウ名,
+
+        [Parameter(Mandatory=$true)]
+        [string]$検索テキスト,
+
+        [Parameter(Mandatory=$false)]
+        [ValidateSet("部分一致", "完全一致")]
+        [string]$一致方法 = "部分一致"
+    )
+
+    Add-Type -AssemblyName UIAutomationClient
+    Add-Type -AssemblyName UIAutomationTypes
+
+    Write-Host "テキスト要素クリック開始: '$検索テキスト' ($一致方法)" -ForegroundColor Cyan
+
+    # ウインドウをアクティブ化
+    $hwnd = 文字列からウインドウハンドルを探す -検索文字列 $ウインドウ名
+    if ($hwnd -eq [IntPtr]::Zero) {
+        Write-Host "ウインドウが見つかりません: $ウインドウ名" -ForegroundColor Red
+        return $false
+    }
+    ウインドウハンドルでアクティブにする -ウインドウハンドル $hwnd
+    指定秒待機 -秒数 0.3
+
+    # ルート要素を取得
+    $ルート要素 = [System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+    if ($null -eq $ルート要素) {
+        Write-Host "UI要素を取得できません" -ForegroundColor Red
+        return $false
+    }
+
+    # 全要素を検索
+    Write-Host "要素を検索中..." -ForegroundColor Yellow
+    $全要素 = $ルート要素.FindAll(
+        [System.Windows.Automation.TreeScope]::Subtree,
+        [System.Windows.Automation.Condition]::TrueCondition
+    )
+    Write-Host "総要素数: $($全要素.Count)" -ForegroundColor Yellow
+
+    # テキストで絞り込み
+    $一致要素 = @()
+    foreach ($要素 in $全要素) {
+        $name = $要素.Current.Name
+        if ([string]::IsNullOrEmpty($name)) { continue }
+
+        $マッチ = $false
+        if ($一致方法 -eq "完全一致") {
+            $マッチ = ($name -eq $検索テキスト)
+        } else {
+            $マッチ = ($name -like "*$検索テキスト*")
+        }
+
+        if ($マッチ) {
+            $rect = $要素.Current.BoundingRectangle
+            # 画面内の要素のみ
+            if ($rect.X -ge 0 -and $rect.Y -ge 0 -and $rect.Width -gt 0 -and $rect.Height -gt 0) {
+                $一致要素 += @{
+                    Element = $要素
+                    Name = $name
+                    X = [int]($rect.X + $rect.Width / 2)
+                    Y = [int]($rect.Y + $rect.Height / 2)
+                }
+                Write-Host "  発見: '$name' at ($($rect.X), $($rect.Y))" -ForegroundColor Green
+            }
+        }
+    }
+
+    if ($一致要素.Count -eq 0) {
+        Write-Host "テキスト '$検索テキスト' が見つかりません" -ForegroundColor Red
+        return $false
+    }
+
+    # 最初に見つかった要素をクリック
+    $target = $一致要素[0]
+    Write-Host "クリック: '$($target.Name)' at ($($target.X), $($target.Y))" -ForegroundColor Cyan
+
+    指定座標を左クリック -X座標 $target.X -Y座標 $target.Y
+
+    Write-Host "テキスト要素クリック完了" -ForegroundColor Green
+    return $true
+}
+
+
