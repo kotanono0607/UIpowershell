@@ -236,42 +236,16 @@ try {
         Write-Host "ウィンドウ情報は $windowInfo"
         return $windowInfo
     }
+    デバッグ表示 -表示文字 "ウインドウをクリックしてください" -表示時間秒 2
+    # 関数を実行
+    $windowInfo = マウスクリック待機関数
 
-    # ウインドウ選択ループ（再選択可能）
-    $windowConfirmed = $false
-    while (-not $windowConfirmed) {
-        デバッグ表示 -表示文字 "ウインドウをクリックしてください" -表示時間秒 2
-        # 関数を実行
-        $windowInfo = マウスクリック待機関数
 
-        # 結合されたウィンドウ情報をスプリットしてハンドルとタイトルに分割
-        $splitInfo = $windowInfo -split '-', 2
-        # スプリットしたウィンドウハンドルを整数に変換
-        $handle = [int]$splitInfo[0]
-        $title = $splitInfo[1]
-
-        # ウインドウ確認ダイアログ
-        $confirmResult = [System.Windows.Forms.MessageBox]::Show(
-            "このウインドウを調査しますか？`n`nタイトル: $title",
-            "ウインドウ確認",
-            [System.Windows.Forms.MessageBoxButtons]::YesNoCancel,
-            [System.Windows.Forms.MessageBoxIcon]::Question
-        )
-
-        if ($confirmResult -eq [System.Windows.Forms.DialogResult]::Yes) {
-            $windowConfirmed = $true
-            Write-Host "ウインドウが確認されました: $title"
-        } elseif ($confirmResult -eq [System.Windows.Forms.DialogResult]::No) {
-            Write-Host "別のウインドウを選択します..."
-            # フックを再設定
-            [InputHook]::SetMouseHook()
-            [InputHook]::SetKeyboardHook()
-        } else {
-            # キャンセル
-            Write-Host "ウインドウ選択がキャンセルされました。"
-            return $null
-        }
-    }
+    # 結合されたウィンドウ情報をスプリットしてハンドルとタイトルに分割
+    $splitInfo = $windowInfo -split '-'
+    # スプリットしたウィンドウハンドルを整数に変換
+    $handle = [int]$splitInfo[0]
+    $title = $splitInfo[1]
 
 
 
@@ -805,9 +779,7 @@ while ($true) {
 
                 $listForm.Controls.Add($listBox)
                 $listForm.Controls.Add($okButton)
-                $メインメニューハンドル = メインメニューを最小化
                 $listForm.ShowDialog()
-                メインメニューを復元 -ハンドル $メインメニューハンドル
             } else {
                 # パターンが1つしかない場合、そのままログ出力
                 $selectedPattern = $patternsList[0]
@@ -824,9 +796,7 @@ while ($true) {
     # ハイライトフォームをモーダル表示
     #$ハイライトフォーム.ShowDialog()
     # 変更後
-    $メインメニューハンドル = メインメニューを最小化
     $result = $ハイライトフォーム.ShowDialog()
-    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     $ハイライトフォーム.Activate()
 
