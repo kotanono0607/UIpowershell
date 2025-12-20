@@ -270,6 +270,46 @@ function 実行イベント_v2 {
                 $headerComment = "# [スクリプト開始] $buttonText (ID: $buttonName)`r`n"
                 $footerComment = "# [スクリプト終了] $buttonText (ID: $buttonName)`r`n"
                 $output += "$headerComment$取得したエントリ`r`n$footerComment`r`n"
+            }
+            # 関数ノード（Aquamarine）の場合はPinkノードと同様にscriptプロパティを使用
+            elseif ($colorName -eq "Aquamarine" -and $button.script) {
+                Write-Host "[関数ノード] scriptプロパティを優先使用" -ForegroundColor Cyan
+                Write-Host "[関数ノード] script内容: $($button.script)" -ForegroundColor Cyan
+
+                # scriptがノードリスト形式か直接コード形式かを判定
+                # ノードリスト形式: "ID;色;テキスト;" パターン（例: "26-1;White;順次;_27-1;White;順次;"）
+                $isNodeListFormat = ($button.script -match "^AAAA") -or ($button.script -match "^[\w\-]+;[\w]+;[^;]*;")
+
+                if ($isNodeListFormat) {
+                    Write-Host "[関数ノード] ノードリスト形式を検出 → 展開処理" -ForegroundColor Cyan
+
+                    # 既にAAAAで始まっている場合はそのまま、そうでなければAAAAを付加
+                    if ($button.script -match "^AAAA") {
+                        $ノードリスト文字列 = $button.script -replace "_", "`n"
+                        Write-Host "[関数ノード] AAAA形式をそのまま使用" -ForegroundColor Cyan
+                    } else {
+                        $scriptContent = $button.script -replace "_", "`n"
+                        $ノードリスト文字列 = "AAAA`n$scriptContent"
+                        Write-Host "[関数ノード] AAAA形式に変換" -ForegroundColor Cyan
+                    }
+                    Write-Host "[関数ノード] 生成したノードリスト: $ノードリスト文字列" -ForegroundColor Cyan
+
+                    # ノードリストを展開
+                    $取得したエントリ = ノードリストを展開 -ノードリスト文字列 $ノードリスト文字列
+                    Write-Host "[関数ノード] 展開後の内容: $取得したエントリ" -ForegroundColor Cyan
+                    Write-Host "[関数ノード] 展開後の長さ: $($取得したエントリ.Length) 文字" -ForegroundColor Cyan
+                } else {
+                    Write-Host "[関数ノード] 直接コード形式を検出 → そのまま出力" -ForegroundColor Cyan
+                    $取得したエントリ = $button.script
+                }
+
+                # 改行コードの正規化
+                $取得したエントリ = $取得したエントリ -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
+
+                # コメント生成（関数ノード用）
+                $headerComment = "# [関数開始] $buttonText (ID: $buttonName)`r`n"
+                $footerComment = "# [関数終了] $buttonText (ID: $buttonName)`r`n"
+                $output += "$headerComment$取得したエントリ`r`n$footerComment`r`n"
             } elseif ($取得したエントリ -ne $null -and $取得したエントリ -ne "") {
                 # エントリの内容をコンソールに出力（デバッグモードのみ）
                 if ($DebugMode) {
