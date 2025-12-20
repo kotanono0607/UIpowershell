@@ -1774,7 +1774,7 @@ function コード結果を表示 {
             # メタ情報をrobot-profile.jsonから設定
             $metaTitle = $robotName
             $metaDescription = $robotRole
-            $metaProduct = $robotName
+            $metaProduct = $robotRole  # 製品名に役割を設定（プロパティに表示される）
             $metaVersion = $newVersion
             $metaCopyright = if ($robotAuthor -ne "") {
                 "Copyright $(Get-Date -Format 'yyyy') $robotAuthor"
