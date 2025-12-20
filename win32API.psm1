@@ -774,13 +774,47 @@ function UI操作2 {
         1 { $条件リスト[0] }
         default { [System.Windows.Automation.AndCondition]::new($条件リスト) }
     }
+
+    # 診断ログ: 検索条件を表示
+    Write-Host "=== UI操作 診断情報 ===" -ForegroundColor Cyan
+    Write-Host "  ウインドウ名: $ウインドウ名" -ForegroundColor Gray
+    Write-Host "  検索条件:" -ForegroundColor Gray
+    Write-Host "    名前: '$名前'" -ForegroundColor Gray
+    Write-Host "    ID: '$ID'" -ForegroundColor Gray
+    Write-Host "    タイプ: '$タイプ'" -ForegroundColor Gray
+    Write-Host "    クラス名前: '$クラス名前'" -ForegroundColor Gray
+
+    # ルート要素の情報を表示
+    try {
+        Write-Host "  ルート要素情報:" -ForegroundColor Gray
+        Write-Host "    Name: $($ルート要素.Current.Name)" -ForegroundColor Gray
+        Write-Host "    ClassName: $($ルート要素.Current.ClassName)" -ForegroundColor Gray
+        Write-Host "    ControlType: $($ルート要素.Current.LocalizedControlType)" -ForegroundColor Gray
+    } catch {
+        Write-Host "  ルート要素情報取得エラー: $_" -ForegroundColor Yellow
+    }
+    Write-Host "========================" -ForegroundColor Cyan
+
     指定秒待機 -秒数 0.1
     $試行回数 = 0
     $一致する要素リスト = @()
     while ($一致する要素リスト.Count -eq 0 -and $試行回数 -lt 30) {
         指定秒待機 -秒数 1
+
+        # まず条件なしで全要素数を確認
+        $全子要素 = $ルート要素.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
         $子要素 = $ルート要素.FindAll([System.Windows.Automation.TreeScope]::Descendants, $条件)
-        Write-Host ("検索回数: " + ($試行回数 + 1) + "、検索された要素数: " + $子要素.Count)
+
+        Write-Host ("検索回数: " + ($試行回数 + 1) + "、全要素数: " + $全子要素.Count + "、条件一致: " + $子要素.Count) -ForegroundColor $(if ($子要素.Count -eq 0) { "Yellow" } else { "Green" })
+
+        # 条件一致が0で全要素があれば、最初の数個の要素情報を表示
+        if ($子要素.Count -eq 0 -and $全子要素.Count -gt 0 -and $試行回数 -eq 0) {
+            Write-Host "  [診断] 条件に一致しない - サンプル要素:" -ForegroundColor Yellow
+            $全子要素 | Select-Object -First 5 | ForEach-Object {
+                Write-Host "    Name='$($_.Current.Name)' ID='$($_.Current.AutomationId)' Type='$($_.Current.LocalizedControlType)' Class='$($_.Current.ClassName)'" -ForegroundColor Gray
+            }
+        }
+
         $一致する要素リスト = $子要素 | Where-Object {
             ($名前 -eq "" -or $_.Current.Name -like "*$名前*") -and
             ($ID -eq "" -or $_.Current.AutomationId -like "*$ID*") -and
@@ -791,6 +825,16 @@ function UI操作2 {
             ($_).Current.BoundingRectangle.Right -le 1920 -and
             ($_).Current.BoundingRectangle.Bottom -le 1080
         }
+
+        # フィルタ後に減った場合は理由を表示
+        if ($子要素.Count -gt 0 -and $一致する要素リスト.Count -eq 0 -and $試行回数 -eq 0) {
+            Write-Host "  [診断] 座標フィルタで除外された可能性" -ForegroundColor Yellow
+            $子要素 | Select-Object -First 3 | ForEach-Object {
+                $rect = $_.Current.BoundingRectangle
+                Write-Host "    座標: X=$($rect.X) Y=$($rect.Y) Right=$($rect.Right) Bottom=$($rect.Bottom)" -ForegroundColor Gray
+            }
+        }
+
         $試行回数++
     }
 
