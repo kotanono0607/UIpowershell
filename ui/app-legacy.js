@@ -5661,6 +5661,24 @@ async function executeCode() {
 
         console.log(`[実行] ノード数: ${currentLayerNodes.length}個`);
 
+        // 全レイヤーのノードを収集（関数ノードのscript取得用）
+        const allLayerNodes = [];
+        Object.keys(layerStructure).forEach(layerKey => {
+            const layerNodes = layerStructure[layerKey]?.nodes || [];
+            layerNodes.forEach(n => {
+                allLayerNodes.push({
+                    id: n.id,
+                    text: n.text,
+                    color: n.color,
+                    y: n.y,
+                    処理番号: n.処理番号,
+                    script: n.script || '',
+                    layer: layerKey
+                });
+            });
+        });
+        console.log(`[実行] 全レイヤーノード数: ${allLayerNodes.length}個`);
+
         // 送信データを準備
         const requestData = {
             nodes: currentLayerNodes.map(n => ({
@@ -5671,6 +5689,7 @@ async function executeCode() {
                 処理番号: n.処理番号,
                 script: n.script || ''  // Pinkノードの子ノード情報
             })),
+            allNodes: allLayerNodes,  // 全レイヤーのノード（関数ノード展開用）
             outputPath: null,
             openFile: false
         };
