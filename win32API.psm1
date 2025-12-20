@@ -1423,8 +1423,21 @@ function 開いているウインドウタイトル取得 {
     # ウインドウを列挙
     [winAPIUser32]::EnumWindows([winAPIUser32+EnumWindowsProc]$callback, [IntPtr]::Zero) | Out-Null
 
-    # List → 配列に変換し、重複排除＋ソートして返却
-    return ($titleList.ToArray() | Sort-Object -Unique)
+    # タイトルからブラウザ名等を削除して整形
+    $cleanedTitles = $titleList.ToArray() | ForEach-Object {
+        $t = $_
+        # ブラウザ関連のサフィックスを削除
+        $t = $t -replace '\s*-\s*\[InPrivate\]\s*-\s*Microsoft\s*Edge\s*$', ''
+        $t = $t -replace '\s*-\s*Microsoft\s*Edge\s*$', ''
+        $t = $t -replace '\s*-\s*Google\s*Chrome\s*$', ''
+        $t = $t -replace '\s*-\s*Mozilla\s*Firefox\s*$', ''
+        $t = $t -replace '\s*-\s*シークレット\s*$', ''
+        $t = $t -replace '\s*-\s*プライベート\s*$', ''
+        $t.Trim()
+    }
+
+    # 重複排除＋ソートして返却
+    return ($cleanedTitles | Sort-Object -Unique)
 }
 
 # 単一変数読み込み関数 Ver7
