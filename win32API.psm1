@@ -1426,14 +1426,21 @@ function 開いているウインドウタイトル取得 {
     # タイトルからブラウザ名等を削除して整形
     $cleanedTitles = $titleList.ToArray() | ForEach-Object {
         $t = $_
-        # ブラウザ関連のサフィックスを削除（ゼロ幅スペース等も考慮）
-        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*\[InPrivate\][\s\u200B\u00A0]*-[\s\u200B\u00A0]*Microsoft[\s\u200B\u00A0]+Edge[\s\u200B\u00A0]*$', ''
-        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*Microsoft[\s\u200B\u00A0]+Edge[\s\u200B\u00A0]*$', ''
-        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*Google[\s\u200B\u00A0]+Chrome[\s\u200B\u00A0]*$', ''
-        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*Mozilla[\s\u200B\u00A0]+Firefox[\s\u200B\u00A0]*$', ''
-        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*シークレット[\s\u200B\u00A0]*$', ''
-        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*プライベート[\s\u200B\u00A0]*$', ''
-        $t.Trim()
+        # " - " で分割してブラウザ関連パーツを除去
+        $parts = $t -split '\s+-\s+'
+        $filteredParts = @()
+        foreach ($part in $parts) {
+            $p = $part.Trim()
+            # ブラウザ関連キーワードを含むパーツをスキップ
+            if ($p -match 'Microsoft.*Edge|Google.*Chrome|Mozilla.*Firefox|^\[InPrivate\]$|^InPrivate$|^シークレット$|^プライベート$') {
+                continue
+            }
+            if ($p -ne '') {
+                $filteredParts += $p
+            }
+        }
+        # 残ったパーツを再結合
+        ($filteredParts -join ' - ').Trim()
     }
 
     # 重複排除＋ソートして返却
