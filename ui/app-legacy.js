@@ -10213,6 +10213,11 @@ async function loadRobotProfile() {
                 document.getElementById('robot-memo').value = profile.memo || '';
             }
 
+            // バージョンを表示
+            if (document.getElementById('robot-version')) {
+                document.getElementById('robot-version').textContent = profile.version || '1.0.0.0';
+            }
+
             // 画像を復元
             if (profile.image && !profile.image.includes('robo.png')) {
                 const avatarDiv = document.getElementById('robot-avatar');

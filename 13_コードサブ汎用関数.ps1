@@ -1910,10 +1910,8 @@ $originalScript
                             $graphics.Clear([System.Drawing.Color]::White)
                         }
 
-                        # ユーザー画像を中央に描画
-                        $imgSize = [int]($iconSize * 0.85)
-                        $offsetPos = [int](($iconSize - $imgSize) / 2)
-                        $graphics.DrawImage($userBitmap, $offsetPos, $offsetPos, $imgSize, $imgSize)
+                        # ユーザー画像を全体に描画（大きく表示）
+                        $graphics.DrawImage($userBitmap, 0, 0, $iconSize, $iconSize)
                         $userBitmap.Dispose()
                         $ms.Dispose()
                         $graphics.Dispose()
@@ -1984,11 +1982,9 @@ $originalScript
                                 $graphics.Clear([System.Drawing.Color]::FromArgb(232, 244, 252))  # デフォルト薄いブルー
                             }
 
-                            # ロボット画像を中央に描画
+                            # ロボット画像を全体に描画（大きく表示）
                             $robotBitmap = [System.Drawing.Bitmap]::FromFile($roboPngPath)
-                            $imgSize = [int]($iconSize * 0.75)
-                            $offset = [int](($iconSize - $imgSize) / 2)
-                            $graphics.DrawImage($robotBitmap, $offset, $offset, $imgSize, $imgSize)
+                            $graphics.DrawImage($robotBitmap, 0, 0, $iconSize, $iconSize)
                             $robotBitmap.Dispose()
                             $graphics.Dispose()
 
@@ -2048,7 +2044,12 @@ $originalScript
 
             # ps2exeを実行（メタ情報付き）
             Import-Module ps2exe -Force
-            Write-Host "[EXE作成] メタ情報: タイトル=$metaTitle, バージョン=$metaVersion" -ForegroundColor Gray
+            Write-Host "[EXE作成] メタ情報:" -ForegroundColor Gray
+            Write-Host "  タイトル(Title): $metaTitle" -ForegroundColor Gray
+            Write-Host "  説明(Description): $metaDescription" -ForegroundColor Gray
+            Write-Host "  製品名(Product): $metaProduct" -ForegroundColor Gray
+            Write-Host "  バージョン(Version): $metaVersion" -ForegroundColor Gray
+            Write-Host "  著作権(Copyright): $metaCopyright" -ForegroundColor Gray
 
             if ($iconPath -and (Test-Path $iconPath)) {
                 Write-Host "[EXE作成] カスタムアイコンを使用: $iconPath" -ForegroundColor Cyan
