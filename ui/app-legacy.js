@@ -3982,10 +3982,18 @@ async function layerizeNode() {
     // 最小Y位置を取得
     const minY = sortedRedNodes[0].y;
 
-    // 削除したノード情報を配列に追加（ID;色;テキスト;groupId）
-    // 注意: scriptフィールドは含めない（Pink→Pinkのネスト時に子ノード情報が重複するため）
+    // 削除したノード情報を配列に追加（ID;色;テキスト;groupId;script）
+    // 注意: Pinkノードのscriptフィールドは含めない（Pink→Pinkのネスト時に子ノード情報が重複するため）
+    // ただし、Aquamarineノード（関数ノード）はscriptを保持する必要がある
     const deletedNodeInfo = sortedRedNodes.map(node => {
         const groupIdStr = (node.groupId !== null && node.groupId !== undefined) ? node.groupId : '';
+        // Aquamarineノード（関数ノード）の場合はscriptを保存
+        // _を|にエンコードして保存（展開時に_で分割されるのを防ぐ）
+        if (node.color === 'Aquamarine' && node.script) {
+            const encodedScript = node.script.replace(/_/g, '|');
+            console.log(`[レイヤー化] Aquamarineノード(${node.id})のscriptを保存(エンコード済): ${encodedScript.substring(0, 50)}...`);
+            return `${node.id};${node.color};${node.text};${groupIdStr};${encodedScript}`;
+        }
         return `${node.id};${node.color};${node.text};${groupIdStr}`;
     });
 
@@ -4537,9 +4545,14 @@ async function handlePinkNodeClickPopup(node) {
         // groupIdを数値に変換（空文字列の場合はnull）
         const groupId = groupIdFromScript ? parseInt(groupIdFromScript) : null;
         // parts[4]以降がscript（通常は空）
+        // Aquamarineノードの場合は|を_にデコード
         let script = parts[4] || '';
+        if (color === 'Aquamarine' && script) {
+            script = script.replace(/\|/g, '_');
+            console.log(`[展開処理] Aquamarineノードのscriptをデコード: ${script.substring(0, 50)}...`);
+        }
 
-        console.warn(`🔍🔍🔍 [展開処理] originalId="${originalId}", color=${color}, text="${text}", groupId=${groupId}`);
+        console.warn(`🔍🔍🔍 [展開処理] originalId="${originalId}", color=${color}, text="${text}", groupId=${groupId}, script="${script ? script.substring(0, 30) + '...' : '(なし)'}`);
 
         // ピンクノードの場合、コード.jsonからscriptデータを復元
         if (color === 'Pink' && !script) {
@@ -4554,13 +4567,16 @@ async function handlePinkNodeClickPopup(node) {
             }
         }
 
-        // Aquamarineノード（関数ノード）の場合、元のノードからscriptを復元
+        // Aquamarineノード（関数ノード）の場合のフォールバック処理
+        // 通常はレイヤー化時に保存されたscript（parts[4]）から復元されるが、
+        // 古いデータの場合はグローバル配列やuserFunctionsから検索
         if (color === 'Aquamarine' && !script) {
+            console.log(`[展開処理] Aquamarineノード(${originalId})のscriptがレイヤーデータにありません。フォールバック検索開始...`);
             // 元のノードをグローバル配列から検索（originalIdで検索）
             const originalNode = nodes.find(n => n.id === originalId);
             if (originalNode && originalNode.script) {
                 script = originalNode.script;
-                console.log(`[展開処理] Aquamarineノードのscriptを復元: ${script.substring(0, 50)}...`);
+                console.log(`[展開処理] Aquamarineノードのscriptをグローバル配列から復元: ${script.substring(0, 50)}...`);
             } else {
                 // userFunctionsからも検索
                 const funcNode = nodes.find(n => n.functionId && n.id === originalId);
@@ -4568,7 +4584,7 @@ async function handlePinkNodeClickPopup(node) {
                     script = funcNode.script;
                     console.log(`[展開処理] Aquamarineノードのscriptをfunctionノードから復元: ${script.substring(0, 50)}...`);
                 } else {
-                    console.warn(`[展開処理] ⚠ Aquamarineノード(${originalId})のscriptが見つかりません`);
+                    console.warn(`[展開処理] ⚠ Aquamarineノード(${originalId})のscriptが見つかりません（レイヤーデータ、グローバル配列、userFunctionsすべて検索済み）`);
                 }
             }
         }
