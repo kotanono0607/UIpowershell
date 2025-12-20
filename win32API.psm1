@@ -32,6 +32,21 @@
             public const int MOUSEEVENTF_LEFTUP = 0x04;
             public const int MOUSEEVENTF_RIGHTDOWN = 0x08;
             public const int MOUSEEVENTF_RIGHTUP = 0x10;
+            public const int MOUSEEVENTF_WHEEL = 0x0800;
+            public const int WHEEL_DELTA = 120;
+
+            // ウィンドウ矩形取得用
+            [DllImport("user32.dll")]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct RECT {
+                public int Left;
+                public int Top;
+                public int Right;
+                public int Bottom;
+            }
 
             // クリックイベントとマウス操作に関連する構造体定義
             [StructLayout(LayoutKind.Sequential)]
@@ -110,6 +125,18 @@
                 mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
                 mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
                 mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+            }
+
+            // 指定座標でマウスホイールスクロールを実行
+            // scrollAmount: 正の値で上スクロール、負の値で下スクロール（WHEEL_DELTA単位）
+            public static void PerformWheelScroll(int x, int y, int scrollAmount) {
+                SetCursorPos(x, y);
+                mouse_event(MOUSEEVENTF_WHEEL, 0, 0, scrollAmount, 0);
+            }
+
+            // 現在のカーソル位置でマウスホイールスクロールを実行
+            public static void WheelScroll(int scrollAmount) {
+                mouse_event(MOUSEEVENTF_WHEEL, 0, 0, scrollAmount, 0);
             }
 
             // ウィンドウの表示状態を変更するメソッド
@@ -1862,4 +1889,87 @@ class Program {
 
     # --- 論理座標を物理座標に変換して配列で返す ---
     return ([int]($論理X * $scaleX)), ([int]($論理Y * $scaleY))
+}
+
+# ページスクロール関数
+function ページスクロール {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ウインドウ名,
+
+        [Parameter(Mandatory=$false)]
+        [ValidateSet("上", "下")]
+        [string]$方向 = "下",
+
+        [Parameter(Mandatory=$false)]
+        [int]$スクロール量 = 10  # ホイール回転数（1回転 = 120）
+    )
+
+    # ウインドウハンドルを取得
+    $ウインドウハンドル = 文字列からウインドウハンドルを探す -検索文字列 $ウインドウ名
+    if ($null -eq $ウインドウハンドル -or $ウインドウハンドル -eq [IntPtr]::Zero) {
+        Write-Host "ウインドウが見つかりません: $ウインドウ名" -ForegroundColor Red
+        return
+    }
+
+    # ウインドウをアクティブにする
+    ウインドウハンドルでアクティブにする -ウインドウハンドル $ウインドウハンドル
+    指定秒待機 -秒数 0.2
+
+    # ウインドウの中央座標を取得
+    $rect = New-Object winAPIUser32+RECT
+    [winAPIUser32]::GetWindowRect($ウインドウハンドル, [ref]$rect) | Out-Null
+    $centerX = [int](($rect.Left + $rect.Right) / 2)
+    $centerY = [int](($rect.Top + $rect.Bottom) / 2)
+
+    # スクロール方向に応じてスクロール量を設定
+    $scrollAmount = $スクロール量 * [winAPIUser32]::WHEEL_DELTA
+    if ($方向 -eq "下") {
+        $scrollAmount = -$scrollAmount  # 下スクロールは負の値
+    }
+
+    Write-Host "ページスクロール: ウインドウ=$ウインドウ名, 方向=$方向, 量=$スクロール量" -ForegroundColor Cyan
+
+    # マウスホイールスクロールを実行
+    [winAPIUser32]::PerformWheelScroll($centerX, $centerY, $scrollAmount)
+}
+
+# ページ末尾へスクロール関数
+function ページ末尾へスクロール {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ウインドウ名,
+
+        [Parameter(Mandatory=$false)]
+        [int]$繰り返し回数 = 20  # スクロール回数
+    )
+
+    Write-Host "ページ末尾へスクロール開始: $ウインドウ名" -ForegroundColor Cyan
+
+    for ($i = 0; $i -lt $繰り返し回数; $i++) {
+        ページスクロール -ウインドウ名 $ウインドウ名 -方向 "下" -スクロール量 5
+        指定秒待機 -秒数 0.1
+    }
+
+    Write-Host "ページ末尾へスクロール完了" -ForegroundColor Green
+}
+
+# ページ先頭へスクロール関数
+function ページ先頭へスクロール {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ウインドウ名,
+
+        [Parameter(Mandatory=$false)]
+        [int]$繰り返し回数 = 20  # スクロール回数
+    )
+
+    Write-Host "ページ先頭へスクロール開始: $ウインドウ名" -ForegroundColor Cyan
+
+    for ($i = 0; $i -lt $繰り返し回数; $i++) {
+        ページスクロール -ウインドウ名 $ウインドウ名 -方向 "上" -スクロール量 5
+        指定秒待機 -秒数 0.1
+    }
+
+    Write-Host "ページ先頭へスクロール完了" -ForegroundColor Green
 }
