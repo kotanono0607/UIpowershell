@@ -146,7 +146,9 @@ function 5_2 {
     $フォーム.Controls.Add($キャンセルボタン)
 
     # ダイアログ表示
+    $メインメニューハンドル = メインメニューを最小化
     $結果 = $フォーム.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     if ($結果 -eq [System.Windows.Forms.DialogResult]::OK) {
         $URL = $テキストボックス.Text.Trim()

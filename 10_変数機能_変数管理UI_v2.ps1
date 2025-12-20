@@ -866,7 +866,9 @@ function Show-VariableManagerForm {
     }) | Out-Null
 
     $form.Topmost = $true
+    $メインメニューハンドル = メインメニューを最小化
     $dialogResult = $form.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     # フォームが閉じた後、選択された変数名を取得
     if ($dialogResult -eq [System.Windows.Forms.DialogResult]::OK) {
