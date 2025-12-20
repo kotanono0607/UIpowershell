@@ -843,11 +843,25 @@ function ノードリストを展開 {
             if ($nodeColor -eq "Aquamarine" -and $global:現在のノード配列) {
                 Write-Host "[ノードリスト展開] 関数ノード検出 → グローバル配列からscriptを検索: $nodeId" -ForegroundColor Cyan
 
+                # デバッグ: グローバル配列の内容を出力
+                Write-Host "[DEBUG] グローバル配列のノード一覧:" -ForegroundColor Yellow
+                foreach ($n in $global:現在のノード配列) {
+                    $nid = if ($n.id) { $n.id } elseif ($n.name) { $n.name } else { "unknown" }
+                    $ncolor = if ($n.color) { $n.color } else { "?" }
+                    $nscript = if ($n.script) { $n.script.Substring(0, [Math]::Min(30, $n.script.Length)) + "..." } else { "(なし)" }
+                    Write-Host "  - ID: $nid, 色: $ncolor, script: $nscript" -ForegroundColor Yellow
+                }
+
                 # ノードIDからscriptを取得（-1付きも考慮）
                 $aquamarineNode = $global:現在のノード配列 | Where-Object {
                     $nid = if ($_.id) { $_.id } elseif ($_.name) { $_.name } else { "" }
                     ($nid -eq $nodeId) -or ($nid -eq "$nodeId-1") -or ("$nid-1" -eq $nodeId)
                 } | Select-Object -First 1
+
+                Write-Host "[DEBUG] マッチしたノード: $(if ($aquamarineNode) { $aquamarineNode.id } else { 'なし' })" -ForegroundColor Yellow
+                if ($aquamarineNode) {
+                    Write-Host "[DEBUG] script存在: $(if ($aquamarineNode.script) { 'あり' } else { 'なし' })" -ForegroundColor Yellow
+                }
 
                 if ($aquamarineNode -and $aquamarineNode.script) {
                     Write-Host "[ノードリスト展開] 関数ノードのscript取得成功: $($aquamarineNode.script.Substring(0, [Math]::Min(50, $aquamarineNode.script.Length)))..." -ForegroundColor Cyan
