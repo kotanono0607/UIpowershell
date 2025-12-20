@@ -1857,31 +1857,17 @@ function コード結果を表示 {
                 # 元のスクリプトを読み込み
                 $originalScript = Get-Content -Path $生成結果.outputPath -Raw -Encoding UTF8
 
-                # 表示なしの場合、Write-Host を無効化するコードを追加
-                $writeHostSuppression = ""
+                # 表示なしの場合、Write-Host を削除
                 if (-not $hasDisplay) {
-                    $writeHostSuppression = @"
-# ============================================
-# Write-Host 無効化（表示なしモード）
-# ============================================
-function Write-Host {
-    param(
-        [Parameter(Position=0, ValueFromRemainingArguments=`$true)]
-        `$Object,
-        [switch]`$NoNewline,
-        [ConsoleColor]`$ForegroundColor,
-        [ConsoleColor]`$BackgroundColor,
-        [string]`$Separator = ' '
-    )
-    # サイレントモード：何も出力しない
-}
-
-"@
+                    # Write-Host行を削除（複数行対応）
+                    $originalScript = $originalScript -replace '(?m)^\s*Write-Host\s+.*$', '# [サイレント] Write-Host削除'
+                    $win32ApiContent = $win32ApiContent -replace '(?m)^\s*Write-Host\s+.*$', '# [サイレント] Write-Host削除'
+                    Write-Host "[EXE作成] Write-Hostを削除しました（サイレントモード）" -ForegroundColor Cyan
                 }
 
                 # 結合（win32API.psm1の関数を先頭に配置）
                 $combinedScript = @"
-$writeHostSuppression# ============================================
+# ============================================
 # win32API.psm1 埋め込み（EXE用）
 # ============================================
 $win32ApiContent
@@ -1900,30 +1886,13 @@ $originalScript
             } else {
                 Write-Host "[EXE作成] ⚠ win32API.psm1が見つかりません。埋め込みなしで続行します" -ForegroundColor Yellow
 
-                # 表示なしの場合、Write-Host無効化のみ追加
+                # 表示なしの場合、Write-Hostを削除
                 if (-not $hasDisplay) {
                     $originalScript = Get-Content -Path $生成結果.outputPath -Raw -Encoding UTF8
-                    $writeHostSuppression = @"
-# ============================================
-# Write-Host 無効化（表示なしモード）
-# ============================================
-function Write-Host {
-    param(
-        [Parameter(Position=0, ValueFromRemainingArguments=`$true)]
-        `$Object,
-        [switch]`$NoNewline,
-        [ConsoleColor]`$ForegroundColor,
-        [ConsoleColor]`$BackgroundColor,
-        [string]`$Separator = ' '
-    )
-    # サイレントモード：何も出力しない
-}
-
-"@
-                    $combinedScript = $writeHostSuppression + $originalScript
-                    Set-Content -Path $tempScriptPath -Value $combinedScript -Encoding UTF8 -Force
+                    $originalScript = $originalScript -replace '(?m)^\s*Write-Host\s+.*$', '# [サイレント] Write-Host削除'
+                    Set-Content -Path $tempScriptPath -Value $originalScript -Encoding UTF8 -Force
                     $inputFileForExe = $tempScriptPath
-                    Write-Host "[EXE作成] Write-Host無効化を追加しました" -ForegroundColor Cyan
+                    Write-Host "[EXE作成] Write-Hostを削除しました（サイレントモード）" -ForegroundColor Cyan
                 } else {
                     $inputFileForExe = $生成結果.outputPath
                 }

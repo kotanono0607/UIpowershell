@@ -203,13 +203,13 @@ function 指定座標を左クリック {
         [Int]$X座標,
          [Int]$Y座標
     )
-    [winAPIUser32]::PerformLeftClick($X座標, $Y座標) 
-    #[winAPIUser32]::SendInputLeftClick() 
+    [winAPIUser32]::PerformLeftClick($X座標, $Y座標) | Out-Null
+    #[winAPIUser32]::SendInputLeftClick()
 }
 
 function 左クリック {
     指定秒待機　0.1
-    [winAPIUser32]::SendInputLeftClick() 
+    [winAPIUser32]::SendInputLeftClick() | Out-Null
     指定秒待機　0.1
 }
 
@@ -219,7 +219,7 @@ function 指定座標に移動 {
         [Int]$X座標,
          [Int]$Y座標
     )
-    [winAPIUser32]::SetCursorPos($X座標, $Y座標)
+    [winAPIUser32]::SetCursorPos($X座標, $Y座標) | Out-Null
 }
 
 function 指定座標を右クリック {
@@ -229,13 +229,13 @@ function 指定座標を右クリック {
         [Int]$Y座標
     )
     指定秒待機 0.1
-    [winAPIUser32]::PerformRightClick($X座標, $Y座標)
+    [winAPIUser32]::PerformRightClick($X座標, $Y座標) | Out-Null
     指定秒待機 0.1
 }
 
 function 右クリック {
     指定秒待機 0.1
-    [winAPIUser32]::RightClick()
+    [winAPIUser32]::RightClick() | Out-Null
     指定秒待機 0.1
 }
 
@@ -246,13 +246,13 @@ function 指定座標をダブルクリック {
         [Int]$Y座標
     )
     指定秒待機 0.1
-    [winAPIUser32]::PerformDoubleClick($X座標, $Y座標)
+    [winAPIUser32]::PerformDoubleClick($X座標, $Y座標) | Out-Null
     指定秒待機 0.1
 }
 
 function ダブルクリック {
     指定秒待機 0.1
-    [winAPIUser32]::DoubleClick()
+    [winAPIUser32]::DoubleClick() | Out-Null
     指定秒待機 0.1
 }
 
@@ -315,7 +315,7 @@ function 画面中央にマウスを移動 {
     $X = $ScreenWidth / 2
     $Y = $ScreenHeight / 2
     # マウスカーソルを画面の中央に移動
-    [winAPIUser32]::SetCursorPos($X, $Y)
+    [winAPIUser32]::SetCursorPos($X, $Y) | Out-Null
 }
 
 function 指定秒待機 {
@@ -433,13 +433,13 @@ function 文字列入力 {
         [Parameter(Mandatory=$true)]
         [string]$タイトル
     )
-    [winAPIUser32]::ウィンドウを最大化($タイトル)
+    [winAPIUser32]::ウィンドウを最大化($タイトル) | Out-Null
 }function 特定タイトルウインドウを最小化する {
     param(
         [Parameter(Mandatory=$true)]
         [string]$タイトル
     )
-    [winAPIUser32]::ウィンドウを最小化($タイトル)
+    [winAPIUser32]::ウィンドウを最小化($タイトル) | Out-Null
 }function シークレットモードでURLを開く {
     param(
         [Parameter(Mandatory=$true)]
@@ -896,7 +896,7 @@ function ウインドウ待機 {
             }
             return $true  # 検索を続行
         }
-        [winAPIUser32]::EnumWindows([winAPIUser32+EnumWindowsProc]$callback, [IntPtr]::Zero)
+        [winAPIUser32]::EnumWindows([winAPIUser32+EnumWindowsProc]$callback, [IntPtr]::Zero) | Out-Null
         if ($見つかったハンドル -ne $null) {
             Write-Host "関数を終了します。"
             break  # ループから抜け、関数を終了
