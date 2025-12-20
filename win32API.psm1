@@ -1426,13 +1426,13 @@ function 開いているウインドウタイトル取得 {
     # タイトルからブラウザ名等を削除して整形
     $cleanedTitles = $titleList.ToArray() | ForEach-Object {
         $t = $_
-        # ブラウザ関連のサフィックスを削除
-        $t = $t -replace '\s*-\s*\[InPrivate\]\s*-\s*Microsoft\s*Edge\s*$', ''
-        $t = $t -replace '\s*-\s*Microsoft\s*Edge\s*$', ''
-        $t = $t -replace '\s*-\s*Google\s*Chrome\s*$', ''
-        $t = $t -replace '\s*-\s*Mozilla\s*Firefox\s*$', ''
-        $t = $t -replace '\s*-\s*シークレット\s*$', ''
-        $t = $t -replace '\s*-\s*プライベート\s*$', ''
+        # ブラウザ関連のサフィックスを削除（ゼロ幅スペース等も考慮）
+        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*\[InPrivate\][\s\u200B\u00A0]*-[\s\u200B\u00A0]*Microsoft[\s\u200B\u00A0]+Edge[\s\u200B\u00A0]*$', ''
+        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*Microsoft[\s\u200B\u00A0]+Edge[\s\u200B\u00A0]*$', ''
+        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*Google[\s\u200B\u00A0]+Chrome[\s\u200B\u00A0]*$', ''
+        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*Mozilla[\s\u200B\u00A0]+Firefox[\s\u200B\u00A0]*$', ''
+        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*シークレット[\s\u200B\u00A0]*$', ''
+        $t = $t -replace '[\s\u200B\u00A0]*-[\s\u200B\u00A0]*プライベート[\s\u200B\u00A0]*$', ''
         $t.Trim()
     }
 
