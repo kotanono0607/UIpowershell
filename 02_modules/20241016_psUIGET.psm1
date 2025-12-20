@@ -208,13 +208,12 @@ Add-Type @"
     }
 "@
 
-# メインメニュー最小化用のAPI定義（Invoke-UIlement内で定義）
-if (-not ([System.Management.Automation.PSTypeName]'MainMenuHelper').Type) {
-    Add-Type @"
+# メインメニュー最小化用のAPI定義（モジュール専用・ユニーク名）
+Add-Type @"
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-public class MainMenuHelper {
+public class PSUIGetMenuHelper {
     [DllImport("user32.dll")]
     public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
@@ -247,15 +246,14 @@ public class MainMenuHelper {
         return result;
     }
 }
-"@
-}
+"@ -ErrorAction SilentlyContinue
 
 # メインメニュー最小化/復元関数
 function メインメニューを最小化 {
     try {
-        $handle = [MainMenuHelper]::FindUIpowershellWindow()
+        $handle = [PSUIGetMenuHelper]::FindUIpowershellWindow()
         if ($handle -ne [IntPtr]::Zero) {
-            [MainMenuHelper]::ShowWindow($handle, [MainMenuHelper]::SW_MINIMIZE) | Out-Null
+            [PSUIGetMenuHelper]::ShowWindow($handle, [PSUIGetMenuHelper]::SW_MINIMIZE) | Out-Null
             return $handle
         }
     } catch { }
@@ -266,7 +264,7 @@ function メインメニューを復元 {
     param([IntPtr]$ハンドル)
     try {
         if ($ハンドル -ne [IntPtr]::Zero) {
-            [MainMenuHelper]::ShowWindow($ハンドル, [MainMenuHelper]::SW_RESTORE) | Out-Null
+            [PSUIGetMenuHelper]::ShowWindow($ハンドル, [PSUIGetMenuHelper]::SW_RESTORE) | Out-Null
         }
     } catch { }
 }
