@@ -1,4 +1,79 @@
-﻿function Invoke-UIlement {
+# ============================================
+# モジュールレベルの初期化（関数の外で実行）
+# ============================================
+
+# メインメニュー最小化用のAPI定義（モジュールスコープ）
+if (-not ([System.Management.Automation.PSTypeName]'UIGetMainMenuHelper').Type) {
+    Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public class UIGetMainMenuHelper {
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+    public const int SW_MINIMIZE = 6;
+    public const int SW_RESTORE = 9;
+
+    public static IntPtr FindUIpowershellWindow() {
+        IntPtr result = IntPtr.Zero;
+        EnumWindows(delegate(IntPtr hWnd, IntPtr lParam) {
+            if (!IsWindowVisible(hWnd)) return true;
+            StringBuilder title = new StringBuilder(256);
+            GetWindowText(hWnd, title, title.Capacity);
+            if (title.ToString().StartsWith("UIpowershell")) {
+                result = hWnd;
+                return false;
+            }
+            return true;
+        }, IntPtr.Zero);
+        return result;
+    }
+}
+"@
+}
+
+# モジュールスコープのメインメニュー最小化関数
+function script:UIGet-メインメニューを最小化 {
+    try {
+        $handle = [UIGetMainMenuHelper]::FindUIpowershellWindow()
+        if ($handle -ne [IntPtr]::Zero) {
+            [UIGetMainMenuHelper]::ShowWindow($handle, [UIGetMainMenuHelper]::SW_MINIMIZE) | Out-Null
+            return $handle
+        }
+    } catch {
+        Write-Host "[UIGet] メインメニュー最小化エラー: $_" -ForegroundColor Yellow
+    }
+    return [IntPtr]::Zero
+}
+
+# モジュールスコープのメインメニュー復元関数
+function script:UIGet-メインメニューを復元 {
+    param([IntPtr]$ハンドル)
+    try {
+        if ($ハンドル -ne [IntPtr]::Zero) {
+            [UIGetMainMenuHelper]::ShowWindow($ハンドル, [UIGetMainMenuHelper]::SW_RESTORE) | Out-Null
+        }
+    } catch {
+        Write-Host "[UIGet] メインメニュー復元エラー: $_" -ForegroundColor Yellow
+    }
+}
+
+# ============================================
+# メイン関数
+# ============================================
+function Invoke-UIlement {
     param(
         [string]$Caller  # 呼び出し元の名前を受け取るパラメータ
     )
@@ -204,72 +279,6 @@ Add-Type @"
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     }
 "@
-
-# メインメニュー最小化用のAPI定義（モジュール内で使用）
-Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-using System.Text;
-public class UIGetMainMenuHelper {
-    [DllImport("user32.dll")]
-    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-    [DllImport("user32.dll")]
-    public static extern bool IsWindowVisible(IntPtr hWnd);
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
-    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-
-    [DllImport("user32.dll")]
-    public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
-
-    public const int SW_MINIMIZE = 6;
-    public const int SW_RESTORE = 9;
-
-    public static IntPtr FindUIpowershellWindow() {
-        IntPtr result = IntPtr.Zero;
-        EnumWindows(delegate(IntPtr hWnd, IntPtr lParam) {
-            if (!IsWindowVisible(hWnd)) return true;
-            StringBuilder title = new StringBuilder(256);
-            GetWindowText(hWnd, title, title.Capacity);
-            if (title.ToString().StartsWith("UIpowershell")) {
-                result = hWnd;
-                return false;
-            }
-            return true;
-        }, IntPtr.Zero);
-        return result;
-    }
-}
-"@ -ErrorAction SilentlyContinue
-
-# モジュール内用のメインメニュー最小化関数
-function UIGet-メインメニューを最小化 {
-    try {
-        $handle = [UIGetMainMenuHelper]::FindUIpowershellWindow()
-        if ($handle -ne [IntPtr]::Zero) {
-            [UIGetMainMenuHelper]::ShowWindow($handle, [UIGetMainMenuHelper]::SW_MINIMIZE) | Out-Null
-            return $handle
-        }
-    } catch {
-        # エラー時は何もしない
-    }
-    return [IntPtr]::Zero
-}
-
-# モジュール内用のメインメニュー復元関数
-function UIGet-メインメニューを復元 {
-    param([IntPtr]$ハンドル)
-    try {
-        if ($ハンドル -ne [IntPtr]::Zero) {
-            [UIGetMainMenuHelper]::ShowWindow($ハンドル, [UIGetMainMenuHelper]::SW_RESTORE) | Out-Null
-        }
-    } catch {
-        # エラー時は何もしない
-    }
-}
 
 try {
     # フックを設定
