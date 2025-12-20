@@ -51,6 +51,7 @@
             <!-- タブヘッダー -->
             <div id="left-panel-tabs">
                 <div class="left-panel-tab active" data-tab="nodes" onclick="switchLeftPanelTab('nodes')">🧩 ノード</div>
+                <div class="left-panel-tab" data-tab="functions" onclick="switchLeftPanelTab('functions')">🔷 関数</div>
                 <div class="left-panel-tab" data-tab="variables" onclick="switchLeftPanelTab('variables')">📦 変数</div>
                 <div class="left-panel-tab" data-tab="connection" onclick="switchLeftPanelTab('connection')">🔌 接続</div>
                 <div class="left-panel-tab" data-tab="robot" onclick="switchLeftPanelTab('robot')">🤖 ロボット</div>
@@ -66,6 +67,26 @@
                 <!-- ノード追加ボタンパネル（カテゴリ設定.jsonから動的生成） -->
                 <div id="node-buttons-container">
                     <!-- カテゴリ設定.jsonから動的に生成 -->
+                </div>
+            </div>
+
+            <!-- タブコンテンツ: 関数 -->
+            <div id="tab-content-functions" class="left-panel-tab-content">
+                <div class="functions-panel">
+                    <!-- ヘッダー: インポートボタン -->
+                    <div class="functions-header">
+                        <span class="functions-title">関数一覧</span>
+                        <button class="functions-import-btn" onclick="importFunction()">📥 インポート</button>
+                    </div>
+
+                    <!-- 関数リスト -->
+                    <div class="functions-list" id="functions-list">
+                        <!-- 動的に生成 -->
+                        <div class="functions-empty-message" id="functions-empty-message">
+                            関数がありません。<br>
+                            ノードを選択して右クリック→「関数化」で作成できます。
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -303,6 +324,7 @@
     <!-- 右クリックメニュー（ノード用） -->
     <div id="context-menu" class="context-menu">
         <div id="layerize-menu-item" class="context-menu-item" onclick="layerizeNode()" style="background-color: pink; font-weight: bold; display: none;">📦 レイヤー化</div>
+        <div id="functionize-menu-item" class="context-menu-item" onclick="functionizeNodes()" style="background-color: rgb(127, 255, 212); font-weight: bold; display: none;">🔷 関数化</div>
         <div class="context-menu-item" onclick="openNodeSettingsFromContextMenu()">⚙️ ノード設定</div>
         <div class="context-menu-item" onclick="renameNode()">✏️ 名前変更</div>
         <div class="context-menu-item" onclick="editScript()">📝 スクリプト編集</div>

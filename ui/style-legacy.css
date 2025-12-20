@@ -2149,3 +2149,155 @@ button:active, .button:active {
 .variables-empty-text {
     font-size: 13px;
 }
+
+/* ============================================
+   関数タブ スタイル
+   ============================================ */
+
+.functions-panel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    overflow: hidden;
+}
+
+.functions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.functions-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.functions-import-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    background: var(--base-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+    box-shadow:
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+    transition: all 0.2s ease;
+}
+
+.functions-import-btn:hover {
+    box-shadow:
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+/* 関数リスト */
+.functions-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.functions-empty-message {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.function-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgb(127, 255, 212);  /* Aquamarine - 関数ノードの色 */
+    border-radius: 8px;
+    box-shadow:
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.function-item:hover {
+    box-shadow:
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+    transform: translateX(2px);
+}
+
+.function-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.function-item-name {
+    font-size: 13px;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+}
+
+.function-item-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 10px;
+    color: #555;
+}
+
+.function-item-nodes {
+    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.7);
+    color: #1976d2;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.function-item-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.function-item-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.function-item-btn:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.function-item-btn.delete {
+    color: #e74c3c;
+}
+
+.function-item-btn.delete:hover {
+    background: #ffebee;
+}
+
+.function-item-btn.export {
+    color: #2196F3;
+}
+
+.function-item-btn.export:hover {
+    background: #e3f2fd;
+}

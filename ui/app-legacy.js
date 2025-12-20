@@ -361,6 +361,17 @@ let codeData = {
     "最後のID": 0
 };
 
+// ============================================
+// 関数管理（関数化機能）
+// ============================================
+
+// 関数データ構造
+// 関数はfunctions/フォルダに個別JSONで保存され、複数プロジェクトで共有可能
+let userFunctions = [];  // { id, name, nodes, params: [], returns: [], createdAt, updatedAt }
+
+// 関数IDカウンター
+let functionIdCounter = 1;
+
 // ================================================================
 // arrow-drawing.js
 // 矢印描画機能（PS1からの移植）
@@ -2278,7 +2289,8 @@ function getColorCode(colorName) {
         'Pink': '#ffb6c1',                       // LightPink (パステル)
         'Salmon': 'rgb(250, 128, 114)',          // 条件分岐 False分岐（赤）
         'LightBlue': 'rgb(200, 220, 255)',       // 条件分岐 True分岐（青）薄い青
-        'Gray': 'rgb(128, 128, 128)'             // 条件分岐 中間ライン
+        'Gray': 'rgb(128, 128, 128)',            // 条件分岐 中間ライン
+        'Aquamarine': 'rgb(127, 255, 212)'       // 関数ノード（水色）
     };
     return colorMap[colorName] || colorName;
 }
@@ -2894,15 +2906,21 @@ function renderNodesInLayer(layer, panelSide = 'left') {
                     e.stopPropagation();
                     handleShiftClick(node);
                 } else {
-                    // 通常クリック: ピンクノードの場合は展開処理
-                    console.log(`[クリック判定] node.color === 'Pink' ? ${node.color === 'Pink'}`);
+                    // 通常クリック: ピンクノードまたは関数ノードの場合は展開処理
+                    console.log(`[クリック判定] node.color === 'Pink' ? ${node.color === 'Pink'}, node.color === 'Aquamarine' ? ${node.color === 'Aquamarine'}`);
                     if (node.color === 'Pink') {
                         e.preventDefault();
                         e.stopPropagation();
                         console.log(`[ピンクノード検出] handlePinkNodeClick を呼び出します`);
                         handlePinkNodeClick(node);
+                    } else if (node.color === 'Aquamarine' || isAquamarineColor(node.color)) {
+                        // 関数ノード（水色）の場合は展開処理
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log(`[関数ノード検出] expandFunctionNode を呼び出します`);
+                        expandFunctionNode(node);
                     } else {
-                        // Pinkノード以外がクリックされたらドリルダウンパネルを閉じる
+                        // Pinkノード・関数ノード以外がクリックされたらドリルダウンパネルを閉じる
                         if (drilldownState.active) {
                             console.log(`[クリック] 非Pinkノードクリック → ドリルダウンパネルを閉じます`);
                             closeDrilldownPanel();
@@ -3538,6 +3556,15 @@ function showContextMenu(e, node) {
         layerizeMenuItem.style.display = 'block';
     } else {
         layerizeMenuItem.style.display = 'none';
+    }
+
+    // 関数化ボタンの表示/非表示を制御
+    const functionizeMenuItem = document.getElementById('functionize-menu-item');
+    // 赤枠ノードが1個以上ある場合に関数化ボタンを表示
+    if (redBorderNodes.length >= 1) {
+        functionizeMenuItem.style.display = 'block';
+    } else {
+        functionizeMenuItem.style.display = 'none';
     }
 
     // メニュー外クリックで閉じる
@@ -10045,6 +10072,11 @@ function switchLeftPanelTab(tabId) {
     if (tabId === 'variables') {
         renderVariablesList();
     }
+
+    // 関数タブに切り替えた時、関数リストを描画
+    if (tabId === 'functions') {
+        renderFunctionsList();
+    }
 }
 
 // ============================================
@@ -10292,3 +10324,438 @@ function setupRobotProfileAutoSave() {
 
     console.log('[ロボット] 自動保存を設定しました');
 }
+
+// ============================================
+// 関数化機能
+// ============================================
+
+/**
+ * 関数リストを描画
+ */
+function renderFunctionsList() {
+    const listContainer = document.getElementById('functions-list');
+    const emptyMessage = document.getElementById('functions-empty-message');
+
+    if (!listContainer) return;
+
+    // 空メッセージ以外をクリア
+    const existingItems = listContainer.querySelectorAll('.function-item');
+    existingItems.forEach(item => item.remove());
+
+    // 関数がない場合は空メッセージを表示
+    if (userFunctions.length === 0) {
+        if (emptyMessage) emptyMessage.style.display = 'block';
+        return;
+    }
+
+    if (emptyMessage) emptyMessage.style.display = 'none';
+
+    // 関数アイテムを描画
+    userFunctions.forEach(func => {
+        const item = document.createElement('div');
+        item.className = 'function-item';
+        item.onclick = () => addFunctionToBoard(func.id);
+
+        const nodeCount = func.nodes ? func.nodes.length : 0;
+
+        item.innerHTML = `
+            <div class="function-item-info">
+                <div class="function-item-name">${escapeHtml(func.name)}</div>
+                <div class="function-item-meta">
+                    <span class="function-item-nodes">${nodeCount}ノード</span>
+                </div>
+            </div>
+            <div class="function-item-actions">
+                <button class="function-item-btn export" onclick="event.stopPropagation(); exportFunction('${func.id}')" title="エクスポート">📤</button>
+                <button class="function-item-btn delete" onclick="event.stopPropagation(); deleteFunction('${func.id}')" title="削除">🗑️</button>
+            </div>
+        `;
+
+        listContainer.appendChild(item);
+    });
+
+    console.log(`[関数] ${userFunctions.length}個の関数を描画しました`);
+}
+
+/**
+ * 赤枠ノードを関数化する
+ */
+async function functionizeNodes() {
+    console.log('[関数化] ========== 関数化開始 ==========');
+
+    const layerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    let redBorderNodes = layerNodes.filter(n => n.redBorder);
+
+    if (redBorderNodes.length === 0) {
+        await showAlertDialog('関数化するには、まず赤枠でノードを選択してください。', '選択エラー');
+        hideContextMenu();
+        return;
+    }
+
+    // 赤枠に挟まれたノードも赤枠にする
+    if (redBorderNodes.length >= 2) {
+        const sortedNodes = [...layerNodes].sort((a, b) => a.y - b.y);
+        const redBorderIndices = redBorderNodes.map(node => sortedNodes.findIndex(n => n.id === node.id));
+        const startIndex = Math.min(...redBorderIndices);
+        const endIndex = Math.max(...redBorderIndices);
+
+        for (let i = startIndex + 1; i < endIndex; i++) {
+            const enclosedNode = sortedNodes[i];
+            if (!enclosedNode.redBorder) {
+                enclosedNode.redBorder = true;
+                const globalNode = nodes.find(n => n.id === enclosedNode.id);
+                if (globalNode) globalNode.redBorder = true;
+            }
+        }
+        redBorderNodes = layerNodes.filter(n => n.redBorder);
+    }
+
+    // Y座標でソート
+    const sortedRedNodes = [...redBorderNodes].sort((a, b) => a.y - b.y);
+
+    // 関数名を入力
+    const functionName = await showPromptDialog('関数名を入力してください:', '関数化', 'マイ関数');
+    if (!functionName) {
+        hideContextMenu();
+        return;
+    }
+
+    // 関数を作成
+    const newFunction = {
+        id: `func_${functionIdCounter++}`,
+        name: functionName,
+        nodes: sortedRedNodes.map(node => ({
+            id: node.id,
+            text: node.text,
+            color: node.color,
+            処理番号: node.処理番号,
+            script: node.script || '',
+            groupId: node.groupId || null,
+            width: node.width || 120,
+            height: node.height || 40
+        })),
+        params: [],    // 将来の拡張用
+        returns: [],   // 将来の拡張用
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+
+    // 関数リストに追加
+    userFunctions.push(newFunction);
+
+    console.log(`[関数化] 関数を作成: ${newFunction.name} (${newFunction.nodes.length}ノード)`);
+
+    // 関数をファイルに保存
+    await saveFunctionToFile(newFunction);
+
+    // 赤枠を解除
+    sortedRedNodes.forEach(node => {
+        node.redBorder = false;
+        const globalNode = nodes.find(n => n.id === node.id);
+        if (globalNode) globalNode.redBorder = false;
+    });
+
+    // 画面を再描画
+    renderNodesInLayer(leftVisibleLayer, 'left');
+
+    // 関数タブに切り替えて表示
+    switchLeftPanelTab('functions');
+
+    await showAlertDialog(`関数「${functionName}」を作成しました。`, '関数化完了');
+
+    hideContextMenu();
+    console.log('[関数化] ========== 関数化完了 ==========');
+}
+
+/**
+ * 関数をボードに追加（関数ノードとして配置）
+ */
+async function addFunctionToBoard(functionId) {
+    const func = userFunctions.find(f => f.id === functionId);
+    if (!func) {
+        console.error(`[関数] 関数が見つかりません: ${functionId}`);
+        return;
+    }
+
+    console.log(`[関数] ボードに追加: ${func.name}`);
+
+    const layerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+
+    // 新しいノードのY座標を計算
+    let maxY = 10;
+    layerNodes.forEach(node => {
+        const nodeBottom = (node.y || 0) + (node.height || 40);
+        if (nodeBottom > maxY) maxY = nodeBottom;
+    });
+    const newY = maxY + 10;
+
+    // 関数ノードを作成（水色）
+    const newNodeIdNum = nodeCounter++;
+    const newNodeId = `${newNodeIdNum}-1`;
+
+    const functionNode = {
+        id: newNodeId,
+        text: func.name,
+        color: 'Aquamarine',  // 水色
+        処理番号: '98-1',     // 関数呼び出し用の処理番号
+        layer: leftVisibleLayer,
+        y: newY,
+        x: 90,
+        width: 120,
+        height: 40,
+        functionId: func.id,  // 参照する関数ID
+        script: generateFunctionScript(func),  // 関数の内容をスクリプトとして保存
+        redBorder: false
+    };
+
+    // グローバル配列とレイヤーに追加
+    nodes.push(functionNode);
+    layerNodes.push(functionNode);
+
+    console.log(`[関数] 関数ノード作成: ID=${newNodeId}, 関数=${func.name}`);
+
+    // 画面を再描画
+    renderNodesInLayer(leftVisibleLayer, 'left');
+    refreshAllArrows();
+
+    // memory.json自動保存
+    saveMemoryJson();
+}
+
+/**
+ * 関数のスクリプトを生成（ピンクノードと同様の形式）
+ */
+function generateFunctionScript(func) {
+    // ノード情報を「ID;色;テキスト;groupId」形式で結合
+    const nodeInfoList = func.nodes.map(node => {
+        const groupIdStr = (node.groupId !== null && node.groupId !== undefined) ? node.groupId : '';
+        return `${node.id};${node.color};${node.text};${groupIdStr}`;
+    });
+    return nodeInfoList.join('_');
+}
+
+/**
+ * 関数をファイルに保存
+ */
+async function saveFunctionToFile(func) {
+    try {
+        const response = await fetch(`${API_BASE}/functions/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(func)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        console.log(`[関数] ファイルに保存: ${func.name}`);
+    } catch (error) {
+        console.error(`[関数] 保存エラー:`, error);
+        // API未実装の場合はローカルストレージに保存
+        saveFunctionsToLocalStorage();
+    }
+}
+
+/**
+ * 関数をローカルストレージに保存（フォールバック）
+ */
+function saveFunctionsToLocalStorage() {
+    try {
+        localStorage.setItem('userFunctions', JSON.stringify(userFunctions));
+        console.log(`[関数] ローカルストレージに保存: ${userFunctions.length}個`);
+    } catch (error) {
+        console.error(`[関数] ローカルストレージ保存エラー:`, error);
+    }
+}
+
+/**
+ * 関数をローカルストレージから読み込み
+ */
+function loadFunctionsFromLocalStorage() {
+    try {
+        const stored = localStorage.getItem('userFunctions');
+        if (stored) {
+            userFunctions = JSON.parse(stored);
+            // IDカウンターを更新
+            userFunctions.forEach(func => {
+                const idNum = parseInt(func.id.replace('func_', ''));
+                if (idNum >= functionIdCounter) {
+                    functionIdCounter = idNum + 1;
+                }
+            });
+            console.log(`[関数] ローカルストレージから読み込み: ${userFunctions.length}個`);
+        }
+    } catch (error) {
+        console.error(`[関数] ローカルストレージ読み込みエラー:`, error);
+    }
+}
+
+/**
+ * 関数を削除
+ */
+async function deleteFunction(functionId) {
+    const func = userFunctions.find(f => f.id === functionId);
+    if (!func) return;
+
+    const confirmed = await showConfirmDialog(
+        `関数「${func.name}」を削除しますか？`,
+        '関数削除確認'
+    );
+
+    if (!confirmed) return;
+
+    // 配列から削除
+    const index = userFunctions.findIndex(f => f.id === functionId);
+    if (index !== -1) {
+        userFunctions.splice(index, 1);
+    }
+
+    // ファイルから削除
+    try {
+        await fetch(`${API_BASE}/functions/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: functionId })
+        });
+    } catch (error) {
+        console.error(`[関数] 削除エラー:`, error);
+    }
+
+    // ローカルストレージも更新
+    saveFunctionsToLocalStorage();
+
+    // リストを再描画
+    renderFunctionsList();
+
+    console.log(`[関数] 削除完了: ${func.name}`);
+}
+
+/**
+ * 関数をエクスポート
+ */
+async function exportFunction(functionId) {
+    const func = userFunctions.find(f => f.id === functionId);
+    if (!func) return;
+
+    // JSONファイルとしてダウンロード
+    const jsonStr = JSON.stringify(func, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${func.name}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    console.log(`[関数] エクスポート: ${func.name}`);
+}
+
+/**
+ * 関数をインポート
+ */
+async function importFunction() {
+    // ファイル選択ダイアログを開く
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const func = JSON.parse(text);
+
+            // 必須フィールドの検証
+            if (!func.name || !func.nodes) {
+                await showAlertDialog('無効な関数ファイルです。', 'インポートエラー');
+                return;
+            }
+
+            // 新しいIDを割り当て
+            func.id = `func_${functionIdCounter++}`;
+            func.updatedAt = new Date().toISOString();
+
+            // 関数リストに追加
+            userFunctions.push(func);
+
+            // 保存
+            await saveFunctionToFile(func);
+            saveFunctionsToLocalStorage();
+
+            // リストを再描画
+            renderFunctionsList();
+
+            await showAlertDialog(`関数「${func.name}」をインポートしました。`, 'インポート完了');
+            console.log(`[関数] インポート: ${func.name}`);
+        } catch (error) {
+            console.error(`[関数] インポートエラー:`, error);
+            await showAlertDialog('ファイルの読み込みに失敗しました。', 'インポートエラー');
+        }
+    };
+
+    input.click();
+}
+
+/**
+ * 関数ノードの色判定（水色）
+ */
+function isAquamarineColor(colorString) {
+    if (!colorString) return false;
+
+    // 'Aquamarine' という名前でもマッチ
+    if (colorString === 'Aquamarine') return true;
+
+    // RGB値でマッチ
+    const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        return r === 127 && g === 255 && b === 212;
+    }
+    return false;
+}
+
+/**
+ * 関数ノードをクリックした時の処理（ピンクノードと同様に展開）
+ */
+async function expandFunctionNode(node) {
+    if (!node.functionId) {
+        console.warn(`[関数] 関数IDが見つかりません: ${node.id}`);
+        return;
+    }
+
+    const func = userFunctions.find(f => f.id === node.functionId);
+    if (!func) {
+        console.error(`[関数] 関数が見つかりません: ${node.functionId}`);
+        return;
+    }
+
+    console.log(`[関数] 関数ノードを展開: ${func.name}`);
+
+    // 関数の内容をモーダルで表示（ピンクノードと同様）
+    const functionNodes = func.nodes.map((n, index) => ({
+        ...n,
+        id: `preview_${index}`,
+        x: 90,
+        y: 10 + (index * 50),
+        layer: leftVisibleLayer + 1
+    }));
+
+    showLayerDetailModal(leftVisibleLayer + 1, functionNodes, node);
+}
+
+// ============================================
+// 初期化時に関数をロード
+// ============================================
+
+// DOMContentLoadedで関数を読み込み
+document.addEventListener('DOMContentLoaded', () => {
+    loadFunctionsFromLocalStorage();
+});
