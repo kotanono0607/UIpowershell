@@ -10157,7 +10157,9 @@ async function saveRobotProfile() {
             role: document.getElementById('robot-role')?.value || '',
             memo: document.getElementById('robot-memo')?.value || '',
             image: getRobotImageData(),
-            bgcolor: getSelectedBgColor()
+            bgcolor: getSelectedBgColor(),
+            hasVoice: document.getElementById('robot-has-voice')?.checked ?? true,
+            hasDisplay: document.getElementById('robot-has-display')?.checked ?? true
         };
 
         const response = await fetch('/api/robot-profile', {
@@ -10239,6 +10241,14 @@ async function loadRobotProfile() {
                 });
                 // Canvas で背景色付き画像を生成
                 generateRobotImageWithBg(profile.bgcolor);
+            }
+
+            // 音声・表示チェックボックスを復元
+            if (document.getElementById('robot-has-voice')) {
+                document.getElementById('robot-has-voice').checked = profile.hasVoice !== false;
+            }
+            if (document.getElementById('robot-has-display')) {
+                document.getElementById('robot-has-display').checked = profile.hasDisplay !== false;
             }
 
             console.log('[ロボット] プロファイルを読み込みました');

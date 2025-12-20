@@ -1770,6 +1770,12 @@ function コード結果を表示 {
             } else {
                 "UIpowershellで生成された自動化スクリプト"
             }
+            # 表示設定を取得（デフォルトはtrue）
+            $hasDisplay = $true
+            if ($profileContent -and $null -ne $profileContent.hasDisplay) {
+                $hasDisplay = [bool]$profileContent.hasDisplay
+            }
+            Write-Host "[EXE作成] 表示設定: $( if ($hasDisplay) { 'あり（コンソール表示）' } else { 'なし（サイレント）' })" -ForegroundColor Cyan
 
             # メタ情報をrobot-profile.jsonから設定
             # ps2exeでは -title がWindowsの「ファイルの説明」に表示される
@@ -1851,9 +1857,31 @@ function コード結果を表示 {
                 # 元のスクリプトを読み込み
                 $originalScript = Get-Content -Path $生成結果.outputPath -Raw -Encoding UTF8
 
+                # 表示なしの場合、Write-Host を無効化するコードを追加
+                $writeHostSuppression = ""
+                if (-not $hasDisplay) {
+                    $writeHostSuppression = @"
+# ============================================
+# Write-Host 無効化（表示なしモード）
+# ============================================
+function Write-Host {
+    param(
+        [Parameter(Position=0, ValueFromRemainingArguments=`$true)]
+        `$Object,
+        [switch]`$NoNewline,
+        [ConsoleColor]`$ForegroundColor,
+        [ConsoleColor]`$BackgroundColor,
+        [string]`$Separator = ' '
+    )
+    # サイレントモード：何も出力しない
+}
+
+"@
+                }
+
                 # 結合（win32API.psm1の関数を先頭に配置）
                 $combinedScript = @"
-# ============================================
+$writeHostSuppression# ============================================
 # win32API.psm1 埋め込み（EXE用）
 # ============================================
 $win32ApiContent
@@ -1871,7 +1899,34 @@ $originalScript
                 $inputFileForExe = $tempScriptPath
             } else {
                 Write-Host "[EXE作成] ⚠ win32API.psm1が見つかりません。埋め込みなしで続行します" -ForegroundColor Yellow
-                $inputFileForExe = $生成結果.outputPath
+
+                # 表示なしの場合、Write-Host無効化のみ追加
+                if (-not $hasDisplay) {
+                    $originalScript = Get-Content -Path $生成結果.outputPath -Raw -Encoding UTF8
+                    $writeHostSuppression = @"
+# ============================================
+# Write-Host 無効化（表示なしモード）
+# ============================================
+function Write-Host {
+    param(
+        [Parameter(Position=0, ValueFromRemainingArguments=`$true)]
+        `$Object,
+        [switch]`$NoNewline,
+        [ConsoleColor]`$ForegroundColor,
+        [ConsoleColor]`$BackgroundColor,
+        [string]`$Separator = ' '
+    )
+    # サイレントモード：何も出力しない
+}
+
+"@
+                    $combinedScript = $writeHostSuppression + $originalScript
+                    Set-Content -Path $tempScriptPath -Value $combinedScript -Encoding UTF8 -Force
+                    $inputFileForExe = $tempScriptPath
+                    Write-Host "[EXE作成] Write-Host無効化を追加しました" -ForegroundColor Cyan
+                } else {
+                    $inputFileForExe = $生成結果.outputPath
+                }
             }
 
             # ロボットアイコンをICOファイルに変換（$profileContentは既に読み込み済み）
@@ -2054,15 +2109,31 @@ $originalScript
 
             if ($iconPath -and (Test-Path $iconPath)) {
                 Write-Host "[EXE作成] カスタムアイコンを使用: $iconPath" -ForegroundColor Cyan
-                Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath -noConsole `
-                    -title $metaTitle -description $metaDescription -product $metaProduct `
-                    -version $metaVersion -copyright $metaCopyright -iconFile $iconPath
+                if ($hasDisplay) {
+                    # 表示あり：コンソール付きで生成
+                    Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath `
+                        -title $metaTitle -description $metaDescription -product $metaProduct `
+                        -version $metaVersion -copyright $metaCopyright -iconFile $iconPath
+                } else {
+                    # 表示なし：サイレント（コンソールなし）で生成
+                    Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath -noConsole `
+                        -title $metaTitle -description $metaDescription -product $metaProduct `
+                        -version $metaVersion -copyright $metaCopyright -iconFile $iconPath
+                }
                 # 一時ICOファイルを削除
                 Remove-Item -Path $iconPath -Force -ErrorAction SilentlyContinue
             } else {
-                Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath -noConsole `
-                    -title $metaTitle -description $metaDescription -product $metaProduct `
-                    -version $metaVersion -copyright $metaCopyright
+                if ($hasDisplay) {
+                    # 表示あり：コンソール付きで生成
+                    Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath `
+                        -title $metaTitle -description $metaDescription -product $metaProduct `
+                        -version $metaVersion -copyright $metaCopyright
+                } else {
+                    # 表示なし：サイレント（コンソールなし）で生成
+                    Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath -noConsole `
+                        -title $metaTitle -description $metaDescription -product $metaProduct `
+                        -version $metaVersion -copyright $metaCopyright
+                }
             }
 
             # 一時ファイルを削除
