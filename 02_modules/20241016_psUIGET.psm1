@@ -1,86 +1,4 @@
 ﻿# ============================================
-# モジュールレベルの初期化（関数の外で実行）
-# ============================================
-
-# メインメニュー最小化用のAPI定義（モジュールスコープ）
-Write-Host "[UIGet Module] モジュール初期化開始" -ForegroundColor Magenta
-if (-not ([System.Management.Automation.PSTypeName]'UIGetMainMenuHelper').Type) {
-    Write-Host "[UIGet Module] UIGetMainMenuHelper 型を定義します" -ForegroundColor Magenta
-    Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-using System.Text;
-public class UIGetMainMenuHelper {
-    [DllImport("user32.dll")]
-    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-    [DllImport("user32.dll")]
-    public static extern bool IsWindowVisible(IntPtr hWnd);
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
-    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-
-    [DllImport("user32.dll")]
-    public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
-
-    public const int SW_MINIMIZE = 6;
-    public const int SW_RESTORE = 9;
-
-    public static IntPtr FindUIpowershellWindow() {
-        IntPtr result = IntPtr.Zero;
-        EnumWindows(delegate(IntPtr hWnd, IntPtr lParam) {
-            if (!IsWindowVisible(hWnd)) return true;
-            StringBuilder title = new StringBuilder(256);
-            GetWindowText(hWnd, title, title.Capacity);
-            if (title.ToString().StartsWith("UIpowershell")) {
-                result = hWnd;
-                return false;
-            }
-            return true;
-        }, IntPtr.Zero);
-        return result;
-    }
-}
-"@
-    Write-Host "[UIGet Module] UIGetMainMenuHelper 型定義完了" -ForegroundColor Magenta
-} else {
-    Write-Host "[UIGet Module] UIGetMainMenuHelper 型は既に存在します" -ForegroundColor Magenta
-}
-
-# モジュールスコープのメインメニュー最小化関数
-function script:UIGet-メインメニューを最小化 {
-    Write-Host "[UIGet] メインメニューを最小化 関数が呼ばれました" -ForegroundColor Cyan
-    try {
-        $handle = [UIGetMainMenuHelper]::FindUIpowershellWindow()
-        Write-Host "[UIGet] ウィンドウハンドル: $handle" -ForegroundColor Cyan
-        if ($handle -ne [IntPtr]::Zero) {
-            $result = [UIGetMainMenuHelper]::ShowWindow($handle, [UIGetMainMenuHelper]::SW_MINIMIZE)
-            Write-Host "[UIGet] ShowWindow結果: $result" -ForegroundColor Cyan
-            return $handle
-        } else {
-            Write-Host "[UIGet] UIpowershellウィンドウが見つかりません" -ForegroundColor Yellow
-        }
-    } catch {
-        Write-Host "[UIGet] メインメニュー最小化エラー: $_" -ForegroundColor Yellow
-    }
-    return [IntPtr]::Zero
-}
-
-# モジュールスコープのメインメニュー復元関数
-function script:UIGet-メインメニューを復元 {
-    param([IntPtr]$ハンドル)
-    try {
-        if ($ハンドル -ne [IntPtr]::Zero) {
-            [UIGetMainMenuHelper]::ShowWindow($ハンドル, [UIGetMainMenuHelper]::SW_RESTORE) | Out-Null
-        }
-    } catch {
-        Write-Host "[UIGet] メインメニュー復元エラー: $_" -ForegroundColor Yellow
-    }
-}
-
-# ============================================
 # メイン関数
 # ============================================
 function Invoke-UIlement {
@@ -863,9 +781,9 @@ while ($true) {
 
                 $listForm.Controls.Add($listBox)
                 $listForm.Controls.Add($okButton)
-                $menuHandle = UIGet-メインメニューを最小化
+                $menuHandle = メインメニューを最小化
                 $listForm.ShowDialog()
-                UIGet-メインメニューを復元 -ハンドル $menuHandle
+                メインメニューを復元 -ハンドル $menuHandle
             } else {
                 # パターンが1つしかない場合、そのままログ出力
                 $selectedPattern = $patternsList[0]
@@ -882,9 +800,9 @@ while ($true) {
     # ハイライトフォームをモーダル表示
     #$ハイライトフォーム.ShowDialog()
     # 変更後
-    $menuHandle = UIGet-メインメニューを最小化
+    $menuHandle = メインメニューを最小化
     $result = $ハイライトフォーム.ShowDialog()
-    UIGet-メインメニューを復元 -ハンドル $menuHandle
+    メインメニューを復元 -ハンドル $menuHandle
 
     $ハイライトフォーム.Activate()
 
