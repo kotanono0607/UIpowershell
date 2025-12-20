@@ -1992,10 +1992,15 @@ function JSテキストクリック {
         [string]$一致方法 = "部分一致"
     )
 
+    Add-Type -AssemblyName System.Windows.Forms
+
     Write-Host "JSテキストクリック開始: '$検索テキスト' ($一致方法)" -ForegroundColor Cyan
 
     # ウインドウをアクティブ化
-    特定タイトルウインドウをアクティブにする -タイトル $ウインドウ名
+    $hwnd = 文字列からウインドウハンドルを探す -検索文字列 $ウインドウ名
+    if ($hwnd -ne [IntPtr]::Zero) {
+        ウインドウハンドルでアクティブにする -hwnd $hwnd
+    }
     指定秒待機 -秒数 0.3
 
     # JavaScript コード生成
@@ -2014,23 +2019,23 @@ function JSテキストクリック {
 "@
 
     # DevTools コンソールを開く (Ctrl+Shift+J)
-    ショートカットキー送信 -修飾キー "Ctrl+Shift" -キー "j"
+    [System.Windows.Forms.SendKeys]::SendWait("^+j")
     指定秒待機 -秒数 0.8
 
     # JSコードをクリップボード経由で貼り付け
-    $jsCode | Set-Clipboard
+    文字列をクリップボードに格納 -文字列 $jsCode
     指定秒待機 -秒数 0.2
 
     # 貼り付け (Ctrl+V)
-    ショートカットキー送信 -修飾キー "Ctrl" -キー "v"
+    キー操作 -キーコマンド "Ctrl+V"
     指定秒待機 -秒数 0.3
 
     # 実行 (Enter)
-    ショートカットキー送信 -キー "Enter"
+    キー操作 -キーコマンド "Enter"
     指定秒待機 -秒数 0.3
 
     # DevTools を閉じる (F12)
-    ショートカットキー送信 -キー "F12"
+    キー操作 -キーコマンド "F12"
     指定秒待機 -秒数 0.3
 
     Write-Host "JSテキストクリック完了" -ForegroundColor Green
