@@ -3,7 +3,9 @@
 # ============================================
 
 # メインメニュー最小化用のAPI定義（モジュールスコープ）
+Write-Host "[UIGet Module] モジュール初期化開始" -ForegroundColor Magenta
 if (-not ([System.Management.Automation.PSTypeName]'UIGetMainMenuHelper').Type) {
+    Write-Host "[UIGet Module] UIGetMainMenuHelper 型を定義します" -ForegroundColor Magenta
     Add-Type @"
 using System;
 using System.Runtime.InteropServices;
@@ -42,15 +44,23 @@ public class UIGetMainMenuHelper {
     }
 }
 "@
+    Write-Host "[UIGet Module] UIGetMainMenuHelper 型定義完了" -ForegroundColor Magenta
+} else {
+    Write-Host "[UIGet Module] UIGetMainMenuHelper 型は既に存在します" -ForegroundColor Magenta
 }
 
 # モジュールスコープのメインメニュー最小化関数
 function script:UIGet-メインメニューを最小化 {
+    Write-Host "[UIGet] メインメニューを最小化 関数が呼ばれました" -ForegroundColor Cyan
     try {
         $handle = [UIGetMainMenuHelper]::FindUIpowershellWindow()
+        Write-Host "[UIGet] ウィンドウハンドル: $handle" -ForegroundColor Cyan
         if ($handle -ne [IntPtr]::Zero) {
-            [UIGetMainMenuHelper]::ShowWindow($handle, [UIGetMainMenuHelper]::SW_MINIMIZE) | Out-Null
+            $result = [UIGetMainMenuHelper]::ShowWindow($handle, [UIGetMainMenuHelper]::SW_MINIMIZE)
+            Write-Host "[UIGet] ShowWindow結果: $result" -ForegroundColor Cyan
             return $handle
+        } else {
+            Write-Host "[UIGet] UIpowershellウィンドウが見つかりません" -ForegroundColor Yellow
         }
     } catch {
         Write-Host "[UIGet] メインメニュー最小化エラー: $_" -ForegroundColor Yellow
