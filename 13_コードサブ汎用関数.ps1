@@ -1,6 +1,74 @@
 ﻿# 必要なアセンブリの読み込み
 Add-Type -AssemblyName System.Windows.Forms
 
+# メインメニュー最小化/復元用のAPI定義
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public class MainMenuHelper {
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+    public const int SW_MINIMIZE = 6;
+    public const int SW_RESTORE = 9;
+
+    public static IntPtr FindUIpowershellWindow() {
+        IntPtr result = IntPtr.Zero;
+        EnumWindows(delegate(IntPtr hWnd, IntPtr lParam) {
+            if (!IsWindowVisible(hWnd)) return true;
+            StringBuilder title = new StringBuilder(256);
+            GetWindowText(hWnd, title, title.Capacity);
+            if (title.ToString().StartsWith("UIpowershell")) {
+                result = hWnd;
+                return false;
+            }
+            return true;
+        }, IntPtr.Zero);
+        return result;
+    }
+}
+"@ -ErrorAction SilentlyContinue
+
+# メインメニューを最小化する関数
+function メインメニューを最小化 {
+    try {
+        $handle = [MainMenuHelper]::FindUIpowershellWindow()
+        if ($handle -ne [IntPtr]::Zero) {
+            [MainMenuHelper]::ShowWindow($handle, [MainMenuHelper]::SW_MINIMIZE) | Out-Null
+            return $handle
+        }
+    } catch {
+        # エラー時は何もしない
+    }
+    return [IntPtr]::Zero
+}
+
+# メインメニューを復元する関数
+function メインメニューを復元 {
+    param(
+        [IntPtr]$ハンドル
+    )
+    try {
+        if ($ハンドル -ne [IntPtr]::Zero) {
+            [MainMenuHelper]::ShowWindow($ハンドル, [MainMenuHelper]::SW_RESTORE) | Out-Null
+        }
+    } catch {
+        # エラー時は何もしない
+    }
+}
+
 # 汎用的なアイテム選択関数の定義
 function リストから項目を選択 {
     param(
@@ -60,7 +128,9 @@ function リストから項目を選択 {
     # フォームの表示（常に前面に表示）
     $フォーム.Topmost = $true
     $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     # フォームの結果に応じて処理
     if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -169,7 +239,9 @@ function 文字列を入力 {
     # フォームの表示（常に前面に表示）
     $フォーム.Topmost = $true
     $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     # フォームの結果に応じて処理
     if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -241,7 +313,9 @@ function 数値を入力 {
     # フォームを表示（常に前面に表示）
     $フォーム.Topmost = $true
     $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     # フォームの結果に応じて処理
     if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -339,7 +413,9 @@ function ファイルを選択 {
     $ダイアログ.InitialDirectory = $初期ディレクトリ
 
     # ダイアログを表示
+    $メインメニューハンドル = メインメニューを最小化
     $結果 = $ダイアログ.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     if ($結果 -eq [System.Windows.Forms.DialogResult]::OK) {
         return $ダイアログ.FileName
@@ -410,7 +486,9 @@ function 複数行テキストを編集 {
     # フォームの表示（常に前面に表示）
     $フォーム.Topmost = $true
     $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     # フォームの結果に応じて処理
     if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -659,7 +737,9 @@ function ノード設定を編集 {
     # フォームの表示（常に前面に表示）
     $フォーム.Topmost = $true
     $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     # フォームの結果に応じて処理
     if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -894,7 +974,9 @@ function 変数管理を表示 {
     # ダイアログ表示（常に前面に表示）
     $フォーム.Topmost = $true
     $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     Write-Host "[変数管理] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
 
@@ -985,7 +1067,9 @@ function Show-AddVariableDialog {
     # ダイアログ表示（常に前面に表示）
     $ダイアログ.Topmost = $true
     $ダイアログ.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    $メインメニューハンドル = メインメニューを最小化
     $result = $ダイアログ.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
         if ([string]::IsNullOrWhiteSpace($テキスト_変数名.Text)) {
@@ -1101,7 +1185,9 @@ function Show-EditVariableDialog {
     # ダイアログ表示（常に前面に表示）
     $ダイアログ.Topmost = $true
     $ダイアログ.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    $メインメニューハンドル = メインメニューを最小化
     $result = $ダイアログ.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
         return @{
@@ -1290,7 +1376,9 @@ function フォルダ切替を表示 {
         # ダイアログ表示（常に前面に表示）
         $入力フォーム.Topmost = $true
         $入力フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+        $メインメニューハンドル = メインメニューを最小化
         $result = $入力フォーム.ShowDialog()
+        メインメニューを復元 -ハンドル $メインメニューハンドル
 
         if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
             $新しいフォルダ名 = $テキストボックス.Text.Trim()
@@ -1417,7 +1505,9 @@ function フォルダ切替を表示 {
         $this.Activate()
         $this.BringToFront()
     })
+    $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     Write-Host "[フォルダ管理] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
 
@@ -2279,7 +2369,9 @@ pause
     # ダイアログ表示（常に前面に表示）
     $フォーム.Topmost = $true
     $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
+    メインメニューを復元 -ハンドル $メインメニューハンドル
 
     Write-Host "[コード結果] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
     Write-Host "[コード結果] ✅ ダイアログを閉じました" -ForegroundColor Green
