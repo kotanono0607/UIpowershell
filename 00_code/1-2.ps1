@@ -1,4 +1,4 @@
-﻿function 1_2 {
+function 1_2 {
     # ================================================================
     # 条件分岐ビルダー (PowerShell Windows Forms版)
     # ================================================================
@@ -14,26 +14,19 @@
     #   - キャンセル時は $null
     # ================================================================
 
-    Write-Host "[1_2] ========== 関数開始 ==========" -ForegroundColor Cyan
-
     # スクリプトのルートパスを取得
     # API経由での実行時は$script:RootDirを使用、直接実行時は$PSScriptRootを使用
     if ($script:RootDir) {
         $メインPath = $script:RootDir  # API経由: UIpowershell/
-        Write-Host "[1_2] パス取得: `$script:RootDir を使用 = $メインPath" -ForegroundColor Green
     } else {
         $スクリプトPath = $PSScriptRoot  # 00_code/
         $メインPath = Split-Path $スクリプトPath  # UIpowershell/
-        Write-Host "[1_2] パス取得: `$PSScriptRoot を使用 = $メインPath" -ForegroundColor Green
     }
 
     # 共通ユーティリティを読み込み（取得-JSON値、Read-JsonSafe）
     $utilityPath = Join-Path $メインPath "00_共通ユーティリティ_JSON操作.ps1"
-    Write-Host "[1_2] ユーティリティパス: $utilityPath" -ForegroundColor Gray
     if (Test-Path $utilityPath) {
-        Write-Host "[1_2] ✅ ユーティリティファイル存在確認OK" -ForegroundColor Green
         . $utilityPath
-        Write-Host "[1_2] ✅ ユーティリティ読み込み完了" -ForegroundColor Green
     } else {
         Write-Host "[ERROR] 共通ユーティリティが見つかりません: $utilityPath" -ForegroundColor Red
         return $null
@@ -41,11 +34,8 @@
 
     # 条件分岐ビルダーを読み込み
     $builderPath = Join-Path $メインPath "15_コードサブ_if文条件式作成.ps1"
-    Write-Host "[1_2] ビルダーパス: $builderPath" -ForegroundColor Gray
     if (Test-Path $builderPath) {
-        Write-Host "[1_2] ✅ ビルダーファイル存在確認OK" -ForegroundColor Green
         . $builderPath
-        Write-Host "[1_2] ✅ ビルダー読み込み完了" -ForegroundColor Green
     } else {
         Write-Host "[ERROR] 条件分岐ビルダーが見つかりません: $builderPath" -ForegroundColor Red
         return $null
@@ -55,19 +45,15 @@
         # 条件分岐ダイアログを表示
         # JSONPathは未指定（関数内で自動取得される）
         # 戻り値: JSON形式 {"branchCount": N, "code": "..."}
-        Write-Host "[1_2] ShowConditionBuilder を呼び出します..." -ForegroundColor Cyan
         $result = ShowConditionBuilder
-        Write-Host "[1_2] ShowConditionBuilder から戻りました。戻り値: $result" -ForegroundColor Cyan
 
         # キャンセル時は $null が返る
         if ($null -eq $result) {
-            Write-Host "[1_2] ⚠️ 戻り値が`$null です（キャンセルまたはエラー）" -ForegroundColor Yellow
             return $null
         }
 
         # JSON形式の戻り値をそのまま返す
         # ShowConditionBuilderが返すJSON: {"branchCount": N, "code": "..."}
-        Write-Host "[1_2] ✅ コード生成成功" -ForegroundColor Green
         return $result
 
     } catch {

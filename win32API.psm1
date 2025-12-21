@@ -906,17 +906,13 @@ function UI操作2 {
     
     # 関数の呼び出し
     $ウインドウハンドル = 文字列からウインドウハンドルを探す -検索文字列 $ウインドウ名
-    Write-Host ("ウインドウハンドル: " + $ウインドウハンドル)
     ウインドウハンドルでアクティブにする -ウインドウハンドル  $ウインドウハンドル
     # ウインドウハンドルからUIAutomationの要素を取得
     $ルート要素 = [System.Windows.Automation.AutomationElement]::FromHandle($ウインドウハンドル)
         指定秒待機 -秒数 0.1
     if ($null -eq $ルート要素) {
-        Write-Host ("ウインドウハンドルが見つかりません: " + $ウインドウハンドル)
         exit
     }
-
-
 
     # 要素数の確認とリトライ
     $試行回数 = 0
@@ -927,16 +923,11 @@ function UI操作2 {
         $全要素 = $ルート要素.FindAll([System.Windows.Automation.TreeScope]::Subtree, [System.Windows.Automation.Condition]::TrueCondition)
         指定秒待機 -秒数 0.2
         $要素数 = $全要素.Count
-        Write-Host ("試行回数: $試行回数、要素の総数: $要素数")
 
         if ($要素数 -gt $最低要素数) {
             break
         } elseif ($試行回数 -ge $最大試行回数) {
-            Write-Host ("要素の数が50以下のため、処理を終了します。")
             exit
-        } else {
-            Write-Host ("要素の数が50以下です。1秒待機して再試行します。")
-
         }
     } while ($試行回数 -lt $最大試行回数)
 
@@ -970,7 +961,6 @@ function UI操作2 {
 
         # ここを修正：TreeScope.Descendants を TreeScope.Subtree に変更
         $子要素 = $ルート要素.FindAll([System.Windows.Automation.TreeScope]::Subtree, $条件)
-        Write-Host ("検索回数: " + ($試行回数 + 1) + "、検索された要素数: " + $子要素.Count)
 
         $一致する要素リスト = $子要素 | Where-Object {
             ($名前 -eq "" -or $_.Current.Name -like "*$名前*") -and
@@ -992,56 +982,37 @@ function UI操作2 {
             ($_.Current.BoundingRectangle.Y - $要素Y) * ($_.Current.BoundingRectangle.Y - $要素Y)
         } | Select-Object -First 1
 
-        Write-Host ("一致する要素が見つかりました:")
-        Write-Host ("  名前: " + $一致する要素.Current.Name)
-        Write-Host ("  ID: " + $一致する要素.Current.AutomationId)
-        Write-Host ("  タイプ: " + $一致する要素.Current.LocalizedControlType)
-        Write-Host ("  X座標: " + $一致する要素.Current.BoundingRectangle.X)
-        Write-Host ("  Y座標: " + $一致する要素.Current.BoundingRectangle.Y)
-
         # ここでパターンに基づいた操作を実行
         if ($目的動作 -eq "クリック" -and $パターン -eq "InvokePatternIdentifiers.Pattern") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
             $取得パターン.Invoke()
-            Write-Host ("Invoke操作（クリック）を実行しました。")
         } elseif ($目的動作 -eq "クリック" -and $パターン -ne "InvokePatternIdentifiers.Pattern") {
             $バウンディングボックス = $一致する要素.Current.BoundingRectangle
             $中心X = $バウンディングボックス.X + ($バウンディングボックス.Width / 2)
             $中心Y = $バウンディングボックス.Y + ($バウンディングボックス.Height / 2)
             指定座標を左クリック -X座標 $中心X -Y座標 $中心Y
-            Write-Host ("Invoke操作（クリック）を実行しました。")
         } elseif ($目的動作 -eq "入力") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
             $取得パターン.SetValue($入力内容)
-            Write-Host ("Value操作（入力）を実行しました。入力内容: $入力内容")
         } elseif ($目的動作 -eq "切り替え") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern)
             $取得パターン.Toggle()
-            Write-Host ("Toggle操作（切り替え）を実行しました。")
         } elseif ($目的動作 -eq "展開") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
             $取得パターン.Expand()
-            Write-Host ("Expand操作（展開）を実行しました。")
         } elseif ($目的動作 -eq "選択") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern)
             $取得パターン.Select()
-            Write-Host ("SelectionItem操作（選択）を実行しました。")
         } elseif ($目的動作 -eq "範囲設定") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.RangeValuePattern]::Pattern)
             $取得パターン.SetValue($入力内容)
-            Write-Host ("RangeValue操作（範囲設定）を実行しました。値: $入力内容")
         }
     } else {
-        Write-Host "一致する要素が見つかりませんでした。"
-
         # スクリプト名部分を抽出（前回の方法を使用）
         $scriptName = ($実行行 -split "スクリプト名：")[1].Trim()
 
         # Split-Pathを使ってフォルダパスを抽出
         $folderPath = Split-Path $scriptName
-
-        # フォルダパスを表示
-        Write-Host "フォルダパス: $folderPath"
 
         # エラーログ処理を実行
         実行エラーログ処理 -scriptPath $folderPath -エラー行 $実行行 -ルート要素 $ルート要素
@@ -1071,14 +1042,12 @@ function UI操作2 {
     
     # 関数の呼び出し
     $ウインドウハンドル = 文字列からウインドウハンドルを探す -検索文字列 $ウインドウ名
-    Write-Host ("ウインドウハンドル: " + $ウインドウハンドル)
 
     # ウインドウハンドルからUIAutomationの要素を取得
-   指定秒待機 -秒数 0.5
+    指定秒待機 -秒数 0.5
     $ルート要素 = [System.Windows.Automation.AutomationElement]::FromHandle($ウインドウハンドル)
     指定秒待機 -秒数 0.5
     if ($null -eq $ルート要素) {
-        Write-Host ("ウインドウハンドルが見つかりません: " + $ウインドウハンドル)
         exit
     }
     指定秒待機 -秒数 0.1
@@ -1096,26 +1065,6 @@ function UI操作2 {
         default { [System.Windows.Automation.AndCondition]::new($条件リスト) }
     }
 
-    # 診断ログ: 検索条件を表示
-    Write-Host "=== UI操作 診断情報 ===" -ForegroundColor Cyan
-    Write-Host "  ウインドウ名: $ウインドウ名" -ForegroundColor Gray
-    Write-Host "  検索条件:" -ForegroundColor Gray
-    Write-Host "    名前: '$名前'" -ForegroundColor Gray
-    Write-Host "    ID: '$ID'" -ForegroundColor Gray
-    Write-Host "    タイプ: '$タイプ'" -ForegroundColor Gray
-    Write-Host "    クラス名前: '$クラス名前'" -ForegroundColor Gray
-
-    # ルート要素の情報を表示
-    try {
-        Write-Host "  ルート要素情報:" -ForegroundColor Gray
-        Write-Host "    Name: $($ルート要素.Current.Name)" -ForegroundColor Gray
-        Write-Host "    ClassName: $($ルート要素.Current.ClassName)" -ForegroundColor Gray
-        Write-Host "    ControlType: $($ルート要素.Current.LocalizedControlType)" -ForegroundColor Gray
-    } catch {
-        Write-Host "  ルート要素情報取得エラー: $_" -ForegroundColor Yellow
-    }
-    Write-Host "========================" -ForegroundColor Cyan
-
     指定秒待機 -秒数 0.1
     $試行回数 = 0
     $一致する要素リスト = @()
@@ -1125,16 +1074,6 @@ function UI操作2 {
         # まず条件なしで全要素数を確認
         $全子要素 = $ルート要素.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
         $子要素 = $ルート要素.FindAll([System.Windows.Automation.TreeScope]::Descendants, $条件)
-
-        Write-Host ("検索回数: " + ($試行回数 + 1) + "、全要素数: " + $全子要素.Count + "、条件一致: " + $子要素.Count) -ForegroundColor $(if ($子要素.Count -eq 0) { "Yellow" } else { "Green" })
-
-        # 条件一致が0で全要素があれば、最初の数個の要素情報を表示
-        if ($子要素.Count -eq 0 -and $全子要素.Count -gt 0 -and $試行回数 -eq 0) {
-            Write-Host "  [診断] 条件に一致しない - サンプル要素:" -ForegroundColor Yellow
-            $全子要素 | Select-Object -First 5 | ForEach-Object {
-                Write-Host "    Name='$($_.Current.Name)' ID='$($_.Current.AutomationId)' Type='$($_.Current.LocalizedControlType)' Class='$($_.Current.ClassName)'" -ForegroundColor Gray
-            }
-        }
 
         $一致する要素リスト = $子要素 | Where-Object {
             ($名前 -eq "" -or $_.Current.Name -like "*$名前*") -and
@@ -1147,15 +1086,6 @@ function UI操作2 {
             ($_).Current.BoundingRectangle.Bottom -le 1080
         }
 
-        # フィルタ後に減った場合は理由を表示
-        if ($子要素.Count -gt 0 -and $一致する要素リスト.Count -eq 0 -and $試行回数 -eq 0) {
-            Write-Host "  [診断] 座標フィルタで除外された可能性" -ForegroundColor Yellow
-            $子要素 | Select-Object -First 3 | ForEach-Object {
-                $rect = $_.Current.BoundingRectangle
-                Write-Host "    座標: X=$($rect.X) Y=$($rect.Y) Right=$($rect.Right) Bottom=$($rect.Bottom)" -ForegroundColor Gray
-            }
-        }
-
         $試行回数++
     }
 
@@ -1166,68 +1096,39 @@ function UI操作2 {
             ($_.Current.BoundingRectangle.Y - $要素Y) * ($_.Current.BoundingRectangle.Y - $要素Y)
         } | Select-Object -First 1
 
-        Write-Host ("一致する要素が見つかりました:")
-        Write-Host ("  名前: " + $一致する要素.Current.Name)
-        Write-Host ("  ID: " + $一致する要素.Current.AutomationId)
-        Write-Host ("  タイプ: " + $一致する要素.Current.LocalizedControlType)
-        Write-Host ("  X座標: " + $一致する要素.Current.BoundingRectangle.X)
-        Write-Host ("  Y座標: " + $一致する要素.Current.BoundingRectangle.Y)
-
         # ここでパターンに基づいた操作を実行
         if ($目的動作 -eq "クリック" -and $パターン -eq "InvokePatternIdentifiers.Pattern") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
             $取得パターン.Invoke()
-            Write-Host ("Invoke操作（クリック）を実行しました。")
         } elseif ($目的動作 -eq "クリック" -and $パターン -ne "InvokePatternIdentifiers.Pattern") {
             $バウンディングボックス = $一致する要素.Current.BoundingRectangle
             $中心X = $バウンディングボックス.X + ($バウンディングボックス.Width / 2)
             $中心Y = $バウンディングボックス.Y + ($バウンディングボックス.Height / 2)
             指定座標を左クリック -X座標 $中心X -Y座標 $中心Y
-            Write-Host ("Invoke操作（クリック）を実行しました。")
         } elseif ($目的動作 -eq "入力") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
             $取得パターン.SetValue($入力内容)
-            Write-Host ("Value操作（入力）を実行しました。入力内容: $入力内容")
         } elseif ($目的動作 -eq "切り替え") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern)
             $取得パターン.Toggle()
-            Write-Host ("Toggle操作（切り替え）を実行しました。")
         } elseif ($目的動作 -eq "展開") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
             $取得パターン.Expand()
-            Write-Host ("Expand操作（展開）を実行しました。")
         } elseif ($目的動作 -eq "選択") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern)
             $取得パターン.Select()
-            Write-Host ("SelectionItem操作（選択）を実行しました。")
         } elseif ($目的動作 -eq "範囲設定") {
             $取得パターン = $一致する要素.GetCurrentPattern([System.Windows.Automation.RangeValuePattern]::Pattern)
             $取得パターン.SetValue($入力内容)
-            Write-Host ("RangeValue操作（範囲設定）を実行しました。値: $入力内容")
         }
     } else {
-        Write-Host "一致する要素が見つかりませんでした。"
+        # スクリプト名部分を抽出（前回の方法を使用）
+        $scriptName = ($実行行 -split "スクリプト名：")[1].Trim()
 
+        # Split-Pathを使ってフォルダパスを抽出
+        $folderPath = Split-Path $scriptName
 
-Write-host "qq"
-
-Write-host $実行行
-
-
-
-# スクリプト名部分を抽出（前回の方法を使用）
-$scriptName = ($実行行 -split "スクリプト名：")[1].Trim()
-
-# Split-Pathを使ってフォルダパスを抽出
-$folderPath = Split-Path $scriptName
-
-# フォルダパスを表示
-Write-Host "フォルダパス: $folderPath"
-
-
-
-
-# エラーログ処理を実行
+        # エラーログ処理を実行
 実行エラーログ処理 -scriptPath $folderPath -エラー行 $実行行 -ルート要素 $ルート要素
 
         $表示 = "名前:$名前 ID:$ID タイプ:$タイプ クラス名前:$クラス名前"
@@ -1251,22 +1152,17 @@ function ウインドウ待機 {
             [winAPIUser32]::GetWindowText($hWnd, $builder, $builder.Capacity)
             $title = $builder.ToString()
             $isVisible = [winAPIUser32]::IsWindowVisible($hWnd)
-            # デバッグ出力：ウインドウのタイトルと可視状態
-            Write-Host "チェック中のウインドウ: タイトル = '$title', 可視状態 = $isVisible"
             if ($title -like "*$ウインドウ名の一部*" -and $isVisible) {
-                Write-Host "目的のウインドウが見つかりました: タイトル = '$title'"
                 $script:見つかったハンドル = "11"
-                   break  #
+                break
                 return $false  # 検索を停止（コールバックを終了）
             }
             return $true  # 検索を続行
         }
         [winAPIUser32]::EnumWindows([winAPIUser32+EnumWindowsProc]$callback, [IntPtr]::Zero) | Out-Null
         if ($見つかったハンドル -ne $null) {
-            Write-Host "関数を終了します。"
             break  # ループから抜け、関数を終了
         } else {
-            Write-Host "ウインドウが見つかりません。再試行します..."
             Start-Sleep -Seconds 1
         }
     }
@@ -1352,13 +1248,11 @@ function 要素が存在するか {
     )
     # ウインドウハンドルを取得
     $ウインドウハンドル = 文字列からウインドウハンドルを探す -検索文字列 $ウインドウ名
-    Write-Host ("ウインドウハンドル: " + $ウインドウハンドル)
     Start-Sleep -Seconds 0.1
     # ウインドウハンドルからUIAutomationの要素を取得
     $ルート要素 = [System.Windows.Automation.AutomationElement]::FromHandle($ウインドウハンドル)
-    Start-Sleep -Seconds  0.1
+    Start-Sleep -Seconds 0.1
     if ($null -eq $ルート要素) {
-        Write-Host ("ウインドウハンドルが見つかりません: " + $ウインドウハンドル)
         return 0
     }
     # 条件の作成
@@ -1387,12 +1281,10 @@ function 要素が存在するか {
     while ($一致する要素リスト.Count -eq 0 -and $試行回数 -lt 5) {
         Start-Sleep -Seconds 0.1
         $一致する要素リスト = $ルート要素.FindAll([System.Windows.Automation.TreeScope]::Descendants, $条件)
-        Write-Host ("検索回数: " + ($試行回数 + 1) + "、検索された要素数: " + $一致する要素リスト.Count)
         $試行回数++
     }
 
     if ($一致する要素リスト.Count -gt 0) {
-        Write-Host $一致する要素リスト.Count
         デバッグ表示 -表示文字 "$メッセージ が存在します。"
         return 1
     } else {
