@@ -5,28 +5,48 @@ echo UIpowershell - Pode API Server Launcher
 echo ============================================
 echo.
 
-REM Stop existing servers
-echo [1/3] Stopping existing servers...
-taskkill /F /IM pwsh.exe 2>nul
-taskkill /F /IM powershell.exe /FI "WINDOWTITLE eq api-server-v2*" 2>nul
+REM ============================================
+REM [1/4] クリーンな終了: API経由で終了リクエスト送信
+REM ============================================
+echo [1/4] Sending shutdown request to existing server...
+powershell -Command "try { Invoke-WebRequest -Uri 'http://localhost:8080/api/shutdown' -Method POST -TimeoutSec 3 -ErrorAction SilentlyContinue | Out-Null; Write-Host '    API shutdown request sent successfully' } catch { Write-Host '    No existing server found (OK)' }" 2>nul
+timeout /t 2 /nobreak > nul
+
+REM ============================================
+REM [2/4] フォールバック: ウィンドウタイトル指定で終了
+REM ============================================
+echo [2/4] Stopping remaining UIpowershell processes...
+taskkill /F /FI "WINDOWTITLE eq UIpowershell Pode API Server" 2>nul
+taskkill /F /FI "WINDOWTITLE eq UIpowershell*" 2>nul
+timeout /t 1 /nobreak > nul
+
+REM ============================================
+REM [3/4] ブラウザ終了: localhost:8080 を開いているEdgeタブを閉じる
+REM ============================================
+echo [3/4] Closing UIpowershell browser window...
+powershell -Command "Get-Process msedge -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like '*localhost:8080*' -or $_.MainWindowTitle -like '*UIpowershell*' } | ForEach-Object { $_.CloseMainWindow() | Out-Null }" 2>nul
 timeout /t 1 /nobreak > nul
 
 REM Change to script directory
 cd /d "%~dp0"
 
+REM ============================================
+REM [4/4] サーバー起動
+REM ============================================
 REM Check if PowerShell 7 (pwsh) is available
 where pwsh > nul 2>&1
 if %ERRORLEVEL% EQU 0 (
-    echo [2/3] Starting Pode API Server with PowerShell 7...
+    echo [4/4] Starting Pode API Server with PowerShell 7...
     echo.
     start "UIpowershell Pode API Server" pwsh -NoExit -ExecutionPolicy Bypass -File ".\adapter\api-server-v2-pode-complete.ps1" -AutoOpenBrowser
 ) else (
-    echo [2/3] Starting Pode API Server with Windows PowerShell 5.1...
+    echo [4/4] Starting Pode API Server with Windows PowerShell 5.1...
     echo.
     start "UIpowershell Pode API Server" powershell -NoExit -ExecutionPolicy Bypass -File ".\adapter\api-server-v2-pode-complete.ps1" -AutoOpenBrowser
 )
 
-echo [3/3] Pode API Server started!
+echo.
+echo Pode API Server started!
 echo.
 echo [OK] Browser will open in a new window
 echo [OK] Server URL: http://localhost:8080/index-legacy.html
