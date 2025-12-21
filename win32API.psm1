@@ -142,8 +142,18 @@
             // ウィンドウの表示状態を変更するメソッド
             [DllImport("user32.dll")]
             public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+            public const int SW_RESTORE = 9;
             public const int SW_MAXIMIZE = 3;
             public const int SW_MINIMIZE = 6;
+
+            // ウィンドウの移動とサイズ変更
+            [DllImport("user32.dll")]
+            public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+
+            // ウィンドウを閉じるためのメッセージ
+            [DllImport("user32.dll")]
+            public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+            public const uint WM_CLOSE = 0x0010;
 
             public static void ウィンドウを最大化(string タイトル) {
                 EnumWindows(delegate(IntPtr hWnd, IntPtr lParam) {
@@ -163,6 +173,18 @@
                     GetWindowText(hWnd, title, title.Capacity);
                     if (title.ToString().Contains(タイトル) && IsWindowVisible(hWnd)) {
                         ShowWindow(hWnd, SW_MINIMIZE);
+                        return false;  // 検索を停止
+                    }
+                    return true;  // 検索を続行
+                }, IntPtr.Zero);
+            }
+
+            public static void ウィンドウを通常化(string タイトル) {
+                EnumWindows(delegate(IntPtr hWnd, IntPtr lParam) {
+                    StringBuilder title = new StringBuilder(256);
+                    GetWindowText(hWnd, title, title.Capacity);
+                    if (title.ToString().Contains(タイトル) && IsWindowVisible(hWnd)) {
+                        ShowWindow(hWnd, SW_RESTORE);
                         return false;  // 検索を停止
                     }
                     return true;  // 検索を続行
@@ -657,7 +679,87 @@ function 文字列入力 {
         [string]$タイトル
     )
     [winAPIUser32]::ウィンドウを最小化($タイトル) | Out-Null
-}function シークレットモードでURLを開く {
+}
+
+
+function 特定タイトルウインドウを通常化する {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$タイトル
+    )
+    [winAPIUser32]::ウィンドウを通常化($タイトル) | Out-Null
+}
+
+function ウインドウを閉じる {
+    param(
+        [Parameter(Mandatory=$true)]
+        [IntPtr]$ウインドウハンドル
+    )
+    [winAPIUser32]::PostMessage($ウインドウハンドル, [winAPIUser32]::WM_CLOSE, [IntPtr]::Zero, [IntPtr]::Zero) | Out-Null
+}
+
+function ウインドウ矩形取得 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [IntPtr]$ウインドウハンドル
+    )
+    $rect = New-Object winAPIUser32+RECT
+    [winAPIUser32]::GetWindowRect($ウインドウハンドル, [ref]$rect) | Out-Null
+    return @{
+        X = $rect.Left
+        Y = $rect.Top
+        幅 = $rect.Right - $rect.Left
+        高さ = $rect.Bottom - $rect.Top
+    }
+}
+
+function ウインドウ移動 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [IntPtr]$ウインドウハンドル,
+        [Parameter(Mandatory=$true)]
+        [int]$X,
+        [Parameter(Mandatory=$true)]
+        [int]$Y
+    )
+    $rect = New-Object winAPIUser32+RECT
+    [winAPIUser32]::GetWindowRect($ウインドウハンドル, [ref]$rect) | Out-Null
+    $幅 = $rect.Right - $rect.Left
+    $高さ = $rect.Bottom - $rect.Top
+    [winAPIUser32]::MoveWindow($ウインドウハンドル, $X, $Y, $幅, $高さ, $true) | Out-Null
+}
+
+function ウインドウサイズ変更 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [IntPtr]$ウインドウハンドル,
+        [Parameter(Mandatory=$true)]
+        [int]$幅,
+        [Parameter(Mandatory=$true)]
+        [int]$高さ
+    )
+    $rect = New-Object winAPIUser32+RECT
+    [winAPIUser32]::GetWindowRect($ウインドウハンドル, [ref]$rect) | Out-Null
+    [winAPIUser32]::MoveWindow($ウインドウハンドル, $rect.Left, $rect.Top, $幅, $高さ, $true) | Out-Null
+}
+
+function ウインドウ移動サイズ変更 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [IntPtr]$ウインドウハンドル,
+        [Parameter(Mandatory=$true)]
+        [int]$X,
+        [Parameter(Mandatory=$true)]
+        [int]$Y,
+        [Parameter(Mandatory=$true)]
+        [int]$幅,
+        [Parameter(Mandatory=$true)]
+        [int]$高さ
+    )
+    [winAPIUser32]::MoveWindow($ウインドウハンドル, $X, $Y, $幅, $高さ, $true) | Out-Null
+}
+
+function シークレットモードでURLを開く {
     param(
         [Parameter(Mandatory=$true)]
         [string]$Url
