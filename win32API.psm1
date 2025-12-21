@@ -283,6 +283,146 @@ function ダブルクリック {
     指定秒待機 0.1
 }
 
+# ========== ウィンドウ相対座標操作 (Ver 1.5) ==========
+
+function Get-WindowHandleByTitle {
+    <#
+    .SYNOPSIS
+    ウィンドウタイトルからウィンドウハンドルを取得する
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ウィンドウ名
+    )
+
+    $result = $null
+    [winAPIUser32]::EnumWindows({
+        param([IntPtr]$hWnd, [IntPtr]$lParam)
+        $title = New-Object System.Text.StringBuilder 256
+        [winAPIUser32]::GetWindowText($hWnd, $title, $title.Capacity) | Out-Null
+        if ($title.ToString().Contains($ウィンドウ名) -and [winAPIUser32]::IsWindowVisible($hWnd)) {
+            $script:foundHandle = $hWnd
+            return $false  # 検索停止
+        }
+        return $true  # 検索続行
+    }, [IntPtr]::Zero) | Out-Null
+
+    return $script:foundHandle
+}
+
+function ウィンドウ相対クリック {
+    <#
+    .SYNOPSIS
+    ウィンドウの相対座標でクリックを実行する
+
+    .DESCRIPTION
+    指定されたウィンドウを見つけ、そのウィンドウの左上を基準とした相対座標でクリックを実行します。
+    ウィンドウの位置が変わっても、相対座標が同じであれば同じ位置をクリックできます。
+
+    .PARAMETER ウィンドウ名
+    対象ウィンドウのタイトル（部分一致）
+
+    .PARAMETER 相対X
+    ウィンドウ左上からのX座標オフセット
+
+    .PARAMETER 相対Y
+    ウィンドウ左上からのY座標オフセット
+
+    .PARAMETER クリック種別
+    "左", "右", "ダブル" のいずれか（デフォルト: 左）
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ウィンドウ名,
+        [Parameter(Mandatory=$true)]
+        [int]$相対X,
+        [Parameter(Mandatory=$true)]
+        [int]$相対Y,
+        [ValidateSet("左", "右", "ダブル")]
+        [string]$クリック種別 = "左"
+    )
+
+    # ウィンドウハンドルを取得
+    $hWnd = Get-WindowHandleByTitle -ウィンドウ名 $ウィンドウ名
+    if ($null -eq $hWnd -or $hWnd -eq [IntPtr]::Zero) {
+        Write-Host "エラー: ウィンドウ '$ウィンドウ名' が見つかりません" -ForegroundColor Red
+        return
+    }
+
+    # ウィンドウをフォアグラウンドに
+    [winAPIUser32]::SetForegroundWindow($hWnd) | Out-Null
+    Start-Sleep -Milliseconds 100
+
+    # ウィンドウ矩形を取得
+    $rect = New-Object winAPIUser32+RECT
+    [winAPIUser32]::GetWindowRect($hWnd, [ref]$rect) | Out-Null
+
+    # 絶対座標を計算
+    $absoluteX = $rect.Left + $相対X
+    $absoluteY = $rect.Top + $相対Y
+
+    # クリック実行
+    指定秒待機 0.1
+    switch ($クリック種別) {
+        "左" { [winAPIUser32]::PerformLeftClick($absoluteX, $absoluteY) | Out-Null }
+        "右" { [winAPIUser32]::PerformRightClick($absoluteX, $absoluteY) | Out-Null }
+        "ダブル" { [winAPIUser32]::PerformDoubleClick($absoluteX, $absoluteY) | Out-Null }
+    }
+    指定秒待機 0.1
+
+    Write-Host "ウィンドウ '$ウィンドウ名' の相対座標 ($相対X, $相対Y) → 絶対座標 ($absoluteX, $absoluteY) で${クリック種別}クリック実行" -ForegroundColor Green
+}
+
+function ウィンドウ相対移動 {
+    <#
+    .SYNOPSIS
+    ウィンドウの相対座標にマウスカーソルを移動する
+
+    .PARAMETER ウィンドウ名
+    対象ウィンドウのタイトル（部分一致）
+
+    .PARAMETER 相対X
+    ウィンドウ左上からのX座標オフセット
+
+    .PARAMETER 相対Y
+    ウィンドウ左上からのY座標オフセット
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ウィンドウ名,
+        [Parameter(Mandatory=$true)]
+        [int]$相対X,
+        [Parameter(Mandatory=$true)]
+        [int]$相対Y
+    )
+
+    # ウィンドウハンドルを取得
+    $hWnd = Get-WindowHandleByTitle -ウィンドウ名 $ウィンドウ名
+    if ($null -eq $hWnd -or $hWnd -eq [IntPtr]::Zero) {
+        Write-Host "エラー: ウィンドウ '$ウィンドウ名' が見つかりません" -ForegroundColor Red
+        return
+    }
+
+    # ウィンドウをフォアグラウンドに
+    [winAPIUser32]::SetForegroundWindow($hWnd) | Out-Null
+    Start-Sleep -Milliseconds 100
+
+    # ウィンドウ矩形を取得
+    $rect = New-Object winAPIUser32+RECT
+    [winAPIUser32]::GetWindowRect($hWnd, [ref]$rect) | Out-Null
+
+    # 絶対座標を計算
+    $absoluteX = $rect.Left + $相対X
+    $absoluteY = $rect.Top + $相対Y
+
+    # カーソル移動
+    [winAPIUser32]::SetCursorPos($absoluteX, $absoluteY) | Out-Null
+
+    Write-Host "ウィンドウ '$ウィンドウ名' の相対座標 ($相対X, $相対Y) → 絶対座標 ($absoluteX, $absoluteY) に移動" -ForegroundColor Green
+}
+
+# ========== ウィンドウ相対座標操作 ここまで ==========
+
 function クリップボードの文字列取得 {
     <#
     .SYNOPSIS
@@ -416,7 +556,57 @@ function キー操作 {
         "F12" { [System.Windows.Forms.SendKeys]::SendWait("{F12}") }
         default { Write-Host "指定されたキーコマンドはサポートされていません。" }
     }
-}function キーワード検索 {
+
+}
+
+function ウィンドウ指定キー操作 {
+    <#
+    .SYNOPSIS
+    指定したウィンドウをアクティブ化してからキー操作を実行する
+
+    .DESCRIPTION
+    ウィンドウ名で対象ウィンドウを検索し、フォアグラウンドにしてからキー操作を送信します。
+    これにより、確実に目的のウィンドウにキー入力を送信できます。
+
+    .PARAMETER ウィンドウ名
+    対象ウィンドウのタイトル（部分一致）
+
+    .PARAMETER キーコマンド
+    送信するキーコマンド
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ウィンドウ名,
+        [Parameter(Mandatory=$true)]
+        [ValidateSet(
+            "Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+X", "Ctrl+Z", "Ctrl+Y", "Ctrl+S", "Ctrl+F", "Ctrl+N", "Ctrl+O", "Ctrl+P", "Ctrl+W",
+            "Alt+F4", "Alt+Tab",
+            "Enter", "Tab", "Shift+Tab", "Esc", "Del", "Backspace", "Space",
+            "Home", "End", "PageUp", "PageDown",
+            "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+            "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"
+        )]
+        [string]$キーコマンド
+    )
+
+    # ウィンドウハンドルを取得
+    $hWnd = Get-WindowHandleByTitle -ウィンドウ名 $ウィンドウ名
+    if ($null -eq $hWnd -or $hWnd -eq [IntPtr]::Zero) {
+        Write-Host "エラー: ウィンドウ '$ウィンドウ名' が見つかりません" -ForegroundColor Red
+        return
+    }
+
+    # ウィンドウをフォアグラウンドに
+    [winAPIUser32]::SetForegroundWindow($hWnd) | Out-Null
+    Start-Sleep -Milliseconds 200
+
+    Write-Host "ウィンドウ '$ウィンドウ名' をアクティブ化して '$キーコマンド' を送信" -ForegroundColor Green
+
+    # 既存のキー操作を呼び出し
+    キー操作 -キーコマンド $キーコマンド
+}
+
+function キーワード検索 {
     param(
         [Parameter(Mandatory=$true)]
         [string]$検査文字列
@@ -1566,11 +1756,23 @@ function 単一変数を設定する {
 
 
 function 画像マッチングを検出する {
+    <#
+    .SYNOPSIS
+    テンプレート画像をスクリーン上で検索する
+
+    .DESCRIPTION
+    Ver 1.2: 検索領域パラメータを追加。指定された場合、その領域内のみを検索対象とします。
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$テンプレートパス,
         [double]$しきい値 = 0.7,
-        [int]   $画面No    = 1
+        [int]   $画面No    = 0,
+        # 検索領域パラメータ（オプション）
+        [int]$検索領域Left = -1,
+        [int]$検索領域Top = -1,
+        [int]$検索領域Width = -1,
+        [int]$検索領域Height = -1
     )
 
     # DPI 無効化
@@ -1596,8 +1798,8 @@ public static class DPIHelper {
     [Reflection.Assembly]::LoadFrom($extDll.FullName)    | Out-Null
     $env:Path += ";$($opencvDll.DirectoryName)"
 
-    # C# クラス登録（構文修正版）
-    if (-not ([type]::GetType("画像マッチングテスト_V2", $false))) {
+    # C# クラス登録（Ver 1.2: 領域指定対応版）
+    if (-not ([type]::GetType("画像マッチングテスト_V3", $false))) {
         Add-Type -TypeDefinition @"
 using System;
 using System.Drawing;
@@ -1605,14 +1807,24 @@ using System.Windows.Forms;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
-public static class 画像マッチングテスト_V2 {
+public static class 画像マッチングテスト_V3 {
+    // 画面番号指定版（既存互換）
     public static bool 画面から座標を取得する(int screenNo, string templatePath, double threshold, out int cx, out int cy) {
         cx = cy = -1;
         Screen sc = Screen.AllScreens[screenNo];
+        return 領域から座標を取得する(sc.Bounds.X, sc.Bounds.Y, sc.Bounds.Width, sc.Bounds.Height,
+                                       templatePath, threshold, out cx, out cy);
+    }
+
+    // 領域指定版（新規）
+    public static bool 領域から座標を取得する(int left, int top, int width, int height,
+                                               string templatePath, double threshold, out int cx, out int cy) {
+        cx = cy = -1;
+
         // Bitmap の生成と破棄
-        using (Bitmap bmp = new Bitmap(sc.Bounds.Width, sc.Bounds.Height)) {
+        using (Bitmap bmp = new Bitmap(width, height)) {
             using (Graphics g = Graphics.FromImage(bmp)) {
-                g.CopyFromScreen(sc.Bounds.X, sc.Bounds.Y, 0, 0, bmp.Size);
+                g.CopyFromScreen(left, top, 0, 0, bmp.Size);
             }
             // Mat に変換
             Mat src  = BitmapConverter.ToMat(bmp);
@@ -1637,8 +1849,9 @@ public static class 画像マッチングテスト_V2 {
 
             bool found = (maxVal >= threshold);
             if (found) {
-                cx = sc.Bounds.X + maxLoc.X + tw / 2;
-                cy = sc.Bounds.Y + maxLoc.Y + th / 2;
+                // 領域の左上を基準に絶対座標を計算
+                cx = left + maxLoc.X + tw / 2;
+                cy = top + maxLoc.Y + th / 2;
             }
 
             // クリーンアップ
@@ -1661,44 +1874,69 @@ public static class 画像マッチングテスト_V2 {
 
     # マッチング実行
     [int]$x = 0; [int]$y = 0
-    $found = [画像マッチングテスト_V2]::画面から座標を取得する(
-        $画面No, $テンプレートパス, $しきい値, [ref]$x, [ref]$y)
+
+    if ($検索領域Left -ge 0 -and $検索領域Top -ge 0 -and $検索領域Width -gt 0 -and $検索領域Height -gt 0) {
+        # 領域指定版
+        $found = [画像マッチングテスト_V3]::領域から座標を取得する(
+            $検索領域Left, $検索領域Top, $検索領域Width, $検索領域Height,
+            $テンプレートパス, $しきい値, [ref]$x, [ref]$y)
+    }
+    else {
+        # 画面番号指定版（既存互換）
+        $found = [画像マッチングテスト_V3]::画面から座標を取得する(
+            $画面No, $テンプレートパス, $しきい値, [ref]$x, [ref]$y)
+    }
 
     return [PSCustomObject]@{ Found = $found; X = $x; Y = $y }
 }
 
-# 画像マッチ移動 Ver1.4 - フォルダパスパラメータ追加
+# 画像マッチ移動 Ver1.5 - ウィンドウ限定検索対応
 function 画像マッチ移動 {
+    <#
+    .SYNOPSIS
+    テンプレート画像をスクリーン上で検索し、見つかった位置にカーソルを移動する
+
+    .DESCRIPTION
+    Ver 1.5: ウィンドウ名パラメータを追加。指定された場合、そのウィンドウ内のみを検索対象とします。
+
+    .PARAMETER ファイル名
+    テンプレート画像のファイル名またはパス
+
+    .PARAMETER しきい値
+    マッチングのしきい値 (0.0-1.0)。デフォルト: 0.7
+
+    .PARAMETER フォルダパス
+    screen_shot フォルダの親パス
+
+    .PARAMETER ウィンドウ名
+    検索対象を限定するウィンドウのタイトル（部分一致）。省略時は全画面検索。
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$ファイル名,     # 例: "icon.png" / "icons\icon.png" / "C:\img\icon.png" / "\\server\share\icon.png"
+        [string]$ファイル名,
         [double]$しきい値 = 0.7,
-        [string]$フォルダパス = ""  # 追加: $global:folderPath を渡すことでパス解決を確実にする
+        [string]$フォルダパス = "",
+        [string]$ウィンドウ名 = ""  # 追加: ウィンドウ限定検索用
     )
 
     # パス決定
     if ([System.IO.Path]::IsPathRooted($ファイル名)) {
-        # 絶対パス・UNC → そのまま
         $テンプレートパス = $ファイル名
     }
     elseif (-not [string]::IsNullOrEmpty($フォルダパス)) {
-        # フォルダパスが指定されている場合 → screen_shot フォルダから探す
         $screenDir = Join-Path $フォルダパス 'screen_shot'
         $テンプレートパス = Join-Path $screenDir $ファイル名
     }
     else {
-        # フォールバック: 従来のロジック（$MyInvocation.ScriptName ベース）
         $callerScriptPath = $MyInvocation.ScriptName
         $callerScriptDir  = Split-Path -Path $callerScriptPath -Parent
         $dirPart = [System.IO.Path]::GetDirectoryName($ファイル名)
 
         if ([string]::IsNullOrEmpty($dirPart)) {
-            # ファイル名のみ → 既存ロジックに完全委譲
             $テンプレートパス = 取得-最新テンプレートパス -ファイル名 $ファイル名 -呼び出し元パス $callerScriptPath
         }
         else {
-            # ディレクトリ付き相対パス → 呼び出し元ディレクトリ基準で解決
             $テンプレートパス = Join-Path $callerScriptDir $ファイル名
         }
     }
@@ -1709,7 +1947,46 @@ function 画像マッチ移動 {
         return $false
     }
 
-    # 全スクリーン走査
+    # ウィンドウ限定検索モード
+    if (-not [string]::IsNullOrEmpty($ウィンドウ名)) {
+        $hWnd = Get-WindowHandleByTitle -ウィンドウ名 $ウィンドウ名
+        if ($null -eq $hWnd -or $hWnd -eq [IntPtr]::Zero) {
+            Write-Host "⚠ ウィンドウ '$ウィンドウ名' が見つかりません。全画面検索に切り替えます。" -ForegroundColor Yellow
+        }
+        else {
+            # ウィンドウをフォアグラウンドに
+            [winAPIUser32]::SetForegroundWindow($hWnd) | Out-Null
+            Start-Sleep -Milliseconds 200
+
+            # ウィンドウ矩形を取得
+            $rect = New-Object winAPIUser32+RECT
+            [winAPIUser32]::GetWindowRect($hWnd, [ref]$rect) | Out-Null
+
+            $windowLeft = $rect.Left
+            $windowTop = $rect.Top
+            $windowWidth = $rect.Right - $rect.Left
+            $windowHeight = $rect.Bottom - $rect.Top
+
+            Write-Host "🔍 ウィンドウ '$ウィンドウ名' 内を検索中... (位置: $windowLeft,$windowTop サイズ: ${windowWidth}x${windowHeight})"
+
+            # ウィンドウ領域のみをキャプチャしてマッチング
+            $res = 画像マッチングを検出する -テンプレートパス $テンプレートパス -しきい値 $しきい値 `
+                   -検索領域Left $windowLeft -検索領域Top $windowTop `
+                   -検索領域Width $windowWidth -検索領域Height $windowHeight
+
+            if ($res.Found) {
+                Write-Host "✅ ウィンドウ内で発見！座標 = ($($res.X), $($res.Y))"
+                指定座標に移動 -X座標 $res.X -Y座標 $res.Y
+                return $true
+            }
+            else {
+                Write-Host "❌ ウィンドウ '$ウィンドウ名' 内では見つかりませんでした。"
+                return $false
+            }
+        }
+    }
+
+    # 全スクリーン走査（既存動作）
     foreach ($i in 0..([System.Windows.Forms.Screen]::AllScreens.Count - 1)) {
         $res = 画像マッチングを検出する -テンプレートパス $テンプレートパス -しきい値 $しきい値 -画面No $i
         if ($res.Found) {
