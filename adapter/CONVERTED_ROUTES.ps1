@@ -2162,8 +2162,12 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
 
                 $runspace.SessionStateProxy.SetVariable('global:folderPath', $folderPath)
                 $runspace.SessionStateProxy.SetVariable('global:jsonパス', $jsonパス)
+                # $global:JSONPath を設定（8-1等で変数管理に使用）
+                $JSONPath = Join-Path $folderPath "variables.json"
+                $runspace.SessionStateProxy.SetVariable('global:JSONPath', $JSONPath)
                 Write-Host "[ノード関数実行] 📁 フォルダパス設定: $folderPath" -ForegroundColor Gray
                 Write-Host "[ノード関数実行] 📄 コード.json パス: $jsonパス" -ForegroundColor Gray
+                Write-Host "[ノード関数実行] 📊 variables.json パス: $JSONPath" -ForegroundColor Gray
             } catch {
                 Write-Host "[ノード関数実行] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
             }
