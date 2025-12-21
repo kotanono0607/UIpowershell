@@ -181,7 +181,10 @@ function ウィンドウ選択してスクリーンショット {
 
     # 選択したウィンドウをフォアグラウンドに
     Start-Sleep -Milliseconds 200
-    [WindowHelper]::ShowWindow($selectedHandle, 9) | Out-Null  # SW_RESTORE = 9
+    # 最小化されている場合のみ復元（最大化ウィンドウのサイズを変えない）
+    if ([WindowHelper]::IsIconic($selectedHandle)) {
+        [WindowHelper]::ShowWindow($selectedHandle, 9) | Out-Null  # SW_RESTORE = 9
+    }
     [WindowHelper]::SetForegroundWindow($selectedHandle) | Out-Null
     Start-Sleep -Milliseconds 500
 
