@@ -1,9 +1,41 @@
 ﻿
+# ImportExcelモジュールを使用したExcel操作関数
+# 更新: 2025-12-21 - COMからImportExcelに移行
+
+# ImportExcelモジュールの確認とインストール
+function Ensure-ImportExcelModule {
+    if (-not (Get-Module -ListAvailable -Name ImportExcel)) {
+        Write-Host "ImportExcelモジュールをインストールしています..."
+        try {
+            Install-Module -Name ImportExcel -Force -Scope CurrentUser -AllowClobber
+            Write-Host "ImportExcelモジュールのインストールが完了しました。"
+        }
+        catch {
+            Write-Host "ImportExcelモジュールのインストールに失敗しました: $_"
+            Add-Type -AssemblyName System.Windows.Forms
+            [System.Windows.Forms.MessageBox]::Show(
+                "ImportExcelモジュールのインストールに失敗しました。`n管理者権限でPowerShellを実行し、以下のコマンドを実行してください:`n`nInstall-Module -Name ImportExcel -Force",
+                "エラー",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Error
+            )
+            return $false
+        }
+    }
+    Import-Module ImportExcel -ErrorAction SilentlyContinue
+    return $true
+}
+
 # Excelファイルとシート名を選択し、パスとシート名を返す関数
 function Excelファイルとシート名を選択 {
     param (
         [System.Windows.Forms.Form]$親フォーム = $null
     )
+
+    # ImportExcelモジュールの確認
+    if (-not (Ensure-ImportExcelModule)) {
+        return $null
+    }
 
     # 必要なアセンブリの読み込み
     Add-Type -AssemblyName System.Windows.Forms
@@ -29,20 +61,9 @@ function Excelファイルとシート名を選択 {
     Write-Host "選択されたExcelファイル: $Excelファイルパス"
 
     try {
-        # Excelアプリケーションの起動
-        $Excelアプリ = New-Object -ComObject Excel.Application
-        $Excelアプリ.Visible = $false
-        $Excelアプリ.DisplayAlerts = $false
-
-        # Excelファイルのオープン
-        $ブック = $Excelアプリ.Workbooks.Open($Excelファイルパス)
-        Write-Host "Excelファイルを開きました。"
-
-        # シート名の取得
-        $シート名一覧 = @()
-        foreach ($シート in $ブック.Sheets) {
-            $シート名一覧 += $シート.Name
-        }
+        # ImportExcelでシート名一覧を取得
+        $シート情報 = Get-ExcelSheetInfo -Path $Excelファイルパス
+        $シート名一覧 = $シート情報 | ForEach-Object { $_.Name }
         Write-Host "取得したシート一覧: $($シート名一覧 -join ', ')"
 
         # シート選択用のフォームの作成
@@ -94,10 +115,6 @@ function Excelファイルとシート名を選択 {
 
         if ($シート選択結果 -ne [System.Windows.Forms.DialogResult]::OK) {
             Write-Host "シートの選択がキャンセルされました。"
-            $ブック.Close($false)
-            $Excelアプリ.Quit()
-            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($ブック) | Out-Null
-            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excelアプリ) | Out-Null
             return $null
         }
 
@@ -116,18 +133,6 @@ function Excelファイルとシート名を選択 {
         Write-Host "エラーが発生しました: $_"
         return $null
     }
-    finally {
-        if ($ブック) {
-            $ブック.Close($false)
-            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($ブック) | Out-Null
-        }
-        if ($Excelアプリ) {
-            $Excelアプリ.Quit()
-            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excelアプリ) | Out-Null
-        }
-        [System.GC]::Collect()
-        [System.GC]::WaitForPendingFinalizers()
-    }
 }
 
 
@@ -138,108 +143,73 @@ function Excelシートデータ取得 {
         [string]$選択シート名
     )
 
+    # ImportExcelモジュールの確認
+    if (-not (Ensure-ImportExcelModule)) {
+        return $null
+    }
+
     # 入力パラメータの検証
     if (-not (Test-Path -Path $Excelファイルパス)) {
         Write-Host "指定されたファイルが存在しません: $Excelファイルパス"
         return $null
     }
 
-    # 必要なアセンブリの読み込み（メッセージボックス表示のため）
+    # 必要なアセンブリの読み込み
     Add-Type -AssemblyName System.Windows.Forms
 
-    # Excelアプリケーションの起動
     try {
-        $Excelアプリ = New-Object -ComObject Excel.Application
-        $Excelアプリ.Visible = $false
-        $Excelアプリ.DisplayAlerts = $false
+        Write-Host "Excelファイルを読み込んでいます: $Excelファイルパス"
 
-        # Excelファイルのオープン
-        $ブック = $Excelアプリ.Workbooks.Open($Excelファイルパス)
-        Write-Host "Excelファイルを開きました: $Excelファイルパス"
+        # ImportExcelでデータを取得
+        $データ = Import-Excel -Path $Excelファイルパス -WorksheetName $選択シート名
 
-        # シートの取得
-        $選択シート = $ブック.Sheets.Item($選択シート名)
-        if (-not $選択シート) {
-            Write-Host "指定されたシートが見つかりません: $選択シート名"
-            throw "シートが見つかりません"
-        }
-        Write-Host "シート '$選択シート名' を取得しました。"
-
-        # 最終行の取得
-        $最終行 = $選択シート.Cells.Find("*", [Type]::Missing, [Type]::Missing, [Type]::Missing, `
-            [Microsoft.Office.Interop.Excel.XlSearchOrder]::xlByRows, `
-            [Microsoft.Office.Interop.Excel.XlSearchDirection]::xlPrevious, `
-            $false).Row
-        Write-Host "シート '$選択シート名' の最終行は $最終行 行です。"
-
-        # シートの内容を取得して二次元配列に格納
-        $使用範囲 = $選択シート.UsedRange
-        if ($使用範囲 -eq $null) {
+        if ($null -eq $データ -or $データ.Count -eq 0) {
             Write-Host "シートにデータがありません。"
             return $null
         }
 
-        $データ配列 = $使用範囲.Value2
+        Write-Host "シート '$選択シート名' からデータを取得しました。行数: $($データ.Count)"
 
-        # デバッグ: データ配列の型とランクを確認
-        Write-Host "データ配列の型: $($データ配列.GetType())"
-        Write-Host "データ配列のランク: $($データ配列.Rank)"
+        # ヘッダー（プロパティ名）を取得
+        $ヘッダー = $データ[0].PSObject.Properties.Name
+        Write-Host "ヘッダー: $($ヘッダー -join ', ')"
 
-        # `UsedRange.Value2` は既に多次元配列（2次元配列）として返されるため、ジャグ配列に変換
-        if ($データ配列 -is [System.Array] -and $データ配列.Rank -ge 2) {
-            Write-Host "二次元配列としてデータを取得しました。"
+        # ジャグ配列に変換（ヘッダー行を含む）
+        $ジャグ配列 = @()
 
-            # 多次元配列（object[,]）をジャグ配列（object[][]）に変換
-            $行数 = $データ配列.GetLength(0)
-            $列数 = $データ配列.GetLength(1)
-            $ジャグ配列 = @()
-
-            for ($i = 1; $i -le $行数; $i++) {
-                $行 = @()
-                for ($j = 1; $j -le $列数; $j++) {
-                    $セル値 = $データ配列[$i, $j]
-                    if ($セル値 -eq $null) { $セル値 = "" }
-                    $行 += $セル値
-                }
-                $ジャグ配列 += ,$行
-            }
-
-            # デバッグ: ジャグ配列の型と要素数を確認
-            Write-Host "ジャグ配列の型: $($ジャグ配列.GetType())"  # Should be System.Object[][]
-            Write-Host "ジャグ配列の要素数: $($ジャグ配列.Count)"
-            if ($ジャグ配列.Count -gt 0) {
-                Write-Host "最初の行の型: $($ジャグ配列[0].GetType())" # Should be System.Object[]
-            }
-
-            # 最終行の表示（メッセージボックス）の出力を抑制
-            [void][System.Windows.Forms.MessageBox]::Show("シート '$選択シート名' の最終行は $最終行 行です。", `
-                "最終行の表示", `
-                [System.Windows.Forms.MessageBoxButtons]::OK, `
-                [System.Windows.Forms.MessageBoxIcon]::Information)
-
-            # ジャグ配列を返り値として返す
-            return $ジャグ配列
+        # ヘッダー行を追加
+        $ヘッダー行 = @()
+        foreach ($列名 in $ヘッダー) {
+            $ヘッダー行 += $列名
         }
-        else {
-            Write-Host "取得したデータが二次元配列ではありません。"
-            throw "二次元配列の値は二次元の配列である必要があります。"
+        $ジャグ配列 += ,$ヘッダー行
+
+        # データ行を追加
+        foreach ($行 in $データ) {
+            $行データ = @()
+            foreach ($列名 in $ヘッダー) {
+                $値 = $行.$列名
+                if ($null -eq $値) { $値 = "" }
+                $行データ += $値
+            }
+            $ジャグ配列 += ,$行データ
         }
+
+        $最終行 = $ジャグ配列.Count
+        Write-Host "ジャグ配列に変換完了。行数: $最終行"
+
+        # 最終行の表示（メッセージボックス）
+        [void][System.Windows.Forms.MessageBox]::Show(
+            "シート '$選択シート名' の最終行は $最終行 行です。",
+            "最終行の表示",
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Information
+        )
+
+        return $ジャグ配列
     }
     catch {
         Write-Host "エラーが発生しました: $_"
         return $null
     }
-    finally {
-        if ($ブック) {
-            $ブック.Close($false)
-            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($ブック) | Out-Null
-        }
-        if ($Excelアプリ) {
-            $Excelアプリ.Quit()
-            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excelアプリ) | Out-Null
-        }
-        [System.GC]::Collect()
-        [System.GC]::WaitForPendingFinalizers()
-    }
 }
-
