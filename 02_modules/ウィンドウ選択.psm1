@@ -214,7 +214,7 @@ function Show-WindowSelector {
         $pictureBox = New-Object System.Windows.Forms.PictureBox
         $pictureBox.Width = $ThumbnailWidth
         $pictureBox.Height = $ThumbnailHeight
-        $pictureBox.Location = New-Object System.Drawing.Point(10, 5)
+        $pictureBox.Location = [System.Drawing.Point]::new(10, 5)
         $pictureBox.SizeMode = "Zoom"
         $pictureBox.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
         $pictureBox.Tag = $window.Handle
@@ -234,7 +234,8 @@ function Show-WindowSelector {
         $label.Text = if ($window.Title.Length -gt 20) { $window.Title.Substring(0, 17) + "..." } else { $window.Title }
         $label.Width = $ThumbnailWidth
         $label.Height = 30
-        $label.Location = New-Object System.Drawing.Point(10, $ThumbnailHeight + 5)
+        $labelY = $ThumbnailHeight + 5
+        $label.Location = [System.Drawing.Point]::new(10, $labelY)
         $label.TextAlign = "MiddleCenter"
         $label.ForeColor = [System.Drawing.Color]::White
         $label.BackColor = [System.Drawing.Color]::Transparent
