@@ -1,4 +1,4 @@
-function 6_3 {
+﻿function 6_3 {
 
 @"
 単一変数を設定する
