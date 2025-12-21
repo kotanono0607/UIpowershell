@@ -2415,3 +2415,470 @@ function テキスト要素クリック {
     Write-Host "テキスト要素クリック完了" -ForegroundColor Green
     return $true
 }
+
+# ============================================================
+# 画像処理関連関数
+# ============================================================
+
+function 画像待機 {
+    <#
+    .SYNOPSIS
+    画像が画面上に表示されるまで待機する
+
+    .DESCRIPTION
+    指定したテンプレート画像が画面上に表示されるまで待機します。
+    タイムアウト時間を超えても見つからない場合はエラーを返します。
+
+    .PARAMETER ファイル名
+    テンプレート画像のファイル名
+
+    .PARAMETER しきい値
+    マッチングのしきい値 (0.0-1.0)。デフォルト: 0.7
+
+    .PARAMETER タイムアウト秒
+    最大待機時間（秒）。デフォルト: 30
+
+    .PARAMETER 間隔ミリ秒
+    チェック間隔（ミリ秒）。デフォルト: 500
+
+    .PARAMETER フォルダパス
+    スクリーンショットフォルダのベースパス
+
+    .PARAMETER ウィンドウ名
+    検索対象のウィンドウ名（部分一致）。省略時は全画面検索
+
+    .OUTPUTS
+    Boolean - 画像が見つかった場合はTrue、タイムアウト時はFalse
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ファイル名,
+
+        [double]$しきい値 = 0.7,
+
+        [int]$タイムアウト秒 = 30,
+
+        [int]$間隔ミリ秒 = 500,
+
+        [Parameter(Mandatory=$true)]
+        [string]$フォルダパス,
+
+        [string]$ウィンドウ名 = ""
+    )
+
+    $screenDir = Join-Path -Path $フォルダパス -ChildPath 'screen_shot'
+    $テンプレートパス = Join-Path -Path $screenDir -ChildPath $ファイル名
+
+    if (-not (Test-Path $テンプレートパス)) {
+        Write-Host "⚠ テンプレート画像が見つかりません: $テンプレートパス" -ForegroundColor Red
+        return $false
+    }
+
+    $開始時刻 = Get-Date
+    $終了時刻 = $開始時刻.AddSeconds($タイムアウト秒)
+
+    Write-Host "画像待機開始: $ファイル名 (タイムアウト: ${タイムアウト秒}秒)" -ForegroundColor Cyan
+
+    while ((Get-Date) -lt $終了時刻) {
+        $経過秒 = [math]::Round(((Get-Date) - $開始時刻).TotalSeconds, 1)
+
+        if ($ウィンドウ名 -ne "") {
+            # ウィンドウ限定検索
+            $hwnd = [Win32]::FindWindow([IntPtr]::Zero, $ウィンドウ名)
+            if ($hwnd -eq [IntPtr]::Zero) {
+                $hwnd = ウィンドウハンドルを部分一致で取得 -部分タイトル $ウィンドウ名
+            }
+            if ($hwnd -ne [IntPtr]::Zero) {
+                $rect = New-Object Win32+RECT
+                [Win32]::GetWindowRect($hwnd, [ref]$rect) | Out-Null
+                $res = 画像マッチングを検出する -テンプレートパス $テンプレートパス -しきい値 $しきい値 `
+                    -領域Left $rect.Left -領域Top $rect.Top -領域Right $rect.Right -領域Bottom $rect.Bottom
+                if ($res.Found) {
+                    Write-Host "✓ 画像を検出しました (${経過秒}秒)" -ForegroundColor Green
+                    return $true
+                }
+            }
+        } else {
+            # 全画面検索
+            $screenCount = [System.Windows.Forms.Screen]::AllScreens.Count
+            for ($i = 0; $i -lt $screenCount; $i++) {
+                $res = 画像マッチングを検出する -テンプレートパス $テンプレートパス -しきい値 $しきい値 -画面No $i
+                if ($res.Found) {
+                    Write-Host "✓ 画像を検出しました (${経過秒}秒)" -ForegroundColor Green
+                    return $true
+                }
+            }
+        }
+
+        Start-Sleep -Milliseconds $間隔ミリ秒
+    }
+
+    Write-Host "✗ タイムアウト: 画像が見つかりませんでした (${タイムアウト秒}秒)" -ForegroundColor Yellow
+    return $false
+}
+
+function 画像存在確認 {
+    <#
+    .SYNOPSIS
+    画像が画面上に存在するかを確認する
+
+    .DESCRIPTION
+    指定したテンプレート画像が現在の画面上に存在するかを確認します。
+    待機せず即座に結果を返します。
+
+    .PARAMETER ファイル名
+    テンプレート画像のファイル名
+
+    .PARAMETER しきい値
+    マッチングのしきい値 (0.0-1.0)。デフォルト: 0.7
+
+    .PARAMETER フォルダパス
+    スクリーンショットフォルダのベースパス
+
+    .PARAMETER ウィンドウ名
+    検索対象のウィンドウ名（部分一致）。省略時は全画面検索
+
+    .OUTPUTS
+    Boolean - 画像が存在する場合はTrue、存在しない場合はFalse
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ファイル名,
+
+        [double]$しきい値 = 0.7,
+
+        [Parameter(Mandatory=$true)]
+        [string]$フォルダパス,
+
+        [string]$ウィンドウ名 = ""
+    )
+
+    $screenDir = Join-Path -Path $フォルダパス -ChildPath 'screen_shot'
+    $テンプレートパス = Join-Path -Path $screenDir -ChildPath $ファイル名
+
+    if (-not (Test-Path $テンプレートパス)) {
+        Write-Host "⚠ テンプレート画像が見つかりません: $テンプレートパス" -ForegroundColor Red
+        return $false
+    }
+
+    if ($ウィンドウ名 -ne "") {
+        # ウィンドウ限定検索
+        $hwnd = [Win32]::FindWindow([IntPtr]::Zero, $ウィンドウ名)
+        if ($hwnd -eq [IntPtr]::Zero) {
+            $hwnd = ウィンドウハンドルを部分一致で取得 -部分タイトル $ウィンドウ名
+        }
+        if ($hwnd -ne [IntPtr]::Zero) {
+            $rect = New-Object Win32+RECT
+            [Win32]::GetWindowRect($hwnd, [ref]$rect) | Out-Null
+            $res = 画像マッチングを検出する -テンプレートパス $テンプレートパス -しきい値 $しきい値 `
+                -領域Left $rect.Left -領域Top $rect.Top -領域Right $rect.Right -領域Bottom $rect.Bottom
+            return $res.Found
+        }
+        return $false
+    } else {
+        # 全画面検索
+        $screenCount = [System.Windows.Forms.Screen]::AllScreens.Count
+        for ($i = 0; $i -lt $screenCount; $i++) {
+            $res = 画像マッチングを検出する -テンプレートパス $テンプレートパス -しきい値 $しきい値 -画面No $i
+            if ($res.Found) {
+                return $true
+            }
+        }
+        return $false
+    }
+}
+
+function 画像クリック {
+    <#
+    .SYNOPSIS
+    画像を検出してクリックする
+
+    .DESCRIPTION
+    指定したテンプレート画像を画面上で検索し、見つかった位置をクリックします。
+
+    .PARAMETER ファイル名
+    テンプレート画像のファイル名
+
+    .PARAMETER しきい値
+    マッチングのしきい値 (0.0-1.0)。デフォルト: 0.7
+
+    .PARAMETER フォルダパス
+    スクリーンショットフォルダのベースパス
+
+    .PARAMETER ウィンドウ名
+    検索対象のウィンドウ名（部分一致）。省略時は全画面検索
+
+    .PARAMETER ダブルクリック
+    ダブルクリックする場合はTrue
+
+    .PARAMETER 右クリック
+    右クリックする場合はTrue
+
+    .OUTPUTS
+    Boolean - クリック成功時はTrue、画像が見つからない場合はFalse
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ファイル名,
+
+        [double]$しきい値 = 0.7,
+
+        [Parameter(Mandatory=$true)]
+        [string]$フォルダパス,
+
+        [string]$ウィンドウ名 = "",
+
+        [switch]$ダブルクリック,
+
+        [switch]$右クリック
+    )
+
+    $screenDir = Join-Path -Path $フォルダパス -ChildPath 'screen_shot'
+    $テンプレートパス = Join-Path -Path $screenDir -ChildPath $ファイル名
+
+    if (-not (Test-Path $テンプレートパス)) {
+        Write-Host "⚠ テンプレート画像が見つかりません: $テンプレートパス" -ForegroundColor Red
+        return $false
+    }
+
+    $found = $false
+    $clickX = 0
+    $clickY = 0
+
+    if ($ウィンドウ名 -ne "") {
+        # ウィンドウ限定検索
+        $hwnd = [Win32]::FindWindow([IntPtr]::Zero, $ウィンドウ名)
+        if ($hwnd -eq [IntPtr]::Zero) {
+            $hwnd = ウィンドウハンドルを部分一致で取得 -部分タイトル $ウィンドウ名
+        }
+        if ($hwnd -ne [IntPtr]::Zero) {
+            $rect = New-Object Win32+RECT
+            [Win32]::GetWindowRect($hwnd, [ref]$rect) | Out-Null
+            $res = 画像マッチングを検出する -テンプレートパス $テンプレートパス -しきい値 $しきい値 `
+                -領域Left $rect.Left -領域Top $rect.Top -領域Right $rect.Right -領域Bottom $rect.Bottom
+            if ($res.Found) {
+                $found = $true
+                $clickX = $res.X
+                $clickY = $res.Y
+            }
+        }
+    } else {
+        # 全画面検索
+        $screenCount = [System.Windows.Forms.Screen]::AllScreens.Count
+        for ($i = 0; $i -lt $screenCount; $i++) {
+            $res = 画像マッチングを検出する -テンプレートパス $テンプレートパス -しきい値 $しきい値 -画面No $i
+            if ($res.Found) {
+                $found = $true
+                $clickX = $res.X
+                $clickY = $res.Y
+                break
+            }
+        }
+    }
+
+    if (-not $found) {
+        Write-Host "✗ 画像が見つかりませんでした: $ファイル名" -ForegroundColor Yellow
+        return $false
+    }
+
+    # カーソル移動
+    [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($clickX, $clickY)
+    Start-Sleep -Milliseconds 50
+
+    # クリック実行
+    if ($右クリック) {
+        指定座標を右クリック -X座標 $clickX -Y座標 $clickY
+        Write-Host "✓ 画像位置を右クリック: ($clickX, $clickY)" -ForegroundColor Green
+    } elseif ($ダブルクリック) {
+        指定座標をダブルクリック -X座標 $clickX -Y座標 $clickY
+        Write-Host "✓ 画像位置をダブルクリック: ($clickX, $clickY)" -ForegroundColor Green
+    } else {
+        指定座標を左クリック -X座標 $clickX -Y座標 $clickY
+        Write-Host "✓ 画像位置をクリック: ($clickX, $clickY)" -ForegroundColor Green
+    }
+
+    return $true
+}
+
+function スクリーンショット保存 {
+    <#
+    .SYNOPSIS
+    画面全体のスクリーンショットを保存する
+
+    .DESCRIPTION
+    指定したモニターの画面全体をスクリーンショットとして保存します。
+
+    .PARAMETER 保存パス
+    保存先のファイルパス（拡張子でフォーマット判定: .png, .jpg, .bmp）
+
+    .PARAMETER 画面番号
+    キャプチャする画面番号（0から開始）。デフォルト: 0（プライマリ）
+
+    .PARAMETER 全画面
+    すべてのモニターを1枚の画像としてキャプチャ
+
+    .OUTPUTS
+    Boolean - 保存成功時はTrue
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$保存パス,
+
+        [int]$画面番号 = 0,
+
+        [switch]$全画面
+    )
+
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+
+    try {
+        if ($全画面) {
+            # 全モニターをキャプチャ
+            $screens = [System.Windows.Forms.Screen]::AllScreens
+            $minX = ($screens | ForEach-Object { $_.Bounds.X } | Measure-Object -Minimum).Minimum
+            $minY = ($screens | ForEach-Object { $_.Bounds.Y } | Measure-Object -Minimum).Minimum
+            $maxX = ($screens | ForEach-Object { $_.Bounds.X + $_.Bounds.Width } | Measure-Object -Maximum).Maximum
+            $maxY = ($screens | ForEach-Object { $_.Bounds.Y + $_.Bounds.Height } | Measure-Object -Maximum).Maximum
+
+            $width = $maxX - $minX
+            $height = $maxY - $minY
+
+            $bitmap = New-Object System.Drawing.Bitmap($width, $height)
+            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            $graphics.CopyFromScreen($minX, $minY, 0, 0, (New-Object System.Drawing.Size($width, $height)))
+        } else {
+            # 指定画面をキャプチャ
+            $screens = [System.Windows.Forms.Screen]::AllScreens
+            if ($画面番号 -ge $screens.Count) {
+                Write-Host "⚠ 画面番号が範囲外です: $画面番号 (最大: $($screens.Count - 1))" -ForegroundColor Red
+                return $false
+            }
+            $screen = $screens[$画面番号]
+            $bounds = $screen.Bounds
+
+            $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height)
+            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            $graphics.CopyFromScreen($bounds.X, $bounds.Y, 0, 0, $bounds.Size)
+        }
+
+        # フォーマット判定
+        $ext = [System.IO.Path]::GetExtension($保存パス).ToLower()
+        $format = switch ($ext) {
+            ".jpg"  { [System.Drawing.Imaging.ImageFormat]::Jpeg }
+            ".jpeg" { [System.Drawing.Imaging.ImageFormat]::Jpeg }
+            ".bmp"  { [System.Drawing.Imaging.ImageFormat]::Bmp }
+            ".gif"  { [System.Drawing.Imaging.ImageFormat]::Gif }
+            default { [System.Drawing.Imaging.ImageFormat]::Png }
+        }
+
+        # 保存先ディレクトリ作成
+        $dir = [System.IO.Path]::GetDirectoryName($保存パス)
+        if ($dir -and -not (Test-Path $dir)) {
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        }
+
+        $bitmap.Save($保存パス, $format)
+        $graphics.Dispose()
+        $bitmap.Dispose()
+
+        Write-Host "✓ スクリーンショットを保存しました: $保存パス" -ForegroundColor Green
+        return $true
+    }
+    catch {
+        Write-Host "✗ スクリーンショット保存に失敗しました: $($_.Exception.Message)" -ForegroundColor Red
+        return $false
+    }
+}
+
+function ウィンドウスクリーンショット {
+    <#
+    .SYNOPSIS
+    指定したウィンドウのスクリーンショットを保存する
+
+    .DESCRIPTION
+    ウィンドウ名で指定したウィンドウの領域をスクリーンショットとして保存します。
+
+    .PARAMETER ウィンドウ名
+    キャプチャ対象のウィンドウ名（部分一致）
+
+    .PARAMETER 保存パス
+    保存先のファイルパス
+
+    .OUTPUTS
+    Boolean - 保存成功時はTrue
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ウィンドウ名,
+
+        [Parameter(Mandatory=$true)]
+        [string]$保存パス
+    )
+
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+
+    # ウィンドウハンドル取得
+    $hwnd = [Win32]::FindWindow([IntPtr]::Zero, $ウィンドウ名)
+    if ($hwnd -eq [IntPtr]::Zero) {
+        $hwnd = ウィンドウハンドルを部分一致で取得 -部分タイトル $ウィンドウ名
+    }
+
+    if ($hwnd -eq [IntPtr]::Zero) {
+        Write-Host "⚠ ウィンドウが見つかりません: $ウィンドウ名" -ForegroundColor Red
+        return $false
+    }
+
+    try {
+        # ウィンドウ領域取得
+        $rect = New-Object Win32+RECT
+        [Win32]::GetWindowRect($hwnd, [ref]$rect) | Out-Null
+
+        $width = $rect.Right - $rect.Left
+        $height = $rect.Bottom - $rect.Top
+
+        if ($width -le 0 -or $height -le 0) {
+            Write-Host "⚠ ウィンドウサイズが不正です" -ForegroundColor Red
+            return $false
+        }
+
+        $bitmap = New-Object System.Drawing.Bitmap($width, $height)
+        $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+        $graphics.CopyFromScreen($rect.Left, $rect.Top, 0, 0, (New-Object System.Drawing.Size($width, $height)))
+
+        # フォーマット判定
+        $ext = [System.IO.Path]::GetExtension($保存パス).ToLower()
+        $format = switch ($ext) {
+            ".jpg"  { [System.Drawing.Imaging.ImageFormat]::Jpeg }
+            ".jpeg" { [System.Drawing.Imaging.ImageFormat]::Jpeg }
+            ".bmp"  { [System.Drawing.Imaging.ImageFormat]::Bmp }
+            ".gif"  { [System.Drawing.Imaging.ImageFormat]::Gif }
+            default { [System.Drawing.Imaging.ImageFormat]::Png }
+        }
+
+        # 保存先ディレクトリ作成
+        $dir = [System.IO.Path]::GetDirectoryName($保存パス)
+        if ($dir -and -not (Test-Path $dir)) {
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        }
+
+        $bitmap.Save($保存パス, $format)
+        $graphics.Dispose()
+        $bitmap.Dispose()
+
+        Write-Host "✓ ウィンドウスクリーンショットを保存しました: $保存パス" -ForegroundColor Green
+        return $true
+    }
+    catch {
+        Write-Host "✗ スクリーンショット保存に失敗しました: $($_.Exception.Message)" -ForegroundColor Red
+        return $false
+    }
+}
+
+Export-ModuleMember -Function 画像待機, 画像存在確認, 画像クリック, スクリーンショット保存, ウィンドウスクリーンショット
