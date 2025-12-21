@@ -1,6 +1,7 @@
-﻿# ウィンドウ選択モジュール Ver 1.1
+﻿# ウィンドウ選択モジュール Ver 1.2
 # サムネイル付きのウィンドウ選択UIを提供
 # Ver 1.1: Show-WindowSelectorWithFullscreen 追加（全画面オプション付きセレクター）
+# Ver 1.2: 不要なシステムウィンドウ（Windows入力エクスペリエンス等）を除外
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -138,10 +139,26 @@ function Get-VisibleWindows {
 
         if ([WindowHelper]::IsAltTabWindow($hWnd)) {
             $title = [WindowHelper]::GetWindowTitle($hWnd)
-            $null = $script:windowList.Add(@{
-                Handle = $hWnd
-                Title = $title
-            })
+
+            # 除外するウィンドウ（システムウィンドウ等）
+            $excludePatterns = @(
+                "*Windows 入力エクスペリエンス*",
+                "*Input Experience*"
+            )
+            $exclude = $false
+            foreach ($pattern in $excludePatterns) {
+                if ($title -like $pattern) {
+                    $exclude = $true
+                    break
+                }
+            }
+
+            if (-not $exclude) {
+                $null = $script:windowList.Add(@{
+                    Handle = $hWnd
+                    Title = $title
+                })
+            }
         }
         return $true
     }
