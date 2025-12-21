@@ -76,14 +76,6 @@ function 変数を追加する {
         throw "変数名を入力してください。"
     }
 
-    # デバッグ: 受け取った値の型と内容を表示
-    Write-Host "追加する変数の名前: $名前"
-    Write-Host "追加する変数の型: $型"
-    Write-Host "追加する変数の値の型: $($値.GetType())"
-    if ($値 -is [object[]] -and $値.Count -gt 0) {
-        Write-Host "追加する変数の値[0]の型: $($値[0].GetType())"
-    }
-
     switch ($型) {
         "単一値" {
             $変数[$名前] = $値
@@ -144,4 +136,95 @@ function 二次元値を取得する {
     )
     # 行番号と列番号を指定して値を取得
     return $データ[$行番号][$列番号]
+}
+
+# 変数をDataGridViewで表示する関数（実行時用）
+function 変数をグリッド表示 {
+    param(
+        [string]$変数名,
+        $データ
+    )
+
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+
+    # データが配列でない場合はMessageBoxで表示
+    if (-not ($データ -is [System.Array])) {
+        [System.Windows.Forms.MessageBox]::Show(
+            "【変数名】$変数名`n【型】単一値`n`n【内容】`n$データ",
+            "変数の内容",
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Information
+        )
+        return
+    }
+
+    # 一次元配列の場合
+    if (-not ($データ[0] -is [System.Array])) {
+        $表示テキスト = "【変数名】$変数名`n【型】一次元配列`n【要素数】$($データ.Count)`n`n【内容】`n"
+        for ($i = 0; $i -lt [Math]::Min($データ.Count, 50); $i++) {
+            $表示テキスト += "[$i] $($データ[$i])`n"
+        }
+        if ($データ.Count -gt 50) {
+            $表示テキスト += "... (以降省略、全$($データ.Count)件)"
+        }
+        [System.Windows.Forms.MessageBox]::Show($表示テキスト, "変数の内容", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        return
+    }
+
+    # 二次元配列の場合はDataGridViewで表示
+    $フォーム = New-Object System.Windows.Forms.Form
+    $フォーム.Text = "変数ビューア: $変数名"
+    $フォーム.Size = New-Object System.Drawing.Size(900, 600)
+    $フォーム.StartPosition = "CenterScreen"
+    $フォーム.Topmost = $true
+
+    # 情報ラベル
+    $情報ラベル = New-Object System.Windows.Forms.Label
+    $情報ラベル.Text = "変数名: $変数名  |  行数: $($データ.Count)  |  列数: $($データ[0].Count)"
+    $情報ラベル.Location = New-Object System.Drawing.Point(10, 10)
+    $情報ラベル.Size = New-Object System.Drawing.Size(860, 20)
+    $情報ラベル.Font = New-Object System.Drawing.Font("メイリオ", 10)
+
+    # DataGridView
+    $グリッド = New-Object System.Windows.Forms.DataGridView
+    $グリッド.Location = New-Object System.Drawing.Point(10, 40)
+    $グリッド.Size = New-Object System.Drawing.Size(860, 470)
+    $グリッド.AllowUserToAddRows = $false
+    $グリッド.AllowUserToDeleteRows = $false
+    $グリッド.ReadOnly = $true
+    $グリッド.AutoSizeColumnsMode = "AllCells"
+    $グリッド.ColumnHeadersHeightSizeMode = "AutoSize"
+    $グリッド.Anchor = [System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right
+
+    # ヘッダー行（最初の行）を列名として使用
+    $ヘッダー = $データ[0]
+    for ($col = 0; $col -lt $ヘッダー.Count; $col++) {
+        $列名 = if ($ヘッダー[$col]) { $ヘッダー[$col].ToString() } else { "列$col" }
+        $グリッド.Columns.Add("col$col", $列名) | Out-Null
+    }
+
+    # データ行を追加（2行目以降）
+    for ($row = 1; $row -lt $データ.Count; $row++) {
+        $行データ = @()
+        for ($col = 0; $col -lt $データ[$row].Count; $col++) {
+            $値 = if ($null -eq $データ[$row][$col]) { "" } else { $データ[$row][$col].ToString() }
+            $行データ += $値
+        }
+        $グリッド.Rows.Add($行データ) | Out-Null
+    }
+
+    # 閉じるボタン
+    $閉じるボタン = New-Object System.Windows.Forms.Button
+    $閉じるボタン.Text = "閉じる"
+    $閉じるボタン.Location = New-Object System.Drawing.Point(780, 520)
+    $閉じるボタン.Size = New-Object System.Drawing.Size(90, 30)
+    $閉じるボタン.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
+    $閉じるボタン.Add_Click({ $フォーム.Close() })
+
+    $フォーム.Controls.Add($情報ラベル)
+    $フォーム.Controls.Add($グリッド)
+    $フォーム.Controls.Add($閉じるボタン)
+
+    $フォーム.ShowDialog() | Out-Null
 }
