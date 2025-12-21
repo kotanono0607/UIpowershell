@@ -89,13 +89,13 @@ function 変数を追加する {
             $変数[$名前] = $値
         }
         "一次元" {
-            if (-not ($値 -is [object[]])) {
+            if (-not ($値 -is [System.Array])) {
                 throw "一次元配列の値は配列である必要があります。"
             }
             $変数[$名前] = $値
         }
         "二次元" {
-            if (-not ($値 -is [object[]] -and $値[0] -is [object[]])) {
+            if (-not ($値 -is [System.Array] -and $値.Count -gt 0 -and $値[0] -is [System.Array])) {
                 throw "二次元配列の値は二次元の配列である必要があります。"
             }
             $変数[$名前] = $値
