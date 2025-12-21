@@ -2881,4 +2881,63 @@ function ウィンドウスクリーンショット {
     }
 }
 
-Export-ModuleMember -Function 画像待機, 画像存在確認, 画像クリック, スクリーンショット保存, ウィンドウスクリーンショット
+# ============================================================================
+# 入力ダイアログ表示 - ユーザーからテキスト入力を受け付けるダイアログ
+# ============================================================================
+function 入力ダイアログ表示 {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$タイトル,
+
+        [Parameter(Mandatory=$true)]
+        [string]$プロンプト,
+
+        [string]$デフォルト値 = ""
+    )
+
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+
+    $フォーム = New-Object System.Windows.Forms.Form
+    $フォーム.Text = $タイトル
+    $フォーム.Size = New-Object System.Drawing.Size(400, 180)
+    $フォーム.StartPosition = "CenterScreen"
+    $フォーム.FormBorderStyle = "FixedDialog"
+    $フォーム.MaximizeBox = $false
+    $フォーム.Topmost = $true
+
+    $ラベル = New-Object System.Windows.Forms.Label
+    $ラベル.Text = $プロンプト
+    $ラベル.Location = New-Object System.Drawing.Point(20, 20)
+    $ラベル.AutoSize = $true
+
+    $テキストボックス = New-Object System.Windows.Forms.TextBox
+    $テキストボックス.Location = New-Object System.Drawing.Point(20, 50)
+    $テキストボックス.Size = New-Object System.Drawing.Size(340, 25)
+    $テキストボックス.Text = $デフォルト値
+
+    $OKボタン = New-Object System.Windows.Forms.Button
+    $OKボタン.Text = "OK"
+    $OKボタン.Location = New-Object System.Drawing.Point(180, 100)
+    $OKボタン.Size = New-Object System.Drawing.Size(85, 30)
+    $OKボタン.DialogResult = [System.Windows.Forms.DialogResult]::OK
+
+    $キャンセルボタン = New-Object System.Windows.Forms.Button
+    $キャンセルボタン.Text = "キャンセル"
+    $キャンセルボタン.Location = New-Object System.Drawing.Point(275, 100)
+    $キャンセルボタン.Size = New-Object System.Drawing.Size(85, 30)
+    $キャンセルボタン.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+
+    $フォーム.Controls.AddRange(@($ラベル, $テキストボックス, $OKボタン, $キャンセルボタン))
+    $フォーム.AcceptButton = $OKボタン
+    $フォーム.CancelButton = $キャンセルボタン
+
+    $結果 = $フォーム.ShowDialog()
+
+    if ($結果 -eq [System.Windows.Forms.DialogResult]::OK) {
+        return $テキストボックス.Text
+    }
+    return $null
+}
+
+Export-ModuleMember -Function 画像待機, 画像存在確認, 画像クリック, スクリーンショット保存, ウィンドウスクリーンショット, 入力ダイアログ表示
