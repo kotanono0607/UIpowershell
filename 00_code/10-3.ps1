@@ -5,6 +5,35 @@ function 10_3 {
     $スクリプトPath = $PSScriptRoot
     $メインPath = Split-Path $スクリプトPath
 
+    # ウィンドウ選択モジュールをインポート
+    $modulePath = Join-Path -Path $メインPath -ChildPath '02_modules\ウィンドウ選択.psm1'
+    $windowTitle = ""
+    $windowMode = $false
+
+    if (Test-Path $modulePath) {
+        Import-Module $modulePath -Force
+
+        # ウィンドウ選択（全画面オプション付き）
+        $selection = Show-WindowSelectorWithFullscreen -DialogTitle "画像待機対象を選択"
+
+        if ($null -eq $selection) {
+            return "# キャンセルされました"
+        }
+
+        if ($selection.Mode -eq "Window") {
+            $windowMode = $true
+            $windowTitle = $selection.Title
+
+            # 選択したウィンドウをフォアグラウンドに
+            Start-Sleep -Milliseconds 200
+            if ([WindowHelper]::IsIconic($selection.Handle)) {
+                [WindowHelper]::ShowWindow($selection.Handle, 9) | Out-Null
+            }
+            [WindowHelper]::SetForegroundWindow($selection.Handle) | Out-Null
+            Start-Sleep -Milliseconds 500
+        }
+    }
+
     # スクリーンショットモジュールをインポート
     Import-Module "$メインPath\02_modules\20250531_screenShot.psm1" -Force
 
@@ -96,13 +125,23 @@ function 10_3 {
     $しきい値 = $しきい値テキスト.Text
     $間隔ミリ秒 = $間隔.Value
 
-    $entryString = @"
+    if ($windowMode) {
+        $entryString = @"
+# 画像待機: $スクリーンショット (タイムアウト: ${タイムアウト秒}秒, ウィンドウ: $windowTitle)
+`$画像待機結果 = 画像待機 -ファイル名 "$スクリーンショット" -しきい値 $しきい値 -タイムアウト秒 $タイムアウト秒 -間隔ミリ秒 $間隔ミリ秒 -フォルダパス "$($global:folderPath)" -ウィンドウ名 "$windowTitle"
+if (-not `$画像待機結果) {
+    Write-Host "画像が見つかりませんでした: $スクリーンショット" -ForegroundColor Yellow
+}
+"@
+    } else {
+        $entryString = @"
 # 画像待機: $スクリーンショット (タイムアウト: ${タイムアウト秒}秒)
 `$画像待機結果 = 画像待機 -ファイル名 "$スクリーンショット" -しきい値 $しきい値 -タイムアウト秒 $タイムアウト秒 -間隔ミリ秒 $間隔ミリ秒 -フォルダパス "$($global:folderPath)"
 if (-not `$画像待機結果) {
     Write-Host "画像が見つかりませんでした: $スクリーンショット" -ForegroundColor Yellow
 }
 "@
+    }
 
     return $entryString
 }
