@@ -198,6 +198,12 @@ function Excelシートデータ取得 {
         $最終行 = $ジャグ配列.Count
         Write-Host "ジャグ配列に変換完了。行数: $最終行"
 
+        # デバッグ出力：配列構造の確認
+        Write-Host "ジャグ配列の型: $($ジャグ配列.GetType().FullName)"
+        if ($ジャグ配列.Count -gt 0) {
+            Write-Host "ジャグ配列[0]の型: $($ジャグ配列[0].GetType().FullName)"
+        }
+
         # 最終行の表示（メッセージボックス）
         [void][System.Windows.Forms.MessageBox]::Show(
             "シート '$選択シート名' の最終行は $最終行 行です。",
@@ -206,7 +212,8 @@ function Excelシートデータ取得 {
             [System.Windows.Forms.MessageBoxIcon]::Information
         )
 
-        return $ジャグ配列
+        # カンマ演算子でラップしてジャグ配列のアンロールを防止
+        return ,$ジャグ配列
     }
     catch {
         Write-Host "エラーが発生しました: $_"
