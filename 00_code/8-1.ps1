@@ -29,14 +29,14 @@ $シート名 = $選択結果.シート名
 $myTwoDimArray = @(Excelシートデータ取得 -Excelファイルパス $Excelファイルパス -選択シート名 $シート名)
 
 変数を追加する -変数 $変数 -名前 "Excel2次元配列" -型 "二次元" -値 $myTwoDimArray
-変数をJSONに保存する -変数 $変数　# 変数をJSONファイルに保存
+変数をJSONに保存する -変数 $変数 | Out-Null  # 変数をJSONファイルに保存（出力を抑制）
 
 
 # 生成するコード（パスと値は直接埋め込み）
 $entryString = @"
 `$my2 = Excelシートデータ取得 -Excelファイルパス "$Excelファイルパス" -選択シート名 "$シート名"
 変数を追加する -変数 `$変数 -名前 "Excel2次元配列" -型 "二次元" -値 `$my2
-変数をJSONに保存する -変数 `$変数
+変数をJSONに保存する -変数 `$変数 | Out-Null
 "@
 
 return $entryString

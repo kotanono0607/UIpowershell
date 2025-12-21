@@ -57,7 +57,8 @@ function 変数をJSONに保存する {
 
     try {
         # JSON保存（共通関数使用 - 親ディレクトリ作成も自動）
-        Write-JsonSafe -Path $JSONファイルパス -Data $変数 -Depth 10 -CreateDirectory $true -Silent $false
+        # Write-JsonSafeはTrueを返すため、出力を抑制
+        Write-JsonSafe -Path $JSONファイルパス -Data $変数 -Depth 10 -CreateDirectory $true -Silent $false | Out-Null
     } catch {
         throw "JSONの保存に失敗しました: $_"
     }
