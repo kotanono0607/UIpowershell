@@ -1,5 +1,5 @@
 ﻿# ============================================
-# メイン関数
+# メイン関数 Ver 2.0 - ウィンドウ選択対応版
 # ============================================
 function Invoke-UIlement {
     param(
@@ -10,6 +10,14 @@ function Invoke-UIlement {
 # 必要なアセンブリをロード
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+
+# ウィンドウ選択モジュールをインポート
+$windowSelectorPath = Join-Path -Path $PSScriptRoot -ChildPath 'ウィンドウ選択.psm1'
+$useWindowSelector = $false
+if (Test-Path $windowSelectorPath) {
+    Import-Module $windowSelectorPath -Force
+    $useWindowSelector = $true
+}
 
 # 必要な型定義の準備（MouseHookとKeyboardHookを統合）
 Add-Type -ReferencedAssemblies System.Windows.Forms,System.Drawing @"
@@ -272,45 +280,76 @@ function メインメニューを復元 {
 }
 
 try {
-    # フックを設定
-    [InputHook]::SetMouseHook()
-    [InputHook]::SetKeyboardHook()
+    # ========== ウィンドウ選択 ==========
+    $handle = $null
+    $title = ""
 
-    function 出力クリックウィンドウ情報 {
-        $handle = [InputHook]::ClickedWindowHandle
-        $title = [InputHook]::ClickedWindowTitle
+    if ($useWindowSelector) {
+        # ウィンドウ選択ダイアログを使用
+        $selection = Show-WindowSelector
+
+        if ($null -eq $selection) {
+            Write-Host "ウィンドウ選択がキャンセルされました。" -ForegroundColor Yellow
+            return "# キャンセルされました"
+        }
+
+        $handle = $selection
+        $title = [WindowHelper]::GetWindowTitle($handle)
 
         # 不要な部分を削除
         $title = $title -replace ' - プロファイル.*', ''
 
-        Write-Host "ウィンドウハンドル: $handle"
-        Write-Host "ウィンドウタイトル: $title"
-        # ハンドルとタイトルを一つの文字列に結合して返す
-        return "$handle-$title"
-    }
+        Write-Host "選択されたウィンドウ: $title (ハンドル: $handle)"
 
-    # マウスクリック待機関数
-    function マウスクリック待機関数 {
-        # フックが解除されるまで待機
-        while ([InputHook]::IsMouseHooked) {
-            Start-Sleep -Milliseconds 100
+        # 選択したウィンドウをフォアグラウンドに
+        Start-Sleep -Milliseconds 200
+        if ([WindowHelper]::IsIconic($handle)) {
+            [WindowHelper]::ShowWindow($handle, 9) | Out-Null
+        }
+        [WindowHelper]::SetForegroundWindow($handle) | Out-Null
+        Start-Sleep -Milliseconds 300
+    }
+    else {
+        # 従来のマウスクリック方式
+        # フックを設定
+        [InputHook]::SetMouseHook()
+        [InputHook]::SetKeyboardHook()
+
+        function 出力クリックウィンドウ情報 {
+            $clickedHandle = [InputHook]::ClickedWindowHandle
+            $clickedTitle = [InputHook]::ClickedWindowTitle
+
+            # 不要な部分を削除
+            $clickedTitle = $clickedTitle -replace ' - プロファイル.*', ''
+
+            Write-Host "ウィンドウハンドル: $clickedHandle"
+            Write-Host "ウィンドウタイトル: $clickedTitle"
+            # ハンドルとタイトルを一つの文字列に結合して返す
+            return "$clickedHandle-$clickedTitle"
         }
 
-        # クリック後にウィンドウ情報を出力し、結合した結果を返す
-        $windowInfo = 出力クリックウィンドウ情報
-        Write-Host "ウィンドウ情報は $windowInfo"
-        return $windowInfo
+        # マウスクリック待機関数
+        function マウスクリック待機関数 {
+            # フックが解除されるまで待機
+            while ([InputHook]::IsMouseHooked) {
+                Start-Sleep -Milliseconds 100
+            }
+
+            # クリック後にウィンドウ情報を出力し、結合した結果を返す
+            $windowInfo = 出力クリックウィンドウ情報
+            Write-Host "ウィンドウ情報は $windowInfo"
+            return $windowInfo
+        }
+        デバッグ表示 -表示文字 "ウインドウをクリックしてください" -表示時間秒 2
+        # 関数を実行
+        $windowInfo = マウスクリック待機関数
+
+        # 結合されたウィンドウ情報をスプリットしてハンドルとタイトルに分割
+        $splitInfo = $windowInfo -split '-'
+        # スプリットしたウィンドウハンドルを整数に変換
+        $handle = [int]$splitInfo[0]
+        $title = $splitInfo[1]
     }
-    デバッグ表示 -表示文字 "ウインドウをクリックしてください" -表示時間秒 2
-    # 関数を実行
-    $windowInfo = マウスクリック待機関数
-
-
-    # 結合されたウィンドウ情報をスプリットしてハンドルとタイトルに分割
-    $splitInfo = $windowInfo -split '-'
-    # スプリットしたウィンドウハンドルを整数に変換
-    $handle = [int]$splitInfo[0]
-    $title = $splitInfo[1]
 
 
 
