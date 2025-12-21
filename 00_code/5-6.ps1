@@ -81,14 +81,9 @@ function 5_6 {
     $待機チェック.AutoSize = $true
     $待機チェック.Checked = $true
 
-    $管理者チェック = New-Object System.Windows.Forms.CheckBox
-    $管理者チェック.Text = "管理者として実行"
-    $管理者チェック.Location = New-Object System.Drawing.Point(180, 195)
-    $管理者チェック.AutoSize = $true
-
     $新規ウィンドウチェック = New-Object System.Windows.Forms.CheckBox
     $新規ウィンドウチェック.Text = "新しいウィンドウで実行"
-    $新規ウィンドウチェック.Location = New-Object System.Drawing.Point(320, 195)
+    $新規ウィンドウチェック.Location = New-Object System.Drawing.Point(180, 195)
     $新規ウィンドウチェック.AutoSize = $true
 
     # 結果変数
@@ -120,7 +115,7 @@ function 5_6 {
     $キャンセルボタン.Size = New-Object System.Drawing.Size(90, 30)
     $キャンセルボタン.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
 
-    $フォーム.Controls.AddRange(@($ラベル1, $タイプコンボ, $ラベル2, $コマンドテキスト, $参照ボタン, $待機チェック, $管理者チェック, $新規ウィンドウチェック, $ラベル3, $変数名テキスト, $説明ラベル, $OKボタン, $キャンセルボタン))
+    $フォーム.Controls.AddRange(@($ラベル1, $タイプコンボ, $ラベル2, $コマンドテキスト, $参照ボタン, $待機チェック, $新規ウィンドウチェック, $ラベル3, $変数名テキスト, $説明ラベル, $OKボタン, $キャンセルボタン))
     $フォーム.AcceptButton = $OKボタン
     $フォーム.CancelButton = $キャンセルボタン
 
@@ -141,11 +136,10 @@ function 5_6 {
     if ($タイプ -eq "スクリプトファイル実行") {
         # スクリプトファイル実行
         if ($新規ウィンドウチェック.Checked) {
-            $管理者引数 = if ($管理者チェック.Checked) { " -Verb RunAs" } else { "" }
             $待機引数 = if ($待機チェック.Checked) { " -Wait" } else { "" }
             $entryString = @"
 # PowerShellスクリプト実行: $コマンド
-Start-Process -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -File `"$コマンド`""$管理者引数$待機引数
+Start-Process -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -File `"$コマンド`""$待機引数
 Write-Host "PowerShellスクリプトを実行しました" -ForegroundColor Green
 "@
         } else {
@@ -168,11 +162,10 @@ Write-Host "PowerShellスクリプト実行完了" -ForegroundColor Green
         # コマンド実行
         $コマンド一行 = $コマンド -replace "`r`n", "; "
         if ($新規ウィンドウチェック.Checked) {
-            $管理者引数 = if ($管理者チェック.Checked) { " -Verb RunAs" } else { "" }
             $待機引数 = if ($待機チェック.Checked) { " -Wait" } else { "" }
             $entryString = @"
 # PowerShellコマンド実行 (新規ウィンドウ)
-Start-Process -FilePath "powershell.exe" -ArgumentList "-Command $コマンド一行"$管理者引数$待機引数
+Start-Process -FilePath "powershell.exe" -ArgumentList "-Command $コマンド一行"$待機引数
 Write-Host "PowerShellコマンドを実行しました" -ForegroundColor Green
 "@
         } else {
