@@ -1,5 +1,6 @@
-﻿# ウィンドウ選択モジュール Ver 1.0
+﻿# ウィンドウ選択モジュール Ver 1.1
 # サムネイル付きのウィンドウ選択UIを提供
+# Ver 1.1: Show-WindowSelectorWithFullscreen 追加（全画面オプション付きセレクター）
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -334,5 +335,236 @@ function Select-WindowAndCapture {
     return $true
 }
 
+function Show-WindowSelectorWithFullscreen {
+    <#
+    .SYNOPSIS
+    ウィンドウ選択ダイアログを表示する（全画面オプション付き）
+
+    .DESCRIPTION
+    サムネイル付きのウィンドウ選択UIを表示します。
+    先頭に「全画面（既存動作）」オプションが表示されます。
+
+    .OUTPUTS
+    PSCustomObject with properties:
+        Mode: "Fullscreen" or "Window"
+        Handle: ウィンドウハンドル（Windowモードの場合）
+        Title: ウィンドウタイトル（Windowモードの場合）
+        Rect: ウィンドウ矩形（Windowモードの場合）
+    キャンセル時は $null
+    #>
+    [CmdletBinding()]
+    param(
+        [int]$ThumbnailWidth = 160,
+        [int]$ThumbnailHeight = 120,
+        [int]$Columns = 4,
+        [string]$DialogTitle = "対象ウィンドウを選択"
+    )
+
+    # ウィンドウ一覧を取得
+    $windows = Get-VisibleWindows
+
+    # フォーム作成
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = $DialogTitle
+    $form.StartPosition = "CenterScreen"
+    $form.FormBorderStyle = "FixedDialog"
+    $form.MaximizeBox = $false
+    $form.MinimizeBox = $false
+    $form.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
+    $form.ForeColor = [System.Drawing.Color]::White
+    $form.KeyPreview = $true
+
+    # 選択結果を格納する変数
+    $script:selectedResult = $null
+
+    # FlowLayoutPanel（グリッド表示用）
+    $flowPanel = New-Object System.Windows.Forms.FlowLayoutPanel
+    $flowPanel.Dock = "Fill"
+    $flowPanel.AutoScroll = $true
+    $flowPanel.Padding = New-Object System.Windows.Forms.Padding(10)
+    $flowPanel.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
+
+    # ========== 全画面オプション ==========
+    $fullscreenPanel = New-Object System.Windows.Forms.Panel
+    $fullscreenPanel.Width = $ThumbnailWidth + 20
+    $fullscreenPanel.Height = $ThumbnailHeight + 40
+    $fullscreenPanel.Margin = New-Object System.Windows.Forms.Padding(5)
+    $fullscreenPanel.BackColor = [System.Drawing.Color]::FromArgb(0, 100, 0)  # 緑色で目立たせる
+    $fullscreenPanel.Cursor = [System.Windows.Forms.Cursors]::Hand
+    $fullscreenPanel.Tag = "FULLSCREEN"
+
+    # 全画面アイコン（テキストで代替）
+    $fullscreenPicture = New-Object System.Windows.Forms.Label
+    $fullscreenPicture.Width = $ThumbnailWidth
+    $fullscreenPicture.Height = $ThumbnailHeight
+    $fullscreenPicture.Location = [System.Drawing.Point]::new(10, 5)
+    $fullscreenPicture.TextAlign = "MiddleCenter"
+    $fullscreenPicture.Font = New-Object System.Drawing.Font("Segoe UI", 48, [System.Drawing.FontStyle]::Bold)
+    $fullscreenPicture.Text = [char]0x2395  # ⎕ スクリーンシンボル
+    $fullscreenPicture.ForeColor = [System.Drawing.Color]::White
+    $fullscreenPicture.BackColor = [System.Drawing.Color]::FromArgb(30, 80, 30)
+    $fullscreenPicture.Tag = "FULLSCREEN"
+
+    $fullscreenLabel = New-Object System.Windows.Forms.Label
+    $fullscreenLabel.Text = "全画面（既存動作）"
+    $fullscreenLabel.Width = $ThumbnailWidth
+    $fullscreenLabel.Height = 30
+    $fullscreenLabelY = $ThumbnailHeight + 5
+    $fullscreenLabel.Location = [System.Drawing.Point]::new(10, $fullscreenLabelY)
+    $fullscreenLabel.TextAlign = "MiddleCenter"
+    $fullscreenLabel.ForeColor = [System.Drawing.Color]::White
+    $fullscreenLabel.BackColor = [System.Drawing.Color]::Transparent
+    $fullscreenLabel.Tag = "FULLSCREEN"
+
+    # 全画面ホバー効果
+    $fullscreenHoverEnter = { $this.BackColor = [System.Drawing.Color]::FromArgb(0, 150, 0) }
+    $fullscreenHoverLeave = { $this.BackColor = [System.Drawing.Color]::FromArgb(0, 100, 0) }
+
+    $fullscreenPanel.Add_MouseEnter($fullscreenHoverEnter)
+    $fullscreenPanel.Add_MouseLeave($fullscreenHoverLeave)
+    $fullscreenPicture.Add_MouseEnter({ $this.Parent.BackColor = [System.Drawing.Color]::FromArgb(0, 150, 0) })
+    $fullscreenPicture.Add_MouseLeave({ $this.Parent.BackColor = [System.Drawing.Color]::FromArgb(0, 100, 0) })
+    $fullscreenLabel.Add_MouseEnter({ $this.Parent.BackColor = [System.Drawing.Color]::FromArgb(0, 150, 0) })
+    $fullscreenLabel.Add_MouseLeave({ $this.Parent.BackColor = [System.Drawing.Color]::FromArgb(0, 100, 0) })
+
+    # 全画面クリックイベント
+    $fullscreenClickHandler = {
+        $script:selectedResult = [PSCustomObject]@{
+            Mode = "Fullscreen"
+            Handle = $null
+            Title = ""
+            Rect = $null
+        }
+        $form.Close()
+    }
+
+    $fullscreenPanel.Add_Click($fullscreenClickHandler)
+    $fullscreenPicture.Add_Click($fullscreenClickHandler)
+    $fullscreenLabel.Add_Click($fullscreenClickHandler)
+
+    $fullscreenPanel.Controls.Add($fullscreenPicture)
+    $fullscreenPanel.Controls.Add($fullscreenLabel)
+    $flowPanel.Controls.Add($fullscreenPanel)
+
+    # ========== 各ウィンドウのパネルを作成 ==========
+    foreach ($window in $windows) {
+        $panel = New-Object System.Windows.Forms.Panel
+        $panel.Width = $ThumbnailWidth + 20
+        $panel.Height = $ThumbnailHeight + 40
+        $panel.Margin = New-Object System.Windows.Forms.Padding(5)
+        $panel.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 65)
+        $panel.Cursor = [System.Windows.Forms.Cursors]::Hand
+        $panel.Tag = $window
+
+        # サムネイル画像
+        $pictureBox = New-Object System.Windows.Forms.PictureBox
+        $pictureBox.Width = $ThumbnailWidth
+        $pictureBox.Height = $ThumbnailHeight
+        $pictureBox.Location = [System.Drawing.Point]::new(10, 5)
+        $pictureBox.SizeMode = "Zoom"
+        $pictureBox.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
+        $pictureBox.Tag = $window
+
+        # サムネイルを取得
+        try {
+            $thumbnail = [WindowHelper]::CaptureWindow($window.Handle, $ThumbnailWidth, $ThumbnailHeight)
+            if ($thumbnail) {
+                $pictureBox.Image = $thumbnail
+            }
+        } catch {
+            # サムネイル取得失敗時は空のまま
+        }
+
+        # タイトルラベル
+        $label = New-Object System.Windows.Forms.Label
+        $label.Text = if ($window.Title.Length -gt 20) { $window.Title.Substring(0, 17) + "..." } else { $window.Title }
+        $label.Width = $ThumbnailWidth
+        $label.Height = 30
+        $labelY = $ThumbnailHeight + 5
+        $label.Location = [System.Drawing.Point]::new(10, $labelY)
+        $label.TextAlign = "MiddleCenter"
+        $label.ForeColor = [System.Drawing.Color]::White
+        $label.BackColor = [System.Drawing.Color]::Transparent
+        $label.Tag = $window
+
+        # ホバー効果
+        $hoverEnter = { $this.BackColor = [System.Drawing.Color]::FromArgb(0, 122, 204) }
+        $hoverLeave = { $this.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 65) }
+
+        $panel.Add_MouseEnter($hoverEnter)
+        $panel.Add_MouseLeave($hoverLeave)
+        $pictureBox.Add_MouseEnter({ $this.Parent.BackColor = [System.Drawing.Color]::FromArgb(0, 122, 204) })
+        $pictureBox.Add_MouseLeave({ $this.Parent.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 65) })
+        $label.Add_MouseEnter({ $this.Parent.BackColor = [System.Drawing.Color]::FromArgb(0, 122, 204) })
+        $label.Add_MouseLeave({ $this.Parent.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 65) })
+
+        # クリックイベント
+        $clickHandler = {
+            param($sender, $e)
+            $win = $sender.Tag
+            # ウィンドウ矩形を取得
+            $rect = New-Object WindowHelper+RECT
+            [WindowHelper]::GetWindowRect($win.Handle, [ref]$rect) | Out-Null
+
+            $script:selectedResult = [PSCustomObject]@{
+                Mode = "Window"
+                Handle = $win.Handle
+                Title = $win.Title
+                Rect = @{
+                    Left = $rect.Left
+                    Top = $rect.Top
+                    Right = $rect.Right
+                    Bottom = $rect.Bottom
+                    Width = $rect.Right - $rect.Left
+                    Height = $rect.Bottom - $rect.Top
+                }
+            }
+            $form.Close()
+        }
+
+        $panel.Add_Click($clickHandler)
+        $pictureBox.Add_Click($clickHandler)
+        $label.Add_Click($clickHandler)
+
+        $panel.Controls.Add($pictureBox)
+        $panel.Controls.Add($label)
+        $flowPanel.Controls.Add($panel)
+    }
+
+    # ステータスバー
+    $statusLabel = New-Object System.Windows.Forms.Label
+    $statusLabel.Dock = "Bottom"
+    $statusLabel.Height = 30
+    $statusLabel.Text = "  クリックで選択 / Escでキャンセル"
+    $statusLabel.TextAlign = "MiddleLeft"
+    $statusLabel.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
+    $statusLabel.ForeColor = [System.Drawing.Color]::LightGray
+
+    # Escキーでキャンセル
+    $form.Add_KeyDown({
+        if ($_.KeyCode -eq "Escape") {
+            $script:selectedResult = $null
+            $form.Close()
+        }
+    })
+
+    # フォームサイズを計算（+1 for fullscreen option）
+    $totalItems = $windows.Count + 1
+    $cols = [Math]::Min($Columns, $totalItems)
+    $rows = [Math]::Ceiling($totalItems / $Columns)
+    $formWidth = [Math]::Min(($ThumbnailWidth + 30) * $cols + 50, 800)
+    $formHeight = [Math]::Min(($ThumbnailHeight + 50) * $rows + 80, 600)
+    $form.Width = $formWidth
+    $form.Height = $formHeight
+
+    $form.Controls.Add($flowPanel)
+    $form.Controls.Add($statusLabel)
+
+    # 表示
+    $form.ShowDialog() | Out-Null
+
+    return $script:selectedResult
+}
+
 # エクスポート
-Export-ModuleMember -Function Get-VisibleWindows, Show-WindowSelector, Select-WindowAndCapture
+Export-ModuleMember -Function Get-VisibleWindows, Show-WindowSelector, Select-WindowAndCapture, Show-WindowSelectorWithFullscreen
