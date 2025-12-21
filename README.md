@@ -245,13 +245,15 @@ UIpowershell/
 ├── README.md                             # このファイル
 ├── docs/                                 # ドキュメント
 │   └── カテゴリ・ノード追加手順.md       # 機能追加手順書
-├── 00_code/                              # 実行可能コードスニペット（31ファイル）
+├── 00_code/                              # 実行可能コードスニペット（※UTF-8 BOM必須）
 │   ├── 1-*.ps1                          # 制御構文系
 │   ├── 2-*.ps1                          # マウス操作系
 │   ├── 3-*.ps1                          # キーボード操作系
-│   ├── 6-*.ps1                          # データ処理系
+│   ├── 6-*.ps1                          # データ操作系
 │   ├── 7-*.ps1                          # スクリプト実行系
+│   ├── 8-*.ps1                          # Excel操作系
 │   ├── 9-*.ps1                          # ウインドウ操作系
+│   ├── 11-*.ps1                         # ファイル操作系
 │   └── ...                              # その他
 ├── 01_tools/                             # ツール類
 │   └── 01_JSON調整.ps1                  # JSON編集ツール
@@ -486,6 +488,9 @@ REST API（adapter/api-server-v2-pode-complete.ps1）
 ### コーディング規約
 
 - **エンコーディング**: UTF-8 BOM（PowerShell）, UTF-8（HTML/JS）
+  - **00_code/*.ps1**: 必ず **UTF-8 BOM** で保存（日本語表示に必須）
+  - JSONファイル: UTF-8 BOM
+  - HTML/JS/CSS: UTF-8（BOMなし）
 - **関数命名**: 日本語（PowerShell）, camelCase（JavaScript）
 - **インデント**: 4スペース（PowerShell）, 2スペース（JS）
 

@@ -1,4 +1,4 @@
-
+﻿
 function 2_5 {
 $スクリプトPath = $PSScriptRoot # 現在のスクリプトのディレクトリを変数に格納
 $メインPath = Split-Path $スクリプトPath # ひとつ上の階層のパスを取得
