@@ -519,8 +519,8 @@ function キー操作 {
     param(
         [Parameter(Mandatory=$true)]
         [ValidateSet(
-            "Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+X", "Ctrl+Z", "Ctrl+Y", "Ctrl+S", "Ctrl+F", "Ctrl+N", "Ctrl+O", "Ctrl+P", "Ctrl+W",
-            "Alt+F4", "Alt+Tab",
+            "Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+X", "Ctrl+Z", "Ctrl+Y", "Ctrl+S", "Ctrl+F", "Ctrl+N", "Ctrl+O", "Ctrl+P", "Ctrl+W", "Ctrl+T",
+            "Alt+F4", "Alt+Tab", "Alt+D",
             "Enter", "Tab", "Shift+Tab", "Esc", "Del", "Backspace", "Space",
             "Home", "End", "PageUp", "PageDown",
             "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
@@ -542,9 +542,11 @@ function キー操作 {
         "Ctrl+O" { [System.Windows.Forms.SendKeys]::SendWait("^o") }
         "Ctrl+P" { [System.Windows.Forms.SendKeys]::SendWait("^p") }
         "Ctrl+W" { [System.Windows.Forms.SendKeys]::SendWait("^w") }
+        "Ctrl+T" { [System.Windows.Forms.SendKeys]::SendWait("^t") }
         # Alt系
         "Alt+F4" { [System.Windows.Forms.SendKeys]::SendWait("%{F4}") }
         "Alt+Tab" { [System.Windows.Forms.SendKeys]::SendWait("%{TAB}") }
+        "Alt+D" { [System.Windows.Forms.SendKeys]::SendWait("%d") }
         # 基本キー
         "Enter" { [System.Windows.Forms.SendKeys]::SendWait("~") }
         "Tab" { [System.Windows.Forms.SendKeys]::SendWait("{TAB}") }
@@ -601,8 +603,8 @@ function ウィンドウ指定キー操作 {
         [string]$ウィンドウ名,
         [Parameter(Mandatory=$true)]
         [ValidateSet(
-            "Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+X", "Ctrl+Z", "Ctrl+Y", "Ctrl+S", "Ctrl+F", "Ctrl+N", "Ctrl+O", "Ctrl+P", "Ctrl+W",
-            "Alt+F4", "Alt+Tab",
+            "Ctrl+A", "Ctrl+C", "Ctrl+V", "Ctrl+X", "Ctrl+Z", "Ctrl+Y", "Ctrl+S", "Ctrl+F", "Ctrl+N", "Ctrl+O", "Ctrl+P", "Ctrl+W", "Ctrl+T",
+            "Alt+F4", "Alt+Tab", "Alt+D",
             "Enter", "Tab", "Shift+Tab", "Esc", "Del", "Backspace", "Space",
             "Home", "End", "PageUp", "PageDown",
             "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
