@@ -1,4 +1,4 @@
-﻿function 1_3 {
+function 1_3 {
     # ================================================================
     # ループビルダー (PowerShell Windows Forms版)
     # ================================================================
@@ -14,26 +14,19 @@
     #   - キャンセル時は $null
     # ================================================================
 
-    Write-Host "[1_3] ========== 関数開始 ==========" -ForegroundColor Cyan
-
     # スクリプトのルートパスを取得
     # API経由での実行時は$script:RootDirを使用、直接実行時は$PSScriptRootを使用
     if ($script:RootDir) {
         $メインPath = $script:RootDir  # API経由: UIpowershell/
-        Write-Host "[1_3] パス取得: `$script:RootDir を使用 = $メインPath" -ForegroundColor Green
     } else {
         $スクリプトPath = $PSScriptRoot  # 00_code/
         $メインPath = Split-Path $スクリプトPath  # UIpowershell/
-        Write-Host "[1_3] パス取得: `$PSScriptRoot を使用 = $メインPath" -ForegroundColor Green
     }
 
     # 共通ユーティリティを読み込み（取得-JSON値、Read-JsonSafe）
     $utilityPath = Join-Path $メインPath "00_共通ユーティリティ_JSON操作.ps1"
-    Write-Host "[1_3] ユーティリティパス: $utilityPath" -ForegroundColor Gray
     if (Test-Path $utilityPath) {
-        Write-Host "[1_3] ✅ ユーティリティファイル存在確認OK" -ForegroundColor Green
         . $utilityPath
-        Write-Host "[1_3] ✅ ユーティリティ読み込み完了" -ForegroundColor Green
     } else {
         Write-Host "[ERROR] 共通ユーティリティが見つかりません: $utilityPath" -ForegroundColor Red
         return $null
@@ -41,11 +34,8 @@
 
     # ループビルダーを読み込み
     $builderPath = Join-Path $メインPath "15_コードサブ_if文条件式作成.ps1"
-    Write-Host "[1_3] ビルダーパス: $builderPath" -ForegroundColor Gray
     if (Test-Path $builderPath) {
-        Write-Host "[1_3] ✅ ビルダーファイル存在確認OK" -ForegroundColor Green
         . $builderPath
-        Write-Host "[1_3] ✅ ビルダー読み込み完了" -ForegroundColor Green
     } else {
         Write-Host "[ERROR] ループビルダーが見つかりません: $builderPath" -ForegroundColor Red
         return $null
@@ -54,30 +44,24 @@
     try {
         # ループダイアログを表示
         # JSONPathは未指定（関数内で自動取得される）
-        Write-Host "[1_3] ShowLoopBuilder を呼び出します..." -ForegroundColor Cyan
         $loopCode = ShowLoopBuilder
-        Write-Host "[1_3] ShowLoopBuilder から戻りました。戻り値の型: $($loopCode.GetType().Name)" -ForegroundColor Cyan
 
         # キャンセル時は $null が返る
         if ($null -eq $loopCode) {
-            Write-Host "[1_3] ⚠️ 戻り値が`$null です（キャンセルまたはエラー）" -ForegroundColor Yellow
             return $null
         }
 
         # 空文字列の場合はデフォルトのループコードを生成
         if ($loopCode.Trim() -eq "") {
-            Write-Host "[1_3] ⚠️ 戻り値が空文字列です。デフォルトのループを生成します" -ForegroundColor Yellow
             $loopCode = @"
 for (`$i = 1; `$i -le 1; `$i++) {
     # ループ処理をここに記述
     Write-Host "ループ実行回数: `$i"
 }
 "@
-            Write-Host "[1_3] ✅ デフォルトコードを生成しました" -ForegroundColor Green
         }
 
         # 生成されたコードを返す
-        Write-Host "[1_3] ✅ コード生成成功（長さ: $($loopCode.Length)文字）" -ForegroundColor Green
         return $loopCode
 
     } catch {
