@@ -383,3 +383,130 @@ function 列値一覧 {
 
     return $値一覧
 }
+
+# ========================================
+# 行データ取得関数
+# ========================================
+function 行データ取得 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [Parameter(Mandatory=$true)]
+        [int]$行番号
+    )
+
+    if ($行番号 -lt 0 -or $行番号 -ge $データ.Count) {
+        throw "行番号が範囲外です。(0-$($データ.Count - 1))"
+    }
+
+    return ,$データ[$行番号]
+}
+
+# ========================================
+# セル更新関数
+# ========================================
+function セル更新 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [Parameter(Mandatory=$true)]
+        [int]$行番号,
+        [Parameter(Mandatory=$true)]
+        [int]$列番号,
+        [Parameter(Mandatory=$true)]
+        $新しい値
+    )
+
+    if ($行番号 -lt 0 -or $行番号 -ge $データ.Count) {
+        throw "行番号が範囲外です。(0-$($データ.Count - 1))"
+    }
+    if ($列番号 -lt 0 -or $列番号 -ge $データ[$行番号].Count) {
+        throw "列番号が範囲外です。(0-$($データ[$行番号].Count - 1))"
+    }
+
+    $データ[$行番号][$列番号] = $新しい値
+    return ,$データ
+}
+
+# ========================================
+# 列名でセル更新関数
+# ========================================
+function 列名でセル更新 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [Parameter(Mandatory=$true)]
+        [int]$行番号,
+        [Parameter(Mandatory=$true)]
+        [string]$列名,
+        [Parameter(Mandatory=$true)]
+        $新しい値
+    )
+
+    $列番号 = 列番号取得 -データ $データ -列名 $列名
+    if ($列番号 -eq -1) {
+        throw "列 '$列名' が見つかりません。"
+    }
+
+    return セル更新 -データ $データ -行番号 $行番号 -列番号 $列番号 -新しい値 $新しい値
+}
+
+# ========================================
+# 行追加関数
+# ========================================
+function 行追加 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [Parameter(Mandatory=$false)]
+        [array]$新しい行 = $null
+    )
+
+    # 新しい行が指定されていない場合、空行を作成
+    if ($null -eq $新しい行) {
+        $列数 = $データ[0].Count
+        $新しい行 = @("") * $列数
+    }
+
+    # 配列に行を追加
+    $データ += ,$新しい行
+    return ,$データ
+}
+
+# ========================================
+# データ件数取得関数
+# ========================================
+function データ件数 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [switch]$ヘッダー除外 = $true
+    )
+
+    $件数 = $データ.Count
+    if ($ヘッダー除外) {
+        $件数 = $件数 - 1
+    }
+    return $件数
+}
+
+# ========================================
+# 列名でセル値取得関数
+# ========================================
+function 列名セル取得 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [Parameter(Mandatory=$true)]
+        [int]$行番号,
+        [Parameter(Mandatory=$true)]
+        [string]$列名
+    )
+
+    $列番号 = 列番号取得 -データ $データ -列名 $列名
+    if ($列番号 -eq -1) {
+        throw "列 '$列名' が見つかりません。"
+    }
+
+    return セル値取得 -データ $データ -行番号 $行番号 -列番号 $列番号
+}
