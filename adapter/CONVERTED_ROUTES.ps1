@@ -2220,6 +2220,25 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             Write-Host "[ノード関数実行] ✅ STA runspace にExcel関数を読み込みました" -ForegroundColor Green
         }
 
+        # JSON操作ユーティリティを読み込み（Read-JsonSafe, Write-JsonSafe等）
+        $JSON操作パス = Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1"
+        if (Test-Path $JSON操作パス) {
+            try {
+                $JSON操作Content = Get-Content -Path $JSON操作パス -Raw -Encoding UTF8
+            } catch {
+                $JSON操作Content = Get-Content -Path $JSON操作パス -Raw -Encoding Default
+            }
+            $ps.AddScript($JSON操作Content) | Out-Null
+            $result = $ps.Invoke()
+            if ($ps.HadErrors) {
+                $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
+                Write-Host "[ノード関数実行] ⚠️ JSON操作ユーティリティの読み込みでエラー: $errorMsg" -ForegroundColor Yellow
+                $ps.Streams.Error.Clear()
+            }
+            $ps.Commands.Clear()
+            Write-Host "[ノード関数実行] ✅ STA runspace にJSON操作ユーティリティを読み込みました" -ForegroundColor Green
+        }
+
         # 変数管理関数を読み込み（8-1ノード等で使用）
         $変数管理関数パス = Join-Path $RootDir "11_変数機能_変数管理を外から読み込む関数.ps1"
         if (Test-Path $変数管理関数パス) {
