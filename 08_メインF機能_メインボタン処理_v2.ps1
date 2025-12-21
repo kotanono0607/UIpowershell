@@ -166,20 +166,8 @@ function 実行イベント_v2 {
         # Y座標でソート（配列として強制）
         $buttons = @($ノード配列 | Sort-Object { $_.y })
 
-        # 出力用の文字列変数を初期化（モジュール読み込みヘッダー付き）
-        $outputHeader = @"
-# UIpowershell モジュール読み込み
-`$モジュールパス = Join-Path (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent `$PSCommandPath))) "UIpowershell.psm1"
-Import-Module `$モジュールパス -Force
-
-# 変数の初期化
-`$変数ファイルパス = Join-Path (Split-Path -Parent `$PSCommandPath) "variables.json"
-`$global:JSONPath = `$変数ファイルパス
-`$変数 = @{}
-if (Test-Path `$変数ファイルパス) { `$変数 = 変数をJSONから読み込む -JSONファイルパス `$変数ファイルパス }
-
-"@
-        $output = $outputHeader
+        # 出力用の文字列変数を初期化
+        $output = ""
 
         # ボタンの総数を取得
         $buttonCount = $buttons.Count
