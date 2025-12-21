@@ -7,7 +7,7 @@ Import-Module "$メインPath\02_modules\20250531_screenShot.psm1" -Force
 $スクリーンショット 　= 　全画面ドラッグ矩形オーバーレイ
 
 
-# 文字列連結で生成（$PSScriptRootは実行時に評価される）
-'画像マッチ移動 -ファイル名 "' + $スクリーンショット + '" -しきい値 0.7 -フォルダパス $PSScriptRoot'
+# $global:folderPathの値を生成時に埋め込む（CONVERTED_ROUTESの$PSScriptRoot置換問題を回避）
+'画像マッチ移動 -ファイル名 "' + $スクリーンショット + '" -しきい値 0.7 -フォルダパス "' + $global:folderPath + '"'
 
 }
