@@ -5,6 +5,35 @@ function 10_4 {
     $スクリプトPath = $PSScriptRoot
     $メインPath = Split-Path $スクリプトPath
 
+    # ウィンドウ選択モジュールをインポート
+    $modulePath = Join-Path -Path $メインPath -ChildPath '02_modules\ウィンドウ選択.psm1'
+    $windowTitle = ""
+    $windowMode = $false
+
+    if (Test-Path $modulePath) {
+        Import-Module $modulePath -Force
+
+        # ウィンドウ選択（全画面オプション付き）
+        $selection = Show-WindowSelectorWithFullscreen -DialogTitle "画像確認対象を選択"
+
+        if ($null -eq $selection) {
+            return "# キャンセルされました"
+        }
+
+        if ($selection.Mode -eq "Window") {
+            $windowMode = $true
+            $windowTitle = $selection.Title
+
+            # 選択したウィンドウをフォアグラウンドに
+            Start-Sleep -Milliseconds 200
+            if ([WindowHelper]::IsIconic($selection.Handle)) {
+                [WindowHelper]::ShowWindow($selection.Handle, 9) | Out-Null
+            }
+            [WindowHelper]::SetForegroundWindow($selection.Handle) | Out-Null
+            Start-Sleep -Milliseconds 500
+        }
+    }
+
     # スクリーンショットモジュールをインポート
     Import-Module "$メインPath\02_modules\20250531_screenShot.psm1" -Force
 
@@ -87,7 +116,19 @@ function 10_4 {
     $しきい値 = $しきい値テキスト.Text
     $変数名 = $変数名テキスト.Text
 
-    $entryString = @"
+    if ($windowMode) {
+        $entryString = @"
+# 画像存在確認: $スクリーンショット (ウィンドウ: $windowTitle)
+`$$変数名 = 画像存在確認 -ファイル名 "$スクリーンショット" -しきい値 $しきい値 -フォルダパス "$($global:folderPath)" -ウィンドウ名 "$windowTitle"
+変数を追加する -変数 `$変数 -名前 "$変数名" -型 "単一値" -値 `$$変数名
+if (`$$変数名) {
+    Write-Host "画像が見つかりました: $スクリーンショット" -ForegroundColor Green
+} else {
+    Write-Host "画像が見つかりませんでした: $スクリーンショット" -ForegroundColor Yellow
+}
+"@
+    } else {
+        $entryString = @"
 # 画像存在確認: $スクリーンショット
 `$$変数名 = 画像存在確認 -ファイル名 "$スクリーンショット" -しきい値 $しきい値 -フォルダパス "$($global:folderPath)"
 変数を追加する -変数 `$変数 -名前 "$変数名" -型 "単一値" -値 `$$変数名
@@ -97,6 +138,7 @@ if (`$$変数名) {
     Write-Host "画像が見つかりませんでした: $スクリーンショット" -ForegroundColor Yellow
 }
 "@
+    }
 
     return $entryString
 }
