@@ -1667,36 +1667,40 @@ public static class 画像マッチングテスト_V2 {
     return [PSCustomObject]@{ Found = $found; X = $x; Y = $y }
 }
 
-# 画像マッチ移動 Ver1.3
+# 画像マッチ移動 Ver1.4 - フォルダパスパラメータ追加
 function 画像マッチ移動 {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [string]$ファイル名,     # 例: "icon.png" / "icons\icon.png" / "C:\img\icon.png" / "\\server\share\icon.png"
-        [double]$しきい値 = 0.7
+        [double]$しきい値 = 0.7,
+        [string]$フォルダパス = ""  # 追加: $global:folderPath を渡すことでパス解決を確実にする
     )
-
-    # 呼び出し元スクリプトのフルパスとディレクトリ
-    # ※既存仕様維持のため、委譲時は「ファイルのフルパス」を渡す
-    $callerScriptPath = $MyInvocation.ScriptName
-    $callerScriptDir  = Split-Path -Path $callerScriptPath -Parent
-
-    # ディレクトリ成分を取得（null/空なら「純粋なファイル名」）
-    $dirPart = [System.IO.Path]::GetDirectoryName($ファイル名)
 
     # パス決定
     if ([System.IO.Path]::IsPathRooted($ファイル名)) {
         # 絶対パス・UNC → そのまま
         $テンプレートパス = $ファイル名
     }
-    elseif ([string]::IsNullOrEmpty($dirPart)) {
-        # ファイル名のみ → 既存ロジックに完全委譲（呼び出し元“ファイルパス”を渡す）
-        # ※半角スペースで渡すこと。全角が混ざると名前付き引数にならず事故る
-        $テンプレートパス = 取得-最新テンプレートパス -ファイル名 $ファイル名 -呼び出し元パス $callerScriptPath
+    elseif (-not [string]::IsNullOrEmpty($フォルダパス)) {
+        # フォルダパスが指定されている場合 → screen_shot フォルダから探す
+        $screenDir = Join-Path $フォルダパス 'screen_shot'
+        $テンプレートパス = Join-Path $screenDir $ファイル名
     }
     else {
-        # ディレクトリ付き相対パス → 呼び出し元ディレクトリ基準で解決
-        $テンプレートパス = Join-Path $callerScriptDir $ファイル名
+        # フォールバック: 従来のロジック（$MyInvocation.ScriptName ベース）
+        $callerScriptPath = $MyInvocation.ScriptName
+        $callerScriptDir  = Split-Path -Path $callerScriptPath -Parent
+        $dirPart = [System.IO.Path]::GetDirectoryName($ファイル名)
+
+        if ([string]::IsNullOrEmpty($dirPart)) {
+            # ファイル名のみ → 既存ロジックに完全委譲
+            $テンプレートパス = 取得-最新テンプレートパス -ファイル名 $ファイル名 -呼び出し元パス $callerScriptPath
+        }
+        else {
+            # ディレクトリ付き相対パス → 呼び出し元ディレクトリ基準で解決
+            $テンプレートパス = Join-Path $callerScriptDir $ファイル名
+        }
     }
 
     # 実在チェック
