@@ -166,41 +166,8 @@ function 実行イベント_v2 {
         # Y座標でソート（配列として強制）
         $buttons = @($ノード配列 | Sort-Object { $_.y })
 
-        # 出力用の文字列変数を初期化（ヘッダー付き）
-        # output.ps1を直接実行する際に必要な関数を読み込むヘッダーを追加
-        $outputHeader = @"
-# ========================================
-# UIpowershell 自動生成コード
-# 生成日時: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-# ========================================
-
-# スクリプトルートの設定
-`$スクリプトルート = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent `$PSCommandPath))
-
-# 必要な関数ファイルの読み込み
-`$JSON操作パス = Join-Path `$スクリプトルート "00_共通ユーティリティ_JSON操作.ps1"
-if (Test-Path `$JSON操作パス) { . `$JSON操作パス }
-
-`$変数管理パス = Join-Path `$スクリプトルート "11_変数機能_変数管理を外から読み込む関数.ps1"
-if (Test-Path `$変数管理パス) { . `$変数管理パス }
-
-`$Excel操作パス = Join-Path `$スクリプトルート "14_コードサブ_EXCEL.ps1"
-if (Test-Path `$Excel操作パス) { . `$Excel操作パス }
-
-# 変数の初期化
-`$変数ファイルパス = Join-Path (Split-Path -Parent `$PSCommandPath) "variables.json"
-`$global:JSONPath = `$変数ファイルパス
-`$変数 = @{}
-if (Test-Path `$変数ファイルパス) {
-    `$変数 = 変数をJSONから読み込む -JSONファイルパス `$変数ファイルパス
-}
-
-# ========================================
-# メイン処理
-# ========================================
-
-"@
-        $output = $outputHeader
+        # 出力用の文字列変数を初期化
+        $output = ""
 
         # ボタンの総数を取得
         $buttonCount = $buttons.Count

@@ -2439,3 +2439,6 @@ if (Test-Path $Excel操作パス) {
     . $Excel操作パス
 }
 
+# 全関数をエクスポート（dot-sourceした関数を含む）
+Export-ModuleMember -Function *
+
