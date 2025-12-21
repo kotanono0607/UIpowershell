@@ -220,3 +220,166 @@ function Excelシートデータ取得 {
         return $null
     }
 }
+
+# ========================================
+# Excel書き込み関数
+# ========================================
+function Excel書き込み {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [Parameter(Mandatory=$true)]
+        [string]$出力パス,
+        [string]$シート名 = "Sheet1"
+    )
+
+    # ImportExcelモジュールの確認
+    Ensure-ImportExcelModule
+
+    try {
+        # 既存ファイルがあれば削除
+        if (Test-Path $出力パス) {
+            Remove-Item $出力パス -Force
+        }
+
+        # データをExcelに書き込み
+        $excelPackage = $データ | ForEach-Object {
+            $row = $_
+            $obj = New-Object PSObject
+            for ($i = 0; $i -lt $row.Count; $i++) {
+                $colName = if ($i -lt $データ[0].Count) { $データ[0][$i] } else { "Col$i" }
+                $obj | Add-Member -NotePropertyName $colName -NotePropertyValue $row[$i]
+            }
+            $obj
+        } | Select-Object -Skip 1 | Export-Excel -Path $出力パス -WorksheetName $シート名 -AutoSize -PassThru
+
+        $excelPackage.Save()
+        $excelPackage.Dispose()
+
+        Write-Host "Excelファイルを書き込みました: $出力パス" -ForegroundColor Green
+        return $true
+    }
+    catch {
+        Write-Host "Excel書き込みエラー: $_" -ForegroundColor Red
+        return $false
+    }
+}
+
+# ========================================
+# セル値取得関数
+# ========================================
+function セル値取得 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [Parameter(Mandatory=$true)]
+        [int]$行番号,
+        [Parameter(Mandatory=$true)]
+        [int]$列番号
+    )
+
+    if ($行番号 -lt 0 -or $行番号 -ge $データ.Count) {
+        throw "行番号が範囲外です。(0-$($データ.Count - 1))"
+    }
+    if ($列番号 -lt 0 -or $列番号 -ge $データ[$行番号].Count) {
+        throw "列番号が範囲外です。(0-$($データ[$行番号].Count - 1))"
+    }
+
+    return $データ[$行番号][$列番号]
+}
+
+# ========================================
+# 列名から列番号を取得
+# ========================================
+function 列番号取得 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [Parameter(Mandatory=$true)]
+        [string]$列名
+    )
+
+    $ヘッダー = $データ[0]
+    for ($i = 0; $i -lt $ヘッダー.Count; $i++) {
+        if ($ヘッダー[$i] -eq $列名) {
+            return $i
+        }
+    }
+    return -1
+}
+
+# ========================================
+# 条件検索関数
+# ========================================
+function 条件検索 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [Parameter(Mandatory=$true)]
+        [string]$検索列名,
+        [Parameter(Mandatory=$true)]
+        [string]$検索値,
+        [ValidateSet("完全一致", "部分一致", "前方一致", "後方一致")]
+        [string]$一致方法 = "完全一致"
+    )
+
+    $列番号 = 列番号取得 -データ $データ -列名 $検索列名
+    if ($列番号 -eq -1) {
+        throw "列 '$検索列名' が見つかりません。"
+    }
+
+    $結果 = @()
+    for ($行 = 1; $行 -lt $データ.Count; $行++) {
+        $セル値 = $データ[$行][$列番号]
+        if ($null -eq $セル値) { $セル値 = "" }
+        $セル値 = $セル値.ToString()
+
+        $一致 = $false
+        switch ($一致方法) {
+            "完全一致" { $一致 = ($セル値 -eq $検索値) }
+            "部分一致" { $一致 = ($セル値 -like "*$検索値*") }
+            "前方一致" { $一致 = ($セル値 -like "$検索値*") }
+            "後方一致" { $一致 = ($セル値 -like "*$検索値") }
+        }
+
+        if ($一致) {
+            $結果 += $行
+        }
+    }
+
+    return $結果
+}
+
+# ========================================
+# 列値一覧取得関数
+# ========================================
+function 列値一覧 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$データ,
+        [Parameter(Mandatory=$true)]
+        [string]$列名,
+        [switch]$ヘッダー除外 = $true,
+        [switch]$重複除外 = $false
+    )
+
+    $列番号 = 列番号取得 -データ $データ -列名 $列名
+    if ($列番号 -eq -1) {
+        throw "列 '$列名' が見つかりません。"
+    }
+
+    $開始行 = if ($ヘッダー除外) { 1 } else { 0 }
+    $値一覧 = @()
+
+    for ($行 = $開始行; $行 -lt $データ.Count; $行++) {
+        $値 = $データ[$行][$列番号]
+        if ($null -eq $値) { $値 = "" }
+        $値一覧 += $値.ToString()
+    }
+
+    if ($重複除外) {
+        $値一覧 = $値一覧 | Select-Object -Unique
+    }
+
+    return $値一覧
+}
