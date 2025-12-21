@@ -1,4 +1,4 @@
-# ウィンドウ選択モジュール Ver 1.0
+﻿# ウィンドウ選択モジュール Ver 1.0
 # サムネイル付きのウィンドウ選択UIを提供
 
 Add-Type -AssemblyName System.Windows.Forms
