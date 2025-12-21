@@ -1,6 +1,7 @@
 ﻿
 function 8_2 {
-    # 変数ビューア：変数の中身を確認するためのノード
+    # 変数ビューア：実行時に変数の中身を確認するためのノード
+    # ノード追加時に変数名を選択し、実行時にその変数の中身を表示する
 
     $変数ファイルパス = $global:JSONPath
 
@@ -45,7 +46,7 @@ function 8_2 {
     $選択フォーム.Topmost = $true
 
     $ラベル = New-Object System.Windows.Forms.Label
-    $ラベル.Text = "変数を選択してください："
+    $ラベル.Text = "実行時に表示する変数を選択："
     $ラベル.Location = New-Object System.Drawing.Point(20, 15)
     $ラベル.AutoSize = $true
 
@@ -63,7 +64,7 @@ function 8_2 {
     }
 
     $OKボタン = New-Object System.Windows.Forms.Button
-    $OKボタン.Text = "表示"
+    $OKボタン.Text = "OK"
     $OKボタン.Location = New-Object System.Drawing.Point(200, 75)
     $OKボタン.Size = New-Object System.Drawing.Size(75, 28)
     $OKボタン.DialogResult = [System.Windows.Forms.DialogResult]::OK
@@ -90,42 +91,52 @@ function 8_2 {
     }
 
     $選択された変数名 = $コンボボックス.SelectedItem
-    $選択された値 = $変数[$選択された変数名]
 
-    # 値の型に応じて表示方法を変える
-    if ($選択された値 -is [System.Array] -and $選択された値.Count -gt 0 -and $選択された値[0] -is [System.Array]) {
-        # 二次元配列の場合はDataGridViewで表示
-        変数をグリッド表示 -変数名 $選択された変数名 -データ $選択された値
-    } elseif ($選択された値 -is [System.Array]) {
-        # 一次元配列の場合
-        $表示テキスト = "【変数名】$選択された変数名`n【型】一次元配列`n【要素数】$($選択された値.Count)`n`n【内容】`n"
-        for ($i = 0; $i -lt [Math]::Min($選択された値.Count, 50); $i++) {
-            $表示テキスト += "[$i] $($選択された値[$i])`n"
-        }
-        if ($選択された値.Count -gt 50) {
-            $表示テキスト += "... (以降省略、全$($選択された値.Count)件)"
-        }
-        [System.Windows.Forms.MessageBox]::Show($表示テキスト, "変数の内容", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-    } else {
-        # 単一値の場合
-        $表示テキスト = "【変数名】$選択された変数名`n【型】単一値`n`n【内容】`n$選択された値"
-        [System.Windows.Forms.MessageBox]::Show($表示テキスト, "変数の内容", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-    }
+    # 実行時に変数を表示するコードを生成
+    $entryString = @"
+# 変数ビューア: $選択された変数名
+`$表示対象 = 変数の値を取得する -変数 `$変数 -名前 "$選択された変数名"
+変数をグリッド表示 -変数名 "$選択された変数名" -データ `$表示対象
+"@
 
-    # このノードはコードを生成しない（表示のみ）
-    return ""
+    return $entryString
 }
 
-# 二次元配列をDataGridViewで表示する関数
+# 二次元配列をDataGridViewで表示する関数（実行時用）
 function 変数をグリッド表示 {
     param(
         [string]$変数名,
-        [array]$データ
+        $データ
     )
 
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
 
+    # データが配列でない場合はMessageBoxで表示
+    if (-not ($データ -is [System.Array])) {
+        [System.Windows.Forms.MessageBox]::Show(
+            "【変数名】$変数名`n【型】単一値`n`n【内容】`n$データ",
+            "変数の内容",
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Information
+        )
+        return
+    }
+
+    # 一次元配列の場合
+    if (-not ($データ[0] -is [System.Array])) {
+        $表示テキスト = "【変数名】$変数名`n【型】一次元配列`n【要素数】$($データ.Count)`n`n【内容】`n"
+        for ($i = 0; $i -lt [Math]::Min($データ.Count, 50); $i++) {
+            $表示テキスト += "[$i] $($データ[$i])`n"
+        }
+        if ($データ.Count -gt 50) {
+            $表示テキスト += "... (以降省略、全$($データ.Count)件)"
+        }
+        [System.Windows.Forms.MessageBox]::Show($表示テキスト, "変数の内容", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        return
+    }
+
+    # 二次元配列の場合はDataGridViewで表示
     $フォーム = New-Object System.Windows.Forms.Form
     $フォーム.Text = "変数ビューア: $変数名"
     $フォーム.Size = New-Object System.Drawing.Size(900, 600)
@@ -179,7 +190,5 @@ function 変数をグリッド表示 {
     $フォーム.Controls.Add($グリッド)
     $フォーム.Controls.Add($閉じるボタン)
 
-    $メインメニューハンドル = メインメニューを最小化
     $フォーム.ShowDialog() | Out-Null
-    メインメニューを復元 -ハンドル $メインメニューハンドル
 }
