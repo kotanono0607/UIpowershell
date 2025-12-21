@@ -2197,6 +2197,44 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             Write-Host "[ノード関数実行] ⚠️ 汎用関数が見つかりません: $汎用関数パス" -ForegroundColor Yellow
         }
 
+        # Excel関数を読み込み（8-1ノード等で使用）
+        $Excel関数パス = Join-Path $RootDir "14_コードサブ_EXCEL.ps1"
+        if (Test-Path $Excel関数パス) {
+            try {
+                $Excel関数Content = Get-Content -Path $Excel関数パス -Raw -Encoding UTF8
+            } catch {
+                $Excel関数Content = Get-Content -Path $Excel関数パス -Raw -Encoding Default
+            }
+            $ps.AddScript($Excel関数Content) | Out-Null
+            $result = $ps.Invoke()
+            if ($ps.HadErrors) {
+                $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
+                Write-Host "[ノード関数実行] ⚠️ Excel関数の読み込みでエラー: $errorMsg" -ForegroundColor Yellow
+                $ps.Streams.Error.Clear()
+            }
+            $ps.Commands.Clear()
+            Write-Host "[ノード関数実行] ✅ STA runspace にExcel関数を読み込みました" -ForegroundColor Green
+        }
+
+        # 変数管理関数を読み込み（8-1ノード等で使用）
+        $変数管理関数パス = Join-Path $RootDir "11_変数機能_変数管理を外から読み込む関数.ps1"
+        if (Test-Path $変数管理関数パス) {
+            try {
+                $変数管理関数Content = Get-Content -Path $変数管理関数パス -Raw -Encoding UTF8
+            } catch {
+                $変数管理関数Content = Get-Content -Path $変数管理関数パス -Raw -Encoding Default
+            }
+            $ps.AddScript($変数管理関数Content) | Out-Null
+            $result = $ps.Invoke()
+            if ($ps.HadErrors) {
+                $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
+                Write-Host "[ノード関数実行] ⚠️ 変数管理関数の読み込みでエラー: $errorMsg" -ForegroundColor Yellow
+                $ps.Streams.Error.Clear()
+            }
+            $ps.Commands.Clear()
+            Write-Host "[ノード関数実行] ✅ STA runspace に変数管理関数を読み込みました" -ForegroundColor Green
+        }
+
         # PowerShell プロファイルを読み込み（デバッグ表示、ウインドウハンドルでアクティブにする等の依存関数）
         # 環境変数から直接パスを構築（STA runspace では $PROFILE 変数が設定されていないため）
         $userProfile = [System.Environment]::GetEnvironmentVariable('USERPROFILE')
