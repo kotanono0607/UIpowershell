@@ -1,4 +1,4 @@
-﻿# 全画面ドラッグ矩形スクリーンショットオーバーレイ Ver 3.4 + JSON管理 + 戻り値追加 Ver.3
+﻿# 全画面ドラッグ矩形スクリーンショットオーバーレイ Ver 3.5 + ウィンドウ選択機能追加
 
 function フォルダ作成 {
     [CmdletBinding()]
@@ -142,4 +142,49 @@ public class ドラッグ矩形フォーム : Form {
         # 範囲指定がなかった場合は空文字を返す
         return ''
     }
+}
+
+function ウィンドウ選択してスクリーンショット {
+    <#
+    .SYNOPSIS
+    ウィンドウを選択してから矩形スクリーンショットを撮影する
+
+    .DESCRIPTION
+    1. サムネイル付きのウィンドウ選択画面を表示
+    2. 選択したウィンドウをフォアグラウンドに
+    3. ドラッグ矩形で範囲選択
+    4. スクリーンショットを保存
+
+    .OUTPUTS
+    保存したスクリーンショットのファイル名。キャンセル時は空文字。
+    #>
+    [CmdletBinding()]
+    param()
+
+    # ウィンドウ選択モジュールをインポート
+    $modulePath = Join-Path -Path $PSScriptRoot -ChildPath 'ウィンドウ選択.psm1'
+    if (-not (Test-Path $modulePath)) {
+        Write-Host "⚠ ウィンドウ選択モジュールが見つかりません: $modulePath" -ForegroundColor Yellow
+        Write-Host "従来の全画面選択モードで実行します..." -ForegroundColor Yellow
+        return 全画面ドラッグ矩形オーバーレイ
+    }
+
+    Import-Module $modulePath -Force
+
+    # ウィンドウ選択ダイアログを表示
+    $selectedHandle = Show-WindowSelector
+
+    if ($null -eq $selectedHandle) {
+        Write-Host "ウィンドウ選択がキャンセルされました。" -ForegroundColor Yellow
+        return ''
+    }
+
+    # 選択したウィンドウをフォアグラウンドに
+    Start-Sleep -Milliseconds 200
+    [WindowHelper]::ShowWindow($selectedHandle, 9) | Out-Null  # SW_RESTORE = 9
+    [WindowHelper]::SetForegroundWindow($selectedHandle) | Out-Null
+    Start-Sleep -Milliseconds 500
+
+    # ドラッグ矩形オーバーレイを起動
+    return 全画面ドラッグ矩形オーバーレイ
 }
