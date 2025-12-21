@@ -55,5 +55,3 @@ echo コピー先: %DEST%
 echo.
 echo [NOTE] 新しいPowerShellセッションで反映されます
 echo ============================================
-echo.
-pause
