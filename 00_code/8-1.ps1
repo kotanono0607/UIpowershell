@@ -37,15 +37,15 @@ $entryString = @"
 # UIpowershell モジュール読み込み（Excel/変数操作用）
 `$ModulePath = Join-Path (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent `$PSCommandPath))) "UIpowershell.psm1"
 if (-not (Get-Module -Name "UIpowershell")) { Import-Module `$ModulePath -Force }
-`$VarFilePath = Join-Path (Split-Path -Parent `$PSCommandPath) "variables.json"
-`$global:JSONPath = `$VarFilePath
+`$変数ファイルパス = Join-Path (Split-Path -Parent `$PSCommandPath) "variables.json"
+`$global:JSONPath = `$変数ファイルパス
 `$変数 = @{}
-if (Test-Path `$VarFilePath) { `$変数 = 変数をJSONから読み込む -JSONファイルパス `$VarFilePath }
+if (Test-Path `$変数ファイルパス) { `$変数 = 変数をJSONから読み込む -JSONファイルパス `$変数ファイルパス }
 
 # Excel読み込み
 `$my2 = Excelシートデータ取得 -Excelファイルパス "$Excelファイルパス" -選択シート名 "$シート名"
 変数を追加する -変数 `$変数 -名前 "Excel2次元配列" -型 "二次元" -値 `$my2
-変数をJSONに保存する -変数 `$変数 | Out-Null
+変数をJSONに保存する -変数 `$変数 -JSONファイルパス `$変数ファイルパス | Out-Null
 "@
 
 return $entryString
