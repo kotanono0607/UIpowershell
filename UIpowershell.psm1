@@ -17,10 +17,16 @@ if (Test-Path $VarMgrPath) {
     . $VarMgrPath
 }
 
-# Excel操作関数
+# Excel操作関数（データ処理）
 $ExcelPath = Join-Path $ModuleRoot "14_コードサブ_EXCEL.ps1"
 if (Test-Path $ExcelPath) {
     . $ExcelPath
+}
+
+# Excel操作関数（セル単位操作）
+$ExcelOpPath = Join-Path $ModuleRoot "15_コードサブ_EXCEL操作.ps1"
+if (Test-Path $ExcelOpPath) {
+    . $ExcelOpPath
 }
 
 # 全関数をエクスポート
