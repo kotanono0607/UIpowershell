@@ -1,6 +1,36 @@
-function 13_16 {
+﻿function 13_16 {
     # Excel(操作) - シート一覧取得
     # ブック内のシート名一覧を配列として取得
+
+    # スクリプトのルートパスを取得
+    if ($script:RootDir) {
+        $メインPath = $script:RootDir
+    } else {
+        $スクリプトPath = $PSScriptRoot
+        $メインPath = Split-Path $スクリプトPath
+    }
+
+    # 変数リスト取得用
+    $JSONPath = $null
+    try {
+        $メインJsonPath = Join-Path $メインPath "03_history\メイン.json"
+        if (Test-Path $メインJsonPath) {
+            $jsonContent = Get-Content -Path $メインJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $folderPath = $jsonContent."フォルダパス"
+            $JSONPath = Join-Path $folderPath "variables.json"
+        }
+    } catch {}
+
+    # 変数リスト取得
+    $variablesList = @()
+    if ($JSONPath -and (Test-Path $JSONPath)) {
+        try {
+            $importedVariables = Get-Content -Path $JSONPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            foreach ($key in $importedVariables.PSObject.Properties.Name) {
+                $variablesList += ('$' + $key)
+            }
+        } catch {}
+    }
 
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
@@ -8,7 +38,7 @@ function 13_16 {
     # 設定ダイアログ
     $フォーム = New-Object System.Windows.Forms.Form
     $フォーム.Text = "シート一覧取得"
-    $フォーム.Size = New-Object System.Drawing.Size(500, 220)
+    $フォーム.Size = New-Object System.Drawing.Size(520, 220)
     $フォーム.StartPosition = "CenterScreen"
     $フォーム.FormBorderStyle = "FixedDialog"
     $フォーム.MaximizeBox = $false
@@ -21,9 +51,21 @@ function 13_16 {
     $ラベル1.Location = New-Object System.Drawing.Point(20, 20)
     $ラベル1.AutoSize = $true
 
+    $chkPathVar = New-Object System.Windows.Forms.CheckBox
+    $chkPathVar.Text = "変数を使用"
+    $chkPathVar.Location = New-Object System.Drawing.Point(150, 18)
+    $chkPathVar.AutoSize = $true
+
     $パステキスト = New-Object System.Windows.Forms.TextBox
     $パステキスト.Location = New-Object System.Drawing.Point(20, 45)
     $パステキスト.Size = New-Object System.Drawing.Size(350, 25)
+
+    $cmbPathVar = New-Object System.Windows.Forms.ComboBox
+    $cmbPathVar.Location = New-Object System.Drawing.Point(20, 45)
+    $cmbPathVar.Size = New-Object System.Drawing.Size(350, 25)
+    $cmbPathVar.DropDownStyle = "DropDownList"
+    $cmbPathVar.Items.AddRange($variablesList)
+    $cmbPathVar.Visible = $false
 
     $参照ボタン = New-Object System.Windows.Forms.Button
     $参照ボタン.Text = "参照..."
@@ -35,6 +77,12 @@ function 13_16 {
         if ($openDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
             $パステキスト.Text = $openDialog.FileName
         }
+    })
+
+    $chkPathVar.Add_CheckedChanged({
+        $パステキスト.Visible = -not $chkPathVar.Checked
+        $cmbPathVar.Visible = $chkPathVar.Checked
+        $参照ボタン.Enabled = -not $chkPathVar.Checked
     })
 
     # 格納先変数名
@@ -51,17 +99,17 @@ function 13_16 {
     # ボタン
     $OKボタン = New-Object System.Windows.Forms.Button
     $OKボタン.Text = "OK"
-    $OKボタン.Location = New-Object System.Drawing.Point(290, 140)
+    $OKボタン.Location = New-Object System.Drawing.Point(300, 140)
     $OKボタン.Size = New-Object System.Drawing.Size(90, 30)
     $OKボタン.DialogResult = [System.Windows.Forms.DialogResult]::OK
 
     $キャンセルボタン = New-Object System.Windows.Forms.Button
     $キャンセルボタン.Text = "キャンセル"
-    $キャンセルボタン.Location = New-Object System.Drawing.Point(390, 140)
+    $キャンセルボタン.Location = New-Object System.Drawing.Point(400, 140)
     $キャンセルボタン.Size = New-Object System.Drawing.Size(90, 30)
     $キャンセルボタン.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
 
-    $フォーム.Controls.AddRange(@($ラベル1, $パステキスト, $参照ボタン, $ラベル2, $変数テキスト, $OKボタン, $キャンセルボタン))
+    $フォーム.Controls.AddRange(@($ラベル1, $chkPathVar, $パステキスト, $cmbPathVar, $参照ボタン, $ラベル2, $変数テキスト, $OKボタン, $キャンセルボタン))
     $フォーム.AcceptButton = $OKボタン
     $フォーム.CancelButton = $キャンセルボタン
 
@@ -73,7 +121,7 @@ function 13_16 {
         return $null
     }
 
-    $ファイルパス = $パステキスト.Text
+    $ファイルパス = if ($chkPathVar.Checked) { $cmbPathVar.SelectedItem } else { $パステキスト.Text }
     $変数名 = $変数テキスト.Text
 
     if ([string]::IsNullOrWhiteSpace($ファイルパス)) {
@@ -81,9 +129,13 @@ function 13_16 {
         return $null
     }
 
+    # パラメータ生成
+    $パスは変数 = $chkPathVar.Checked
+    $パスパラメータ = if ($パスは変数) { $ファイルパス } else { "`"$ファイルパス`"" }
+
     $entryString = @"
 # シート一覧取得
-`$取得値 = Excel操作_シート一覧取得 -ファイルパス "$ファイルパス"
+`$取得値 = Excel操作_シート一覧取得 -ファイルパス $パスパラメータ
 変数を追加する -変数 `$変数 -名前 "$変数名" -型 "配列" -値 `$取得値
 変数をJSONに保存する -変数 `$変数 -JSONファイルパス `$変数ファイルパス | Out-Null
 "@
