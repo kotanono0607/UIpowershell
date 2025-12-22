@@ -542,3 +542,271 @@ function Excel操作_範囲クリア {
         throw "範囲クリアエラー: $_"
     }
 }
+
+# ========================================
+# 最終行取得関数
+# ========================================
+function Excel操作_最終行取得 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ファイルパス,
+        [string]$シート名 = "",
+        [string]$列 = "A"
+    )
+
+    if (-not (Ensure-ImportExcelModule)) {
+        throw "ImportExcelモジュールが利用できません"
+    }
+
+    if (-not (Test-Path $ファイルパス)) {
+        throw "ファイルが存在しません: $ファイルパス"
+    }
+
+    try {
+        $excelPackage = Open-ExcelPackage -Path $ファイルパス
+
+        if ([string]::IsNullOrEmpty($シート名)) {
+            $worksheet = $excelPackage.Workbook.Worksheets[1]
+        } else {
+            $worksheet = $excelPackage.Workbook.Worksheets[$シート名]
+        }
+
+        if ($null -eq $worksheet) {
+            throw "シートが見つかりません: $シート名"
+        }
+
+        # 最終行を取得（Dimensionプロパティを使用）
+        $最終行 = 0
+        if ($null -ne $worksheet.Dimension) {
+            $最終行 = $worksheet.Dimension.End.Row
+        }
+
+        Close-ExcelPackage $excelPackage -NoSave
+
+        Write-Host "最終行: $最終行" -ForegroundColor Green
+        return $最終行
+    }
+    catch {
+        throw "最終行取得エラー: $_"
+    }
+}
+
+# ========================================
+# 最終列取得関数
+# ========================================
+function Excel操作_最終列取得 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ファイルパス,
+        [string]$シート名 = ""
+    )
+
+    if (-not (Ensure-ImportExcelModule)) {
+        throw "ImportExcelモジュールが利用できません"
+    }
+
+    if (-not (Test-Path $ファイルパス)) {
+        throw "ファイルが存在しません: $ファイルパス"
+    }
+
+    try {
+        $excelPackage = Open-ExcelPackage -Path $ファイルパス
+
+        if ([string]::IsNullOrEmpty($シート名)) {
+            $worksheet = $excelPackage.Workbook.Worksheets[1]
+        } else {
+            $worksheet = $excelPackage.Workbook.Worksheets[$シート名]
+        }
+
+        if ($null -eq $worksheet) {
+            throw "シートが見つかりません: $シート名"
+        }
+
+        # 最終列を取得
+        $最終列 = 0
+        if ($null -ne $worksheet.Dimension) {
+            $最終列 = $worksheet.Dimension.End.Column
+        }
+
+        Close-ExcelPackage $excelPackage -NoSave
+
+        Write-Host "最終列: $最終列" -ForegroundColor Green
+        return $最終列
+    }
+    catch {
+        throw "最終列取得エラー: $_"
+    }
+}
+
+# ========================================
+# 行挿入関数
+# ========================================
+function Excel操作_行挿入 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ファイルパス,
+        [Parameter(Mandatory=$true)]
+        [int]$行番号,
+        [int]$挿入行数 = 1,
+        [string]$シート名 = ""
+    )
+
+    if (-not (Ensure-ImportExcelModule)) {
+        throw "ImportExcelモジュールが利用できません"
+    }
+
+    if (-not (Test-Path $ファイルパス)) {
+        throw "ファイルが存在しません: $ファイルパス"
+    }
+
+    try {
+        $excelPackage = Open-ExcelPackage -Path $ファイルパス
+
+        if ([string]::IsNullOrEmpty($シート名)) {
+            $worksheet = $excelPackage.Workbook.Worksheets[1]
+        } else {
+            $worksheet = $excelPackage.Workbook.Worksheets[$シート名]
+        }
+
+        if ($null -eq $worksheet) {
+            throw "シートが見つかりません: $シート名"
+        }
+
+        $worksheet.InsertRow($行番号, $挿入行数)
+
+        Close-ExcelPackage $excelPackage
+
+        Write-Host "行 $行番号 に $挿入行数 行を挿入しました" -ForegroundColor Green
+        return $true
+    }
+    catch {
+        throw "行挿入エラー: $_"
+    }
+}
+
+# ========================================
+# 行削除関数
+# ========================================
+function Excel操作_行削除 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ファイルパス,
+        [Parameter(Mandatory=$true)]
+        [int]$行番号,
+        [int]$削除行数 = 1,
+        [string]$シート名 = ""
+    )
+
+    if (-not (Ensure-ImportExcelModule)) {
+        throw "ImportExcelモジュールが利用できません"
+    }
+
+    if (-not (Test-Path $ファイルパス)) {
+        throw "ファイルが存在しません: $ファイルパス"
+    }
+
+    try {
+        $excelPackage = Open-ExcelPackage -Path $ファイルパス
+
+        if ([string]::IsNullOrEmpty($シート名)) {
+            $worksheet = $excelPackage.Workbook.Worksheets[1]
+        } else {
+            $worksheet = $excelPackage.Workbook.Worksheets[$シート名]
+        }
+
+        if ($null -eq $worksheet) {
+            throw "シートが見つかりません: $シート名"
+        }
+
+        $worksheet.DeleteRow($行番号, $削除行数)
+
+        Close-ExcelPackage $excelPackage
+
+        Write-Host "行 $行番号 から $削除行数 行を削除しました" -ForegroundColor Green
+        return $true
+    }
+    catch {
+        throw "行削除エラー: $_"
+    }
+}
+
+# ========================================
+# 列幅自動調整関数
+# ========================================
+function Excel操作_列幅自動調整 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ファイルパス,
+        [string]$列範囲 = "",
+        [string]$シート名 = ""
+    )
+
+    if (-not (Ensure-ImportExcelModule)) {
+        throw "ImportExcelモジュールが利用できません"
+    }
+
+    if (-not (Test-Path $ファイルパス)) {
+        throw "ファイルが存在しません: $ファイルパス"
+    }
+
+    try {
+        $excelPackage = Open-ExcelPackage -Path $ファイルパス
+
+        if ([string]::IsNullOrEmpty($シート名)) {
+            $worksheet = $excelPackage.Workbook.Worksheets[1]
+        } else {
+            $worksheet = $excelPackage.Workbook.Worksheets[$シート名]
+        }
+
+        if ($null -eq $worksheet) {
+            throw "シートが見つかりません: $シート名"
+        }
+
+        if ([string]::IsNullOrEmpty($列範囲)) {
+            # 全列を自動調整
+            if ($null -ne $worksheet.Dimension) {
+                $worksheet.Cells[$worksheet.Dimension.Address].AutoFitColumns()
+            }
+        } else {
+            # 指定範囲を自動調整
+            $worksheet.Cells[$列範囲].AutoFitColumns()
+        }
+
+        Close-ExcelPackage $excelPackage
+
+        Write-Host "列幅を自動調整しました" -ForegroundColor Green
+        return $true
+    }
+    catch {
+        throw "列幅自動調整エラー: $_"
+    }
+}
+
+# ========================================
+# シート一覧取得関数
+# ========================================
+function Excel操作_シート一覧取得 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ファイルパス
+    )
+
+    if (-not (Ensure-ImportExcelModule)) {
+        throw "ImportExcelモジュールが利用できません"
+    }
+
+    if (-not (Test-Path $ファイルパス)) {
+        throw "ファイルが存在しません: $ファイルパス"
+    }
+
+    try {
+        $シート情報 = Get-ExcelSheetInfo -Path $ファイルパス
+        $シート名一覧 = @($シート情報 | ForEach-Object { $_.Name })
+
+        Write-Host "シート一覧: $($シート名一覧 -join ', ')" -ForegroundColor Green
+        return $シート名一覧
+    }
+    catch {
+        throw "シート一覧取得エラー: $_"
+    }
+}
