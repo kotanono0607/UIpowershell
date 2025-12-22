@@ -1,4 +1,4 @@
-function 12_5 {
+﻿function 12_5 {
     # 処理中断：スクリプトの実行を中断する
 
     Add-Type -AssemblyName System.Windows.Forms
