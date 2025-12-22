@@ -1,4 +1,4 @@
-function 5_5 {
+﻿function 5_5 {
     # プロセス終了：実行中のプロセスを終了する
 
     Add-Type -AssemblyName System.Windows.Forms

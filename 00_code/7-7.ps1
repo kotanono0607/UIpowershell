@@ -1,4 +1,4 @@
-function 7_7 {
+﻿function 7_7 {
     # リスト選択ダイアログ：リストから項目を選択するダイアログを表示
 
     $変数ファイルパス = $global:JSONPath

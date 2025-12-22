@@ -1,4 +1,4 @@
-function 5_3 {
+﻿function 5_3 {
     # ファイルを開く：関連付けられたアプリケーションでファイルを開く
 
     Add-Type -AssemblyName System.Windows.Forms

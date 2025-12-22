@@ -1,4 +1,4 @@
-function 7_2 {
+﻿function 7_2 {
     # メッセージボックス表示：ユーザーにメッセージを表示
 
     Add-Type -AssemblyName System.Windows.Forms

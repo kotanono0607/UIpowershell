@@ -1,4 +1,4 @@
-function 7_8 {
+﻿function 7_8 {
     # 進捗表示：処理の進捗状況を表示
 
     Add-Type -AssemblyName System.Windows.Forms

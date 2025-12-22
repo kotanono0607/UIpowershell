@@ -1,4 +1,4 @@
-function 3_6 {
+﻿function 3_6 {
     # キーシーケンス：複数のキーを順番に送信
 
     Add-Type -AssemblyName System.Windows.Forms
