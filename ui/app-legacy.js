@@ -7,6 +7,13 @@ const APP_VERSION = '1.1.1';  // アプリバージョン - 多重分岐UX改善
 const API_BASE = 'http://localhost:8080/api';
 
 // ============================================
+// ノードサイズ設定
+// ============================================
+const NODE_HEIGHT = 24;      // ノードの高さ（元: 40px → 60%: 24px）
+const NODE_WIDTH = 120;      // ノードの幅
+const NODE_SPACING = 36;     // ノード間の間隔（元: 60px → 60%相当に調整）
+
+// ============================================
 // デバッグ設定
 // ============================================
 
@@ -562,7 +569,7 @@ function drawDownArrow(ctx, fromNode, toNode, color = '#000000') {
     // これによりスクロール位置やビューポートに依存しない正確な座標が得られる
     const fromTop = parseInt(fromNode.style.top, 10) || 0;
     const fromLeft = parseInt(fromNode.style.left, 10) || 90;
-    const fromHeight = fromNode.offsetHeight || 40;
+    const fromHeight = fromNode.offsetHeight || NODE_HEIGHT;
     const fromWidth = fromNode.offsetWidth || 120;
 
     const toTop = parseInt(toNode.style.top, 10) || 0;
@@ -937,12 +944,12 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
     // ★修正: style.topを直接使用（getBoundingClientRectはビューポート依存のため不正確）
     const startTop = parseInt(startNode.style.top, 10) || 0;
     const startLeft = parseInt(startNode.style.left, 10) || 90;
-    const startHeight = startNode.offsetHeight || 40;
+    const startHeight = startNode.offsetHeight || NODE_HEIGHT;
     const startWidth = startNode.offsetWidth || 120;
 
     const endTop = parseInt(endNode.style.top, 10) || 0;
     const endLeft = parseInt(endNode.style.left, 10) || 90;
-    const endHeight = endNode.offsetHeight || 40;
+    const endHeight = endNode.offsetHeight || NODE_HEIGHT;
     const endWidth = endNode.offsetWidth || 120;
 
     // 後方互換性: grayIndicesが渡されない場合は従来の方法で取得
@@ -1075,7 +1082,7 @@ function getBranchColors(branchCount) {
 function drawBranchLabels(ctx, startNode, endNode, innerNodes, grayIndices, branchCount, branchColors) {
     const startTop = parseInt(startNode.style.top, 10) || 0;
     const startLeft = parseInt(startNode.style.left, 10) || 90;
-    const startHeight = startNode.offsetHeight || 40;
+    const startHeight = startNode.offsetHeight || NODE_HEIGHT;
     const startWidth = startNode.offsetWidth || 120;
 
     // ラベルのスタイル設定
@@ -1152,12 +1159,12 @@ function drawBranchLabels(ctx, startNode, endNode, innerNodes, grayIndices, bran
 function drawBranchStartArrow(ctx, startNode, targetNode, color, branchIdx) {
     const startTop = parseInt(startNode.style.top, 10) || 0;
     const startLeft = parseInt(startNode.style.left, 10) || 90;
-    const startHeight = startNode.offsetHeight || 40;
+    const startHeight = startNode.offsetHeight || NODE_HEIGHT;
     const startWidth = startNode.offsetWidth || 120;
 
     const targetTop = parseInt(targetNode.style.top, 10) || 0;
     const targetLeft = parseInt(targetNode.style.left, 10) || 90;
-    const targetHeight = targetNode.offsetHeight || 40;
+    const targetHeight = targetNode.offsetHeight || NODE_HEIGHT;
     const targetWidth = targetNode.offsetWidth || 120;
 
     // 開始ノードの右端（Y座標は分岐ごとにオフセットして重なりを防ぐ）
@@ -1197,12 +1204,12 @@ function drawBranchStartArrow(ctx, startNode, targetNode, color, branchIdx) {
 function drawBranchEndArrow(ctx, sourceNode, endNode, color, direction = 'left', branchIdx = 0) {
     const sourceTop = parseInt(sourceNode.style.top, 10) || 0;
     const sourceLeft = parseInt(sourceNode.style.left, 10) || 90;
-    const sourceHeight = sourceNode.offsetHeight || 40;
+    const sourceHeight = sourceNode.offsetHeight || NODE_HEIGHT;
     const sourceWidth = sourceNode.offsetWidth || 120;
 
     const endTop = parseInt(endNode.style.top, 10) || 0;
     const endLeft = parseInt(endNode.style.left, 10) || 90;
-    const endHeight = endNode.offsetHeight || 40;
+    const endHeight = endNode.offsetHeight || NODE_HEIGHT;
     const endWidth = endNode.offsetWidth || 120;
 
     // 終了ノードのY座標（分岐ごとにオフセットして重なりを防ぐ）
@@ -1304,12 +1311,12 @@ function drawEdgeBasedConditionArrows(ctx, layer, nodes) {
         // 座標を取得
         const sourceTop = parseInt(sourceNode.style.top, 10) || 0;
         const sourceLeft = parseInt(sourceNode.style.left, 10) || 90;
-        const sourceHeight = sourceNode.offsetHeight || 40;
+        const sourceHeight = sourceNode.offsetHeight || NODE_HEIGHT;
         const sourceWidth = sourceNode.offsetWidth || 120;
 
         const targetTop = parseInt(targetNode.style.top, 10) || 0;
         const targetLeft = parseInt(targetNode.style.left, 10) || 90;
-        const targetHeight = targetNode.offsetHeight || 40;
+        const targetHeight = targetNode.offsetHeight || NODE_HEIGHT;
         const targetWidth = targetNode.offsetWidth || 120;
 
         // エッジタイプに応じた色を設定
@@ -1464,11 +1471,11 @@ function drawLoopArrows(ctx, startNode, endNode, containerRect, scrollTop = 0, s
     // ★修正: style.topを直接使用（getBoundingClientRectはビューポート依存のため不正確）
     const startTop = parseInt(startNode.style.top, 10) || 0;
     const startLeft = parseInt(startNode.style.left, 10) || 90;
-    const startHeight = startNode.offsetHeight || 40;
+    const startHeight = startNode.offsetHeight || NODE_HEIGHT;
 
     const endTop = parseInt(endNode.style.top, 10) || 0;
     const endLeft = parseInt(endNode.style.left, 10) || 90;
-    const endHeight = endNode.offsetHeight || 40;
+    const endHeight = endNode.offsetHeight || NODE_HEIGHT;
 
     // 開始ノードの左端から左に出る（動的オフセットを使用、最小10pxを確保）
     const startX = startLeft;
@@ -2574,7 +2581,7 @@ async function addNodeToLayer(setting) {
 }
 
 // 単一ノードを追加
-function addSingleNode(setting, customText = null, customY = null, customGroupId = null, customHeight = 40, customNodeId = null) {
+function addSingleNode(setting, customText = null, customY = null, customGroupId = null, customHeight = NODE_HEIGHT, customNodeId = null) {
     // カスタムIDが指定されていない場合は自動生成
     const nodeId = customNodeId || `${nodeCounter}-1`;
 
@@ -2637,9 +2644,9 @@ async function addLoopSet(setting) {
     const endNode = addSingleNode(
         { ...setting, テキスト: 'ループ 終了', ボタン名: `${baseId}-2` },
         'ループ 終了',
-        baseY + 45,
+        baseY + NODE_SPACING,
         groupId,
-        40,
+        NODE_HEIGHT,
         `${baseId}-2`  // カスタムID指定
     );
 
@@ -2719,7 +2726,7 @@ async function addConditionSet(setting) {
         const middleNode = addSingleNode(
             { ...setting, テキスト: `条件分岐 ${branchLabel}`, 背景色: 'Gray', ボタン名: `${baseId}-${i + 2}` },
             `条件分岐 ${branchLabel}`,
-            baseY + 45 * (i + 1) - 5,  // 5px上に調整
+            baseY + NODE_SPACING * (i + 1) - 5,  // 5px上に調整
             groupId,
             1,  // 高さ1px
             `${baseId}-${i + 2}`  // カスタムID指定
@@ -2732,9 +2739,9 @@ async function addConditionSet(setting) {
     const endNode = addSingleNode(
         { ...setting, テキスト: '条件分岐 終了', ボタン名: `${baseId}-${grayNodeCount + 2}` },
         '条件分岐 終了',
-        baseY + 45 * (grayNodeCount + 1),
+        baseY + NODE_SPACING * (grayNodeCount + 1),
         groupId,
-        40,
+        NODE_HEIGHT,
         `${baseId}-${grayNodeCount + 2}`  // カスタムID指定
     );
     allNodes.push(endNode);
@@ -2772,7 +2779,7 @@ function getNextAvailableY(layer) {
     if (layerNodes.length === 0) return 10;
 
     const maxY = Math.max(...layerNodes.map(n => n.y));
-    return maxY + 45; // ボタン高さ40px + マージン5px
+    return maxY + NODE_HEIGHT + 5; // ボタン高さ + マージン5px
 }
 
 // ============================================
@@ -2980,7 +2987,7 @@ function renderNodesInLayer(layer, panelSide = 'left') {
 
     // ノード数が多い場合にコンテナの高さを動的に調整
     if (layerNodes.length > 0) {
-        const maxY = Math.max(...layerNodes.map(n => n.y)) + 80; // ノード高さ(40px) + 余白(40px)
+        const maxY = Math.max(...layerNodes.map(n => n.y)) + (NODE_HEIGHT * 2); // ノード高さ + 余白
         container.style.minHeight = `${Math.max(700, maxY)}px`;
         console.log(`[レンダリング] コンテナ高さを調整: ${Math.max(700, maxY)}px (最大Y座標: ${maxY - 80}px)`);
     }
@@ -3219,7 +3226,7 @@ function showDropIndicator(container, mouseY) {
 
     for (let i = 0; i < layerNodes.length; i++) {
         const node = layerNodes[i];
-        const nodeHeight = node.color === 'Gray' ? 1 : 40;
+        const nodeHeight = node.color === 'Gray' ? 1 : NODE_HEIGHT;
         const nodeBottom = node.y + nodeHeight;
 
         if (relativeY < node.y) {
@@ -3328,7 +3335,7 @@ async function handleDrop(e) {
         const dropY = e.clientY - rect.top;  // コンテナ内の相対Y座標
 
         // ボタンの中心が来るように調整
-        const buttonHeight = draggedNodeData.height || 40;
+        const buttonHeight = draggedNodeData.height || NODE_HEIGHT;
         newY = dropY - (buttonHeight / 2) + 10;
 
         // 最小値チェック
@@ -3544,10 +3551,10 @@ function reorderNodesInLayer(layer) {
         let interval, height;
         if (node.color === 'Gray') {
             interval = 10;  // 通常20のところ10
-            height = 0;     // 通常40のところ0（高さ1pxだが間隔計算では0扱い）
+            height = 0;     // 通常NODE_HEIGHTのところ0（高さ1pxだが間隔計算では0扱い）
         } else {
             interval = 20;
-            height = 40;
+            height = NODE_HEIGHT;
         }
 
         // Y座標を設定
@@ -4063,8 +4070,8 @@ async function layerizeNode() {
         layer: leftVisibleLayer,
         y: minY,
         x: 90,
-        width: 120,  // 280 → 200 → 120 に変更
-        height: 40,
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
         script: entryString,  // 削除したノードの情報を保存
         redBorder: false
     };
@@ -4371,12 +4378,12 @@ async function handlePinkNodeClick(node) {
 
         // 条件分岐の中間ノードは高さ1px、幅20px、座標計算も特殊
         const isMiddleNode = (text === '条件分岐 中間' || color === 'Gray');
-        const nodeHeight = isMiddleNode ? 1 : 40;
+        const nodeHeight = isMiddleNode ? 1 : NODE_HEIGHT;
         const nodeWidth = isMiddleNode ? 20 : 120;
 
         // ボタン間隔と高さの調整（"条件分岐 中間"の場合は特殊）
         const interval = isMiddleNode ? 10 : 20;  // 通常20のところ10
-        const heightForNext = isMiddleNode ? 0 : 40;  // 通常40のところ0
+        const heightForNext = isMiddleNode ? 0 : NODE_HEIGHT;  // 通常40のところ0
 
         // Y座標を設定
         const nodeY = baseY + interval;
@@ -4620,10 +4627,10 @@ async function handlePinkNodeClickPopup(node) {
 
         // 条件分岐の中間ノードは高さ1px、幅20px
         const isMiddleNode = (text === '条件分岐 中間' || color === 'Gray');
-        const nodeHeight = isMiddleNode ? 1 : 40;
+        const nodeHeight = isMiddleNode ? 1 : NODE_HEIGHT;
         const nodeWidth = isMiddleNode ? 20 : 120;
         const interval = isMiddleNode ? 10 : 20;
-        const heightForNext = isMiddleNode ? 0 : 40;
+        const heightForNext = isMiddleNode ? 0 : NODE_HEIGHT;
 
         // Y座標を設定
         const nodeY = baseY + interval;
@@ -5877,7 +5884,7 @@ async function openPartialExecuteDialog() {
 
     partialExecuteMode.active = true;
     partialExecuteMode.startY = firstNode.y - 5;  // ノードの少し上
-    partialExecuteMode.endY = lastNode.y + 45;    // ノードの少し下（ノード高さ40px）
+    partialExecuteMode.endY = lastNode.y + NODE_HEIGHT + 5;    // ノードの少し下
     partialExecuteMode.startNodeIndex = 0;
     partialExecuteMode.endNodeIndex = sortedNodes.length - 1;
 
@@ -6104,7 +6111,7 @@ function snapBarToNodePosition(type) {
 
     sortedNodes.forEach(node => {
         // 開始バーはノードの上端、終了バーはノードの下端を基準
-        const targetY = type === 'start' ? node.y - 5 : node.y + 45;
+        const targetY = type === 'start' ? node.y - 5 : node.y + NODE_HEIGHT + 5;
         const distance = Math.abs(currentY - targetY);
 
         if (distance < closestDistance) {
@@ -6115,7 +6122,7 @@ function snapBarToNodePosition(type) {
 
     if (closestNode) {
         // スナップ位置を設定
-        const snapY = type === 'start' ? closestNode.y - 5 : closestNode.y + 45;
+        const snapY = type === 'start' ? closestNode.y - 5 : closestNode.y + NODE_HEIGHT + 5;
 
         if (type === 'start') {
             // 終了バーより上にスナップ
@@ -6599,8 +6606,8 @@ async function loadExistingNodes() {
                     layer: layerNum,
                     y: nodeData.Y座標 || 10,
                     x: nodeData.X座標 || 10,
-                    width: nodeData.幅 || 120,  // 280 → 200 → 120 に変更
-                    height: nodeData.高さ || 40,
+                    width: nodeData.幅 || NODE_WIDTH,
+                    height: nodeData.高さ || NODE_HEIGHT,
                     groupId: nodeData.GroupID || null,
                     処理番号: nodeData.処理番号 || '',
                     script: nodeData.script || '',
@@ -7005,7 +7012,7 @@ async function openNodeSettings(node) {
         nodeName: actualNode.text,
         color: actualNode.color || 'White',
         width: actualNode.width || 120,
-        height: actualNode.height || 40,
+        height: actualNode.height || NODE_HEIGHT,
         x: actualNode.x || 10,
         y: actualNode.y || 10,
         script: scriptContent || '',
@@ -9053,7 +9060,7 @@ function showLayerInDrilldownPanel(parentNodeData) {
 
         // ノード数が多い場合にコンテナの高さを動的に調整（コンテンツに合わせる）
         if (sortedNodes.length > 0) {
-            const maxY = Math.max(...sortedNodes.map(n => n.y)) + 80; // ノード高さ(40px) + 余白(40px)
+            const maxY = Math.max(...sortedNodes.map(n => n.y)) + (NODE_HEIGHT * 2); // ノード高さ + 余白
             // 固定の700pxではなく、コンテンツの高さのみを設定（スクロールバー防止）
             nodeContainer.style.minHeight = `${maxY}px`;
             console.log(`🔍 [ドリルダウン] コンテナ高さを調整: ${maxY}px`);
@@ -9376,7 +9383,7 @@ async function loadCurrentLayerData() {
 }
 
 // 重複しないY座標を計算（既存ノードと重ならない位置を探す）
-function findNonOverlappingY(targetLayer, desiredY, nodeHeight = 40, gridSize = 60) {
+function findNonOverlappingY(targetLayer, desiredY, nodeHeight = NODE_HEIGHT, gridSize = NODE_SPACING) {
     const layerNodes = layerStructure[targetLayer]?.nodes || [];
 
     // desiredYをグリッドにスナップ
@@ -11039,7 +11046,7 @@ async function functionizeNodes() {
             script: node.script || '',
             groupId: node.groupId || null,
             width: node.width || 120,
-            height: node.height || 40
+            height: node.height || NODE_HEIGHT
         })),
         params: [],    // 将来の拡張用
         returns: [],   // 将来の拡張用
@@ -11091,7 +11098,7 @@ async function addFunctionToBoard(functionId) {
     // 新しいノードのY座標を計算
     let maxY = 10;
     layerNodes.forEach(node => {
-        const nodeBottom = (node.y || 0) + (node.height || 40);
+        const nodeBottom = (node.y || 0) + (node.height || NODE_HEIGHT);
         if (nodeBottom > maxY) maxY = nodeBottom;
     });
     const newY = maxY + 10;
@@ -11108,8 +11115,8 @@ async function addFunctionToBoard(functionId) {
         layer: leftVisibleLayer,
         y: newY,
         x: 90,
-        width: 120,
-        height: 40,
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
         functionId: func.id,  // 参照する関数ID
         script: generateFunctionScript(func),  // 関数の内容をスクリプトとして保存
         redBorder: false
