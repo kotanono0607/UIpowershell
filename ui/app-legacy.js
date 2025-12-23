@@ -10603,9 +10603,12 @@ async function connectExcel() {
                 };
                 // サーバーに変数を保存
                 await saveVariablesToServer();
+                // 変数リストを更新
+                renderVariablesList();
             }
 
             updateExcelConnectionUI();
+            alert(`Excel接続完了: ${result.rowCount}行 x ${result.colCount}列 のデータを読み込みました`);
             console.log('[Excel接続] 接続完了');
         } else {
             throw new Error(result.error || '接続に失敗しました');
@@ -10624,6 +10627,8 @@ function disconnectExcel() {
     if (excelConnectionState.variableName && variables[excelConnectionState.variableName]) {
         delete variables[excelConnectionState.variableName];
         saveVariablesToServer();
+        // 変数リストを更新
+        renderVariablesList();
     }
 
     // 状態をリセット
