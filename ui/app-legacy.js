@@ -10,6 +10,9 @@ const API_BASE = 'http://localhost:8080/api';
 // デバッグ設定
 // ============================================
 
+// 🔴 マスターフラグ: trueにすると全てのconsole.logが表示される（フィルター無効化）
+const DISABLE_LOG_FILTER = true;
+
 // ログフィルター設定（true = 表示, false = 非表示）
 const DEBUG_FLAGS = {
     layerize: false,         // レイヤー化処理のログ
@@ -125,6 +128,27 @@ async function sendLogsToServer(logs) {
 // コンソールメソッドをラップ（ログフィルター付き）
 function wrapConsoleMethod(method, level) {
     console[method] = function(...args) {
+        // DISABLE_LOG_FILTERがtrueの場合はフィルターをスキップ
+        if (DISABLE_LOG_FILTER) {
+            originalConsole[method].apply(console, args);
+            const logEntry = {
+                level: level,
+                timestamp: new Date().toISOString(),
+                message: args.map(arg => {
+                    if (typeof arg === 'object') {
+                        try { return JSON.stringify(arg); } catch (e) { return String(arg); }
+                    }
+                    return String(arg);
+                }).join(' ')
+            };
+            consoleLogBuffer.push(logEntry);
+            if (level === 'error') {
+                sendLogsToServer([logEntry]);
+                consoleLogBuffer = consoleLogBuffer.filter(log => log !== logEntry);
+            }
+            return;
+        }
+
         // console.logのみフィルターを適用
         if (method === 'log') {
             // ログメッセージを文字列化
