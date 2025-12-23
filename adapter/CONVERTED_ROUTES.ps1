@@ -3352,6 +3352,13 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
                 # 保存
                 $variables | ConvertTo-Json -Depth 100 | Out-File -FilePath $variablesPath -Encoding UTF8 -Force
 
+                # $global:variablesも更新（メモリ内の変数辞書）
+                if (-not $global:variables) {
+                    $global:variables = @{}
+                }
+                $global:variables[$variableName] = $data
+                Write-Host "[Excel接続] グローバル変数を更新: $variableName (${rowCount}行 x ${colCount}列)" -ForegroundColor Green
+
                 # データ全体を返すと接続がタイムアウトするため、統計情報のみ返す
                 $result = @{
                     success = $true
