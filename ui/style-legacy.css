@@ -2626,6 +2626,18 @@ body::after {
     display: none !important;
 }
 
+/* ドリルダウンパネルのヘッダー - L3バッジとの重なり防止 */
+.drilldown-panel > div:first-child {
+    padding-right: 50px !important;  /* L3バッジ分の余白 */
+}
+
+.drilldown-panel .layer-indicator {
+    top: 5px !important;
+    right: 5px !important;
+    padding: 2px 8px !important;
+    font-size: 10px !important;
+}
+
 /* ノード */
 .node {
     box-shadow: none !important;
