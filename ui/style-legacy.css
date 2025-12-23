@@ -2597,6 +2597,14 @@ body::after {
     background: white !important;
 }
 
+/* ノードボタン（フロー内）- 高さ60%に縮小 */
+.node-button {
+    height: 24px !important;
+    min-height: 24px !important;
+    font-size: 10px !important;
+    padding-left: 8px !important;
+}
+
 .node:hover {
     box-shadow: none !important;
     border-color: #3b82f6 !important;
