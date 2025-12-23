@@ -2603,14 +2603,27 @@ body::after {
     top: 58px !important;
 }
 
-/* メインパネルの高さを拡大 */
+/* メインパネルの高さを拡大、スクロールバー非表示 */
 .node-list-container {
     min-height: calc(100vh - 150px) !important;
+    overflow: auto !important;
+    scrollbar-width: none !important;  /* Firefox */
+    -ms-overflow-style: none !important;  /* IE/Edge */
 }
 
-/* 中央コンテナの高さ調整 */
+.node-list-container::-webkit-scrollbar {
+    display: none !important;  /* Chrome/Safari */
+}
+
+/* 中央コンテナの高さ調整、スクロールバー非表示 */
 #center-container {
     min-height: calc(100vh - 80px) !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+#center-container::-webkit-scrollbar {
+    display: none !important;
 }
 
 /* ノード */
