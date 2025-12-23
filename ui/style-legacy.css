@@ -2550,18 +2550,25 @@ body::after {
     background: #e2e8f0 !important;
 }
 
-/* ボタン（カテゴリ内） - 元の配色を維持 */
+/* ボタン（カテゴリ内） - 元の配色を維持、高さ60%に縮小 */
 .category-panel button,
-.button-area button {
+.button-area button,
+.add-node-btn {
     box-shadow: none !important;
     border: 1px solid rgba(0,0,0,0.1) !important;
+    min-height: 26px !important;
+    padding: 3px 4px !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
     /* background は元の色を維持するため指定しない */
 }
 
 .category-panel button:hover,
-.button-area button:hover {
+.button-area button:hover,
+.add-node-btn:hover {
     box-shadow: none !important;
     filter: brightness(0.93) !important;
+    transform: none !important;
 }
 
 /* 変数リスト */
