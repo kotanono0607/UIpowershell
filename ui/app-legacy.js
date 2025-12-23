@@ -5174,14 +5174,22 @@ async function loadVariables() {
 
 // 変数リストを描画
 function renderVariablesList() {
+    console.log('[変数リスト] renderVariablesList() 呼び出し');
+    console.log('[変数リスト] variables:', variables);
+    console.log('[変数リスト] variablesの型:', typeof variables);
+    console.log('[変数リスト] variablesのキー:', Object.keys(variables || {}));
+
     const container = document.getElementById('variables-list');
-    if (!container) return;
+    if (!container) {
+        console.log('[変数リスト] containerが見つかりません');
+        return;
+    }
 
     // 変数データを配列に変換
     let varList = [];
     if (Array.isArray(variables)) {
         varList = variables;
-    } else if (typeof variables === 'object') {
+    } else if (typeof variables === 'object' && variables !== null) {
         varList = Object.entries(variables).map(([name, data]) => ({
             name: name,
             value: data.value || data,
@@ -5189,6 +5197,7 @@ function renderVariablesList() {
             displayValue: data.displayValue || String(data.value || data)
         }));
     }
+    console.log('[変数リスト] varList:', varList.length, '件');
 
     if (varList.length === 0) {
         container.innerHTML = `
@@ -10601,9 +10610,12 @@ async function connectExcel() {
                     value: result.data,
                     displayValue: `[${result.rowCount}行 x ${result.colCount}列]`
                 };
+                console.log('[Excel接続] 変数に追加:', variableName, variables[variableName]);
+                console.log('[Excel接続] 現在の変数一覧:', Object.keys(variables));
                 // サーバーに変数を保存
                 await saveVariablesToServer();
                 // 変数リストを更新
+                console.log('[Excel接続] 変数リストを更新します');
                 renderVariablesList();
             }
 
