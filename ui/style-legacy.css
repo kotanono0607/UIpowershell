@@ -2590,10 +2590,27 @@ body::after {
     border: 1px solid #e2e8f0 !important;
 }
 
-/* ノード設置エリアの幅を+10px */
+/* ノード設置エリアの幅を+10px、高さを画面内に収める */
 .layer-panel,
 .drilldown-panel {
     width: 310px !important;
+    height: calc(100vh - 100px) !important;  /* 下部に余白を追加 */
+    max-height: calc(100vh - 100px) !important;
+}
+
+/* ドリルダウンパネルの位置調整 */
+.drilldown-panel {
+    top: 58px !important;
+}
+
+/* メインパネルの高さを拡大 */
+.node-list-container {
+    min-height: calc(100vh - 150px) !important;
+}
+
+/* 中央コンテナの高さ調整 */
+#center-container {
+    min-height: calc(100vh - 80px) !important;
 }
 
 /* ノード */
