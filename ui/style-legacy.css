@@ -459,6 +459,178 @@ body::after {
     color: white;
 }
 
+/* 接続パネル */
+.connection-panel {
+    width: 100%;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.connection-section {
+    background: var(--bg-color);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow:
+        3px 3px 6px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+}
+
+.connection-section.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.connection-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.connection-section-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.connection-field {
+    margin-bottom: 10px;
+}
+
+.connection-field label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.connection-field input[type="text"],
+.connection-field select {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    box-shadow:
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+.connection-field input[type="text"]:focus,
+.connection-field select:focus {
+    outline: none;
+    box-shadow:
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
+}
+
+.connection-file-input {
+    display: flex;
+    gap: 6px;
+}
+
+.connection-file-input input {
+    flex: 1;
+}
+
+.connection-browse-btn {
+    padding: 8px 12px;
+    font-size: 11px;
+    border: none;
+    border-radius: 4px;
+    background: var(--bg-color);
+    color: var(--accent-color);
+    cursor: pointer;
+    box-shadow:
+        2px 2px 4px var(--shadow-dark),
+        -2px -2px 4px var(--shadow-light);
+    transition: all 0.2s ease;
+}
+
+.connection-browse-btn:hover {
+    box-shadow:
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+.connection-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.connection-btn {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.connection-btn.connect {
+    background: #10b981;
+    color: white;
+    box-shadow:
+        2px 2px 4px var(--shadow-dark),
+        -2px -2px 4px var(--shadow-light);
+}
+
+.connection-btn.connect:hover:not(:disabled) {
+    background: #059669;
+}
+
+.connection-btn.connect:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.connection-btn.disconnect {
+    background: #ef4444;
+    color: white;
+    box-shadow:
+        2px 2px 4px var(--shadow-dark),
+        -2px -2px 4px var(--shadow-light);
+}
+
+.connection-btn.disconnect:hover {
+    background: #dc2626;
+}
+
+.connection-info {
+    margin-top: 12px;
+    padding: 10px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #10b981;
+}
+
+.connection-info-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    padding: 3px 0;
+}
+
+.info-label {
+    color: var(--text-secondary);
+}
+
+.info-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
 /* ロボットプロフィールカード */
 .robot-profile-card {
     width: 100%;
