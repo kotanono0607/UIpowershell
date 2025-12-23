@@ -2591,7 +2591,8 @@ body::after {
 }
 
 /* ノード設置エリアの幅を+10px */
-.layer-panel {
+.layer-panel,
+.drilldown-panel {
     width: 310px !important;
 }
 
