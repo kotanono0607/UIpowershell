@@ -156,25 +156,75 @@
 
             <!-- タブコンテンツ: 接続 -->
             <div id="tab-content-connection" class="left-panel-tab-content">
-                <div class="tab-content-placeholder">
-                    <div class="placeholder-icon">🔌</div>
-                    <div class="placeholder-title">接続管理</div>
-                    <div class="placeholder-text">外部ツールとの接続</div>
-                    <div class="connection-status">
-                        <div class="connection-item">
+                <div class="connection-panel">
+                    <!-- Excel接続セクション -->
+                    <div class="connection-section">
+                        <div class="connection-section-header">
                             <span class="connection-icon">📊</span>
-                            <span class="connection-name">Excel</span>
-                            <span class="connection-badge disconnected">未接続</span>
+                            <span class="connection-section-title">Excel接続</span>
+                            <span class="connection-badge disconnected" id="excel-connection-badge">未接続</span>
                         </div>
-                        <div class="connection-item">
+
+                        <!-- ファイル選択 -->
+                        <div class="connection-field">
+                            <label>Excelファイル</label>
+                            <div class="connection-file-input">
+                                <input type="text" id="excel-file-path" placeholder="ファイルを選択..." readonly>
+                                <button class="connection-browse-btn" onclick="browseExcelFile()">参照</button>
+                            </div>
+                        </div>
+
+                        <!-- シート選択 -->
+                        <div class="connection-field">
+                            <label>シート</label>
+                            <select id="excel-sheet-select" disabled>
+                                <option value="">シートを選択...</option>
+                            </select>
+                        </div>
+
+                        <!-- 変数名 -->
+                        <div class="connection-field">
+                            <label>変数名</label>
+                            <input type="text" id="excel-variable-name" value="Excel2次元配列" placeholder="格納先の変数名">
+                        </div>
+
+                        <!-- 接続ボタン -->
+                        <div class="connection-actions">
+                            <button class="connection-btn connect" id="excel-connect-btn" onclick="connectExcel()" disabled>接続</button>
+                            <button class="connection-btn disconnect" id="excel-disconnect-btn" onclick="disconnectExcel()" style="display:none">切断</button>
+                        </div>
+
+                        <!-- 接続情報 -->
+                        <div class="connection-info" id="excel-connection-info" style="display:none">
+                            <div class="connection-info-item">
+                                <span class="info-label">行数:</span>
+                                <span class="info-value" id="excel-row-count">-</span>
+                            </div>
+                            <div class="connection-info-item">
+                                <span class="info-label">列数:</span>
+                                <span class="info-value" id="excel-col-count">-</span>
+                            </div>
+                            <div class="connection-info-item">
+                                <span class="info-label">ヘッダー:</span>
+                                <span class="info-value" id="excel-headers">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 他の接続（将来拡張用） -->
+                    <div class="connection-section disabled">
+                        <div class="connection-section-header">
                             <span class="connection-icon">🌐</span>
-                            <span class="connection-name">ブラウザ</span>
-                            <span class="connection-badge disconnected">未接続</span>
+                            <span class="connection-section-title">ブラウザ</span>
+                            <span class="connection-badge disconnected">未対応</span>
                         </div>
-                        <div class="connection-item">
+                    </div>
+
+                    <div class="connection-section disabled">
+                        <div class="connection-section-header">
                             <span class="connection-icon">🗄️</span>
-                            <span class="connection-name">データベース</span>
-                            <span class="connection-badge disconnected">未接続</span>
+                            <span class="connection-section-title">データベース</span>
+                            <span class="connection-badge disconnected">未対応</span>
                         </div>
                     </div>
                 </div>

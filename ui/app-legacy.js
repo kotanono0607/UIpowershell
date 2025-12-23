@@ -10426,6 +10426,235 @@ function switchLeftPanelTab(tabId) {
     if (tabId === 'functions') {
         renderFunctionsList();
     }
+
+    // 接続タブに切り替えた時、接続状態を更新
+    if (tabId === 'connection') {
+        updateExcelConnectionUI();
+    }
+}
+
+// ============================================
+// Excel接続機能
+// ============================================
+
+// Excel接続状態を管理
+const excelConnectionState = {
+    connected: false,
+    filePath: '',
+    sheetName: '',
+    variableName: 'Excel2次元配列',
+    data: null,
+    rowCount: 0,
+    colCount: 0,
+    headers: []
+};
+
+// Excel接続UIを更新
+function updateExcelConnectionUI() {
+    const badge = document.getElementById('excel-connection-badge');
+    const connectBtn = document.getElementById('excel-connect-btn');
+    const disconnectBtn = document.getElementById('excel-disconnect-btn');
+    const infoPanel = document.getElementById('excel-connection-info');
+
+    if (excelConnectionState.connected) {
+        badge.textContent = '接続中';
+        badge.classList.remove('disconnected');
+        badge.classList.add('connected');
+        connectBtn.style.display = 'none';
+        disconnectBtn.style.display = 'block';
+        infoPanel.style.display = 'block';
+
+        document.getElementById('excel-row-count').textContent = excelConnectionState.rowCount;
+        document.getElementById('excel-col-count').textContent = excelConnectionState.colCount;
+        document.getElementById('excel-headers').textContent = excelConnectionState.headers.slice(0, 3).join(', ') + (excelConnectionState.headers.length > 3 ? '...' : '');
+    } else {
+        badge.textContent = '未接続';
+        badge.classList.remove('connected');
+        badge.classList.add('disconnected');
+        connectBtn.style.display = 'block';
+        disconnectBtn.style.display = 'none';
+        infoPanel.style.display = 'none';
+    }
+}
+
+// Excelファイル参照ボタン
+async function browseExcelFile() {
+    console.log('[Excel接続] ファイル選択開始');
+    try {
+        const response = await fetch('/api/excel/browse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+            throw new Error('ファイル選択に失敗しました');
+        }
+
+        const result = await response.json();
+        console.log('[Excel接続] ファイル選択結果:', result);
+
+        if (result.success && result.filePath) {
+            document.getElementById('excel-file-path').value = result.filePath;
+            excelConnectionState.filePath = result.filePath;
+
+            // シート一覧を取得
+            await loadExcelSheets(result.filePath);
+        }
+    } catch (error) {
+        console.error('[Excel接続] エラー:', error);
+        alert('ファイル選択に失敗しました: ' + error.message);
+    }
+}
+
+// Excelシート一覧を取得
+async function loadExcelSheets(filePath) {
+    console.log('[Excel接続] シート一覧取得:', filePath);
+    try {
+        const response = await fetch('/api/excel/sheets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filePath: filePath })
+        });
+
+        if (!response.ok) {
+            throw new Error('シート一覧の取得に失敗しました');
+        }
+
+        const result = await response.json();
+        console.log('[Excel接続] シート一覧:', result);
+
+        const sheetSelect = document.getElementById('excel-sheet-select');
+        sheetSelect.innerHTML = '<option value="">シートを選択...</option>';
+
+        if (result.success && result.sheets && result.sheets.length > 0) {
+            result.sheets.forEach(sheet => {
+                const option = document.createElement('option');
+                option.value = sheet;
+                option.textContent = sheet;
+                sheetSelect.appendChild(option);
+            });
+            sheetSelect.disabled = false;
+            sheetSelect.selectedIndex = 1; // 最初のシートを選択
+
+            // シート選択時に接続ボタンを有効化
+            sheetSelect.onchange = function() {
+                const connectBtn = document.getElementById('excel-connect-btn');
+                connectBtn.disabled = !this.value;
+                excelConnectionState.sheetName = this.value;
+            };
+
+            // 自動的に最初のシートを選択
+            excelConnectionState.sheetName = result.sheets[0];
+            document.getElementById('excel-connect-btn').disabled = false;
+        }
+    } catch (error) {
+        console.error('[Excel接続] シート取得エラー:', error);
+        alert('シート一覧の取得に失敗しました: ' + error.message);
+    }
+}
+
+// Excel接続（データ読み込み）
+async function connectExcel() {
+    const filePath = document.getElementById('excel-file-path').value;
+    const sheetName = document.getElementById('excel-sheet-select').value;
+    const variableName = document.getElementById('excel-variable-name').value || 'Excel2次元配列';
+
+    if (!filePath || !sheetName) {
+        alert('ファイルとシートを選択してください');
+        return;
+    }
+
+    console.log('[Excel接続] 接続開始:', { filePath, sheetName, variableName });
+
+    try {
+        const response = await fetch('/api/excel/connect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                filePath: filePath,
+                sheetName: sheetName,
+                variableName: variableName
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Excel接続に失敗しました');
+        }
+
+        const result = await response.json();
+        console.log('[Excel接続] 接続結果:', result);
+
+        if (result.success) {
+            excelConnectionState.connected = true;
+            excelConnectionState.filePath = filePath;
+            excelConnectionState.sheetName = sheetName;
+            excelConnectionState.variableName = variableName;
+            excelConnectionState.data = result.data;
+            excelConnectionState.rowCount = result.rowCount;
+            excelConnectionState.colCount = result.colCount;
+            excelConnectionState.headers = result.headers || [];
+
+            // 変数に追加
+            if (result.data) {
+                variables[variableName] = {
+                    type: '二次元',
+                    value: result.data,
+                    displayValue: `[${result.rowCount}行 x ${result.colCount}列]`
+                };
+                // サーバーに変数を保存
+                await saveVariablesToServer();
+            }
+
+            updateExcelConnectionUI();
+            console.log('[Excel接続] 接続完了');
+        } else {
+            throw new Error(result.error || '接続に失敗しました');
+        }
+    } catch (error) {
+        console.error('[Excel接続] エラー:', error);
+        alert('Excel接続に失敗しました: ' + error.message);
+    }
+}
+
+// Excel切断
+function disconnectExcel() {
+    console.log('[Excel接続] 切断');
+
+    // 変数から削除
+    if (excelConnectionState.variableName && variables[excelConnectionState.variableName]) {
+        delete variables[excelConnectionState.variableName];
+        saveVariablesToServer();
+    }
+
+    // 状態をリセット
+    excelConnectionState.connected = false;
+    excelConnectionState.filePath = '';
+    excelConnectionState.sheetName = '';
+    excelConnectionState.data = null;
+    excelConnectionState.rowCount = 0;
+    excelConnectionState.colCount = 0;
+    excelConnectionState.headers = [];
+
+    // UIをリセット
+    document.getElementById('excel-file-path').value = '';
+    document.getElementById('excel-sheet-select').innerHTML = '<option value="">シートを選択...</option>';
+    document.getElementById('excel-sheet-select').disabled = true;
+    document.getElementById('excel-connect-btn').disabled = true;
+
+    updateExcelConnectionUI();
+}
+
+// 変数をサーバーに保存
+async function saveVariablesToServer() {
+    try {
+        await fetch('/api/variables', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(variables)
+        });
+    } catch (error) {
+        console.error('[変数保存] エラー:', error);
+    }
 }
 
 // ============================================
