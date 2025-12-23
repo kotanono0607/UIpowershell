@@ -10598,26 +10598,14 @@ async function connectExcel() {
             excelConnectionState.filePath = filePath;
             excelConnectionState.sheetName = sheetName;
             excelConnectionState.variableName = variableName;
-            excelConnectionState.data = result.data;
             excelConnectionState.rowCount = result.rowCount;
             excelConnectionState.colCount = result.colCount;
             excelConnectionState.headers = result.headers || [];
 
-            // 変数に追加
-            if (result.data) {
-                variables[variableName] = {
-                    type: '二次元',
-                    value: result.data,
-                    displayValue: `[${result.rowCount}行 x ${result.colCount}列]`
-                };
-                console.log('[Excel接続] 変数に追加:', variableName, variables[variableName]);
-                console.log('[Excel接続] 現在の変数一覧:', Object.keys(variables));
-                // サーバーに変数を保存
-                await saveVariablesToServer();
-                // 変数リストを更新
-                console.log('[Excel接続] 変数リストを更新します');
-                renderVariablesList();
-            }
+            // サーバーで変数が保存されたので、変数を再読み込み
+            console.log('[Excel接続] サーバーから変数を再読み込み');
+            await loadVariables();
+            console.log('[Excel接続] 変数読み込み完了, キー:', Object.keys(variables));
 
             updateExcelConnectionUI();
             alert(`Excel接続完了: ${result.rowCount}行 x ${result.colCount}列 のデータを読み込みました`);

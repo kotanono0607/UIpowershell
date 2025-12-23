@@ -3352,15 +3352,16 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
                 # 保存
                 $variables | ConvertTo-Json -Depth 100 | Out-File -FilePath $variablesPath -Encoding UTF8 -Force
 
+                # データ全体を返すと接続がタイムアウトするため、統計情報のみ返す
                 $result = @{
                     success = $true
-                    data = $data
                     rowCount = $rowCount
                     colCount = $colCount
                     headers = $headers
                     variableName = $variableName
                 }
 
+                Write-Host "[Excel接続] レスポンス送信: $($result | ConvertTo-Json -Compress)" -ForegroundColor Green
                 Write-PodeJsonResponse -Value $result
             } else {
                 throw $excelResult.error
