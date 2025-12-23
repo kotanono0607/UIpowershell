@@ -3154,39 +3154,49 @@ Add-PodeRoute -Method Post -Path "/api/robot-profile" -ScriptBlock {
 Add-PodeRoute -Method Post -Path "/api/excel/browse" -ScriptBlock {
     try {
         $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Join-Path $RootDir "adapter"
 
-        # 14_コードサブ_EXCEL.ps1を読み込み
-        $excelFuncPath = Join-Path $RootDir "14_コードサブ_EXCEL.ps1"
-        if (Test-Path $excelFuncPath) {
-            . $excelFuncPath
-        }
+        # 一時ファイルパスを生成
+        $tempFile = Join-Path $env:TEMP "excel-dialog-result-$([guid]::NewGuid().ToString('N')).json"
 
-        # ImportExcelモジュールを確認
-        Ensure-ImportExcelModule
+        # 外部スクリプトのパス
+        $dialogScript = Join-Path $adapterDir "excel-file-dialog.ps1"
 
-        Add-Type -AssemblyName System.Windows.Forms
+        Write-Host "[Excel接続] ファイル選択ダイアログを起動: $dialogScript" -ForegroundColor Cyan
 
-        $dialog = New-Object System.Windows.Forms.OpenFileDialog
-        $dialog.InitialDirectory = [Environment]::GetFolderPath('Desktop')
-        $dialog.Filter = "Excel Files (*.xlsx;*.xls)|*.xlsx;*.xls|All Files (*.*)|*.*"
-        $dialog.Title = "Excelファイルを選択してください"
+        # 外部プロセスでダイアログを実行（STAモード必須）
+        $process = Start-Process -FilePath "powershell.exe" -ArgumentList @(
+            "-NoProfile",
+            "-STA",
+            "-ExecutionPolicy", "Bypass",
+            "-File", $dialogScript,
+            "-OutputPath", $tempFile
+        ) -Wait -PassThru -WindowStyle Hidden
 
-        $dialogResult = $dialog.ShowDialog()
+        Write-Host "[Excel接続] ダイアログプロセス終了コード: $($process.ExitCode)" -ForegroundColor Cyan
 
-        if ($dialogResult -eq [System.Windows.Forms.DialogResult]::OK) {
-            $result = @{
-                success = $true
-                filePath = $dialog.FileName
+        # 結果ファイルを読み込み
+        if (Test-Path $tempFile) {
+            $resultJson = Get-Content $tempFile -Encoding UTF8 -Raw
+            $result = $resultJson | ConvertFrom-Json
+
+            # 一時ファイルを削除
+            Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+
+            Write-Host "[Excel接続] ファイル選択結果: $($result.filePath)" -ForegroundColor Green
+
+            # ハッシュテーブルに変換して返す
+            $response = @{
+                success = [bool]$result.success
+                filePath = if ($result.filePath) { $result.filePath } else { "" }
+                message = if ($result.message) { $result.message } else { "" }
             }
+            Write-PodeJsonResponse -Value $response
         } else {
-            $result = @{
-                success = $false
-                message = "キャンセルされました"
-            }
+            throw "ダイアログ結果ファイルが見つかりません"
         }
-
-        Write-PodeJsonResponse -Value $result
     } catch {
+        Write-Host "[Excel接続] エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
