@@ -3212,24 +3212,26 @@ Add-PodeRoute -Method Post -Path "/api/excel/sheets" -ScriptBlock {
         $body = Get-PodeBody
         $filePath = $body.filePath
 
+        Write-Host "[Excel接続] シート一覧取得開始: $filePath" -ForegroundColor Cyan
+
         if (-not $filePath -or -not (Test-Path $filePath)) {
             throw "ファイルが見つかりません: $filePath"
         }
 
-        $RootDir = Get-PodeState -Name 'RootDir'
-
-        # 14_コードサブ_EXCEL.ps1を読み込み
-        $excelFuncPath = Join-Path $RootDir "14_コードサブ_EXCEL.ps1"
-        if (Test-Path $excelFuncPath) {
-            . $excelFuncPath
+        # ImportExcelモジュールを確認・インストール
+        if (-not (Get-Module -ListAvailable -Name ImportExcel)) {
+            Write-Host "[Excel接続] ImportExcelモジュールをインストール中..." -ForegroundColor Yellow
+            Install-Module -Name ImportExcel -Force -Scope CurrentUser -ErrorAction Stop
         }
+        Import-Module ImportExcel -ErrorAction Stop
 
-        # ImportExcelモジュールを確認
-        Ensure-ImportExcelModule
+        Write-Host "[Excel接続] ImportExcelモジュール読み込み完了" -ForegroundColor Green
 
         # シート情報を取得
         $sheetInfo = Get-ExcelSheetInfo -Path $filePath
         $sheets = @($sheetInfo | ForEach-Object { $_.Name })
+
+        Write-Host "[Excel接続] シート一覧: $($sheets -join ', ')" -ForegroundColor Green
 
         $result = @{
             success = $true
@@ -3238,6 +3240,7 @@ Add-PodeRoute -Method Post -Path "/api/excel/sheets" -ScriptBlock {
 
         Write-PodeJsonResponse -Value $result
     } catch {
+        Write-Host "[Excel接続] シート取得エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -3265,19 +3268,42 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
 
         $RootDir = Get-PodeState -Name 'RootDir'
 
-        # 14_コードサブ_EXCEL.ps1を読み込み
-        $excelFuncPath = Join-Path $RootDir "14_コードサブ_EXCEL.ps1"
-        if (Test-Path $excelFuncPath) {
-            . $excelFuncPath
+        # ImportExcelモジュールを確認・インストール
+        if (-not (Get-Module -ListAvailable -Name ImportExcel)) {
+            Write-Host "[Excel接続] ImportExcelモジュールをインストール中..." -ForegroundColor Yellow
+            Install-Module -Name ImportExcel -Force -Scope CurrentUser -ErrorAction Stop
         }
-
-        # ImportExcelモジュールを確認
-        Ensure-ImportExcelModule
+        Import-Module ImportExcel -ErrorAction Stop
 
         Write-Host "[Excel接続] ファイル読み込み開始: $filePath, シート: $sheetName" -ForegroundColor Cyan
 
-        # Excelデータを読み込み（Excelシートデータ取得関数を使用）
-        $data = @(Excelシートデータ取得 -Excelファイルパス $filePath -選択シート名 $sheetName)
+        # Excelデータを読み込み（ImportExcelを直接使用）
+        $excelData = Import-Excel -Path $filePath -WorksheetName $sheetName
+
+        # ヘッダーを取得
+        $headers = @()
+        if ($excelData -and $excelData.Count -gt 0) {
+            $headers = @($excelData[0].PSObject.Properties.Name)
+        } elseif ($excelData) {
+            $headers = @($excelData.PSObject.Properties.Name)
+        }
+
+        # ジャグ配列に変換（ヘッダー行 + データ行）
+        $data = @()
+        $data += ,$headers
+
+        if ($excelData) {
+            $rows = @($excelData)
+            foreach ($row in $rows) {
+                $rowData = @()
+                foreach ($header in $headers) {
+                    $cellValue = $row.$header
+                    if ($null -eq $cellValue) { $cellValue = "" }
+                    $rowData += [string]$cellValue
+                }
+                $data += ,$rowData
+            }
+        }
 
         # 行数・列数を計算
         $rowCount = $data.Count
