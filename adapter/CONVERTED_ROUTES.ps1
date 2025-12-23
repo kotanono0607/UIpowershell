@@ -3218,27 +3218,49 @@ Add-PodeRoute -Method Post -Path "/api/excel/sheets" -ScriptBlock {
             throw "ファイルが見つかりません: $filePath"
         }
 
-        # ImportExcelモジュールを確認・インストール
-        if (-not (Get-Module -ListAvailable -Name ImportExcel)) {
-            Write-Host "[Excel接続] ImportExcelモジュールをインストール中..." -ForegroundColor Yellow
-            Install-Module -Name ImportExcel -Force -Scope CurrentUser -ErrorAction Stop
+        $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Join-Path $RootDir "adapter"
+
+        # 一時ファイルパスを生成
+        $tempFile = Join-Path $env:TEMP "excel-sheets-result-$([guid]::NewGuid().ToString('N')).json"
+
+        # 外部スクリプトのパス
+        $sheetsScript = Join-Path $adapterDir "excel-get-sheets.ps1"
+
+        Write-Host "[Excel接続] シート取得スクリプトを起動: $sheetsScript" -ForegroundColor Cyan
+
+        # 外部プロセスでシート一覧を取得
+        $process = Start-Process -FilePath "powershell.exe" -ArgumentList @(
+            "-NoProfile",
+            "-ExecutionPolicy", "Bypass",
+            "-File", $sheetsScript,
+            "-FilePath", $filePath,
+            "-OutputPath", $tempFile
+        ) -Wait -PassThru -WindowStyle Hidden
+
+        Write-Host "[Excel接続] シート取得プロセス終了コード: $($process.ExitCode)" -ForegroundColor Cyan
+
+        # 結果ファイルを読み込み
+        if (Test-Path $tempFile) {
+            $resultJson = Get-Content $tempFile -Encoding UTF8 -Raw
+            $result = $resultJson | ConvertFrom-Json
+
+            # 一時ファイルを削除
+            Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+
+            if ($result.success) {
+                Write-Host "[Excel接続] シート一覧: $($result.sheets -join ', ')" -ForegroundColor Green
+                $response = @{
+                    success = $true
+                    sheets = @($result.sheets)
+                }
+                Write-PodeJsonResponse -Value $response
+            } else {
+                throw $result.error
+            }
+        } else {
+            throw "シート取得結果ファイルが見つかりません"
         }
-        Import-Module ImportExcel -ErrorAction Stop
-
-        Write-Host "[Excel接続] ImportExcelモジュール読み込み完了" -ForegroundColor Green
-
-        # シート情報を取得
-        $sheetInfo = Get-ExcelSheetInfo -Path $filePath
-        $sheets = @($sheetInfo | ForEach-Object { $_.Name })
-
-        Write-Host "[Excel接続] シート一覧: $($sheets -join ', ')" -ForegroundColor Green
-
-        $result = @{
-            success = $true
-            sheets = $sheets
-        }
-
-        Write-PodeJsonResponse -Value $result
     } catch {
         Write-Host "[Excel接続] シート取得エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
@@ -3267,86 +3289,85 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
         }
 
         $RootDir = Get-PodeState -Name 'RootDir'
+        $adapterDir = Join-Path $RootDir "adapter"
 
-        # ImportExcelモジュールを確認・インストール
-        if (-not (Get-Module -ListAvailable -Name ImportExcel)) {
-            Write-Host "[Excel接続] ImportExcelモジュールをインストール中..." -ForegroundColor Yellow
-            Install-Module -Name ImportExcel -Force -Scope CurrentUser -ErrorAction Stop
-        }
-        Import-Module ImportExcel -ErrorAction Stop
+        # 一時ファイルパスを生成
+        $tempFile = Join-Path $env:TEMP "excel-data-result-$([guid]::NewGuid().ToString('N')).json"
 
-        Write-Host "[Excel接続] ファイル読み込み開始: $filePath, シート: $sheetName" -ForegroundColor Cyan
+        # 外部スクリプトのパス
+        $readScript = Join-Path $adapterDir "excel-read-data.ps1"
 
-        # Excelデータを読み込み（ImportExcelを直接使用）
-        $excelData = Import-Excel -Path $filePath -WorksheetName $sheetName
+        Write-Host "[Excel接続] データ読み込みスクリプトを起動: $readScript" -ForegroundColor Cyan
 
-        # ヘッダーを取得
-        $headers = @()
-        if ($excelData -and $excelData.Count -gt 0) {
-            $headers = @($excelData[0].PSObject.Properties.Name)
-        } elseif ($excelData) {
-            $headers = @($excelData.PSObject.Properties.Name)
-        }
+        # 外部プロセスでデータを読み込み
+        $process = Start-Process -FilePath "powershell.exe" -ArgumentList @(
+            "-NoProfile",
+            "-ExecutionPolicy", "Bypass",
+            "-File", $readScript,
+            "-FilePath", $filePath,
+            "-SheetName", $sheetName,
+            "-OutputPath", $tempFile
+        ) -Wait -PassThru -WindowStyle Hidden
 
-        # ジャグ配列に変換（ヘッダー行 + データ行）
-        $data = @()
-        $data += ,$headers
+        Write-Host "[Excel接続] データ読み込みプロセス終了コード: $($process.ExitCode)" -ForegroundColor Cyan
 
-        if ($excelData) {
-            $rows = @($excelData)
-            foreach ($row in $rows) {
-                $rowData = @()
-                foreach ($header in $headers) {
-                    $cellValue = $row.$header
-                    if ($null -eq $cellValue) { $cellValue = "" }
-                    $rowData += [string]$cellValue
+        # 結果ファイルを読み込み
+        if (Test-Path $tempFile) {
+            $resultJson = Get-Content $tempFile -Encoding UTF8 -Raw
+            $excelResult = $resultJson | ConvertFrom-Json
+
+            # 一時ファイルを削除
+            Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+
+            if ($excelResult.success) {
+                $data = $excelResult.data
+                $rowCount = $excelResult.rowCount
+                $colCount = $excelResult.colCount
+                $headers = @($excelResult.headers)
+
+                Write-Host "[Excel接続] 読み込み完了: $rowCount 行 x $colCount 列" -ForegroundColor Green
+
+                # 変数ファイルに保存
+                $folderInfo = Get-Content (Join-Path $RootDir "03_history\メイン.json") -Encoding UTF8 | ConvertFrom-Json
+                $currentFolder = $folderInfo.currentFolder
+                $variablesPath = Join-Path $RootDir "03_history\$currentFolder\variables.json"
+
+                # 既存の変数を読み込み
+                $variables = @{}
+                if (Test-Path $variablesPath) {
+                    $existingVars = Get-Content $variablesPath -Encoding UTF8 -Raw | ConvertFrom-Json
+                    if ($existingVars) {
+                        $existingVars.PSObject.Properties | ForEach-Object {
+                            $variables[$_.Name] = $_.Value
+                        }
+                    }
                 }
-                $data += ,$rowData
-            }
-        }
 
-        # 行数・列数を計算
-        $rowCount = $data.Count
-        $colCount = if ($rowCount -gt 0 -and $data[0]) { $data[0].Count } else { 0 }
-        $headers = if ($rowCount -gt 0 -and $data[0]) { @($data[0]) } else { @() }
-
-        Write-Host "[Excel接続] 読み込み完了: $rowCount 行 x $colCount 列" -ForegroundColor Green
-
-        # 変数ファイルに保存
-        $folderInfo = Get-Content (Join-Path $RootDir "03_history\メイン.json") -Encoding UTF8 | ConvertFrom-Json
-        $currentFolder = $folderInfo.currentFolder
-        $variablesPath = Join-Path $RootDir "03_history\$currentFolder\variables.json"
-
-        # 既存の変数を読み込み
-        $variables = @{}
-        if (Test-Path $variablesPath) {
-            $existingVars = Get-Content $variablesPath -Encoding UTF8 -Raw | ConvertFrom-Json
-            if ($existingVars) {
-                $existingVars.PSObject.Properties | ForEach-Object {
-                    $variables[$_.Name] = $_.Value
+                # 新しい変数を追加
+                $variables[$variableName] = @{
+                    type = "二次元"
+                    value = $data
                 }
+
+                # 保存
+                $variables | ConvertTo-Json -Depth 100 | Out-File -FilePath $variablesPath -Encoding UTF8 -Force
+
+                $result = @{
+                    success = $true
+                    data = $data
+                    rowCount = $rowCount
+                    colCount = $colCount
+                    headers = $headers
+                    variableName = $variableName
+                }
+
+                Write-PodeJsonResponse -Value $result
+            } else {
+                throw $excelResult.error
             }
+        } else {
+            throw "データ読み込み結果ファイルが見つかりません"
         }
-
-        # 新しい変数を追加
-        $variables[$variableName] = @{
-            type = "二次元"
-            value = $data
-        }
-
-        # 保存
-        $variables | ConvertTo-Json -Depth 100 | Out-File -FilePath $variablesPath -Encoding UTF8 -Force
-
-        $result = @{
-            success = $true
-            data = $data
-            rowCount = $rowCount
-            colCount = $colCount
-            headers = $headers
-            variableName = $variableName
-        }
-
-        Write-PodeJsonResponse -Value $result
     } catch {
         Write-Host "[Excel接続] エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
