@@ -2532,11 +2532,10 @@ body::after {
     border: 1px solid #2563eb !important;
 }
 
-/* カテゴリパネル */
+/* カテゴリパネル - 背景は透明（元の色を維持） */
 .category-panel {
     box-shadow: none !important;
-    border: 1px solid #e2e8f0 !important;
-    background: white !important;
+    border: none !important;
 }
 
 /* カテゴリヘッダー */
