@@ -2473,3 +2473,283 @@ button:active, .button:active {
 .function-item-btn.export:hover {
     background: #e3f2fd;
 }
+
+/* ============================================
+   FLAT DESIGN OVERRIDE
+   ニューモーフィズムからフラットデザインへ変更
+   ============================================ */
+
+/* グローバル: 角丸と影をリセット */
+* {
+    border-radius: 0 !important;
+}
+
+/* ヘッダー */
+#header {
+    box-shadow: none !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+}
+
+#header::before {
+    display: none !important;
+}
+
+/* Aurora背景エフェクトを無効化 */
+body::before,
+body::after {
+    display: none !important;
+}
+
+/* メインコンテナ */
+#main-container {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 左パネル（カテゴリ・変数など） */
+#left-panel {
+    box-shadow: none !important;
+    border-right: 1px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+}
+
+/* タブ */
+.tab-button {
+    box-shadow: none !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+}
+
+.tab-button:hover {
+    background: #e2e8f0 !important;
+    box-shadow: none !important;
+}
+
+.tab-button.active {
+    background: #3b82f6 !important;
+    color: white !important;
+    box-shadow: none !important;
+    border: 1px solid #2563eb !important;
+}
+
+/* カテゴリパネル */
+.category-panel {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    background: white !important;
+}
+
+/* カテゴリヘッダー */
+.category-header {
+    box-shadow: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background: #f1f5f9 !important;
+}
+
+.category-header:hover {
+    box-shadow: none !important;
+    background: #e2e8f0 !important;
+}
+
+/* ボタン（カテゴリ内） */
+.category-panel button,
+.button-area button {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    background: white !important;
+}
+
+.category-panel button:hover,
+.button-area button:hover {
+    box-shadow: none !important;
+    background: #f1f5f9 !important;
+    border-color: #3b82f6 !important;
+}
+
+/* 変数リスト */
+.variable-item {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 3px solid #3b82f6 !important;
+    background: white !important;
+}
+
+.variable-item:hover {
+    box-shadow: none !important;
+    background: #f8fafc !important;
+}
+
+/* ノードエリア */
+.node-container {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* ノード */
+.node {
+    box-shadow: none !important;
+    border: 1px solid #94a3b8 !important;
+    background: white !important;
+}
+
+.node:hover {
+    box-shadow: none !important;
+    border-color: #3b82f6 !important;
+}
+
+.node.selected {
+    box-shadow: none !important;
+    border: 2px solid #3b82f6 !important;
+}
+
+/* ピンクノード（グループノード） */
+.node.pink-node {
+    border: 1px solid #ec4899 !important;
+    background: #fdf2f8 !important;
+}
+
+/* 入力フィールド */
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    background: white !important;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+    box-shadow: none !important;
+    border-color: #3b82f6 !important;
+    outline: none !important;
+}
+
+/* モーダル */
+.modal-content,
+.dialog-content {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* ツールチップ */
+.tooltip,
+.hover-preview {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* 接続パネル */
+.connection-panel,
+.connection-section {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    background: white !important;
+}
+
+.connection-field input,
+.connection-field select {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+/* アクションボタン */
+.btn-primary,
+.action-button {
+    box-shadow: none !important;
+    border: 1px solid #2563eb !important;
+    background: #3b82f6 !important;
+}
+
+.btn-primary:hover,
+.action-button:hover {
+    box-shadow: none !important;
+    background: #2563eb !important;
+}
+
+.btn-secondary {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #f1f5f9 !important;
+}
+
+.btn-secondary:hover {
+    box-shadow: none !important;
+    background: #e2e8f0 !important;
+}
+
+/* パンくずリスト */
+.breadcrumb {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+}
+
+.breadcrumb-item {
+    box-shadow: none !important;
+}
+
+/* フローティングボタン */
+.floating-button,
+.fab {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* スクロールバー */
+::-webkit-scrollbar-thumb {
+    border-radius: 0 !important;
+}
+
+/* 変数編集モーダル */
+.variable-edit-modal {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* テーブル */
+.data-table,
+.variable-table {
+    border: 1px solid #e2e8f0 !important;
+}
+
+.data-table th,
+.variable-table th {
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.data-table td,
+.variable-table td {
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* ドロップダウン */
+.dropdown-menu {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* コンテキストメニュー */
+.context-menu {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* ロボットパネル */
+.robot-panel {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* 関数リスト */
+.function-item {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    background: white !important;
+}
+
+.function-item:hover {
+    background: #f8fafc !important;
+}
