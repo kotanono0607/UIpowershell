@@ -3209,7 +3209,7 @@ Add-PodeRoute -Method Post -Path "/api/excel/browse" -ScriptBlock {
 # Excelシート一覧取得
 Add-PodeRoute -Method Post -Path "/api/excel/sheets" -ScriptBlock {
     try {
-        $body = Get-PodeBody
+        $body = $WebEvent.Data
         $filePath = $body.filePath
 
         Write-Host "[Excel接続] シート一覧取得開始: $filePath" -ForegroundColor Cyan
@@ -3275,7 +3275,7 @@ Add-PodeRoute -Method Post -Path "/api/excel/sheets" -ScriptBlock {
 # Excel接続（データ読み込み）
 Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
     try {
-        $body = Get-PodeBody
+        $body = $WebEvent.Data
         $filePath = $body.filePath
         $sheetName = $body.sheetName
         $variableName = if ($body.variableName) { $body.variableName } else { "Excel2次元配列" }
