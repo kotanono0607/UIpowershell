@@ -2590,6 +2590,11 @@ body::after {
     border: 1px solid #e2e8f0 !important;
 }
 
+/* ノード設置エリアの幅を+10px */
+.layer-panel {
+    width: 310px !important;
+}
+
 /* ノード */
 .node {
     box-shadow: none !important;
