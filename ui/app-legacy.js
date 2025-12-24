@@ -11336,6 +11336,18 @@ async function addFunctionToBoard(functionId) {
 
     console.log(`[関数] 関数ノード作成: ID=${newNodeId}, 関数=${func.name}`);
 
+    // 関数内の各ノードのスクリプトをコード.jsonに保存
+    for (const node of func.nodes) {
+        if (node.script && node.script.trim() !== '') {
+            console.log(`[関数] ノード「${node.text}」のスクリプトをコード.jsonに保存 (ID: ${node.id}, ${node.script.length}文字)`);
+            try {
+                await setCodeEntry(node.id, node.script);
+            } catch (error) {
+                console.error(`[関数] ノード「${node.text}」のスクリプト保存エラー:`, error);
+            }
+        }
+    }
+
     // 画面を再描画
     renderNodesInLayer(leftVisibleLayer, 'left');
     refreshAllArrows();
@@ -11880,6 +11892,18 @@ async function saveFunctionEdits() {
     func.updatedAt = new Date().toISOString();
 
     console.log(`[関数エディタ] 保存: ${func.name} (${func.nodes.length}ノード)`);
+
+    // 各ノードのスクリプトをコード.jsonに保存
+    for (const node of func.nodes) {
+        if (node.script && node.script.trim() !== '') {
+            console.log(`[関数エディタ] ノード「${node.text}」のスクリプトをコード.jsonに保存 (ID: ${node.id}, ${node.script.length}文字)`);
+            try {
+                await setCodeEntry(node.id, node.script);
+            } catch (error) {
+                console.error(`[関数エディタ] ノード「${node.text}」のスクリプト保存エラー:`, error);
+            }
+        }
+    }
 
     // ファイルに保存
     await saveFunctionToFile(func);
