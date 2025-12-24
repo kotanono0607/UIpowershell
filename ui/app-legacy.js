@@ -11119,8 +11119,9 @@ function setupRobotProfileAutoSave() {
 
 /**
  * 関数リストを描画
+ * @param {string} filterText - フィルター文字列（省略可）
  */
-function renderFunctionsList() {
+function renderFunctionsList(filterText = '') {
     const listContainer = document.getElementById('functions-list');
     const emptyMessage = document.getElementById('functions-empty-message');
 
@@ -11130,16 +11131,34 @@ function renderFunctionsList() {
     const existingItems = listContainer.querySelectorAll('.function-item');
     existingItems.forEach(item => item.remove());
 
+    // フィルタリング
+    const filterLower = filterText.toLowerCase().trim();
+    const filteredFunctions = filterLower
+        ? userFunctions.filter(f => f.name.toLowerCase().includes(filterLower))
+        : userFunctions;
+
     // 関数がない場合は空メッセージを表示
     if (userFunctions.length === 0) {
         if (emptyMessage) emptyMessage.style.display = 'block';
         return;
     }
 
-    if (emptyMessage) emptyMessage.style.display = 'none';
+    // フィルター結果が0件の場合
+    if (filteredFunctions.length === 0 && filterLower) {
+        if (emptyMessage) {
+            emptyMessage.style.display = 'block';
+            emptyMessage.textContent = `「${filterText}」に一致する関数がありません`;
+        }
+        return;
+    }
+
+    if (emptyMessage) {
+        emptyMessage.style.display = 'none';
+        emptyMessage.innerHTML = '関数がありません。<br>ノードを選択して右クリック→「関数化」で作成できます。';
+    }
 
     // 関数アイテムを描画
-    userFunctions.forEach(func => {
+    filteredFunctions.forEach(func => {
         const item = document.createElement('div');
         item.className = 'function-item';
         item.onclick = () => addFunctionToBoard(func.id);
@@ -11155,6 +11174,7 @@ function renderFunctionsList() {
             </div>
             <div class="function-item-actions">
                 <button class="function-item-btn edit" onclick="event.stopPropagation(); editFunction('${func.id}')" title="編集">✏️</button>
+                <button class="function-item-btn duplicate" onclick="event.stopPropagation(); duplicateFunction('${func.id}')" title="複製">📋</button>
                 <button class="function-item-btn export" onclick="event.stopPropagation(); exportFunction('${func.id}')" title="エクスポート">📤</button>
                 <button class="function-item-btn delete" onclick="event.stopPropagation(); deleteFunction('${func.id}')" title="削除">🗑️</button>
             </div>
@@ -11163,7 +11183,15 @@ function renderFunctionsList() {
         listContainer.appendChild(item);
     });
 
-    console.log(`[関数] ${userFunctions.length}個の関数を描画しました`);
+    console.log(`[関数] ${filteredFunctions.length}/${userFunctions.length}個の関数を描画しました`);
+}
+
+/**
+ * 関数リストをフィルター
+ * @param {string} searchText - 検索文字列
+ */
+function filterFunctions(searchText) {
+    renderFunctionsList(searchText);
 }
 
 /**
@@ -11491,6 +11519,58 @@ async function editFunction(functionId) {
     renderFunctionsList();
 
     console.log(`[関数編集] 完了: ${func.name}`);
+}
+
+/**
+ * 関数を複製
+ */
+async function duplicateFunction(functionId) {
+    const func = userFunctions.find(f => f.id === functionId);
+    if (!func) {
+        console.error(`[関数] 複製対象が見つかりません: ${functionId}`);
+        return;
+    }
+
+    console.log(`[関数複製] 開始: ${func.name}`);
+
+    // 新しい関数名を入力
+    const newName = await showPromptDialog(
+        '複製後の関数名を入力してください:',
+        '関数の複製',
+        `${func.name}_コピー`
+    );
+
+    if (!newName || newName.trim() === '') {
+        console.log('[関数複製] キャンセルされました');
+        return;
+    }
+
+    // 新しい関数を作成（ディープコピー）
+    const newFunction = {
+        id: `func_${functionIdCounter++}`,
+        name: newName.trim(),
+        nodes: JSON.parse(JSON.stringify(func.nodes)), // ディープコピー
+        params: JSON.parse(JSON.stringify(func.params || [])),
+        returns: JSON.parse(JSON.stringify(func.returns || [])),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+
+    // 関数リストに追加
+    userFunctions.push(newFunction);
+
+    console.log(`[関数複製] 作成完了: ${newFunction.name} (${newFunction.nodes.length}ノード)`);
+
+    // ファイルに保存
+    await saveFunctionToFile(newFunction);
+
+    // ローカルストレージも更新
+    saveFunctionsToLocalStorage();
+
+    // リストを再描画
+    renderFunctionsList();
+
+    console.log(`[関数複製] 完了: ${func.name} → ${newFunction.name}`);
 }
 
 /**

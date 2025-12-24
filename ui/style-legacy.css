@@ -2371,6 +2371,36 @@ button:active, .button:active {
         inset -2px -2px 4px var(--shadow-light);
 }
 
+/* 関数検索ボックス */
+.functions-search {
+    padding: 8px 0;
+}
+
+.functions-search input {
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 12px;
+    box-shadow:
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+}
+
+.functions-search input::placeholder {
+    color: var(--text-secondary);
+}
+
+.functions-search input:focus {
+    outline: none;
+    box-shadow:
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light),
+        0 0 0 2px rgba(127, 255, 212, 0.3);
+}
+
 /* 関数リスト */
 .functions-list {
     flex: 1;
