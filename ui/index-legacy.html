@@ -634,25 +634,20 @@
                 <div class="help-section">
                     <h3>🎨 ノードの色について</h3>
                     <p style="margin: 0 0 12px 0; font-size: 14px; color: #555;">
-                        ノードはカテゴリごとに色分けされています。色を見ることで、どの種類の処理かを一目で識別できます。
+                        ノードの色は、その役割や状態を示しています。
                     </p>
                     <div class="help-color-list">
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(200, 220, 250);"></span><strong>制御構文</strong> - 条件分岐、ループなど</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(250, 215, 220);"></span><strong>マウス操作</strong> - クリック、移動、ドラッグ</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(210, 255, 240);"></span><strong>キーボード操作</strong> - キー入力、ショートカット</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(225, 245, 230);"></span><strong>UIAutomation</strong> - Windows UI要素の操作</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(250, 250, 230);"></span><strong>起動・実行</strong> - アプリ起動、URL起動</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(240, 230, 250);"></span><strong>データ操作</strong> - 変数、文字列、日付操作</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(245, 245, 245);"></span><strong>ユーザー対話</strong> - メッセージボックス、入力ダイアログ</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(220, 235, 255);"></span><strong>Excel(データ)</strong> - Excel一括処理</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(200, 225, 255);"></span><strong>Excel(操作)</strong> - Excelセル操作</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(255, 250, 220);"></span><strong>ウインドウ操作</strong> - ウインドウ制御</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(255, 235, 240);"></span><strong>画像処理</strong> - スクリーンショット、画像認識</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(255, 245, 220);"></span><strong>ファイル操作</strong> - ファイル・フォルダ操作</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(230, 230, 250);"></span><strong>共通処理</strong> - 待機、ログ出力</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: white; border: 1px solid #999;"></span><strong>白 (White)</strong> - 通常のノード</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: springgreen;"></span><strong>黄緑 (SpringGreen)</strong> - 条件分岐の開始/終了ノード</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: gray;"></span><strong>灰色 (Gray)</strong> - 条件分岐の中間ノード（ElseIf等）</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: salmon;"></span><strong>サーモン (Salmon)</strong> - 条件分岐のFalse側（Else分岐）</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: lightblue;"></span><strong>水色 (LightBlue)</strong> - 条件分岐のTrue側（If分岐）</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: lemonchiffon;"></span><strong>レモン色 (LemonChiffon)</strong> - ループの開始/終了ノード</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: pink;"></span><strong>ピンク (Pink)</strong> - スクリプト化ノード（レイヤー化で作成）</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: aquamarine;"></span><strong>アクアマリン (Aquamarine)</strong> - 関数ノード</div>
                     </div>
-                    <p style="margin: 12px 0 0 0; font-size: 13px; color: #888;">
-                        ※ 関数ノードは <span class="help-color-box" style="background: aquamarine; display: inline-block; vertical-align: middle;"></span> アクアマリン色で表示されます。
+                    <p style="margin: 12px 0 0 0; font-size: 13px; color: #666;">
+                        ※ 条件分岐内に配置したノードは自動的にSalmon（False側）またはLightBlue（True側）に色が変わります。
                     </p>
                 </div>
             </div>
