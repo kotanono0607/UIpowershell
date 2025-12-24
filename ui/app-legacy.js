@@ -365,6 +365,14 @@ let nodeCounter = 1;
 // GroupIDカウンター（オリジナルPowerShellと同じ仕様）
 let loopGroupCounter = 1000;      // ループ用（1000番台）
 let conditionGroupCounter = 2000; // 条件分岐用（2000番台）
+let userGroupCounter = 3000;      // ユーザー作成グループ用（3000番台）
+
+// ユーザーグループ管理
+let userGroups = {};  // { groupId: { name: 'グループ名', collapsed: false, nodes: [...] } }
+
+// 複数ノード選択管理
+let selectedNodes = [];  // 選択中のノードID配列
+let isMultiSelectMode = false;  // 複数選択モード中か
 
 // ポップアップウィンドウ管理（レイヤー詳細）
 let layerPopups = new Map();      // レイヤー番号 -> Windowオブジェクト
@@ -1639,6 +1647,27 @@ function isPinkColor(colorString) {
         return isPink;
     }
     return false;
+}
+
+// groupIdがユーザー作成グループかどうかを判定（3000番台）
+function isUserGroup(groupId) {
+    if (groupId === null || groupId === undefined) return false;
+    const id = parseInt(groupId);
+    return id >= 3000 && id < 4000;
+}
+
+// groupIdがループグループかどうかを判定（1000番台）
+function isLoopGroup(groupId) {
+    if (groupId === null || groupId === undefined) return false;
+    const id = parseInt(groupId);
+    return id >= 1000 && id < 2000;
+}
+
+// groupIdが条件分岐グループかどうかを判定（2000番台）
+function isConditionGroup(groupId) {
+    if (groupId === null || groupId === undefined) return false;
+    const id = parseInt(groupId);
+    return id >= 2000 && id < 3000;
 }
 
 // パネル間矢印を描画（ピンクノードのスクリプト展開用）
@@ -2936,7 +2965,34 @@ function renderNodesInLayer(layer, panelSide = 'left') {
             btn.dataset.groupId = node.groupId;
         }
 
-        console.log(`[デバッグ] ノード配置: x=${node.x || 90}px, y=${node.y}px, text="${node.text}", groupId=${node.groupId || 'なし'}`);
+        // ユーザーグループIDを設定
+        if (node.userGroupId !== null && node.userGroupId !== undefined) {
+            btn.dataset.userGroupId = node.userGroupId;
+            btn.classList.add('user-grouped');
+
+            // グループ情報を取得して色を設定
+            const groupInfo = userGroups[node.userGroupId];
+            if (groupInfo) {
+                // グループ名をツールチップに追加
+                btn.title = `[${groupInfo.name}] ${node.text}`;
+
+                // 折りたたみ状態かチェック
+                if (groupInfo.collapsed) {
+                    // 折りたたみ中は最初のノードのみ表示（グループ代表）
+                    const groupNodes = layerNodes.filter(n => n.userGroupId === node.userGroupId);
+                    const firstNode = groupNodes.sort((a, b) => a.y - b.y)[0];
+                    if (node.id !== firstNode.id) {
+                        btn.style.display = 'none';  // 非表示
+                    } else {
+                        // 代表ノードはグループ名を表示
+                        btn.textContent = `📁 ${groupInfo.name} (${groupNodes.length}個)`;
+                        btn.classList.add('group-collapsed');
+                    }
+                }
+            }
+        }
+
+        console.log(`[デバッグ] ノード配置: x=${node.x || 90}px, y=${node.y}px, text="${node.text}", groupId=${node.groupId || 'なし'}, userGroupId=${node.userGroupId || 'なし'}`);
 
         // 赤枠スタイルを適用
         if (node.redBorder) {
@@ -3697,6 +3753,35 @@ function showContextMenu(e, node) {
         functionizeMenuItem.style.display = 'block';
     } else {
         functionizeMenuItem.style.display = 'none';
+    }
+
+    // グループ化ボタンの表示/非表示を制御
+    const groupizeMenuItem = document.getElementById('groupize-menu-item');
+    const ungroupMenuItem = document.getElementById('ungroup-menu-item');
+    const toggleGroupMenuItem = document.getElementById('toggle-group-menu-item');
+
+    // 赤枠ノードが2個以上あり、かつユーザーグループ未所属ならグループ化ボタンを表示
+    const nonGroupedRedNodes = redBorderNodes.filter(n => !isUserGroup(n.userGroupId));
+    if (nonGroupedRedNodes.length >= 2) {
+        groupizeMenuItem.style.display = 'block';
+    } else {
+        groupizeMenuItem.style.display = 'none';
+    }
+
+    // クリックしたノードがユーザーグループに所属していればグループ解除と折りたたみボタンを表示
+    if (node && isUserGroup(node.userGroupId)) {
+        ungroupMenuItem.style.display = 'block';
+        toggleGroupMenuItem.style.display = 'block';
+        // 折りたたみ状態に応じてテキストを変更
+        const groupInfo = userGroups[node.userGroupId];
+        if (groupInfo && groupInfo.collapsed) {
+            toggleGroupMenuItem.textContent = '🔼 グループ展開';
+        } else {
+            toggleGroupMenuItem.textContent = '🔽 グループ折りたたみ';
+        }
+    } else {
+        ungroupMenuItem.style.display = 'none';
+        toggleGroupMenuItem.style.display = 'none';
     }
 
     // メニュー外クリックで閉じる
@@ -6706,6 +6791,7 @@ async function loadExistingNodes() {
                     width: nodeData.幅 || NODE_WIDTH,
                     height: nodeData.高さ || NODE_HEIGHT,
                     groupId: nodeData.GroupID || null,
+                    userGroupId: nodeData.userGroupId || null,  // ユーザーグループID
                     処理番号: nodeData.処理番号 || '',
                     script: nodeData.script || '',
                     関数名: nodeData.関数名 || ''
@@ -6759,6 +6845,15 @@ async function loadExistingNodes() {
             });
         }
         console.log(`[memory.json読み込み] conditionGroupCounter を ${conditionGroupCounter}, loopGroupCounter を ${loopGroupCounter} に更新しました`);
+
+        // ユーザーグループを復元
+        if (memoryData.userGroups) {
+            restoreUserGroups(memoryData.userGroups);
+        } else {
+            // userGroupsが保存されていない場合はクリア
+            userGroups = {};
+            userGroupCounter = 3000;
+        }
 
         // IDフィールドがなかった場合は、新しいIDでmemory.jsonを再保存
         // これにより、次回起動時にIDが維持される
@@ -6839,10 +6934,16 @@ async function saveMemoryJson() {
         }
         console.log('└─ [memory.json保存] API呼び出し ────────────────');
 
+        // ユーザーグループ情報も含める
+        const saveData = {
+            layerStructure: formattedLayerStructure,
+            userGroups: getUserGroupsForSave()
+        };
+
         const response = await fetch(`${API_BASE}/folders/${currentFolder}/memory`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ layerStructure: formattedLayerStructure })
+            body: JSON.stringify(saveData)
         });
 
         const result = await response.json();
@@ -12145,6 +12246,222 @@ async function expandFunctionNode(node) {
     }));
 
     showLayerDetailModal(leftVisibleLayer + 1, functionNodes, node);
+}
+
+// ============================================
+// ユーザーグループ機能（WinActor風グループ化）
+// ============================================
+
+/**
+ * 赤枠ノードをグループ化する
+ */
+async function groupizeNodes() {
+    hideContextMenu();
+
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    const redBorderNodes = currentLayerNodes.filter(n => n.redBorder && !isUserGroup(n.groupId));
+
+    if (redBorderNodes.length < 2) {
+        await showAlertDialog('グループ化するには2個以上のノードを選択してください。', 'グループ化');
+        return;
+    }
+
+    // Y座標でソート
+    const sortedNodes = [...redBorderNodes].sort((a, b) => a.y - b.y);
+
+    // バリデーション: 条件分岐/ループをまたいでいないかチェック
+    const validationResult = validateGroupSelection(sortedNodes);
+    if (!validationResult.valid) {
+        await showAlertDialog(validationResult.error, 'グループ化エラー');
+        return;
+    }
+
+    // グループ名を入力
+    const groupName = await showPromptDialog('グループ名を入力してください:', 'グループ化', 'グループ');
+    if (!groupName) {
+        return; // キャンセル
+    }
+
+    // 新しいグループIDを生成
+    const newGroupId = userGroupCounter++;
+
+    // ユーザーグループ情報を保存
+    userGroups[newGroupId] = {
+        name: groupName,
+        collapsed: false,
+        nodeIds: sortedNodes.map(n => n.id),
+        layer: leftVisibleLayer
+    };
+
+    // 各ノードにグループIDを設定
+    sortedNodes.forEach(node => {
+        node.userGroupId = newGroupId;
+        node.redBorder = false; // 赤枠を解除
+    });
+
+    console.log(`[グループ化] グループ「${groupName}」を作成しました (ID: ${newGroupId}, ノード数: ${sortedNodes.length})`);
+
+    // 再描画
+    renderNodesInLayer(leftVisibleLayer);
+    await saveMemoryJson();
+
+    await showAlertDialog(`グループ「${groupName}」を作成しました。\n(${sortedNodes.length}個のノード)`, 'グループ化完了');
+}
+
+/**
+ * グループ選択のバリデーション
+ * - 条件分岐/ループをまたいでいないかチェック
+ * - ネストしていないかチェック
+ */
+function validateGroupSelection(selectedNodes) {
+    const nodeIds = new Set(selectedNodes.map(n => n.id));
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+
+    // 全ての条件分岐/ループグループを取得
+    const structureGroups = {};  // { groupId: { nodes: [], type: 'loop' | 'condition' } }
+
+    currentLayerNodes.forEach(node => {
+        if (isLoopGroup(node.groupId)) {
+            if (!structureGroups[node.groupId]) {
+                structureGroups[node.groupId] = { nodes: [], type: 'loop' };
+            }
+            structureGroups[node.groupId].nodes.push(node);
+        } else if (isConditionGroup(node.groupId)) {
+            if (!structureGroups[node.groupId]) {
+                structureGroups[node.groupId] = { nodes: [], type: 'condition' };
+            }
+            structureGroups[node.groupId].nodes.push(node);
+        }
+    });
+
+    // 各構造グループについて、選択ノードが部分的にまたいでいないかチェック
+    for (const [groupId, groupInfo] of Object.entries(structureGroups)) {
+        const groupNodeIds = groupInfo.nodes.map(n => n.id);
+        const selectedInGroup = groupNodeIds.filter(id => nodeIds.has(id));
+
+        // グループの一部だけが選択されている場合はエラー
+        if (selectedInGroup.length > 0 && selectedInGroup.length < groupNodeIds.length) {
+            const typeName = groupInfo.type === 'loop' ? 'ループ' : '条件分岐';
+            return {
+                valid: false,
+                error: `${typeName}の開始/終了ノードを部分的に選択することはできません。\n${typeName}全体を選択するか、${typeName}を含まないように選択してください。`
+            };
+        }
+    }
+
+    // 既存のユーザーグループに所属していないかチェック
+    for (const node of selectedNodes) {
+        if (isUserGroup(node.userGroupId)) {
+            return {
+                valid: false,
+                error: `ノード「${node.text}」は既にグループに所属しています。\n先にグループを解除してください。`
+            };
+        }
+    }
+
+    return { valid: true };
+}
+
+/**
+ * グループを解除する
+ */
+async function ungroupNodes() {
+    hideContextMenu();
+
+    if (!contextMenuTarget || !isUserGroup(contextMenuTarget.userGroupId)) {
+        await showAlertDialog('グループに所属していないノードです。', 'グループ解除');
+        return;
+    }
+
+    const groupId = contextMenuTarget.userGroupId;
+    const groupInfo = userGroups[groupId];
+
+    if (!groupInfo) {
+        await showAlertDialog('グループ情報が見つかりません。', 'グループ解除');
+        return;
+    }
+
+    const confirmed = await showConfirmDialog(
+        `グループ「${groupInfo.name}」を解除しますか？`,
+        'グループ解除'
+    );
+
+    if (!confirmed) return;
+
+    // グループに所属する全ノードのuserGroupIdをクリア
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    currentLayerNodes.forEach(node => {
+        if (node.userGroupId === groupId) {
+            delete node.userGroupId;
+        }
+    });
+
+    // グループ情報を削除
+    delete userGroups[groupId];
+
+    console.log(`[グループ解除] グループ「${groupInfo.name}」を解除しました`);
+
+    // 再描画
+    renderNodesInLayer(leftVisibleLayer);
+    await saveMemoryJson();
+
+    await showAlertDialog(`グループ「${groupInfo.name}」を解除しました。`, 'グループ解除完了');
+}
+
+/**
+ * グループの折りたたみ/展開をトグルする
+ */
+async function toggleGroupCollapse() {
+    hideContextMenu();
+
+    if (!contextMenuTarget || !isUserGroup(contextMenuTarget.userGroupId)) {
+        return;
+    }
+
+    const groupId = contextMenuTarget.userGroupId;
+    const groupInfo = userGroups[groupId];
+
+    if (!groupInfo) return;
+
+    // 折りたたみ状態をトグル
+    groupInfo.collapsed = !groupInfo.collapsed;
+
+    console.log(`[グループ] グループ「${groupInfo.name}」を${groupInfo.collapsed ? '折りたたみ' : '展開'}しました`);
+
+    // 再描画
+    renderNodesInLayer(leftVisibleLayer);
+    await saveMemoryJson();
+}
+
+/**
+ * 入力ダイアログを表示
+ */
+function showPromptDialog(message, title, defaultValue = '') {
+    return new Promise((resolve) => {
+        // 既存のモーダルを流用するか、シンプルなpromptを使用
+        const result = prompt(message, defaultValue);
+        resolve(result);
+    });
+}
+
+/**
+ * ユーザーグループをmemory.jsonに保存するためのデータを取得
+ */
+function getUserGroupsForSave() {
+    return JSON.parse(JSON.stringify(userGroups));
+}
+
+/**
+ * memory.jsonからユーザーグループを復元
+ */
+function restoreUserGroups(savedGroups) {
+    if (savedGroups && typeof savedGroups === 'object') {
+        userGroups = JSON.parse(JSON.stringify(savedGroups));
+        // userGroupCounterを更新
+        const maxId = Math.max(3000, ...Object.keys(userGroups).map(id => parseInt(id)));
+        userGroupCounter = maxId + 1;
+        console.log(`[グループ復元] ${Object.keys(userGroups).length}個のグループを復元しました`);
+    }
 }
 
 // ============================================
