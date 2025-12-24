@@ -11659,7 +11659,7 @@ async function editFunctionNodeName(index) {
 }
 
 /**
- * 関数内ノードのスクリプトを編集
+ * 関数内ノードのスクリプトを直接編集
  */
 async function editFunctionNodeScript(index) {
     const node = currentEditingNodes[index];
@@ -11667,26 +11667,41 @@ async function editFunctionNodeScript(index) {
 
     console.log(`[関数エディタ] スクリプト編集: ${index} - ${node.text}`);
 
-    // generateCodeを使ってスクリプトを再生成（引数設定ダイアログが表示される）
-    if (!node.処理番号) {
-        await showAlertDialog('このノードは処理番号がないためスクリプトを編集できません。', 'エラー');
-        return;
-    }
+    // PowerShell Windows Formsダイアログで直接編集
+    const requestBody = {
+        nodeId: node.id,
+        nodeName: node.text,
+        currentScript: node.script || ''
+    };
 
     try {
-        const generatedScript = await generateCode(node.処理番号, node.id);
+        const response = await fetch(`${API_BASE}/node/edit-script`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
 
-        if (generatedScript === null || generatedScript === undefined) {
+        const result = await response.json();
+
+        if (!response.ok) {
+            console.error('[関数エディタ] サーバーエラー:', result);
+            await showAlertDialog(`エラーが発生しました: ${result.error || 'Unknown error'}`, 'サーバーエラー');
+            return;
+        }
+
+        if (result.cancelled) {
             console.log('[関数エディタ] スクリプト編集がキャンセルされました');
             return;
         }
 
-        node.script = generatedScript;
+        if (result.success && result.newScript !== undefined) {
+            node.script = result.newScript;
 
-        console.log(`[関数エディタ] スクリプト更新: ${node.text}`);
-        console.log(`[関数エディタ] 新スクリプト長: ${generatedScript.length}文字`);
+            console.log(`[関数エディタ] スクリプト更新: ${node.text}`);
+            console.log(`[関数エディタ] 新スクリプト長: ${result.newScript.length}文字`);
 
-        renderFunctionEditorNodes();
+            renderFunctionEditorNodes();
+        }
 
     } catch (error) {
         console.error('[関数エディタ] スクリプト編集エラー:', error);
