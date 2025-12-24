@@ -11,7 +11,7 @@ const API_BASE = 'http://localhost:8080/api';
 // ============================================
 const NODE_HEIGHT = 24;      // ノードの高さ（元: 40px → 60%: 24px）
 const NODE_WIDTH = 120;      // ノードの幅
-const NODE_SPACING = 25;     // ノード間の間隔（36px → 70%: 25px）
+const NODE_SPACING = 18;     // ノード間の間隔（18px）
 
 // ============================================
 // デバッグ設定
