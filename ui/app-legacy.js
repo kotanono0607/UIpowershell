@@ -2003,6 +2003,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadExistingNodes();
     await writeControlLog('✅ [INIT] 既存ノードの読み込み完了');
 
+    // Excel接続情報を復元
+    await loadConnectionState();
+    await writeControlLog('✅ [INIT] 接続情報の復元完了');
+
     console.log('═══════════════════════════════════════════════');
     console.log(`✅ UIpowershell 初期化完了 [Version: ${APP_VERSION}]`);
     console.log('═══════════════════════════════════════════════');
@@ -10536,6 +10540,80 @@ const excelConnectionState = {
     headers: []
 };
 
+// 接続情報をサーバーに保存
+async function saveConnectionState() {
+    try {
+        const connectionData = {
+            excel: {
+                connected: excelConnectionState.connected,
+                filePath: excelConnectionState.filePath,
+                sheetName: excelConnectionState.sheetName,
+                variableName: excelConnectionState.variableName,
+                rowCount: excelConnectionState.rowCount,
+                colCount: excelConnectionState.colCount,
+                headers: excelConnectionState.headers
+            }
+        };
+
+        const response = await fetch('/api/connection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(connectionData)
+        });
+
+        if (response.ok) {
+            console.log('[接続情報] 保存完了');
+        }
+    } catch (error) {
+        console.error('[接続情報] 保存エラー:', error);
+    }
+}
+
+// 接続情報をサーバーから復元
+async function loadConnectionState() {
+    try {
+        const response = await fetch('/api/connection');
+        if (!response.ok) return;
+
+        const result = await response.json();
+        if (!result.success || !result.data || !result.data.excel) return;
+
+        const excel = result.data.excel;
+        if (!excel.connected) return;
+
+        console.log('[接続情報] 復元開始:', excel);
+
+        // 状態を復元
+        excelConnectionState.connected = excel.connected;
+        excelConnectionState.filePath = excel.filePath;
+        excelConnectionState.sheetName = excel.sheetName;
+        excelConnectionState.variableName = excel.variableName;
+        excelConnectionState.rowCount = excel.rowCount;
+        excelConnectionState.colCount = excel.colCount;
+        excelConnectionState.headers = excel.headers || [];
+
+        // UIを復元
+        const filePathInput = document.getElementById('excel-file-path');
+        const sheetSelect = document.getElementById('excel-sheet-select');
+        const variableNameInput = document.getElementById('excel-variable-name');
+
+        if (filePathInput) filePathInput.value = excel.filePath;
+        if (variableNameInput) variableNameInput.value = excel.variableName;
+
+        // シート選択を復元
+        if (sheetSelect && excel.sheetName) {
+            sheetSelect.innerHTML = `<option value="${excel.sheetName}">${excel.sheetName}</option>`;
+            sheetSelect.value = excel.sheetName;
+            sheetSelect.disabled = false;
+        }
+
+        updateExcelConnectionUI();
+        console.log('[接続情報] 復元完了');
+    } catch (error) {
+        console.error('[接続情報] 復元エラー:', error);
+    }
+}
+
 // Excel接続UIを更新
 function updateExcelConnectionUI() {
     const badge = document.getElementById('excel-connection-badge');
@@ -10686,6 +10764,10 @@ async function connectExcel() {
             console.log('[Excel接続] 変数読み込み完了, キー:', Object.keys(variables));
 
             updateExcelConnectionUI();
+
+            // 接続情報を永続化
+            await saveConnectionState();
+
             alert(`Excel接続完了: ${result.rowCount}行 x ${result.colCount}列 のデータを読み込みました`);
             console.log('[Excel接続] 接続完了');
         } else {
@@ -10698,7 +10780,7 @@ async function connectExcel() {
 }
 
 // Excel切断
-function disconnectExcel() {
+async function disconnectExcel() {
     console.log('[Excel接続] 切断');
 
     // 変数から削除
@@ -10725,6 +10807,9 @@ function disconnectExcel() {
     document.getElementById('excel-connect-btn').disabled = true;
 
     updateExcelConnectionUI();
+
+    // 接続情報を永続化（切断状態を保存）
+    await saveConnectionState();
 }
 
 // 変数をサーバーに保存

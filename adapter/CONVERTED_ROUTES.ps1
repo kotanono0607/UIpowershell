@@ -3388,5 +3388,72 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
 }
 
 # ==============================================================================
+# 接続情報永続化 API
+# ==============================================================================
+
+# 接続情報を取得
+Add-PodeRoute -Method Get -Path '/api/connection' -ScriptBlock {
+    try {
+        $folderInfo = Get-Content (Join-Path $RootDir "03_history\メイン.json") -Encoding UTF8 | ConvertFrom-Json
+        $currentFolder = $folderInfo.currentFolder
+        $connectionPath = Join-Path $RootDir "03_history\$currentFolder\connection.json"
+
+        if (Test-Path $connectionPath) {
+            $connectionData = Get-Content $connectionPath -Encoding UTF8 -Raw | ConvertFrom-Json
+            $result = @{
+                success = $true
+                data = $connectionData
+            }
+        } else {
+            $result = @{
+                success = $true
+                data = $null
+            }
+        }
+
+        Write-PodeJsonResponse -Value $result
+    }
+    catch {
+        Write-Host "[接続情報取得] エラー: $($_.Exception.Message)" -ForegroundColor Red
+        Set-PodeResponseStatus -Code 500
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
+# 接続情報を保存
+Add-PodeRoute -Method Post -Path '/api/connection' -ScriptBlock {
+    try {
+        $body = Get-PodeBodyData
+
+        $folderInfo = Get-Content (Join-Path $RootDir "03_history\メイン.json") -Encoding UTF8 | ConvertFrom-Json
+        $currentFolder = $folderInfo.currentFolder
+        $connectionPath = Join-Path $RootDir "03_history\$currentFolder\connection.json"
+
+        # 接続情報を保存
+        $body | ConvertTo-Json -Depth 10 | Out-File -FilePath $connectionPath -Encoding UTF8 -Force
+
+        Write-Host "[接続情報保存] 保存完了: $connectionPath" -ForegroundColor Green
+
+        $result = @{
+            success = $true
+        }
+        Write-PodeJsonResponse -Value $result
+    }
+    catch {
+        Write-Host "[接続情報保存] エラー: $($_.Exception.Message)" -ForegroundColor Red
+        Set-PodeResponseStatus -Code 500
+        $errorResult = @{
+            success = $false
+            error = $_.Exception.Message
+        }
+        Write-PodeJsonResponse -Value $errorResult
+    }
+}
+
+# ==============================================================================
 # 変換完了
 # ==============================================================================
