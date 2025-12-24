@@ -10629,6 +10629,22 @@ async function loadConnectionState() {
         // 接続タブのUI更新
         updateExcelConnectionUI();
 
+        // variables.jsonからExcel変数を読み込んでvariablesにマージ
+        try {
+            const varResponse = await fetch(`${API_BASE}/folders/${currentFolder}/variables`);
+            const varResult = await varResponse.json();
+            if (varResult.success && varResult.data) {
+                // Excel変数名に対応する変数があれば追加
+                const varName = excel.variableName;
+                if (varResult.data[varName]) {
+                    variables[varName] = varResult.data[varName];
+                    console.log('[接続情報] Excel変数を復元:', varName);
+                }
+            }
+        } catch (varError) {
+            console.warn('[接続情報] 変数読み込みエラー:', varError);
+        }
+
         // 変数タブのリスト更新
         renderVariablesList();
 
