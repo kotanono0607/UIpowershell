@@ -79,6 +79,11 @@
                         <button class="functions-import-btn" onclick="importFunction()">📥 インポート</button>
                     </div>
 
+                    <!-- 検索ボックス -->
+                    <div class="functions-search">
+                        <input type="text" id="functions-search-input" placeholder="関数を検索..." oninput="filterFunctions(this.value)">
+                    </div>
+
                     <!-- 関数リスト -->
                     <div class="functions-list" id="functions-list">
                         <!-- 動的に生成 -->
