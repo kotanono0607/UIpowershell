@@ -771,9 +771,9 @@ function drawPanelArrows(layerId) {
         const currentColor = window.getComputedStyle(currentNode).backgroundColor;
         const nextColor = window.getComputedStyle(nextNode).backgroundColor;
 
-        // 通常ノード間の矢印（黒）: White, Pink を通常扱い
-        const isCurrentNormal = isWhiteColor(currentColor) || isPinkColor(currentColor);
-        const isNextNormal = isWhiteColor(nextColor) || isPinkColor(nextColor);
+        // 通常ノード間の矢印（黒）: White, Pink, Aquamarine, ActionOrange, ReadCyan を通常扱い
+        const isCurrentNormal = isWhiteColor(currentColor) || isPinkColor(currentColor) || isAquamarineColor(currentColor) || isActionOrangeColor(currentColor) || isReadCyanColor(currentColor);
+        const isNextNormal = isWhiteColor(nextColor) || isPinkColor(nextColor) || isAquamarineColor(nextColor) || isActionOrangeColor(nextColor) || isReadCyanColor(nextColor);
 
         // 通常ノード → 通常ノード
         if (isCurrentNormal && isNextNormal) {
@@ -1520,6 +1520,30 @@ function isWhiteColor(colorString) {
         const g = parseInt(match[2]);
         const b = parseInt(match[3]);
         return r === 255 && g === 255 && b === 255;
+    }
+    return false;
+}
+
+// 色がActionOrange（アクション系）かどうかを判定
+function isActionOrangeColor(colorString) {
+    const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        return r === 255 && g === 220 && b === 180;
+    }
+    return false;
+}
+
+// 色がReadCyan（読み込み・取得系）かどうかを判定
+function isReadCyanColor(colorString) {
+    const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        return r === 200 && g === 230 && b === 250;
     }
     return false;
 }
