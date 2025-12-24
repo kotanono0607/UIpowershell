@@ -10543,7 +10543,13 @@ const excelConnectionState = {
 // 接続情報をサーバーに保存
 async function saveConnectionState() {
     try {
+        if (!currentFolder) {
+            console.warn('[接続情報] currentFolderが未設定のため保存をスキップ');
+            return;
+        }
+
         const connectionData = {
+            folder: currentFolder,
             excel: {
                 connected: excelConnectionState.connected,
                 filePath: excelConnectionState.filePath,
@@ -10554,6 +10560,8 @@ async function saveConnectionState() {
                 headers: excelConnectionState.headers
             }
         };
+
+        console.log('[接続情報] 保存開始:', currentFolder);
 
         const response = await fetch('/api/connection', {
             method: 'POST',
@@ -10572,7 +10580,14 @@ async function saveConnectionState() {
 // 接続情報をサーバーから復元
 async function loadConnectionState() {
     try {
-        const response = await fetch('/api/connection');
+        if (!currentFolder) {
+            console.warn('[接続情報] currentFolderが未設定のため復元をスキップ');
+            return;
+        }
+
+        console.log('[接続情報] 復元開始 フォルダ:', currentFolder);
+
+        const response = await fetch(`/api/connection?folder=${encodeURIComponent(currentFolder)}`);
         if (!response.ok) return;
 
         const result = await response.json();
@@ -10581,7 +10596,7 @@ async function loadConnectionState() {
         const excel = result.data.excel;
         if (!excel.connected) return;
 
-        console.log('[接続情報] 復元開始:', excel);
+        console.log('[接続情報] 復元データ:', excel);
 
         // 状態を復元
         excelConnectionState.connected = excel.connected;
