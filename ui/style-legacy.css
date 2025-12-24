@@ -2861,6 +2861,28 @@ button:active, .button:active {
     color: #e74c3c;
 }
 
+.help-color-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.help-color-item {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #555;
+}
+
+.help-color-box {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    flex-shrink: 0;
+}
+
 /* ============================================
    FLAT DESIGN OVERRIDE
    ニューモーフィズムからフラットデザインへ変更
