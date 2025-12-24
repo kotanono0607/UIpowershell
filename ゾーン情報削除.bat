@@ -1,14 +1,14 @@
 @echo off
-rem Ver1.3 ã“ã®ãƒ•ã‚©ãƒ«ãƒ€é…ä¸‹ã®ã‚¾ãƒ¼ãƒ³æƒ…å ±ã‚’ä¸€æ‹¬å‰Šé™¤ï¼ˆPowerShellä¸€æ‹¬ãƒ»Bypassã€é›†è¨ˆæ”¹å–„ï¼‰
+rem Ver1.3 ‚±‚ÌƒtƒHƒ‹ƒ_”z‰º‚Ìƒ][ƒ“î•ñ‚ğˆêŠ‡íœiPowerShellˆêŠ‡EBypassAWŒv‰ü‘Pj
 setlocal EnableExtensions
 
-rem --- ã“ã®ãƒãƒƒãƒãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ã‚’å¯¾è±¡ã«ã™ã‚‹ ---
+rem --- ‚±‚Ìƒoƒbƒ`ƒtƒ@ƒCƒ‹‚ª‚ ‚éƒtƒHƒ‹ƒ_‚ğ‘ÎÛ‚É‚·‚é ---
 set "TARGET=%~dp0"
-rem æœ«å°¾ã®ãƒãƒƒã‚¯ã‚¹ãƒ©ãƒƒã‚·ãƒ¥ã‚’å‰Šé™¤
+rem ––”ö‚ÌƒoƒbƒNƒXƒ‰ƒbƒVƒ…‚ğíœ
 if "%TARGET:~-1%"=="\" set "TARGET=%TARGET:~0,-1%"
 
 echo.
-echo ==== å‡¦ç†é–‹å§‹: %TARGET% ====
+echo ==== ˆ—ŠJn: %TARGET% ====
 echo.
 
 powershell -ExecutionPolicy Bypass -NoProfile -Command ^
@@ -21,25 +21,25 @@ powershell -ExecutionPolicy Bypass -NoProfile -Command ^
   "  $streams = Get-Item -LiteralPath $full -Stream * -ErrorAction SilentlyContinue;" ^
   "  if($streams.Stream -contains 'Zone.Identifier') {" ^
   "    $hit++;" ^
-  "    Write-Host '[å¯¾è±¡]' $full;" ^
-  "    Write-Host '[å‰] ã‚¹ãƒˆãƒªãƒ¼ãƒ ä¸€è¦§:';" ^
+  "    Write-Host '[‘ÎÛ]' $full;" ^
+  "    Write-Host '[‘O] ƒXƒgƒŠ[ƒ€ˆê——:';" ^
   "    Get-Item -LiteralPath $full -Stream * | Format-Table -AutoSize | Out-String | Write-Host;" ^
   "    Remove-Item -LiteralPath $full -Stream 'Zone.Identifier' -ErrorAction SilentlyContinue;" ^
   "    Write-Host '';" ^
-  "    Write-Host '[å¾Œ] ã‚¹ãƒˆãƒªãƒ¼ãƒ ä¸€è¦§:';" ^
+  "    Write-Host '[Œã] ƒXƒgƒŠ[ƒ€ˆê——:';" ^
   "    $after = Get-Item -LiteralPath $full -Stream * -ErrorAction SilentlyContinue;" ^
   "    $after | Format-Table -AutoSize | Out-String | Write-Host;" ^
-  "    if(-not ($after.Stream -contains 'Zone.Identifier')) { $removed++; Write-Host '-> å‰Šé™¤æˆåŠŸ'; } else { $failed++; Write-Host '-> å‰Šé™¤å¤±æ•—'; }" ^
+  "    if(-not ($after.Stream -contains 'Zone.Identifier')) { $removed++; Write-Host '-> íœ¬Œ÷'; } else { $failed++; Write-Host '-> íœ¸”s'; }" ^
   "    Write-Host ''" ^
   "  }" ^
   "};" ^
-  "Write-Host '==== é›†è¨ˆ ====';" ^
-  "Write-Host ('æ¤œæŸ»ãƒ•ã‚¡ã‚¤ãƒ«æ•° : {0}' -f $total);" ^
-  "Write-Host ('ã‚¾ãƒ¼ãƒ³æ¤œå‡º     : {0}' -f $hit);" ^
-  "Write-Host ('å‰Šé™¤æˆåŠŸ       : {0}' -f $removed);" ^
-  "Write-Host ('å‰Šé™¤å¤±æ•—       : {0}' -f $failed);"
+  "Write-Host '==== WŒv ====';" ^
+  "Write-Host ('ŒŸ¸ƒtƒ@ƒCƒ‹” : {0}' -f $total);" ^
+  "Write-Host ('ƒ][ƒ“ŒŸo     : {0}' -f $hit);" ^
+  "Write-Host ('íœ¬Œ÷       : {0}' -f $removed);" ^
+  "Write-Host ('íœ¸”s       : {0}' -f $failed);"
 
 echo.
-echo å®Œäº†ã€‚
+echo Š®—¹B
 pause
 endlocal
