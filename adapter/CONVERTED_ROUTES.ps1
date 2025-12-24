@@ -3444,7 +3444,7 @@ Add-PodeRoute -Method Get -Path '/api/connection' -ScriptBlock {
 Add-PodeRoute -Method Post -Path '/api/connection' -ScriptBlock {
     try {
         $RootDir = Get-PodeState -Name 'RootDir'
-        $body = Get-PodeBodyData
+        $body = $WebEvent.Data
 
         # bodyからフォルダ名を取得
         $currentFolder = $body.folder
