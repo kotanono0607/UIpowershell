@@ -11536,8 +11536,15 @@ function renderFunctionEditorNodes() {
             const nodeColor = getColorCode(node.color) || '#fff';
             item.style.backgroundColor = nodeColor;
 
-            // 処理番号を表示
-            const infoText = node.処理番号 ? `処理番号: ${node.処理番号}` : '';
+            // スクリプトプレビューまたは処理番号を表示
+            let infoText = '';
+            if (node.script && node.script.trim()) {
+                // スクリプトの最初の行を表示
+                const firstLine = node.script.split('\n')[0].trim();
+                infoText = firstLine.substring(0, 40) + (firstLine.length > 40 ? '...' : '');
+            } else if (node.処理番号) {
+                infoText = `処理番号: ${node.処理番号}`;
+            }
 
             item.innerHTML = `
                 <span class="function-editor-node-drag-handle">≡</span>
@@ -11721,22 +11728,53 @@ function closeNodePalette() {
 /**
  * パレットからノードを選択して追加
  */
-function selectNodeFromPalette(setting) {
-    const newNode = {
-        id: `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        text: setting.テキスト,
-        color: setting.背景色 || 'LightBlue',
-        処理番号: setting.処理番号,
-        script: '',
-        width: 120,
-        height: NODE_HEIGHT
-    };
+async function selectNodeFromPalette(setting) {
+    console.log(`[関数エディタ] ノード選択: ${setting.テキスト} (${setting.処理番号})`);
 
-    currentEditingNodes.push(newNode);
-    console.log(`[関数エディタ] ノード追加: ${newNode.text} (${setting.処理番号})`);
-
+    // パレットを一旦閉じる
     closeNodePalette();
-    renderFunctionEditorNodes();
+
+    // 一時的なノードIDを生成
+    const tempNodeId = `func_node_${Date.now()}`;
+
+    // 条件分岐・ループは特殊処理が必要
+    if (setting.処理番号 === '1-2' || setting.処理番号 === '1-3') {
+        await showAlertDialog(
+            '条件分岐・ループは関数内に直接追加できません。\n先にメインフローで作成してから関数化してください。',
+            '制限事項'
+        );
+        return;
+    }
+
+    // generateCodeでスクリプトを生成（引数設定ダイアログが表示される）
+    try {
+        const generatedScript = await generateCode(setting.処理番号, tempNodeId);
+
+        if (generatedScript === null || generatedScript === undefined) {
+            console.log('[関数エディタ] スクリプト生成がキャンセルされました');
+            return;
+        }
+
+        const newNode = {
+            id: tempNodeId,
+            text: setting.テキスト,
+            color: setting.背景色 || 'LightBlue',
+            処理番号: setting.処理番号,
+            script: generatedScript,
+            width: 120,
+            height: NODE_HEIGHT
+        };
+
+        currentEditingNodes.push(newNode);
+        console.log(`[関数エディタ] ノード追加完了: ${newNode.text} (${setting.処理番号})`);
+        console.log(`[関数エディタ] スクリプト長: ${generatedScript.length}文字`);
+
+        renderFunctionEditorNodes();
+
+    } catch (error) {
+        console.error('[関数エディタ] スクリプト生成エラー:', error);
+        await showAlertDialog(`ノード追加中にエラーが発生しました: ${error.message}`, 'エラー');
+    }
 }
 
 /**
