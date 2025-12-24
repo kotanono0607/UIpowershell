@@ -11237,20 +11237,25 @@ async function functionizeNodes() {
         return;
     }
 
-    // 関数を作成
+    // 関数を作成（スクリプトをコード.jsonから取得）
     const newFunction = {
         id: `func_${functionIdCounter++}`,
         name: functionName,
-        nodes: sortedRedNodes.map(node => ({
-            id: node.id,
-            text: node.text,
-            color: node.color,
-            処理番号: node.処理番号,
-            script: node.script || '',
-            groupId: node.groupId || null,
-            width: node.width || 120,
-            height: node.height || NODE_HEIGHT
-        })),
+        nodes: sortedRedNodes.map(node => {
+            // スクリプトをコード.jsonから取得
+            const script = getCodeEntry(node.id) || node.script || '';
+            console.log(`[関数化] ノード ${node.text} (${node.id}) のスクリプト取得: ${script.length}文字`);
+            return {
+                id: node.id,
+                text: node.text,
+                color: node.color,
+                処理番号: node.処理番号,
+                script: script,
+                groupId: node.groupId || null,
+                width: node.width || 120,
+                height: node.height || NODE_HEIGHT
+            };
+        }),
         params: [],    // 将来の拡張用
         returns: [],   // 将来の拡張用
         createdAt: new Date().toISOString(),
