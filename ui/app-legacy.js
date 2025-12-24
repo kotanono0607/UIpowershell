@@ -11154,6 +11154,7 @@ function renderFunctionsList() {
                 </div>
             </div>
             <div class="function-item-actions">
+                <button class="function-item-btn edit" onclick="event.stopPropagation(); editFunction('${func.id}')" title="編集">✏️</button>
                 <button class="function-item-btn export" onclick="event.stopPropagation(); exportFunction('${func.id}')" title="エクスポート">📤</button>
                 <button class="function-item-btn delete" onclick="event.stopPropagation(); deleteFunction('${func.id}')" title="削除">🗑️</button>
             </div>
@@ -11440,6 +11441,56 @@ async function exportFunction(functionId) {
     URL.revokeObjectURL(url);
 
     console.log(`[関数] エクスポート: ${func.name}`);
+}
+
+/**
+ * 関数を編集
+ */
+async function editFunction(functionId) {
+    const func = userFunctions.find(f => f.id === functionId);
+    if (!func) {
+        console.error(`[関数] 編集対象が見つかりません: ${functionId}`);
+        return;
+    }
+
+    console.log(`[関数編集] 開始: ${func.name} (${func.nodes.length}ノード)`);
+
+    // 関数名の編集ダイアログを表示
+    const newName = await showPromptDialog(
+        '関数名を編集してください:',
+        '関数の編集',
+        func.name
+    );
+
+    // キャンセルされた場合、または名前が空の場合は何もしない
+    if (!newName || newName.trim() === '') {
+        console.log('[関数編集] キャンセルされました');
+        return;
+    }
+
+    // 名前が変更されていない場合も終了
+    if (newName === func.name) {
+        console.log('[関数編集] 名前は変更されていません');
+        return;
+    }
+
+    // 関数名を更新
+    const oldName = func.name;
+    func.name = newName.trim();
+    func.updatedAt = new Date().toISOString();
+
+    console.log(`[関数編集] 名前を変更: "${oldName}" → "${func.name}"`);
+
+    // ファイルに保存
+    await saveFunctionToFile(func);
+
+    // ローカルストレージも更新
+    saveFunctionsToLocalStorage();
+
+    // リストを再描画
+    renderFunctionsList();
+
+    console.log(`[関数編集] 完了: ${func.name}`);
 }
 
 /**
