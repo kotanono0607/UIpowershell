@@ -2644,7 +2644,7 @@ button:active, .button:active {
     display: flex;
     gap: 4px;
     flex-shrink: 0;
-    min-width: 64px;
+    margin-left: auto;
 }
 
 .function-editor-node-btn {
