@@ -11553,7 +11553,8 @@ function renderFunctionEditorNodes() {
                     <div class="function-editor-node-script-preview">${escapeHtml(infoText)}</div>
                 </div>
                 <div class="function-editor-node-actions">
-                    <button class="function-editor-node-btn" onclick="editFunctionNode(${index})" title="編集">✏️</button>
+                    <button class="function-editor-node-btn" onclick="editFunctionNodeName(${index})" title="名前変更">📝</button>
+                    <button class="function-editor-node-btn" onclick="editFunctionNodeScript(${index})" title="スクリプト編集">✏️</button>
                     <button class="function-editor-node-btn delete" onclick="deleteFunctionNode(${index})" title="削除">🗑️</button>
                 </div>
             `;
@@ -11635,28 +11636,62 @@ function handleNodeDragEnd(e) {
 }
 
 /**
- * 関数内ノードを編集（表示テキストのみ）
+ * 関数内ノードの名前を変更
  */
-async function editFunctionNode(index) {
+async function editFunctionNodeName(index) {
     const node = currentEditingNodes[index];
     if (!node) return;
 
-    console.log(`[関数エディタ] ノード編集: ${index} - ${node.text}`);
+    console.log(`[関数エディタ] 名前変更: ${index} - ${node.text}`);
 
-    // ノード名の編集
     const newText = await showPromptDialog(
         'ノード名を入力してください:',
-        'ノードの編集',
+        '名前の変更',
         node.text || ''
     );
 
     if (newText === null) return; // キャンセル
 
-    // 更新（テキストのみ）
     node.text = newText.trim() || '無題';
 
-    console.log(`[関数エディタ] ノード更新: ${node.text}`);
+    console.log(`[関数エディタ] 名前更新: ${node.text}`);
     renderFunctionEditorNodes();
+}
+
+/**
+ * 関数内ノードのスクリプトを編集
+ */
+async function editFunctionNodeScript(index) {
+    const node = currentEditingNodes[index];
+    if (!node) return;
+
+    console.log(`[関数エディタ] スクリプト編集: ${index} - ${node.text}`);
+
+    // generateCodeを使ってスクリプトを再生成（引数設定ダイアログが表示される）
+    if (!node.処理番号) {
+        await showAlertDialog('このノードは処理番号がないためスクリプトを編集できません。', 'エラー');
+        return;
+    }
+
+    try {
+        const generatedScript = await generateCode(node.処理番号, node.id);
+
+        if (generatedScript === null || generatedScript === undefined) {
+            console.log('[関数エディタ] スクリプト編集がキャンセルされました');
+            return;
+        }
+
+        node.script = generatedScript;
+
+        console.log(`[関数エディタ] スクリプト更新: ${node.text}`);
+        console.log(`[関数エディタ] 新スクリプト長: ${generatedScript.length}文字`);
+
+        renderFunctionEditorNodes();
+
+    } catch (error) {
+        console.error('[関数エディタ] スクリプト編集エラー:', error);
+        await showAlertDialog(`スクリプト編集中にエラーが発生しました: ${error.message}`, 'エラー');
+    }
 }
 
 /**
