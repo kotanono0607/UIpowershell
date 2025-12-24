@@ -26,6 +26,7 @@
             </div>
             <div class="menu-item disabled" id="btn-undo" onclick="undoOperation()">⬅ Undo</div>
             <div class="menu-item disabled" id="btn-redo" onclick="redoOperation()">➡ Redo</div>
+            <div class="menu-item" onclick="openHelpModal()">❓ ヘルプ</div>
             <div class="menu-item menu-danger" onclick="exitApplication()">⏹ 終了</div>
         </div>
 
@@ -565,6 +566,88 @@
             <div class="modal-content node-palette-content">
                 <div class="node-palette-buttons" id="node-palette-buttons">
                     <!-- 動的に生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ヘルプモーダル -->
+    <div id="help-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container help-modal-container">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span class="modal-icon">❓</span>
+                    <span>ヘルプ - UIpowershell の使い方</span>
+                </div>
+                <button class="modal-close-btn" onclick="closeHelpModal()">✕</button>
+            </div>
+            <div class="modal-content help-modal-content">
+                <div class="help-section">
+                    <h3>📌 基本操作</h3>
+                    <ul>
+                        <li><strong>ノードの追加:</strong> 左パネルの「ノード」タブからカテゴリを選択し、ノードボタンをクリック</li>
+                        <li><strong>ノードの接続:</strong> ノードをドラッグして並べ替え、自動的に矢印で接続されます</li>
+                        <li><strong>ノードの編集:</strong> ノードをダブルクリックでスクリプトを編集</li>
+                        <li><strong>ノードの削除:</strong> ノードを選択して Delete キーまたは右クリックメニュー</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>▶ コード生成・実行</h3>
+                    <ul>
+                        <li><strong>コード生成:</strong> メニューの「▶ コード生成」をクリックでPowerShellスクリプトを生成・実行</li>
+                        <li><strong>部分実行:</strong> 特定のノードだけを実行したい場合は「⏯ 部分実行」を使用</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>🔷 関数機能</h3>
+                    <ul>
+                        <li><strong>関数化:</strong> 複数ノードを選択して右クリック→「関数化」で再利用可能な関数を作成</li>
+                        <li><strong>関数の編集:</strong> 左パネル「関数」タブから関数を選択し「✏ 編集」ボタン</li>
+                        <li><strong>関数の使用:</strong> 関数リストの「＋ 追加」ボタンでボードに配置</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>📦 変数機能</h3>
+                    <ul>
+                        <li><strong>変数の追加:</strong> 左パネル「変数」タブで「＋ 追加」ボタン</li>
+                        <li><strong>データ型:</strong> 単一値、一次元配列、二次元配列をサポート</li>
+                        <li><strong>変数の使用:</strong> スクリプト内で <code>$変数名</code> として参照</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>🧰 道具箱メニュー</h3>
+                    <ul>
+                        <li><strong>変数:</strong> 変数モーダルを開く</li>
+                        <li><strong>フォルダ切替:</strong> 作業フォルダを変更</li>
+                        <li><strong>スナップショット:</strong> 現在の状態を保存</li>
+                        <li><strong>復元:</strong> 保存した状態を復元</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>⬅➡ Undo/Redo</h3>
+                    <ul>
+                        <li><strong>Undo:</strong> 直前の操作を取り消し</li>
+                        <li><strong>Redo:</strong> 取り消した操作をやり直し</li>
+                        <li><strong>ショートカット:</strong> Ctrl+Z (Undo) / Ctrl+Y (Redo)</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <h3>📋 ノードカテゴリ一覧</h3>
+                    <ul>
+                        <li><strong>制御構文:</strong> 条件分岐、ループなど</li>
+                        <li><strong>マウス操作:</strong> クリック、移動、ドラッグ</li>
+                        <li><strong>キーボード操作:</strong> キー入力、ショートカット</li>
+                        <li><strong>UIAutomation:</strong> Windows UI要素の操作</li>
+                        <li><strong>起動・実行:</strong> アプリ起動、URL起動</li>
+                        <li><strong>データ操作:</strong> 変数、文字列、日付操作</li>
+                        <li><strong>ユーザー対話:</strong> メッセージボックス、入力ダイアログ</li>
+                        <li><strong>Excel(データ):</strong> Excel一括処理</li>
+                        <li><strong>Excel(操作):</strong> Excelセル操作</li>
+                        <li><strong>ウインドウ操作:</strong> ウインドウ制御</li>
+                        <li><strong>画像処理:</strong> スクリーンショット、画像認識</li>
+                        <li><strong>ファイル操作:</strong> ファイル・フォルダ操作</li>
+                        <li><strong>共通処理:</strong> 待機、ログ出力</li>
+                    </ul>
                 </div>
             </div>
         </div>
