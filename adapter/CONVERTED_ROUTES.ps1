@@ -3394,17 +3394,22 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
 # 接続情報を取得
 Add-PodeRoute -Method Get -Path '/api/connection' -ScriptBlock {
     try {
+        $RootDir = Get-PodeState -Name 'RootDir'
         $folderInfo = Get-Content (Join-Path $RootDir "03_history\メイン.json") -Encoding UTF8 | ConvertFrom-Json
         $currentFolder = $folderInfo.currentFolder
         $connectionPath = Join-Path $RootDir "03_history\$currentFolder\connection.json"
 
+        Write-Host "[接続情報取得] パス: $connectionPath" -ForegroundColor Cyan
+
         if (Test-Path $connectionPath) {
             $connectionData = Get-Content $connectionPath -Encoding UTF8 -Raw | ConvertFrom-Json
+            Write-Host "[接続情報取得] データ読み込み成功" -ForegroundColor Green
             $result = @{
                 success = $true
                 data = $connectionData
             }
         } else {
+            Write-Host "[接続情報取得] ファイルが存在しません" -ForegroundColor Yellow
             $result = @{
                 success = $true
                 data = $null
@@ -3427,16 +3432,20 @@ Add-PodeRoute -Method Get -Path '/api/connection' -ScriptBlock {
 # 接続情報を保存
 Add-PodeRoute -Method Post -Path '/api/connection' -ScriptBlock {
     try {
+        $RootDir = Get-PodeState -Name 'RootDir'
         $body = Get-PodeBodyData
 
         $folderInfo = Get-Content (Join-Path $RootDir "03_history\メイン.json") -Encoding UTF8 | ConvertFrom-Json
         $currentFolder = $folderInfo.currentFolder
         $connectionPath = Join-Path $RootDir "03_history\$currentFolder\connection.json"
 
+        Write-Host "[接続情報保存] パス: $connectionPath" -ForegroundColor Cyan
+        Write-Host "[接続情報保存] データ: $($body | ConvertTo-Json -Compress)" -ForegroundColor Cyan
+
         # 接続情報を保存
         $body | ConvertTo-Json -Depth 10 | Out-File -FilePath $connectionPath -Encoding UTF8 -Force
 
-        Write-Host "[接続情報保存] 保存完了: $connectionPath" -ForegroundColor Green
+        Write-Host "[接続情報保存] 保存完了" -ForegroundColor Green
 
         $result = @{
             success = $true
