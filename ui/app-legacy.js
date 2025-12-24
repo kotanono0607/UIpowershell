@@ -11667,11 +11667,36 @@ async function editFunctionNodeScript(index) {
 
     console.log(`[関数エディタ] スクリプト編集: ${index} - ${node.text}`);
 
+    // スクリプトが空の場合、generateCodeで生成するか確認
+    let currentScript = node.script || '';
+
+    if (!currentScript && node.処理番号) {
+        const generateNew = await showConfirmDialog(
+            'スクリプトが空です。新しいスクリプトを生成しますか？\n\n「はい」→ 引数設定ダイアログで生成\n「いいえ」→ 空のエディタを開く',
+            'スクリプト生成'
+        );
+
+        if (generateNew) {
+            try {
+                const generatedScript = await generateCode(node.処理番号, node.id);
+                if (generatedScript) {
+                    node.script = generatedScript;
+                    console.log(`[関数エディタ] スクリプト生成完了: ${generatedScript.length}文字`);
+                    renderFunctionEditorNodes();
+                    return;
+                }
+            } catch (error) {
+                console.error('[関数エディタ] スクリプト生成エラー:', error);
+            }
+            return;
+        }
+    }
+
     // PowerShell Windows Formsダイアログで直接編集
     const requestBody = {
         nodeId: node.id,
         nodeName: node.text,
-        currentScript: node.script || ''
+        currentScript: currentScript
     };
 
     try {
