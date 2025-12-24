@@ -10607,7 +10607,12 @@ async function loadConnectionState() {
             sheetSelect.disabled = false;
         }
 
+        // 接続タブのUI更新
         updateExcelConnectionUI();
+
+        // 変数タブのリスト更新
+        renderVariablesList();
+
         console.log('[接続情報] 復元完了');
     } catch (error) {
         console.error('[接続情報] 復元エラー:', error);
