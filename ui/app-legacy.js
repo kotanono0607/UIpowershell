@@ -10630,6 +10630,12 @@ async function loadConnectionState() {
             const varResponse = await fetch(`${API_BASE}/folders/${currentFolder}/variables`);
             const varResult = await varResponse.json();
             if (varResult.success && varResult.data) {
+                // variablesが配列の場合はオブジェクトに変換
+                if (Array.isArray(variables)) {
+                    console.log('[接続情報] variablesを配列からオブジェクトに変換');
+                    variables = {};
+                }
+
                 // Excel変数名に対応する変数があれば追加
                 const varName = excel.variableName;
                 if (varResult.data[varName]) {
