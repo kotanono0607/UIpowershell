@@ -3330,13 +3330,60 @@ async function handleDrop(e) {
     }
     // ケース2: レイヤーパネルの空きスペースへのドロップ
     else if (target && target.classList && target.classList.contains('node-list-container')) {
-        // ドロップ位置のY座標を計算（PowerShellの実装に準拠）
+        // ドロップ位置のY座標を計算（中間ノードの高さを考慮）
         const rect = target.getBoundingClientRect();
-        const dropY = e.clientY - rect.top;  // コンテナ内の相対Y座標
+        const relativeY = e.clientY - rect.top + target.scrollTop;  // スクロール位置を考慮
 
-        // ボタンの中心が来るように調整
-        const buttonHeight = draggedNodeData.height || NODE_HEIGHT;
-        newY = dropY - (buttonHeight / 2) + 10;
+        // 現在のレイヤーのノードを取得（Y座標でソート、ドラッグ中のノードを除外）
+        const layerNodes = [...layerStructure[leftVisibleLayer].nodes]
+            .filter(n => n.id !== draggedNodeData.id)
+            .sort((a, b) => a.y - b.y);
+
+        if (layerNodes.length === 0) {
+            // ノードがない場合は最上部
+            newY = 10;
+        } else {
+            // マウス位置がどのノードの間にあるかを判定
+            let insertIndex = layerNodes.length;  // デフォルトは最後
+
+            for (let i = 0; i < layerNodes.length; i++) {
+                const node = layerNodes[i];
+                const nodeHeight = node.color === 'Gray' ? 1 : NODE_HEIGHT;
+                const nodeBottom = node.y + nodeHeight;
+
+                if (relativeY < node.y) {
+                    // このノードの上に挿入
+                    insertIndex = i;
+                    break;
+                } else if (i < layerNodes.length - 1) {
+                    // 次のノードとの間をチェック
+                    const nextNode = layerNodes[i + 1];
+                    const midPoint = nodeBottom + (nextNode.y - nodeBottom) / 2;
+                    if (relativeY < midPoint) {
+                        // このノードの下に挿入
+                        insertIndex = i + 1;
+                        break;
+                    }
+                }
+            }
+
+            // 挿入位置に基づいてY座標を設定
+            if (insertIndex === 0) {
+                // 最初のノードの上
+                newY = layerNodes[0].y - 1;
+            } else if (insertIndex >= layerNodes.length) {
+                // 最後のノードの下
+                const lastNode = layerNodes[layerNodes.length - 1];
+                const lastNodeHeight = lastNode.color === 'Gray' ? 1 : NODE_HEIGHT;
+                newY = lastNode.y + lastNodeHeight + 1;
+            } else {
+                // 中間位置（前のノードの下、次のノードの上）
+                const prevNode = layerNodes[insertIndex - 1];
+                const nextNode = layerNodes[insertIndex];
+                const prevNodeHeight = prevNode.color === 'Gray' ? 1 : NODE_HEIGHT;
+                newY = prevNode.y + prevNodeHeight + (nextNode.y - (prevNode.y + prevNodeHeight)) / 2;
+            }
+        }
 
         // 最小値チェック
         if (newY < 10) {
