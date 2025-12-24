@@ -2506,7 +2506,7 @@ button:active, .button:active {
 
 /* 関数エディタモーダル */
 .function-editor-container {
-    width: 500px;
+    width: 650px;
     max-width: 90vw;
     max-height: 80vh;
 }
