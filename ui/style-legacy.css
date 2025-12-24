@@ -1221,6 +1221,34 @@ body::after {
         0 0 20px rgba(236, 72, 153, 0.4);  /* ピンクのグロー */
 }
 
+/* ユーザーグループ化されたノード */
+.node-button.user-grouped {
+    border-left: 4px solid #f59e0b !important;  /* オレンジ左ボーダー */
+    box-shadow:
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light),
+        inset 0 0 0 1px rgba(245, 158, 11, 0.3);  /* 内側のオレンジ */
+}
+
+/* 折りたたまれたグループの代表ノード */
+.node-button.group-collapsed {
+    background: linear-gradient(135deg, rgb(255, 230, 180) 0%, rgb(255, 200, 130) 100%) !important;
+    border: 2px solid #f59e0b !important;
+    font-weight: bold;
+    min-width: 200px;
+    box-shadow:
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light),
+        0 0 15px rgba(245, 158, 11, 0.3);
+}
+
+.node-button.group-collapsed:hover {
+    box-shadow:
+        4px 4px 8px var(--shadow-dark),
+        -4px -4px 8px var(--shadow-light),
+        0 0 25px rgba(245, 158, 11, 0.5);
+}
+
 /* 矢印Canvas */
 .arrow-canvas {
     position: absolute;

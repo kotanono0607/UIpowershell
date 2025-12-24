@@ -395,6 +395,10 @@
         <div class="context-menu-item" onclick="toggleRedBorder()">🔴 レイヤー化対象に追加/解除</div>
         <div class="context-menu-item" onclick="applyRedBorderToGroup()">🔴 同グループを一括選択</div>
         <div class="context-menu-separator"></div>
+        <div id="groupize-menu-item" class="context-menu-item" onclick="groupizeNodes()" style="background-color: rgb(255, 230, 180); font-weight: bold; display: none;">📁 グループ化</div>
+        <div id="ungroup-menu-item" class="context-menu-item" onclick="ungroupNodes()" style="display: none;">📂 グループ解除</div>
+        <div id="toggle-group-menu-item" class="context-menu-item" onclick="toggleGroupCollapse()" style="display: none;">🔽 グループ折りたたみ/展開</div>
+        <div class="context-menu-separator"></div>
         <div class="context-menu-item" onclick="copyNodeFromContextMenu()">📋 コピー</div>
         <div class="context-menu-item" onclick="pasteNodeFromContextMenu()">📄 貼り付け</div>
         <div class="context-menu-separator"></div>
