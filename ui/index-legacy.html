@@ -636,12 +636,18 @@
                     <p style="margin: 0 0 12px 0; font-size: 14px; color: #555;">
                         ノードの色は、その役割や状態を示しています。
                     </p>
+                    <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #444;">動作タイプによる色分け</h4>
                     <div class="help-color-list">
-                        <div class="help-color-item"><span class="help-color-box" style="background: white; border: 1px solid #999;"></span><strong>白 (White)</strong> - 通常のノード</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(255, 220, 180);"></span><strong>薄オレンジ</strong> - アクション系（外部に変化を与える操作）</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(200, 230, 250);"></span><strong>薄シアン</strong> - 読み込み・取得系（外部から情報を取得）</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: white; border: 1px solid #999;"></span><strong>白 (White)</strong> - その他（ダイアログ、内部処理、待機など）</div>
+                    </div>
+                    <h4 style="margin: 16px 0 8px 0; font-size: 14px; color: #444;">特殊なノードの色</h4>
+                    <div class="help-color-list">
                         <div class="help-color-item"><span class="help-color-box" style="background: springgreen;"></span><strong>黄緑 (SpringGreen)</strong> - 条件分岐の開始/終了ノード</div>
                         <div class="help-color-item"><span class="help-color-box" style="background: gray;"></span><strong>灰色 (Gray)</strong> - 条件分岐の中間ノード（ElseIf等）</div>
                         <div class="help-color-item"><span class="help-color-box" style="background: salmon;"></span><strong>サーモン (Salmon)</strong> - 条件分岐のFalse側（Else分岐）</div>
-                        <div class="help-color-item"><span class="help-color-box" style="background: lightblue;"></span><strong>水色 (LightBlue)</strong> - 条件分岐のTrue側（If分岐）</div>
+                        <div class="help-color-item"><span class="help-color-box" style="background: rgb(200, 220, 255);"></span><strong>水色 (LightBlue)</strong> - 条件分岐のTrue側（If分岐）</div>
                         <div class="help-color-item"><span class="help-color-box" style="background: lemonchiffon;"></span><strong>レモン色 (LemonChiffon)</strong> - ループの開始/終了ノード</div>
                         <div class="help-color-item"><span class="help-color-box" style="background: pink;"></span><strong>ピンク (Pink)</strong> - スクリプト化ノード（レイヤー化で作成）</div>
                         <div class="help-color-item"><span class="help-color-box" style="background: aquamarine;"></span><strong>アクアマリン (Aquamarine)</strong> - 関数ノード</div>
