@@ -11911,6 +11911,38 @@ async function saveFunctionEdits() {
     // ローカルストレージも更新
     saveFunctionsToLocalStorage();
 
+    // ボード上の該当する関数ノードも更新
+    const newScript = generateFunctionScript(func);
+    let updatedCount = 0;
+
+    // グローバルnodesを更新
+    nodes.forEach(node => {
+        if (node.functionId === func.id) {
+            node.script = newScript;
+            node.text = func.name;  // 名前も更新
+            updatedCount++;
+        }
+    });
+
+    // layerStructure内のノードも更新
+    Object.keys(layerStructure).forEach(layerKey => {
+        const layerNodes = layerStructure[layerKey]?.nodes || [];
+        layerNodes.forEach(node => {
+            if (node.functionId === func.id) {
+                node.script = newScript;
+                node.text = func.name;
+            }
+        });
+    });
+
+    if (updatedCount > 0) {
+        console.log(`[関数エディタ] ボード上の${updatedCount}個の関数ノードを更新しました`);
+        // 画面を再描画
+        renderNodesInLayer(leftVisibleLayer, 'left');
+        // memory.jsonを保存
+        saveMemoryJson();
+    }
+
     // リストを再描画
     renderFunctionsList();
 
