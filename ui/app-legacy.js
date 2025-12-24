@@ -11826,8 +11826,8 @@ async function selectNodeFromPalette(setting) {
     // パレットを一旦閉じる
     closeNodePalette();
 
-    // 一時的なノードIDを生成
-    const tempNodeId = `func_node_${Date.now()}`;
+    // 一時的なノードIDを生成（アンダースコアはメタデータの区切り文字と競合するため使用しない）
+    const tempNodeId = `fn${Date.now()}`;
 
     // 条件分岐・ループは特殊処理が必要
     if (setting.処理番号 === '1-2' || setting.処理番号 === '1-3') {
