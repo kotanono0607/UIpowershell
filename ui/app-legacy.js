@@ -3606,6 +3606,27 @@ function reorderNodesInLayer(layer) {
 
     console.log(`[色変更] reorderNodesInLayer レイヤー${layer}: ${layerNodes.length}個のノード`);
 
+    // 折りたたみ中のグループの非代表ノードを特定
+    const collapsedHiddenNodes = new Set();
+    const collapsedGroups = {};  // { groupId: representativeNodeId }
+
+    // 折りたたみ中のグループを収集
+    for (const [groupId, groupInfo] of Object.entries(userGroups)) {
+        if (groupInfo.collapsed) {
+            // このグループのノードを取得
+            const groupNodes = layerNodes.filter(n => n.userGroupId == groupId);
+            if (groupNodes.length > 0) {
+                // Y座標でソートして最初のノードを代表に
+                const sorted = [...groupNodes].sort((a, b) => a.y - b.y);
+                collapsedGroups[groupId] = sorted[0].id;
+                // 代表以外を非表示ノードとして登録
+                for (let i = 1; i < sorted.length; i++) {
+                    collapsedHiddenNodes.add(sorted[i].id);
+                }
+            }
+        }
+    }
+
     // 条件分岐グループをgroupIdごとに収集（多重分岐対応）
     const conditionGroups = {};
 
@@ -3720,6 +3741,13 @@ function reorderNodesInLayer(layer) {
         } else {
             // 条件分岐の構成ノード（開始、中間、終了）自体
             console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} のまま（構成ノード）`);
+        }
+
+        // 折りたたみ中の非表示ノードはスキップ（Y座標計算に含めない）
+        if (collapsedHiddenNodes.has(node.id)) {
+            // 非表示ノードは代表ノードと同じY座標に設定（見えないが位置は維持）
+            // 実際の表示には影響しない
+            return;
         }
 
         // ボタン間隔と高さの調整（Grayノード=中間ノードの場合は特殊）
