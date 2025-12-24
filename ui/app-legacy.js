@@ -2007,6 +2007,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadConnectionState();
     await writeControlLog('✅ [INIT] 接続情報の復元完了');
 
+    // 変数を再読み込み（currentFolder設定後）
+    await loadVariables();
+    await writeControlLog('✅ [INIT] 変数の再読み込み完了');
+
     console.log('═══════════════════════════════════════════════');
     console.log(`✅ UIpowershell 初期化完了 [Version: ${APP_VERSION}]`);
     console.log('═══════════════════════════════════════════════');
