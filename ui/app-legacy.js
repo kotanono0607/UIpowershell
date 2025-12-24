@@ -3527,8 +3527,31 @@ async function handleDrop(e) {
     // バリデーション通過 → 移動実行
     // ============================
 
-    // Y座標を更新
-    draggedNodeData.y = newY;
+    // ユーザーグループに所属している場合はグループ全体を移動
+    if (isUserGroup(draggedNodeData.userGroupId)) {
+        const groupId = draggedNodeData.userGroupId;
+        const deltaY = newY - currentY;  // 移動オフセット
+
+        // グループ全体の移動が可能かチェック
+        const groupMoveResult = validateGroupMove(groupId, deltaY);
+        if (!groupMoveResult.valid) {
+            await showAlertDialog(`グループ全体を移動できません。\n${groupMoveResult.error}`, '配置エラー');
+            return false;
+        }
+
+        // グループ内の全ノードを同じオフセットで移動
+        const groupNodes = layerStructure[leftVisibleLayer].nodes.filter(n => n.userGroupId === groupId);
+        groupNodes.forEach(node => {
+            node.y += deltaY;
+            // 最小値チェック
+            if (node.y < 10) node.y = 10;
+        });
+
+        console.log(`[グループ移動] グループID=${groupId}, オフセット=${deltaY}, ノード数=${groupNodes.length}`);
+    } else {
+        // 通常のノード移動
+        draggedNodeData.y = newY;
+    }
 
     // 上詰め再配置
     reorderNodesInLayer(leftVisibleLayer);
@@ -12355,6 +12378,80 @@ function validateGroupSelection(selectedNodes) {
             return {
                 valid: false,
                 error: `ノード「${node.text}」は既にグループに所属しています。\n先にグループを解除してください。`
+            };
+        }
+    }
+
+    return { valid: true };
+}
+
+/**
+ * グループ移動のバリデーション
+ * グループ全体を移動した場合に、条件分岐/ループと衝突しないかチェック
+ */
+function validateGroupMove(groupId, deltaY) {
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    const groupNodes = currentLayerNodes.filter(n => n.userGroupId === groupId);
+
+    if (groupNodes.length === 0) {
+        return { valid: false, error: 'グループが見つかりません。' };
+    }
+
+    // グループの移動後の範囲を計算
+    const sortedGroupNodes = [...groupNodes].sort((a, b) => a.y - b.y);
+    const newMinY = sortedGroupNodes[0].y + deltaY;
+    const lastNode = sortedGroupNodes[sortedGroupNodes.length - 1];
+    const lastNodeHeight = lastNode.color === 'Gray' ? 1 : 40;
+    const newMaxY = lastNode.y + deltaY + lastNodeHeight;
+
+    // 最小値チェック
+    if (newMinY < 10) {
+        return { valid: false, error: '上端を超えて移動できません。' };
+    }
+
+    // グループに含まれないノードの条件分岐/ループ範囲をチェック
+    const groupNodeIds = new Set(groupNodes.map(n => n.id));
+
+    // 全ての条件分岐/ループグループを取得
+    const structureGroups = {};  // { groupId: { nodes: [], type: 'loop' | 'condition', minY, maxY } }
+
+    currentLayerNodes.forEach(node => {
+        // グループに含まれるノードはスキップ
+        if (groupNodeIds.has(node.id)) return;
+
+        if (isLoopGroup(node.groupId)) {
+            if (!structureGroups[node.groupId]) {
+                structureGroups[node.groupId] = { nodes: [], type: 'loop' };
+            }
+            structureGroups[node.groupId].nodes.push(node);
+        } else if (isConditionGroup(node.groupId)) {
+            if (!structureGroups[node.groupId]) {
+                structureGroups[node.groupId] = { nodes: [], type: 'condition' };
+            }
+            structureGroups[node.groupId].nodes.push(node);
+        }
+    });
+
+    // 各構造グループの範囲を計算し、移動後のグループと重なりがないかチェック
+    for (const [sgId, sgInfo] of Object.entries(structureGroups)) {
+        if (sgInfo.nodes.length < 2) continue;  // 開始/終了が揃っていない場合はスキップ
+
+        const sortedStructNodes = [...sgInfo.nodes].sort((a, b) => a.y - b.y);
+        const structMinY = sortedStructNodes[0].y;
+        const lastStructNode = sortedStructNodes[sortedStructNodes.length - 1];
+        const lastStructHeight = lastStructNode.color === 'Gray' ? 1 : 40;
+        const structMaxY = lastStructNode.y + lastStructHeight;
+
+        // 範囲の重なりをチェック（部分的に含まれる場合はエラー）
+        const overlaps = newMinY < structMaxY && newMaxY > structMinY;
+        const fullyInside = newMinY >= structMinY && newMaxY <= structMaxY;
+        const fullyOutside = newMaxY <= structMinY || newMinY >= structMaxY;
+
+        if (overlaps && !fullyInside && !fullyOutside) {
+            const typeName = sgInfo.type === 'loop' ? 'ループ' : '条件分岐';
+            return {
+                valid: false,
+                error: `${typeName}の内部に部分的に入り込むことはできません。`
             };
         }
     }
