@@ -444,7 +444,7 @@ function 複数行テキストを編集 {
     # フォームの作成
     $フォーム = New-Object System.Windows.Forms.Form
     $フォーム.Text = $フォームタイトル
-    $フォーム.Size = New-Object System.Drawing.Size(800,600)
+    $フォーム.Size = New-Object System.Drawing.Size(1000,700)
     $フォーム.StartPosition = "CenterScreen"
 
     # ラベルの作成
@@ -457,7 +457,7 @@ function 複数行テキストを編集 {
     # 複数行テキストボックスの作成
     $テキストボックス = New-Object System.Windows.Forms.TextBox
     $テキストボックス.Location = New-Object System.Drawing.Point(10,50)
-    $テキストボックス.Size = New-Object System.Drawing.Size(760,480)
+    $テキストボックス.Size = New-Object System.Drawing.Size(960,570)
     $テキストボックス.Multiline = $true
     $テキストボックス.ScrollBars = "Both"
     $テキストボックス.WordWrap = $false
@@ -469,7 +469,7 @@ function 複数行テキストを編集 {
     $OKボタン = New-Object System.Windows.Forms.Button
     $OKボタン.Text = "OK"
     $OKボタン.Size = New-Object System.Drawing.Size(100,30)
-    $OKボタン.Location = New-Object System.Drawing.Point(580,540)
+    $OKボタン.Location = New-Object System.Drawing.Point(770,630)
     $OKボタン.DialogResult = [System.Windows.Forms.DialogResult]::OK
     $フォーム.AcceptButton = $OKボタン
     $フォーム.Controls.Add($OKボタン)
@@ -478,7 +478,7 @@ function 複数行テキストを編集 {
     $キャンセルボタン = New-Object System.Windows.Forms.Button
     $キャンセルボタン.Text = "Cancel"
     $キャンセルボタン.Size = New-Object System.Drawing.Size(100,30)
-    $キャンセルボタン.Location = New-Object System.Drawing.Point(690,540)
+    $キャンセルボタン.Location = New-Object System.Drawing.Point(880,630)
     $キャンセルボタン.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
     $フォーム.CancelButton = $キャンセルボタン
     $フォーム.Controls.Add($キャンセルボタン)
