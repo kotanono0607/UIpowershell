@@ -11472,42 +11472,259 @@ async function exportFunction(functionId) {
 }
 
 /**
- * 関数を編集
+ * 関数を編集（エディタダイアログを開く）
  */
-async function editFunction(functionId) {
+let currentEditingFunctionId = null;
+let currentEditingNodes = [];
+
+function editFunction(functionId) {
     const func = userFunctions.find(f => f.id === functionId);
     if (!func) {
         console.error(`[関数] 編集対象が見つかりません: ${functionId}`);
         return;
     }
 
-    console.log(`[関数編集] 開始: ${func.name} (${func.nodes.length}ノード)`);
+    console.log(`[関数エディタ] 開始: ${func.name} (${func.nodes.length}ノード)`);
 
-    // 関数名の編集ダイアログを表示
-    const newName = await showPromptDialog(
-        '関数名を編集してください:',
-        '関数の編集',
-        func.name
+    currentEditingFunctionId = functionId;
+    currentEditingNodes = JSON.parse(JSON.stringify(func.nodes)); // ディープコピー
+
+    // モーダルを表示
+    const modal = document.getElementById('function-editor-modal');
+    const nameInput = document.getElementById('function-editor-name');
+
+    if (modal && nameInput) {
+        nameInput.value = func.name;
+        renderFunctionEditorNodes();
+        modal.style.display = 'flex';
+    }
+}
+
+/**
+ * 関数エディタを閉じる
+ */
+function closeFunctionEditor() {
+    const modal = document.getElementById('function-editor-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    currentEditingFunctionId = null;
+    currentEditingNodes = [];
+}
+
+/**
+ * 関数エディタのノードリストを描画
+ */
+function renderFunctionEditorNodes() {
+    const listContainer = document.getElementById('function-editor-nodes-list');
+    const countBadge = document.getElementById('function-editor-node-count');
+
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+
+    if (currentEditingNodes.length === 0) {
+        listContainer.innerHTML = '<div class="function-editor-empty-message">ノードがありません</div>';
+    } else {
+        currentEditingNodes.forEach((node, index) => {
+            const item = document.createElement('div');
+            item.className = 'function-editor-node-item';
+            item.draggable = true;
+            item.dataset.index = index;
+
+            const scriptPreview = node.script ? node.script.substring(0, 50) + (node.script.length > 50 ? '...' : '') : '(スクリプトなし)';
+
+            item.innerHTML = `
+                <span class="function-editor-node-drag-handle">≡</span>
+                <div class="function-editor-node-info">
+                    <div class="function-editor-node-text">${escapeHtml(node.text || '無題')}</div>
+                    <div class="function-editor-node-script-preview">${escapeHtml(scriptPreview)}</div>
+                </div>
+                <div class="function-editor-node-actions">
+                    <button class="function-editor-node-btn" onclick="editFunctionNode(${index})" title="編集">✏️</button>
+                    <button class="function-editor-node-btn delete" onclick="deleteFunctionNode(${index})" title="削除">🗑️</button>
+                </div>
+            `;
+
+            // ドラッグ＆ドロップイベント
+            item.addEventListener('dragstart', handleNodeDragStart);
+            item.addEventListener('dragover', handleNodeDragOver);
+            item.addEventListener('drop', handleNodeDrop);
+            item.addEventListener('dragend', handleNodeDragEnd);
+
+            listContainer.appendChild(item);
+        });
+    }
+
+    if (countBadge) {
+        countBadge.textContent = `${currentEditingNodes.length}個`;
+    }
+}
+
+/**
+ * ノードのドラッグ開始
+ */
+let draggedNodeIndex = null;
+
+function handleNodeDragStart(e) {
+    draggedNodeIndex = parseInt(e.target.dataset.index);
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+/**
+ * ノードのドラッグオーバー
+ */
+function handleNodeDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    const item = e.target.closest('.function-editor-node-item');
+    if (item && parseInt(item.dataset.index) !== draggedNodeIndex) {
+        // 既存のdrag-overクラスを削除
+        document.querySelectorAll('.function-editor-node-item.drag-over').forEach(el => {
+            el.classList.remove('drag-over');
+        });
+        item.classList.add('drag-over');
+    }
+}
+
+/**
+ * ノードのドロップ
+ */
+function handleNodeDrop(e) {
+    e.preventDefault();
+
+    const item = e.target.closest('.function-editor-node-item');
+    if (!item) return;
+
+    const targetIndex = parseInt(item.dataset.index);
+
+    if (draggedNodeIndex !== null && draggedNodeIndex !== targetIndex) {
+        // ノードを並べ替え
+        const [movedNode] = currentEditingNodes.splice(draggedNodeIndex, 1);
+        currentEditingNodes.splice(targetIndex, 0, movedNode);
+
+        console.log(`[関数エディタ] ノード並べ替え: ${draggedNodeIndex} → ${targetIndex}`);
+
+        renderFunctionEditorNodes();
+    }
+}
+
+/**
+ * ノードのドラッグ終了
+ */
+function handleNodeDragEnd(e) {
+    e.target.classList.remove('dragging');
+    document.querySelectorAll('.function-editor-node-item.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+    draggedNodeIndex = null;
+}
+
+/**
+ * 関数内ノードを編集
+ */
+async function editFunctionNode(index) {
+    const node = currentEditingNodes[index];
+    if (!node) return;
+
+    console.log(`[関数エディタ] ノード編集: ${index} - ${node.text}`);
+
+    // ノード名の編集
+    const newText = await showPromptDialog(
+        'ノード名を入力してください:',
+        'ノードの編集',
+        node.text || ''
     );
 
-    // キャンセルされた場合、または名前が空の場合は何もしない
-    if (!newName || newName.trim() === '') {
-        console.log('[関数編集] キャンセルされました');
+    if (newText === null) return; // キャンセル
+
+    // スクリプトの編集
+    const newScript = await showPromptDialog(
+        'スクリプトを入力してください:',
+        'スクリプトの編集',
+        node.script || ''
+    );
+
+    if (newScript === null) return; // キャンセル
+
+    // 更新
+    node.text = newText.trim() || '無題';
+    node.script = newScript;
+
+    console.log(`[関数エディタ] ノード更新: ${node.text}`);
+    renderFunctionEditorNodes();
+}
+
+/**
+ * 関数内ノードを削除
+ */
+async function deleteFunctionNode(index) {
+    const node = currentEditingNodes[index];
+    if (!node) return;
+
+    const confirmed = await showConfirmDialog(
+        `ノード「${node.text || '無題'}」を削除しますか？`,
+        'ノード削除確認'
+    );
+
+    if (!confirmed) return;
+
+    currentEditingNodes.splice(index, 1);
+    console.log(`[関数エディタ] ノード削除: ${index}`);
+    renderFunctionEditorNodes();
+}
+
+/**
+ * 関数にノードを追加
+ */
+async function addNodeToFunction() {
+    const newText = await showPromptDialog(
+        'ノード名を入力してください:',
+        '新規ノード追加',
+        '新しいノード'
+    );
+
+    if (!newText || newText.trim() === '') return;
+
+    const newNode = {
+        id: `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        text: newText.trim(),
+        color: 'LightBlue',
+        script: '',
+        width: 120,
+        height: NODE_HEIGHT
+    };
+
+    currentEditingNodes.push(newNode);
+    console.log(`[関数エディタ] ノード追加: ${newNode.text}`);
+    renderFunctionEditorNodes();
+}
+
+/**
+ * 関数エディタの変更を保存
+ */
+async function saveFunctionEdits() {
+    if (!currentEditingFunctionId) return;
+
+    const func = userFunctions.find(f => f.id === currentEditingFunctionId);
+    if (!func) return;
+
+    const nameInput = document.getElementById('function-editor-name');
+    const newName = nameInput ? nameInput.value.trim() : func.name;
+
+    if (!newName) {
+        await showAlertDialog('関数名を入力してください。', 'エラー');
         return;
     }
 
-    // 名前が変更されていない場合も終了
-    if (newName === func.name) {
-        console.log('[関数編集] 名前は変更されていません');
-        return;
-    }
-
-    // 関数名を更新
-    const oldName = func.name;
-    func.name = newName.trim();
+    // 更新
+    func.name = newName;
+    func.nodes = JSON.parse(JSON.stringify(currentEditingNodes));
     func.updatedAt = new Date().toISOString();
 
-    console.log(`[関数編集] 名前を変更: "${oldName}" → "${func.name}"`);
+    console.log(`[関数エディタ] 保存: ${func.name} (${func.nodes.length}ノード)`);
 
     // ファイルに保存
     await saveFunctionToFile(func);
@@ -11518,7 +11735,10 @@ async function editFunction(functionId) {
     // リストを再描画
     renderFunctionsList();
 
-    console.log(`[関数編集] 完了: ${func.name}`);
+    // エディタを閉じる
+    closeFunctionEditor();
+
+    console.log(`[関数エディタ] 保存完了`);
 }
 
 /**

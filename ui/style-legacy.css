@@ -2504,6 +2504,217 @@ button:active, .button:active {
     background: #e3f2fd;
 }
 
+/* 関数エディタモーダル */
+.function-editor-container {
+    width: 500px;
+    max-width: 90vw;
+    max-height: 80vh;
+}
+
+.function-editor-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+}
+
+.function-editor-name-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.function-editor-name-section label {
+    font-weight: bold;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.function-editor-name-section input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.function-editor-name-section input:focus {
+    outline: none;
+    border-color: rgb(127, 255, 212);
+}
+
+.function-editor-nodes-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.function-editor-nodes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.node-count-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    background: rgb(127, 255, 212);
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+.function-editor-nodes-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    background: var(--bg-secondary);
+}
+
+.function-editor-node-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    background: #fff;
+    cursor: grab;
+}
+
+.function-editor-node-item:last-child {
+    border-bottom: none;
+}
+
+.function-editor-node-item.dragging {
+    opacity: 0.5;
+    background: #f0f0f0;
+}
+
+.function-editor-node-item.drag-over {
+    border-top: 2px solid rgb(127, 255, 212);
+}
+
+.function-editor-node-drag-handle {
+    cursor: grab;
+    color: #999;
+    font-size: 16px;
+    user-select: none;
+}
+
+.function-editor-node-drag-handle:active {
+    cursor: grabbing;
+}
+
+.function-editor-node-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.function-editor-node-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.function-editor-node-script-preview {
+    font-size: 10px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+.function-editor-node-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.function-editor-node-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.function-editor-node-btn:hover {
+    background: #e0e0e0;
+}
+
+.function-editor-node-btn.delete:hover {
+    background: #ffebee;
+    color: #e74c3c;
+}
+
+.function-editor-add-btn {
+    padding: 10px;
+    border: 2px dashed #ccc;
+    background: transparent;
+    color: #666;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.function-editor-add-btn:hover {
+    border-color: rgb(127, 255, 212);
+    color: #333;
+    background: rgba(127, 255, 212, 0.1);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid #ddd;
+    background: var(--bg-secondary);
+}
+
+.function-editor-save-btn {
+    padding: 8px 20px;
+    border: none;
+    background: rgb(127, 255, 212);
+    color: #1a1a1a;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.function-editor-save-btn:hover {
+    background: rgb(100, 230, 190);
+}
+
+.function-editor-cancel-btn {
+    padding: 8px 20px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.function-editor-cancel-btn:hover {
+    background: #f5f5f5;
+}
+
+.function-editor-empty-message {
+    padding: 20px;
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+}
+
 /* ============================================
    FLAT DESIGN OVERRIDE
    ニューモーフィズムからフラットデザインへ変更
