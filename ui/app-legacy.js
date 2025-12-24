@@ -3090,6 +3090,9 @@ function renderNodesInLayer(layer, panelSide = 'left') {
 
     // グローエフェクトはapplyGlowEffects()で一括適用
 
+    // ユーザーグループのオーバーレイ背景を描画
+    renderGroupOverlays(container, layerNodes);
+
     // 矢印を再描画
     console.log(`[デバッグ] renderNodesInLayer(${layer}): 矢印を再描画します`);
     if (window.arrowDrawing) {
@@ -12383,6 +12386,93 @@ function validateGroupSelection(selectedNodes) {
     }
 
     return { valid: true };
+}
+
+/**
+ * ユーザーグループのオーバーレイ背景を描画
+ */
+function renderGroupOverlays(container, layerNodes) {
+    // 既存のグループオーバーレイを削除
+    container.querySelectorAll('.user-group-overlay').forEach(el => el.remove());
+
+    // ユーザーグループを収集
+    const groupedNodes = {};  // { groupId: [nodes] }
+
+    layerNodes.forEach(node => {
+        if (isUserGroup(node.userGroupId)) {
+            if (!groupedNodes[node.userGroupId]) {
+                groupedNodes[node.userGroupId] = [];
+            }
+            groupedNodes[node.userGroupId].push(node);
+        }
+    });
+
+    // 各グループのオーバーレイを描画
+    const groupColors = [
+        'rgba(245, 158, 11, 0.15)',   // オレンジ
+        'rgba(59, 130, 246, 0.15)',   // ブルー
+        'rgba(16, 185, 129, 0.15)',   // グリーン
+        'rgba(139, 92, 246, 0.15)',   // パープル
+        'rgba(236, 72, 153, 0.15)',   // ピンク
+    ];
+
+    let colorIndex = 0;
+    for (const [groupId, nodes] of Object.entries(groupedNodes)) {
+        const groupInfo = userGroups[groupId];
+        if (!groupInfo || groupInfo.collapsed) continue;  // 折りたたみ中はスキップ
+
+        // グループの範囲を計算
+        const sortedNodes = [...nodes].sort((a, b) => a.y - b.y);
+        const minY = sortedNodes[0].y - 5;
+        const lastNode = sortedNodes[sortedNodes.length - 1];
+        const lastNodeHeight = lastNode.color === 'Gray' ? 1 : 40;
+        const maxY = lastNode.y + lastNodeHeight + 5;
+
+        // オーバーレイを作成
+        const overlay = document.createElement('div');
+        overlay.className = 'user-group-overlay';
+        overlay.dataset.groupId = groupId;
+
+        const baseColor = groupColors[colorIndex % groupColors.length];
+        const borderColor = baseColor.replace('0.15', '0.4');
+
+        overlay.style.cssText = `
+            position: absolute;
+            left: 5px;
+            top: ${minY}px;
+            width: calc(100% - 10px);
+            height: ${maxY - minY}px;
+            background: linear-gradient(180deg,
+                ${baseColor} 0%,
+                ${baseColor.replace('0.15', '0.1')} 50%,
+                ${baseColor} 100%);
+            pointer-events: none;
+            z-index: 0;
+            border-radius: 8px;
+            border: 2px dashed ${borderColor};
+        `;
+
+        // グループ名ラベルを追加
+        const label = document.createElement('div');
+        label.className = 'user-group-label';
+        label.textContent = `📁 ${groupInfo.name}`;
+        label.style.cssText = `
+            position: absolute;
+            top: -2px;
+            left: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            color: ${borderColor.replace('0.4', '0.9')};
+            background: white;
+            padding: 0 4px;
+            border-radius: 3px;
+            pointer-events: none;
+        `;
+        overlay.appendChild(label);
+
+        container.appendChild(overlay);
+        colorIndex++;
+    }
 }
 
 /**
