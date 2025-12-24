@@ -1,19 +1,14 @@
 @echo off
-rem Ver1.2 ƒtƒHƒ‹ƒ_”z‰º‚Ìƒ][ƒ“î•ñ “_ŒŸ¨íœ¨Ä“_ŒŸiPowerShellˆêŠ‡EBypassAWŒvC³j
+rem Ver1.3 ã“ã®ãƒ•ã‚©ãƒ«ãƒ€é…ä¸‹ã®ã‚¾ãƒ¼ãƒ³æƒ…å ±ã‚’ä¸€æ‹¬å‰Šé™¤ï¼ˆPowerShellä¸€æ‹¬ãƒ»Bypassã€é›†è¨ˆæ”¹å–„ï¼‰
 setlocal EnableExtensions
 
-rem --- ƒtƒHƒ‹ƒ_‘I‘ğƒ_ƒCƒAƒƒO ---
-for /f "usebackq delims=" %%I in (`powershell -ExecutionPolicy Bypass -NoProfile -Command ^
-  "Add-Type -AssemblyName System.Windows.Forms; $d=New-Object Windows.Forms.FolderBrowserDialog; $d.Description='ƒ][ƒ“íœ‘ÎÛ‚ÌƒtƒHƒ‹ƒ_‚ğ‘I‘ğ'; $d.ShowNewFolderButton=$false; if($d.ShowDialog() -eq 'OK'){ $d.SelectedPath }"`) do set "TARGET=%%I"
-
-if "%TARGET%"=="" (
-  echo ƒtƒHƒ‹ƒ_‚ª‘I‘ğ‚³‚ê‚Ü‚¹‚ñ‚Å‚µ‚½B
-  pause
-  exit /b
-)
+rem --- ã“ã®ãƒãƒƒãƒãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ã‚’å¯¾è±¡ã«ã™ã‚‹ ---
+set "TARGET=%~dp0"
+rem æœ«å°¾ã®ãƒãƒƒã‚¯ã‚¹ãƒ©ãƒƒã‚·ãƒ¥ã‚’å‰Šé™¤
+if "%TARGET:~-1%"=="\" set "TARGET=%TARGET:~0,-1%"
 
 echo.
-echo ==== ˆ—ŠJn: %TARGET% ====
+echo ==== å‡¦ç†é–‹å§‹: %TARGET% ====
 echo.
 
 powershell -ExecutionPolicy Bypass -NoProfile -Command ^
@@ -26,25 +21,25 @@ powershell -ExecutionPolicy Bypass -NoProfile -Command ^
   "  $streams = Get-Item -LiteralPath $full -Stream * -ErrorAction SilentlyContinue;" ^
   "  if($streams.Stream -contains 'Zone.Identifier') {" ^
   "    $hit++;" ^
-  "    Write-Host '[‘ÎÛ]' $full;" ^
-  "    Write-Host '[‘O] ƒXƒgƒŠ[ƒ€ˆê——:';" ^
+  "    Write-Host '[å¯¾è±¡]' $full;" ^
+  "    Write-Host '[å‰] ã‚¹ãƒˆãƒªãƒ¼ãƒ ä¸€è¦§:';" ^
   "    Get-Item -LiteralPath $full -Stream * | Format-Table -AutoSize | Out-String | Write-Host;" ^
   "    Remove-Item -LiteralPath $full -Stream 'Zone.Identifier' -ErrorAction SilentlyContinue;" ^
   "    Write-Host '';" ^
-  "    Write-Host '[Œã] ƒXƒgƒŠ[ƒ€ˆê——:';" ^
+  "    Write-Host '[å¾Œ] ã‚¹ãƒˆãƒªãƒ¼ãƒ ä¸€è¦§:';" ^
   "    $after = Get-Item -LiteralPath $full -Stream * -ErrorAction SilentlyContinue;" ^
   "    $after | Format-Table -AutoSize | Out-String | Write-Host;" ^
-  "    if(-not ($after.Stream -contains 'Zone.Identifier')) { $removed++; Write-Host '¨ íœ¬Œ÷'; } else { $failed++; Write-Host '¨ íœ¸”s'; }" ^
+  "    if(-not ($after.Stream -contains 'Zone.Identifier')) { $removed++; Write-Host '-> å‰Šé™¤æˆåŠŸ'; } else { $failed++; Write-Host '-> å‰Šé™¤å¤±æ•—'; }" ^
   "    Write-Host ''" ^
   "  }" ^
   "};" ^
-  "Write-Host '==== WŒv ====';" ^
-  "Write-Host ('‘–¸ƒtƒ@ƒCƒ‹” : {0}' -f $total);" ^
-  "Write-Host ('ƒ][ƒ“ŒŸo     : {0}' -f $hit);" ^
-  "Write-Host ('íœ¬Œ÷       : {0}' -f $removed);" ^
-  "Write-Host ('íœ¸”s       : {0}' -f $failed);"
+  "Write-Host '==== é›†è¨ˆ ====';" ^
+  "Write-Host ('æ¤œæŸ»ãƒ•ã‚¡ã‚¤ãƒ«æ•° : {0}' -f $total);" ^
+  "Write-Host ('ã‚¾ãƒ¼ãƒ³æ¤œå‡º     : {0}' -f $hit);" ^
+  "Write-Host ('å‰Šé™¤æˆåŠŸ       : {0}' -f $removed);" ^
+  "Write-Host ('å‰Šé™¤å¤±æ•—       : {0}' -f $failed);"
 
 echo.
-echo Š®—¹B
+echo å®Œäº†ã€‚
 pause
 endlocal
