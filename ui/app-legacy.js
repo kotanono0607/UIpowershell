@@ -11532,13 +11532,18 @@ function renderFunctionEditorNodes() {
             item.draggable = true;
             item.dataset.index = index;
 
-            const scriptPreview = node.script ? node.script.substring(0, 50) + (node.script.length > 50 ? '...' : '') : '(スクリプトなし)';
+            // ノードの色を背景に適用
+            const nodeColor = getColorCode(node.color) || '#fff';
+            item.style.backgroundColor = nodeColor;
+
+            // 処理番号を表示
+            const infoText = node.処理番号 ? `処理番号: ${node.処理番号}` : '';
 
             item.innerHTML = `
                 <span class="function-editor-node-drag-handle">≡</span>
                 <div class="function-editor-node-info">
                     <div class="function-editor-node-text">${escapeHtml(node.text || '無題')}</div>
-                    <div class="function-editor-node-script-preview">${escapeHtml(scriptPreview)}</div>
+                    <div class="function-editor-node-script-preview">${escapeHtml(infoText)}</div>
                 </div>
                 <div class="function-editor-node-actions">
                     <button class="function-editor-node-btn" onclick="editFunctionNode(${index})" title="編集">✏️</button>
@@ -11623,7 +11628,7 @@ function handleNodeDragEnd(e) {
 }
 
 /**
- * 関数内ノードを編集
+ * 関数内ノードを編集（表示テキストのみ）
  */
 async function editFunctionNode(index) {
     const node = currentEditingNodes[index];
@@ -11640,18 +11645,8 @@ async function editFunctionNode(index) {
 
     if (newText === null) return; // キャンセル
 
-    // スクリプトの編集
-    const newScript = await showPromptDialog(
-        'スクリプトを入力してください:',
-        'スクリプトの編集',
-        node.script || ''
-    );
-
-    if (newScript === null) return; // キャンセル
-
-    // 更新
+    // 更新（テキストのみ）
     node.text = newText.trim() || '無題';
-    node.script = newScript;
 
     console.log(`[関数エディタ] ノード更新: ${node.text}`);
     renderFunctionEditorNodes();
@@ -11677,28 +11672,70 @@ async function deleteFunctionNode(index) {
 }
 
 /**
- * 関数にノードを追加
+ * 関数にノードを追加（パレットを表示）
  */
-async function addNodeToFunction() {
-    const newText = await showPromptDialog(
-        'ノード名を入力してください:',
-        '新規ノード追加',
-        '新しいノード'
-    );
+function addNodeToFunction() {
+    openNodePalette();
+}
 
-    if (!newText || newText.trim() === '') return;
+/**
+ * ノード選択パレットを開く
+ */
+function openNodePalette() {
+    const modal = document.getElementById('node-palette-modal');
+    const container = document.getElementById('node-palette-buttons');
 
+    if (!modal || !container) return;
+
+    // ボタンを生成
+    container.innerHTML = '';
+
+    if (buttonSettings.length === 0) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #888;">ボタン設定が読み込まれていません</div>';
+    } else {
+        buttonSettings.forEach(setting => {
+            const btn = document.createElement('button');
+            btn.className = 'node-palette-btn';
+            btn.textContent = setting.テキスト;
+            btn.style.backgroundColor = getColorCode(setting.背景色);
+            btn.title = setting.説明 || setting.テキスト;
+            btn.onclick = () => selectNodeFromPalette(setting);
+            container.appendChild(btn);
+        });
+    }
+
+    modal.style.display = 'flex';
+    console.log(`[ノードパレット] 開く - ${buttonSettings.length}個のボタン`);
+}
+
+/**
+ * ノード選択パレットを閉じる
+ */
+function closeNodePalette() {
+    const modal = document.getElementById('node-palette-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * パレットからノードを選択して追加
+ */
+function selectNodeFromPalette(setting) {
     const newNode = {
         id: `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        text: newText.trim(),
-        color: 'LightBlue',
+        text: setting.テキスト,
+        color: setting.背景色 || 'LightBlue',
+        処理番号: setting.処理番号,
         script: '',
         width: 120,
         height: NODE_HEIGHT
     };
 
     currentEditingNodes.push(newNode);
-    console.log(`[関数エディタ] ノード追加: ${newNode.text}`);
+    console.log(`[関数エディタ] ノード追加: ${newNode.text} (${setting.処理番号})`);
+
+    closeNodePalette();
     renderFunctionEditorNodes();
 }
 

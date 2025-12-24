@@ -547,6 +547,24 @@
         </div>
     </div>
 
+    <!-- ノード選択パレットダイアログ（関数エディタ用） -->
+    <div id="node-palette-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container node-palette-container">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span class="modal-icon">📦</span>
+                    <span>ノードを選択</span>
+                </div>
+                <button class="modal-close-btn" onclick="closeNodePalette()">✕</button>
+            </div>
+            <div class="modal-content node-palette-content">
+                <div class="node-palette-buttons" id="node-palette-buttons">
+                    <!-- 動的に生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- arrow-drawing.jsの内容はapp-legacy.jsに統合されました -->
     <script src="app-legacy.js?v=1.1.0"></script>
     <!-- Aurora Arrow Patch: Neumorphism + Auroraデザインのグラデーション矢印 -->
