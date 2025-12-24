@@ -2610,6 +2610,7 @@ button:active, .button:active {
 .function-editor-node-info {
     flex: 1;
     min-width: 0;
+    overflow: hidden;
 }
 
 .function-editor-node-text {
@@ -2632,6 +2633,7 @@ button:active, .button:active {
 .function-editor-node-actions {
     display: flex;
     gap: 4px;
+    flex-shrink: 0;
 }
 
 .function-editor-node-btn {
