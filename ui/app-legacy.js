@@ -2325,7 +2325,11 @@ function getColorCode(colorName) {
         'Salmon': 'rgb(250, 128, 114)',          // 条件分岐 False分岐（赤）
         'LightBlue': 'rgb(200, 220, 255)',       // 条件分岐 True分岐（青）薄い青
         'Gray': 'rgb(128, 128, 128)',            // 条件分岐 中間ライン
-        'Aquamarine': 'rgb(127, 255, 212)'       // 関数ノード（水色）
+        'Aquamarine': 'rgb(127, 255, 212)',      // 関数ノード（水色）
+        'ActionOrange': 'rgb(255, 220, 180)',    // アクション系（外部変更）
+        'ReadCyan': 'rgb(200, 230, 250)',        // 読み込み・取得系
+        'LightCyan': 'rgb(200, 230, 250)',       // 読み込み・取得系（互換）
+        'LightGreen': 'rgb(144, 238, 144)'       // 行ループ
     };
     return colorMap[colorName] || colorName;
 }
