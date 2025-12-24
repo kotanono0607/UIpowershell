@@ -511,6 +511,42 @@
         </div>
     </div>
 
+    <!-- 関数エディタモーダル -->
+    <div id="function-editor-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container function-editor-container">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span class="modal-icon">🔷</span>
+                    <span>関数の編集</span>
+                </div>
+                <button class="modal-close-btn" onclick="closeFunctionEditor()">✕</button>
+            </div>
+            <div class="modal-content function-editor-content">
+                <!-- 関数名編集 -->
+                <div class="function-editor-name-section">
+                    <label>関数名:</label>
+                    <input type="text" id="function-editor-name" placeholder="関数名を入力">
+                </div>
+
+                <!-- ノード一覧 -->
+                <div class="function-editor-nodes-section">
+                    <div class="function-editor-nodes-header">
+                        <span>ノード一覧</span>
+                        <span id="function-editor-node-count" class="node-count-badge">0個</span>
+                    </div>
+                    <div class="function-editor-nodes-list" id="function-editor-nodes-list">
+                        <!-- 動的に生成 -->
+                    </div>
+                    <button class="function-editor-add-btn" onclick="addNodeToFunction()">＋ ノード追加</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="function-editor-save-btn" onclick="saveFunctionEdits()">保存</button>
+                <button class="function-editor-cancel-btn" onclick="closeFunctionEditor()">閉じる</button>
+            </div>
+        </div>
+    </div>
+
     <!-- arrow-drawing.jsの内容はapp-legacy.jsに統合されました -->
     <script src="app-legacy.js?v=1.1.0"></script>
     <!-- Aurora Arrow Patch: Neumorphism + Auroraデザインのグラデーション矢印 -->
