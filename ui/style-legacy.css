@@ -149,6 +149,48 @@ body::after {
     background: #334155;
 }
 
+/* ドロップダウンメニュー */
+.menu-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.menu-dropdown > .menu-item {
+    cursor: pointer;
+}
+
+.menu-dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #475569;
+    min-width: 160px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    border-radius: 0 0 6px 6px;
+}
+
+.menu-dropdown:hover .menu-dropdown-content {
+    display: block;
+}
+
+.menu-dropdown-item {
+    padding: 10px 16px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+}
+
+.menu-dropdown-item:hover {
+    background: #64748b;
+}
+
+.menu-dropdown-item:active {
+    background: #334155;
+}
+
 /* ブランドロゴ */
 .menu-brand {
     background: transparent;
