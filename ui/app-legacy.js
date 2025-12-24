@@ -755,14 +755,20 @@ function drawPanelArrows(layerId) {
     console.log(`[Canvas デバッグ] clearRect完了: (0, 0, ${canvas.width}, ${canvas.height})`);
     ctx.imageSmoothingEnabled = false;  // シャープな線のためにスムージングを無効化
 
-    const nodes = Array.from(layerPanel.querySelectorAll('.node-button'));
-    // console.log(`[デバッグ] 取得したノード数: ${nodes.length}`);
+    // 非表示ノード（折りたたみ中のグループノード等）をフィルタリング
+    const allNodes = Array.from(layerPanel.querySelectorAll('.node-button'));
+    const nodes = allNodes.filter(node => {
+        // display: none のノードを除外
+        const style = window.getComputedStyle(node);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+    });
+    // console.log(`[デバッグ] 取得したノード数: ${nodes.length} (全体: ${allNodes.length})`);
 
     // ノードをY座標でソート
     nodes.sort((a, b) => {
-        const aRect = a.getBoundingClientRect();
-        const bRect = b.getBoundingClientRect();
-        return aRect.top - bRect.top;
+        const aTop = parseInt(a.style.top, 10) || 0;
+        const bTop = parseInt(b.style.top, 10) || 0;
+        return aTop - bTop;
     });
 
     // 条件分岐グループを特定
@@ -3524,6 +3530,15 @@ async function handleDrop(e) {
     if (nestingValidation.isProhibited) {
         await showAlertDialog(`この位置には配置できません。\n${nestingValidation.reason}`, '配置エラー');
         return false;
+    }
+
+    // 4. ユーザーグループ侵入禁止チェック（非グループノードがグループ内に入ることを禁止）
+    if (!isUserGroup(draggedNodeData.userGroupId)) {
+        const groupInvasionCheck = checkGroupInvasion(draggedNodeData, newY);
+        if (groupInvasionCheck.isProhibited) {
+            await showAlertDialog(`この位置には配置できません。\n${groupInvasionCheck.reason}`, '配置エラー');
+            return false;
+        }
     }
 
     // ============================
@@ -12386,6 +12401,51 @@ function validateGroupSelection(selectedNodes) {
     }
 
     return { valid: true };
+}
+
+/**
+ * 非グループノードがユーザーグループ内に侵入しないかチェック
+ */
+function checkGroupInvasion(draggedNode, newY) {
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    const nodeHeight = draggedNode.color === 'Gray' ? 1 : 40;
+    const nodeBottom = newY + nodeHeight;
+
+    // 全てのユーザーグループの範囲を取得
+    const groupRanges = {};  // { groupId: { minY, maxY, name } }
+
+    currentLayerNodes.forEach(node => {
+        if (node.id === draggedNode.id) return;  // 自分自身はスキップ
+        if (!isUserGroup(node.userGroupId)) return;
+
+        const groupId = node.userGroupId;
+        if (!groupRanges[groupId]) {
+            const groupInfo = userGroups[groupId];
+            groupRanges[groupId] = {
+                minY: Infinity,
+                maxY: -Infinity,
+                name: groupInfo?.name || 'グループ'
+            };
+        }
+
+        const nHeight = node.color === 'Gray' ? 1 : 40;
+        groupRanges[groupId].minY = Math.min(groupRanges[groupId].minY, node.y);
+        groupRanges[groupId].maxY = Math.max(groupRanges[groupId].maxY, node.y + nHeight);
+    });
+
+    // ドロップ位置がいずれかのグループ範囲内にあるかチェック
+    for (const [groupId, range] of Object.entries(groupRanges)) {
+        // ノードがグループ範囲と重なるかチェック
+        const overlaps = newY < range.maxY && nodeBottom > range.minY;
+        if (overlaps) {
+            return {
+                isProhibited: true,
+                reason: `グループ「${range.name}」の内部には配置できません。\nグループ外に配置してください。`
+            };
+        }
+    }
+
+    return { isProhibited: false };
 }
 
 /**
