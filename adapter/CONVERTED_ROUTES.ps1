@@ -1900,6 +1900,19 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
     try {
         $functionName = $WebEvent.Parameters['functionName']
 
+        # リクエストログ（デバッグ用）
+        try {
+            $logDir = Join-Path (Get-PodeState -Name 'RootDir') "logs"
+            $dateStr = Get-Date -Format "yyyyMMdd"
+            $requestLogFile = Join-Path $logDir "api-requests_$dateStr.log"
+            $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
+            $bodyPreview = if ($WebEvent.Data) { ($WebEvent.Data | ConvertTo-Json -Compress).Substring(0, [Math]::Min(200, ($WebEvent.Data | ConvertTo-Json -Compress).Length)) } else { "(empty)" }
+            $logEntry = "[$timestamp] [REQUEST] /api/node/execute/$functionName Body: $bodyPreview"
+            Add-Content -Path $requestLogFile -Value $logEntry -Encoding UTF8
+        } catch {
+            # リクエストログのエラーは無視
+        }
+
         # RootDirを取得してグローバル変数に設定（関数内で使用するため）
         $RootDir = Get-PodeState -Name 'RootDir'
         $global:RootDir = $RootDir

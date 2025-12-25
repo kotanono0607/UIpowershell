@@ -401,6 +401,22 @@ Start-PodeServer -RootPath $adapterPath {
 
     Write-ControlLog "[CORS] OPTIONSプリフライトハンドラー設定完了"
 
+    # エラーログミドルウェア（Podeレベルのエラーを記録）
+    Add-PodeMiddleware -Name 'ErrorLogger' -ScriptBlock {
+        try {
+            return $true
+        } catch {
+            # Podeミドルウェアでのエラーをログ出力
+            $logDir = Join-Path $global:RootDir "logs"
+            $dateStr = Get-Date -Format "yyyyMMdd"
+            $errorLogFile = Join-Path $logDir "api-errors_$dateStr.log"
+            $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
+            $logEntry = "[$timestamp] [MIDDLEWARE ERROR] $($_.Exception.Message)`r`n"
+            Add-Content -Path $errorLogFile -Value $logEntry -Encoding UTF8
+            return $true
+        }
+    }
+
     # ============================================
     # 4. 変換されたルート定義を読み込み
     # ============================================
