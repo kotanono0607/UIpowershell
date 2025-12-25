@@ -7423,7 +7423,7 @@ async function generate_1_1() {
 
     // JSON形式で返す（ノード名更新用）
     const response = {
-        code: `Write-Host "${nextNumber}OK"`,
+        code: `Write-Host "${nextNumber}"`,
         nodeName: `順次${nextNumber}`
     };
 
