@@ -7,3 +7,21 @@
 [2025-12-25 18:37:47.997] [STEP] 1. Request received: /api/node/execute/2_1
 [2025-12-25 18:37:47.998] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\2-1.ps1
 [2025-12-25 18:37:48.081] [STEP] ERROR: 型を追加できません。コンパイル エラーが発生しました。
+[2025-12-25 18:44:14.868] [STEP] 1. Request received: /api/node/execute/2_1
+[2025-12-25 18:44:14.869] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\2-1.ps1
+[2025-12-25 18:44:14.984] [STEP] 3. Executing script to define function
+[2025-12-25 18:44:14.998] [STEP] 4. Function defined successfully
+[2025-12-25 18:44:15.002] [STEP] 5. Creating STA runspace
+[2025-12-25 18:44:15.226] [STEP] 6. Executing function: 2_1
+[2025-12-25 18:44:19.839] [STEP] 7. Function executed, processing result
+[2025-12-25 18:44:19.913] [STEP] 8. Sending response
+[2025-12-25 18:44:19.915] [STEP] 9. Response sent successfully
+[2025-12-25 18:44:40.948] [STEP] 1. Request received: /api/node/execute/2_1
+[2025-12-25 18:44:40.950] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\2-1.ps1
+[2025-12-25 18:44:41.020] [STEP] 3. Executing script to define function
+[2025-12-25 18:44:41.021] [STEP] 4. Function defined successfully
+[2025-12-25 18:44:41.022] [STEP] 5. Creating STA runspace
+[2025-12-25 18:44:41.137] [STEP] 6. Executing function: 2_1
+[2025-12-25 18:44:43.772] [STEP] 7. Function executed, processing result
+[2025-12-25 18:44:43.822] [STEP] 8. Sending response
+[2025-12-25 18:44:43.824] [STEP] 9. Response sent successfully
