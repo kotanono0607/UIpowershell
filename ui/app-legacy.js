@@ -1755,7 +1755,20 @@ async function callApi(endpoint, method = 'GET', body = null, options = {}) {
             throw new Error('サーバータイムアウト: 処理に時間がかかりすぎました。再度お試しください。');
         }
         if (response.status === 500) {
-            throw new Error('サーバー内部エラー: サーバーで問題が発生しました。ログを確認してください。');
+            // 500エラーでもレスポンスボディを読んで詳細を取得
+            try {
+                const errorText = await response.text();
+                const errorData = JSON.parse(errorText);
+                const errorMsg = errorData.error || 'サーバーで問題が発生しました';
+                const stackTrace = errorData.stackTrace || '';
+                console.error('[callApi] 500エラー詳細:', errorMsg);
+                if (stackTrace) {
+                    console.error('[callApi] スタックトレース:', stackTrace);
+                }
+                throw new Error(`サーバー内部エラー: ${errorMsg}`);
+            } catch (parseError) {
+                throw new Error('サーバー内部エラー: サーバーで問題が発生しました。ログを確認してください。');
+            }
         }
         if (response.status === 503) {
             throw new Error('サービス利用不可: サーバーが一時的に利用できません。しばらく待ってから再試行してください。');
