@@ -1028,9 +1028,12 @@ Add-PodeRoute -Method Post -Path "/api/execute/script" -ScriptBlock {
 # フォルダ一覧取得
 # ------------------------------
 Add-PodeRoute -Method Get -Path "/api/folders" -ScriptBlock {
+    # RootDirをグローバル変数に設定（関数内で使用するため）
+    $RootDir = Get-PodeState -Name 'RootDir'
+    $global:RootDir = $RootDir
+
     # v2関数の初期化（未読み込みの場合のみ）
     if (-not (Get-Command フォルダ切替イベント_v2 -ErrorAction SilentlyContinue)) {
-        $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
         . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
@@ -1052,9 +1055,12 @@ Add-PodeRoute -Method Get -Path "/api/folders" -ScriptBlock {
 # フォルダ作成
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/folders" -ScriptBlock {
+    # RootDirをグローバル変数に設定（関数内で使用するため）
+    $RootDir = Get-PodeState -Name 'RootDir'
+    $global:RootDir = $RootDir
+
     # v2関数の初期化（未読み込みの場合のみ）
     if (-not (Get-Command フォルダ作成イベント_v2 -ErrorAction SilentlyContinue)) {
-        $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
         . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
