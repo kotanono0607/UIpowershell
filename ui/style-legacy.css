@@ -291,6 +291,22 @@ body::after {
     background: linear-gradient(to right, #2563eb, #06b6d4);
 }
 
+/* 薄いアクセントボタン（部分実行など） */
+.menu-accent-light {
+    background: linear-gradient(to right, #93c5fd, #a5f3fc);
+    color: #1e40af;
+    box-shadow: 0 4px 12px rgba(147, 197, 253, 0.4);
+}
+
+.menu-accent-light:hover {
+    background: linear-gradient(to right, #bfdbfe, #cffafe);
+    box-shadow: 0 4px 16px rgba(147, 197, 253, 0.5);
+}
+
+.menu-accent-light:active {
+    background: linear-gradient(to right, #60a5fa, #67e8f9);
+}
+
 /* 危険ボタン（全削除、終了など） */
 .menu-danger {
     background: #b91c1c;
