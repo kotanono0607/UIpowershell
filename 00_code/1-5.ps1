@@ -55,6 +55,10 @@
     $form.MaximizeBox = $false
     $form.MinimizeBox = $false
     $form.Topmost = $true
+    $form.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
     # ループタイプ選択
     $lblLoopType = New-Object System.Windows.Forms.Label

@@ -19,6 +19,10 @@ function 6_6 {
     $フォーム.FormBorderStyle = "FixedDialog"
     $フォーム.MaximizeBox = $false
     $フォーム.Topmost = $true
+    $フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
     # 分割対象
     $ラベル1 = New-Object System.Windows.Forms.Label

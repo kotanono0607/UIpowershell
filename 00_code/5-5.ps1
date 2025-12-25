@@ -11,6 +11,10 @@
     $フォーム.FormBorderStyle = "FixedDialog"
     $フォーム.MaximizeBox = $false
     $フォーム.Topmost = $true
+    $フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
     # プロセス名
     $ラベル1 = New-Object System.Windows.Forms.Label
@@ -36,6 +40,10 @@
         $選択フォーム.Size = New-Object System.Drawing.Size(500, 400)
         $選択フォーム.StartPosition = "CenterScreen"
         $選択フォーム.Topmost = $true
+    $選択フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
         $リストビュー = New-Object System.Windows.Forms.ListView
         $リストビュー.Location = New-Object System.Drawing.Point(10, 10)

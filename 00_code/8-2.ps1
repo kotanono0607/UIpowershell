@@ -44,6 +44,10 @@ function 8_2 {
     $選択フォーム.MaximizeBox = $false
     $選択フォーム.MinimizeBox = $false
     $選択フォーム.Topmost = $true
+    $選択フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
     $ラベル = New-Object System.Windows.Forms.Label
     $ラベル.Text = "実行時に表示する変数を選択："

@@ -52,6 +52,10 @@
     $form.MaximizeBox = $false
     $form.MinimizeBox = $false
     $form.Topmost = $true
+    $form.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
     # 変数選択
     $lblVar = New-Object System.Windows.Forms.Label

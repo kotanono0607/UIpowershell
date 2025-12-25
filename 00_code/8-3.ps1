@@ -51,6 +51,10 @@ function 8_3 {
     $フォーム.MaximizeBox = $false
     $フォーム.MinimizeBox = $false
     $フォーム.Topmost = $true
+    $フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
     # 変数選択
     $ラベル1 = New-Object System.Windows.Forms.Label

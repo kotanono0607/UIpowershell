@@ -12,6 +12,10 @@ function 11_1 {
     $フォーム.FormBorderStyle = "FixedDialog"
     $フォーム.MaximizeBox = $false
     $フォーム.Topmost = $true
+    $フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
     # コピー元
     $ラベル1 = New-Object System.Windows.Forms.Label
