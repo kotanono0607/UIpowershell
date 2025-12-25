@@ -1,1 +1,7 @@
-[2025-12-25T11:46:23.507Z] [LOG] UIpowershell Aurora Arrow Patch Applied
+[2025-12-25T11:56:09.449Z] [LOG] UIpowershell Aurora Arrow Patch Applied
+[2025-12-25T11:56:14.522Z] [ERROR] ❌ [ノード設定] エラー: Error: サーバー内部エラー: サーバーで問題が発生しました。ログを確認してください。 | Stack: Error: サーバー内部エラー: サーバーで問題が発生しました。ログを確認してください。
+    at callApi (http://localhost:8080/app-legacy.js?v=1.1.0:1758:19)
+    at async openNodeSettings (http://localhost:8080/app-legacy.js?v=1.1.0:6569:24)
+[2025-12-25T11:56:23.697Z] [ERROR] ❌ [ノード設定] エラー: Error: サーバー内部エラー: サーバーで問題が発生しました。ログを確認してください。 | Stack: Error: サーバー内部エラー: サーバーで問題が発生しました。ログを確認してください。
+    at callApi (http://localhost:8080/app-legacy.js?v=1.1.0:1758:19)
+    at async openNodeSettings (http://localhost:8080/app-legacy.js?v=1.1.0:6569:24)
