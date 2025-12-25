@@ -16,6 +16,24 @@ public class MainMenuHelper {
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
+    [DllImport("user32.dll")]
+    public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    public static extern bool BringWindowToTop(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    [DllImport("user32.dll")]
+    public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+
+    [DllImport("kernel32.dll")]
+    public static extern uint GetCurrentThreadId();
+
     public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
     [DllImport("user32.dll")]
@@ -23,6 +41,8 @@ public class MainMenuHelper {
 
     public const int SW_MINIMIZE = 6;
     public const int SW_RESTORE = 9;
+    public const int SW_SHOW = 5;
+    public const int SW_SHOWNORMAL = 1;
 
     public static IntPtr FindUIpowershellWindow() {
         IntPtr result = IntPtr.Zero;
@@ -37,6 +57,25 @@ public class MainMenuHelper {
             return true;
         }, IntPtr.Zero);
         return result;
+    }
+
+    // 強制的にウィンドウを前面に持ってくる
+    public static bool ForceForegroundWindow(IntPtr hWnd) {
+        IntPtr foregroundWnd = GetForegroundWindow();
+        uint foregroundThreadId = GetWindowThreadProcessId(foregroundWnd, out _);
+        uint currentThreadId = GetCurrentThreadId();
+
+        if (foregroundThreadId != currentThreadId) {
+            AttachThreadInput(currentThreadId, foregroundThreadId, true);
+            BringWindowToTop(hWnd);
+            ShowWindow(hWnd, SW_SHOW);
+            AttachThreadInput(currentThreadId, foregroundThreadId, false);
+        } else {
+            BringWindowToTop(hWnd);
+            ShowWindow(hWnd, SW_SHOW);
+        }
+
+        return SetForegroundWindow(hWnd);
     }
 }
 "@ -ErrorAction SilentlyContinue
@@ -67,6 +106,55 @@ function メインメニューを復元 {
     } catch {
         # エラー時は何もしない
     }
+}
+
+# ============================================
+# フォームを前面に表示する共通関数
+# ============================================
+# 使用方法: フォームを前面表示に設定 -フォーム $form
+# ShowDialog()の前に呼び出してください
+function フォームを前面表示に設定 {
+    param(
+        [Parameter(Mandatory=$true)]
+        [System.Windows.Forms.Form]$フォーム
+    )
+
+    # Topmostを設定
+    $フォーム.TopMost = $true
+
+    # フォーム表示時に前面に持ってくるイベントを追加
+    $フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+
+        # Windows APIで強制的に前面に持ってくる
+        try {
+            $handle = $this.Handle
+            if ($handle -ne [IntPtr]::Zero) {
+                [MainMenuHelper]::ForceForegroundWindow($handle) | Out-Null
+            }
+        } catch {
+            # エラー時は標準の方法で前面化
+        }
+
+        # 少し待ってから再度前面化（他のウィンドウが割り込む場合の対策）
+        $timer = New-Object System.Windows.Forms.Timer
+        $timer.Interval = 100
+        $form = $this
+        $timer.Add_Tick({
+            $this.Stop()
+            $this.Dispose()
+            $form.Activate()
+            $form.BringToFront()
+        })
+        $timer.Start()
+    })
+
+    # フォームがアクティブでなくなった時も再度前面に持ってくる
+    $フォーム.Add_Deactivate({
+        # TopMostなので通常は前面に留まるが、念のため
+        $this.TopMost = $true
+    })
 }
 
 # 汎用的なアイテム選択関数の定義
@@ -126,8 +214,7 @@ function リストから項目を選択 {
     $フォーム.Controls.Add($キャンセルボタン)
 
     # フォームの表示（常に前面に表示）
-    $フォーム.Topmost = $true
-    $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    フォームを前面表示に設定 -フォーム $フォーム
     $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -237,8 +324,7 @@ function 文字列を入力 {
     })
 
     # フォームの表示（常に前面に表示）
-    $フォーム.Topmost = $true
-    $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    フォームを前面表示に設定 -フォーム $フォーム
     $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -311,8 +397,7 @@ function 数値を入力 {
     $フォーム.Controls.Add($キャンセルボタン)
 
     # フォームを表示（常に前面に表示）
-    $フォーム.Topmost = $true
-    $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    フォームを前面表示に設定 -フォーム $フォーム
     $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -484,8 +569,7 @@ function 複数行テキストを編集 {
     $フォーム.Controls.Add($キャンセルボタン)
 
     # フォームの表示（常に前面に表示）
-    $フォーム.Topmost = $true
-    $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    フォームを前面表示に設定 -フォーム $フォーム
     $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -735,8 +819,7 @@ function ノード設定を編集 {
     $フォーム.Controls.Add($キャンセルボタン)
 
     # フォームの表示（常に前面に表示）
-    $フォーム.Topmost = $true
-    $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    フォームを前面表示に設定 -フォーム $フォーム
     $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -972,8 +1055,7 @@ function 変数管理を表示 {
     Update-VariableListView
 
     # ダイアログ表示（常に前面に表示）
-    $フォーム.Topmost = $true
-    $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    フォームを前面表示に設定 -フォーム $フォーム
     $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -1064,9 +1146,9 @@ function Show-AddVariableDialog {
     $ダイアログ.AcceptButton = $ボタン_OK
     $ダイアログ.CancelButton = $ボタン_キャンセル
 
-    # ダイアログ表示（常に前面に表示）
-    $ダイアログ.Topmost = $true
-    $ダイアログ.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    # 前面表示設定
+    フォームを前面表示に設定 -フォーム $ダイアログ
+
     $メインメニューハンドル = メインメニューを最小化
     $result = $ダイアログ.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -1182,9 +1264,9 @@ function Show-EditVariableDialog {
     $ダイアログ.AcceptButton = $ボタン_OK
     $ダイアログ.CancelButton = $ボタン_キャンセル
 
-    # ダイアログ表示（常に前面に表示）
-    $ダイアログ.Topmost = $true
-    $ダイアログ.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    # 前面表示設定
+    フォームを前面表示に設定 -フォーム $ダイアログ
+
     $メインメニューハンドル = メインメニューを最小化
     $result = $ダイアログ.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -1373,9 +1455,9 @@ function フォルダ切替を表示 {
         $入力フォーム.AcceptButton = $ボタン_OK
         $入力フォーム.CancelButton = $ボタン_キャンセル2
 
-        # ダイアログ表示（常に前面に表示）
-        $入力フォーム.Topmost = $true
-        $入力フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+        # 前面表示設定
+        フォームを前面表示に設定 -フォーム $入力フォーム
+
         $メインメニューハンドル = メインメニューを最小化
         $result = $入力フォーム.ShowDialog()
         メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -1499,12 +1581,9 @@ function フォルダ切替を表示 {
     # 初期表示
     Update-FolderListBox
 
-    # ダイアログ表示（常に前面に表示）
-    $フォーム.Topmost = $true
-    $フォーム.Add_Shown({
-        $this.Activate()
-        $this.BringToFront()
-    })
+    # 前面表示設定
+    フォームを前面表示に設定 -フォーム $フォーム
+
     $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -2366,9 +2445,9 @@ pause
         }
     })
 
-    # ダイアログ表示（常に前面に表示）
-    $フォーム.Topmost = $true
-    $フォーム.Add_Shown({ $this.Activate(); $this.BringToFront() })
+    # 前面表示設定
+    フォームを前面表示に設定 -フォーム $フォーム
+
     $メインメニューハンドル = メインメニューを最小化
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
