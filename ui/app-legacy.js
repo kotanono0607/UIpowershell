@@ -18,7 +18,8 @@ const NODE_SPACING = 10;     // ノード間の間隔（10px）
 // ============================================
 
 // 🔴 マスターフラグ: trueにすると全てのconsole.logが表示される（フィルター無効化）
-const DISABLE_LOG_FILTER = true;
+// エラー対応時のみ true にしてください（通常は false）
+const DISABLE_LOG_FILTER = false;
 
 // ログフィルター設定（true = 表示, false = 非表示）
 const DEBUG_FLAGS = {

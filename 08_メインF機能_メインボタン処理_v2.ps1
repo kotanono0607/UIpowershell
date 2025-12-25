@@ -187,7 +187,7 @@ function 実行イベント_v2 {
             $colorName = if ($button.color) { $button.color } elseif ($button.BackColor) { $button.BackColor } else { "White" }
 
             # デバッグ: Aquamarineノードのscript確認
-            if ($colorName -eq "Aquamarine") {
+            if ($DebugMode -and $colorName -eq "Aquamarine") {
                 Write-Host "[DEBUG] Aquamarineノード検出: $buttonName" -ForegroundColor Cyan
                 Write-Host "[DEBUG]   script存在: $(if ($button.script) { 'あり (' + $button.script.Substring(0, [Math]::Min(50, $button.script.Length)) + '...)' } else { 'なし' })" -ForegroundColor Cyan
                 Write-Host "[DEBUG]   全プロパティ: $($button | ConvertTo-Json -Compress)" -ForegroundColor Yellow
@@ -241,8 +241,10 @@ function 実行イベント_v2 {
 
             # Pinkノードの場合はscriptプロパティを優先的に使用（ID不整合問題を回避）
             if ($colorName -eq "Pink" -and $button.script) {
-                Write-Host "[Pinkノード] scriptプロパティを優先使用" -ForegroundColor Magenta
-                Write-Host "[Pinkノード] script内容: $($button.script)" -ForegroundColor Magenta
+                if ($DebugMode) {
+                    Write-Host "[Pinkノード] scriptプロパティを優先使用" -ForegroundColor Magenta
+                    Write-Host "[Pinkノード] script内容: $($button.script)" -ForegroundColor Magenta
+                }
 
                 # scriptがノードリスト形式か直接コード形式かを判定
                 # ノードリスト形式:
@@ -252,27 +254,29 @@ function 実行イベント_v2 {
                 $isNodeListFormat = ($button.script -match "^AAAA") -or ($button.script -match "^[\w\-]+;[\w]+;[^;]*;")
 
                 if ($isNodeListFormat) {
-                    Write-Host "[Pinkノード] ノードリスト形式を検出 → 展開処理" -ForegroundColor Magenta
+                    if ($DebugMode) { Write-Host "[Pinkノード] ノードリスト形式を検出 → 展開処理" -ForegroundColor Magenta }
 
                     # 既にAAAAで始まっている場合はそのまま、そうでなければAAAAを付加
                     if ($button.script -match "^AAAA") {
                         # "_" を改行に置換（フロントエンドでの区切り文字対応）
                         $ノードリスト文字列 = $button.script -replace "_", "`n"
-                        Write-Host "[Pinkノード] AAAA形式をそのまま使用" -ForegroundColor Magenta
+                        if ($DebugMode) { Write-Host "[Pinkノード] AAAA形式をそのまま使用" -ForegroundColor Magenta }
                     } else {
                         # scriptプロパティからノードリスト文字列を生成（AAAA形式に変換）
                         $scriptContent = $button.script -replace "_", "`n"
                         $ノードリスト文字列 = "AAAA`n$scriptContent"
-                        Write-Host "[Pinkノード] AAAA形式に変換" -ForegroundColor Magenta
+                        if ($DebugMode) { Write-Host "[Pinkノード] AAAA形式に変換" -ForegroundColor Magenta }
                     }
-                    Write-Host "[Pinkノード] 生成したノードリスト: $ノードリスト文字列" -ForegroundColor Magenta
+                    if ($DebugMode) { Write-Host "[Pinkノード] 生成したノードリスト: $ノードリスト文字列" -ForegroundColor Magenta }
 
                     # ノードリストを展開
                     $取得したエントリ = ノードリストを展開 -ノードリスト文字列 $ノードリスト文字列
-                    Write-Host "[Pinkノード] 展開後の内容: $取得したエントリ" -ForegroundColor Magenta
-                    Write-Host "[Pinkノード] 展開後の長さ: $($取得したエントリ.Length) 文字" -ForegroundColor Magenta
+                    if ($DebugMode) {
+                        Write-Host "[Pinkノード] 展開後の内容: $取得したエントリ" -ForegroundColor Magenta
+                        Write-Host "[Pinkノード] 展開後の長さ: $($取得したエントリ.Length) 文字" -ForegroundColor Magenta
+                    }
                 } else {
-                    Write-Host "[Pinkノード] 直接コード形式を検出 → そのまま出力" -ForegroundColor Magenta
+                    if ($DebugMode) { Write-Host "[Pinkノード] 直接コード形式を検出 → そのまま出力" -ForegroundColor Magenta }
                     # 直接コード形式の場合はそのまま使用
                     $取得したエントリ = $button.script
                 }
@@ -287,33 +291,37 @@ function 実行イベント_v2 {
             }
             # 関数ノード（Aquamarine）の場合はPinkノードと同様にscriptプロパティを使用
             elseif ($colorName -eq "Aquamarine" -and $button.script) {
-                Write-Host "[関数ノード] scriptプロパティを優先使用" -ForegroundColor Cyan
-                Write-Host "[関数ノード] script内容: $($button.script)" -ForegroundColor Cyan
+                if ($DebugMode) {
+                    Write-Host "[関数ノード] scriptプロパティを優先使用" -ForegroundColor Cyan
+                    Write-Host "[関数ノード] script内容: $($button.script)" -ForegroundColor Cyan
+                }
 
                 # scriptがノードリスト形式か直接コード形式かを判定
                 # ノードリスト形式: "ID;色;テキスト;" パターン（例: "26-1;White;順次;_27-1;White;順次;"）
                 $isNodeListFormat = ($button.script -match "^AAAA") -or ($button.script -match "^[\w\-]+;[\w]+;[^;]*;")
 
                 if ($isNodeListFormat) {
-                    Write-Host "[関数ノード] ノードリスト形式を検出 → 展開処理" -ForegroundColor Cyan
+                    if ($DebugMode) { Write-Host "[関数ノード] ノードリスト形式を検出 → 展開処理" -ForegroundColor Cyan }
 
                     # 既にAAAAで始まっている場合はそのまま、そうでなければAAAAを付加
                     if ($button.script -match "^AAAA") {
                         $ノードリスト文字列 = $button.script -replace "_", "`n"
-                        Write-Host "[関数ノード] AAAA形式をそのまま使用" -ForegroundColor Cyan
+                        if ($DebugMode) { Write-Host "[関数ノード] AAAA形式をそのまま使用" -ForegroundColor Cyan }
                     } else {
                         $scriptContent = $button.script -replace "_", "`n"
                         $ノードリスト文字列 = "AAAA`n$scriptContent"
-                        Write-Host "[関数ノード] AAAA形式に変換" -ForegroundColor Cyan
+                        if ($DebugMode) { Write-Host "[関数ノード] AAAA形式に変換" -ForegroundColor Cyan }
                     }
-                    Write-Host "[関数ノード] 生成したノードリスト: $ノードリスト文字列" -ForegroundColor Cyan
+                    if ($DebugMode) { Write-Host "[関数ノード] 生成したノードリスト: $ノードリスト文字列" -ForegroundColor Cyan }
 
                     # ノードリストを展開
                     $取得したエントリ = ノードリストを展開 -ノードリスト文字列 $ノードリスト文字列
-                    Write-Host "[関数ノード] 展開後の内容: $取得したエントリ" -ForegroundColor Cyan
-                    Write-Host "[関数ノード] 展開後の長さ: $($取得したエントリ.Length) 文字" -ForegroundColor Cyan
+                    if ($DebugMode) {
+                        Write-Host "[関数ノード] 展開後の内容: $取得したエントリ" -ForegroundColor Cyan
+                        Write-Host "[関数ノード] 展開後の長さ: $($取得したエントリ.Length) 文字" -ForegroundColor Cyan
+                    }
                 } else {
-                    Write-Host "[関数ノード] 直接コード形式を検出 → そのまま出力" -ForegroundColor Cyan
+                    if ($DebugMode) { Write-Host "[関数ノード] 直接コード形式を検出 → そのまま出力" -ForegroundColor Cyan }
                     $取得したエントリ = $button.script
                 }
 
