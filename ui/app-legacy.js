@@ -5207,82 +5207,263 @@ function closeHelpModal() {
 // デバッグモーダル
 // ============================================
 
-async function openDebugModal() {
-    // デバッグ情報を収集
+function openDebugModal() {
+    const modal = document.getElementById('debug-modal');
+    if (!modal) return;
+
+    // 各タブの内容を生成
+    renderDebugBasicTab();
+    renderDebugButtonsTab();
+    renderDebugTemplatesTab();
+    renderDebugLayersTab();
+
+    modal.style.display = 'flex';
+}
+
+function closeDebugModal() {
+    const modal = document.getElementById('debug-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function switchDebugTab(tabName) {
+    // タブボタンの切り替え
+    document.querySelectorAll('.debug-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.tab === tabName);
+    });
+
+    // タブコンテンツの切り替え
+    document.querySelectorAll('.debug-tab-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    const activeContent = document.getElementById(`debug-tab-${tabName}`);
+    if (activeContent) {
+        activeContent.style.display = 'block';
+    }
+}
+
+// 基本情報タブ
+function renderDebugBasicTab() {
+    const container = document.getElementById('debug-tab-basic');
+    if (!container) return;
+
     const debugInfo = {
         currentLayer: leftVisibleLayer,
         totalLayers: Object.keys(layerStructure).length,
         totalNodes: nodes.length,
         currentLayerNodes: layerStructure[leftVisibleLayer]?.nodes?.length || 0,
         currentLayerEdges: layerStructure[leftVisibleLayer]?.edges?.length || 0,
-        currentFolder: currentFolder,
+        currentFolder: currentFolder || '(未設定)',
         nodeCounter: nodeCounter,
-        partialExecuteMode: partialExecuteMode.active
+        partialExecuteMode: partialExecuteMode.active ? 'ON' : 'OFF',
+        buttonSettingsCount: buttonSettings.length,
+        categorySettingsCount: categorySettings.length
     };
 
-    // 各レイヤーのノード数
-    const layerDetails = [];
-    for (const layerKey in layerStructure) {
-        const layer = layerStructure[layerKey];
-        layerDetails.push(`  レイヤー ${layerKey}: ${layer.nodes?.length || 0} ノード, ${layer.edges?.length || 0} エッジ`);
-    }
+    container.innerHTML = `
+        <div class="debug-section">
+            <div class="debug-section-title">📊 システム状態</div>
+            <div class="debug-info-grid">
+                <div class="debug-info-item">
+                    <span class="debug-info-label">現在のレイヤー</span>
+                    <span class="debug-info-value">${debugInfo.currentLayer}</span>
+                </div>
+                <div class="debug-info-item">
+                    <span class="debug-info-label">総レイヤー数</span>
+                    <span class="debug-info-value">${debugInfo.totalLayers}</span>
+                </div>
+                <div class="debug-info-item">
+                    <span class="debug-info-label">総ノード数</span>
+                    <span class="debug-info-value">${debugInfo.totalNodes}</span>
+                </div>
+                <div class="debug-info-item">
+                    <span class="debug-info-label">現在レイヤーのノード数</span>
+                    <span class="debug-info-value">${debugInfo.currentLayerNodes}</span>
+                </div>
+                <div class="debug-info-item">
+                    <span class="debug-info-label">現在レイヤーのエッジ数</span>
+                    <span class="debug-info-value">${debugInfo.currentLayerEdges}</span>
+                </div>
+                <div class="debug-info-item">
+                    <span class="debug-info-label">現在のフォルダ</span>
+                    <span class="debug-info-value">${debugInfo.currentFolder}</span>
+                </div>
+                <div class="debug-info-item">
+                    <span class="debug-info-label">ノードカウンター</span>
+                    <span class="debug-info-value">${debugInfo.nodeCounter}</span>
+                </div>
+                <div class="debug-info-item">
+                    <span class="debug-info-label">部分実行モード</span>
+                    <span class="debug-info-value">${debugInfo.partialExecuteMode}</span>
+                </div>
+                <div class="debug-info-item">
+                    <span class="debug-info-label">ボタン設定数</span>
+                    <span class="debug-info-value">${debugInfo.buttonSettingsCount}</span>
+                </div>
+                <div class="debug-info-item">
+                    <span class="debug-info-label">カテゴリ設定数</span>
+                    <span class="debug-info-value">${debugInfo.categorySettingsCount}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
-    // ボタン設定の読み込み状況
-    const buttonSettingsInfo = buttonSettings.length > 0
-        ? `${buttonSettings.length} 件読み込み済み`
-        : '未読み込み';
+// ボタン設定タブ
+function renderDebugButtonsTab() {
+    const container = document.getElementById('debug-tab-buttons');
+    if (!container) return;
 
-    // カテゴリごとのボタン数を集計
+    // カテゴリごとに集計
     const categoryCount = {};
     buttonSettings.forEach(btn => {
         const cat = btn.カテゴリ || '未分類';
         categoryCount[cat] = (categoryCount[cat] || 0) + 1;
     });
-    const categoryDetails = Object.entries(categoryCount)
-        .map(([cat, count]) => `  ${cat}: ${count} 件`)
-        .join('\n');
 
-    // 実装済みテンプレート一覧（codeGeneratorFunctionsに登録されているもの）
+    const categoryRows = Object.entries(categoryCount)
+        .map(([cat, count]) => `<tr><td>${cat}</td><td>${count}</td></tr>`)
+        .join('');
+
+    // ボタン一覧テーブル
+    const buttonRows = buttonSettings.map(btn => `
+        <tr>
+            <td>${btn.処理番号 || '-'}</td>
+            <td>${btn.カテゴリ || '-'}</td>
+            <td>${btn.テキスト || '-'}</td>
+            <td>${btn.関数名 || '-'}</td>
+        </tr>
+    `).join('');
+
+    container.innerHTML = `
+        <div class="debug-section">
+            <div class="debug-section-title">📁 カテゴリ別集計</div>
+            <table class="debug-table">
+                <thead>
+                    <tr><th>カテゴリ</th><th>件数</th></tr>
+                </thead>
+                <tbody>${categoryRows}</tbody>
+            </table>
+        </div>
+        <div class="debug-section">
+            <div class="debug-section-title">🔘 ボタン設定一覧（${buttonSettings.length}件）</div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table class="debug-table">
+                    <thead>
+                        <tr><th>処理番号</th><th>カテゴリ</th><th>テキスト</th><th>関数名</th></tr>
+                    </thead>
+                    <tbody>${buttonRows}</tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+// テンプレートタブ
+function renderDebugTemplatesTab() {
+    const container = document.getElementById('debug-tab-templates');
+    if (!container) return;
+
+    // 実装済みテンプレート（JavaScript側）
     const implementedFunctions = Object.keys(codeGeneratorFunctions);
-    const implementedList = implementedFunctions.length > 0
-        ? implementedFunctions.map(fn => `  ${fn}`).join('\n')
-        : '  (なし)';
+    const implementedRows = implementedFunctions.map(fn => {
+        const btnInfo = buttonSettings.find(b => b.関数名 === fn);
+        return `<tr>
+            <td>${fn}</td>
+            <td>${btnInfo?.テキスト || '-'}</td>
+            <td>${btnInfo?.カテゴリ || '-'}</td>
+            <td style="color: green;">✓ JS実装</td>
+        </tr>`;
+    }).join('');
 
-    // ボタン設定の詳細リスト（処理番号と名前）
-    const buttonList = buttonSettings.slice(0, 50).map(btn =>
-        `  ${btn.処理番号 || '?'}: ${btn.テキスト || '(名前なし)'}`
-    ).join('\n');
-    const buttonListNote = buttonSettings.length > 50
-        ? `\n  ... 他 ${buttonSettings.length - 50} 件`
-        : '';
+    // PowerShellファイルがあるボタン（00_code内）
+    const psButtons = buttonSettings.filter(btn => btn.関数名).map(btn => {
+        const isJsImplemented = codeGeneratorFunctions[btn.関数名];
+        return `<tr>
+            <td>${btn.処理番号 || '-'}</td>
+            <td>${btn.関数名 || '-'}</td>
+            <td>${btn.テキスト || '-'}</td>
+            <td style="color: ${isJsImplemented ? 'green' : 'blue'};">
+                ${isJsImplemented ? '✓ JS実装' : '📄 PS実装'}
+            </td>
+        </tr>`;
+    }).join('');
 
-    const message = `
-【デバッグ情報】
+    container.innerHTML = `
+        <div class="debug-section">
+            <div class="debug-section-title">⚡ JavaScript実装テンプレート（${implementedFunctions.length}件）</div>
+            <table class="debug-table">
+                <thead>
+                    <tr><th>関数名</th><th>テキスト</th><th>カテゴリ</th><th>状態</th></tr>
+                </thead>
+                <tbody>${implementedRows || '<tr><td colspan="4">なし</td></tr>'}</tbody>
+            </table>
+        </div>
+        <div class="debug-section">
+            <div class="debug-section-title">📝 全テンプレート一覧</div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table class="debug-table">
+                    <thead>
+                        <tr><th>処理番号</th><th>関数名</th><th>テキスト</th><th>実装</th></tr>
+                    </thead>
+                    <tbody>${psButtons}</tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
 
-現在のレイヤー: ${debugInfo.currentLayer}
-総レイヤー数: ${debugInfo.totalLayers}
-総ノード数: ${debugInfo.totalNodes}
-現在レイヤーのノード数: ${debugInfo.currentLayerNodes}
-現在レイヤーのエッジ数: ${debugInfo.currentLayerEdges}
-現在のフォルダ: ${debugInfo.currentFolder || '(未設定)'}
-ノードカウンター: ${debugInfo.nodeCounter}
-部分実行モード: ${debugInfo.partialExecuteMode ? 'ON' : 'OFF'}
+// レイヤータブ
+function renderDebugLayersTab() {
+    const container = document.getElementById('debug-tab-layers');
+    if (!container) return;
 
-【レイヤー詳細】
-${layerDetails.join('\n')}
+    const layerRows = Object.entries(layerStructure).map(([layerKey, layer]) => {
+        const nodeCount = layer.nodes?.length || 0;
+        const edgeCount = layer.edges?.length || 0;
+        const isCurrent = layerKey === String(leftVisibleLayer);
+        return `<tr style="${isCurrent ? 'background: #eff6ff; font-weight: bold;' : ''}">
+            <td>${layerKey}${isCurrent ? ' (現在)' : ''}</td>
+            <td>${nodeCount}</td>
+            <td>${edgeCount}</td>
+        </tr>`;
+    }).join('');
 
-【ボタン設定】
-状態: ${buttonSettingsInfo}
-${categoryDetails}
+    // 現在レイヤーのノード詳細
+    const currentLayerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
+    const nodeDetailRows = currentLayerNodes.map(node => `
+        <tr>
+            <td>${node.id || '-'}</td>
+            <td>${node.text || '-'}</td>
+            <td>${node.処理番号 || '-'}</td>
+            <td style="background: ${node.color || 'white'};">${node.color || 'white'}</td>
+            <td>${node.x?.toFixed(0) || 0}, ${node.y?.toFixed(0) || 0}</td>
+        </tr>
+    `).join('');
 
-【実装済みテンプレート】(JavaScript側)
-${implementedList}
-
-【登録済みボタン一覧】
-${buttonList}${buttonListNote}
-    `.trim();
-
-    await showAlertDialog(message, 'デバッグ情報');
+    container.innerHTML = `
+        <div class="debug-section">
+            <div class="debug-section-title">📑 レイヤー一覧</div>
+            <table class="debug-table">
+                <thead>
+                    <tr><th>レイヤー</th><th>ノード数</th><th>エッジ数</th></tr>
+                </thead>
+                <tbody>${layerRows}</tbody>
+            </table>
+        </div>
+        <div class="debug-section">
+            <div class="debug-section-title">🔍 現在レイヤーのノード詳細（レイヤー ${leftVisibleLayer}）</div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table class="debug-table">
+                    <thead>
+                        <tr><th>ID</th><th>テキスト</th><th>処理番号</th><th>色</th><th>位置(x,y)</th></tr>
+                    </thead>
+                    <tbody>${nodeDetailRows || '<tr><td colspan="5">ノードなし</td></tr>'}</tbody>
+                </table>
+            </div>
+        </div>
+    `;
 }
 
 // ============================================
