@@ -5348,14 +5348,12 @@ function renderDebugButtonsTab() {
         </div>
         <div class="debug-section">
             <div class="debug-section-title">🔘 ボタン設定一覧（${buttonSettings.length}件）</div>
-            <div style="max-height: 400px; overflow-y: auto;">
-                <table class="debug-table">
-                    <thead>
-                        <tr><th>処理番号</th><th>カテゴリ</th><th>テキスト</th><th>関数名</th></tr>
-                    </thead>
-                    <tbody>${buttonRows}</tbody>
-                </table>
-            </div>
+            <table class="debug-table">
+                <thead>
+                    <tr><th>処理番号</th><th>カテゴリ</th><th>テキスト</th><th>関数名</th></tr>
+                </thead>
+                <tbody>${buttonRows}</tbody>
+            </table>
         </div>
     `;
 }
@@ -5402,14 +5400,12 @@ function renderDebugTemplatesTab() {
         </div>
         <div class="debug-section">
             <div class="debug-section-title">📝 全テンプレート一覧</div>
-            <div style="max-height: 400px; overflow-y: auto;">
-                <table class="debug-table">
-                    <thead>
-                        <tr><th>処理番号</th><th>関数名</th><th>テキスト</th><th>実装</th></tr>
-                    </thead>
-                    <tbody>${psButtons}</tbody>
-                </table>
-            </div>
+            <table class="debug-table">
+                <thead>
+                    <tr><th>処理番号</th><th>関数名</th><th>テキスト</th><th>実装</th></tr>
+                </thead>
+                <tbody>${psButtons}</tbody>
+            </table>
         </div>
     `;
 }
@@ -5454,14 +5450,12 @@ function renderDebugLayersTab() {
         </div>
         <div class="debug-section">
             <div class="debug-section-title">🔍 現在レイヤーのノード詳細（レイヤー ${leftVisibleLayer}）</div>
-            <div style="max-height: 400px; overflow-y: auto;">
-                <table class="debug-table">
-                    <thead>
-                        <tr><th>ID</th><th>テキスト</th><th>処理番号</th><th>色</th><th>位置(x,y)</th></tr>
-                    </thead>
-                    <tbody>${nodeDetailRows || '<tr><td colspan="5">ノードなし</td></tr>'}</tbody>
-                </table>
-            </div>
+            <table class="debug-table">
+                <thead>
+                    <tr><th>ID</th><th>テキスト</th><th>処理番号</th><th>色</th><th>位置(x,y)</th></tr>
+                </thead>
+                <tbody>${nodeDetailRows || '<tr><td colspan="5">ノードなし</td></tr>'}</tbody>
+            </table>
         </div>
     `;
 }
