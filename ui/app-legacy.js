@@ -2141,30 +2141,91 @@ async function testApiConnection() {
     }
 }
 
-async function callApi(endpoint, method = 'GET', body = null) {
+async function callApi(endpoint, method = 'GET', body = null, options = {}) {
     const t0 = performance.now();
+    const timeoutMs = options.timeout || 120000; // デフォルト2分
     console.log(`🔍 [API Timing] ${endpoint} リクエスト開始 (${method})`);
 
-    const options = {
+    const fetchOptions = {
         method: method,
         headers: { 'Content-Type': 'application/json' }
     };
 
     if (body) {
-        options.body = JSON.stringify(body);
+        fetchOptions.body = JSON.stringify(body);
     }
 
-    const t1 = performance.now();
-    const response = await fetch(`${API_BASE}${endpoint}`, options);
-    const t2 = performance.now();
-    console.log(`🔍 [API Timing] ${endpoint} フェッチ完了: ${(t2-t1).toFixed(1)}ms`);
+    // AbortControllerでタイムアウト制御
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    fetchOptions.signal = controller.signal;
 
-    const data = await response.json();
-    const t3 = performance.now();
-    console.log(`🔍 [API Timing] ${endpoint} JSON解析完了: ${(t3-t2).toFixed(1)}ms`);
-    console.log(`🔍 [API Timing] ${endpoint} 合計: ${(t3-t0).toFixed(1)}ms`);
+    try {
+        const t1 = performance.now();
+        const response = await fetch(`${API_BASE}${endpoint}`, fetchOptions);
+        const t2 = performance.now();
+        clearTimeout(timeoutId);
+        console.log(`🔍 [API Timing] ${endpoint} フェッチ完了: ${(t2-t1).toFixed(1)}ms`);
 
-    return data;
+        // HTTPステータスコード別のエラーハンドリング
+        if (response.status === 408) {
+            throw new Error('サーバータイムアウト: 処理に時間がかかりすぎました。再度お試しください。');
+        }
+        if (response.status === 500) {
+            throw new Error('サーバー内部エラー: サーバーで問題が発生しました。ログを確認してください。');
+        }
+        if (response.status === 503) {
+            throw new Error('サービス利用不可: サーバーが一時的に利用できません。しばらく待ってから再試行してください。');
+        }
+
+        // レスポンスボディを先にテキストとして読み取る（空レスポンス対策）
+        const responseText = await response.text();
+
+        // 空レスポンスの場合
+        if (!responseText || responseText.trim() === '') {
+            if (response.ok) {
+                // 成功だが空の場合は空オブジェクトを返す
+                return {};
+            }
+            throw new Error(`空のレスポンス: サーバーが応答を返しませんでした (HTTP ${response.status})`);
+        }
+
+        // JSONパース
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error(`[API] JSONパースエラー:`, parseError);
+            console.error(`[API] 受信したテキスト (先頭200文字):`, responseText.substring(0, 200));
+            throw new Error('JSONパースエラー: サーバーからの応答が不正です');
+        }
+
+        const t3 = performance.now();
+        console.log(`🔍 [API Timing] ${endpoint} JSON解析完了: ${(t3-t2).toFixed(1)}ms`);
+        console.log(`🔍 [API Timing] ${endpoint} 合計: ${(t3-t0).toFixed(1)}ms`);
+
+        // response.okでない場合はエラー情報を含めて返す
+        if (!response.ok) {
+            data._httpStatus = response.status;
+            data._httpStatusText = response.statusText;
+        }
+
+        return data;
+    } catch (error) {
+        clearTimeout(timeoutId);
+
+        // AbortErrorの場合はタイムアウト
+        if (error.name === 'AbortError') {
+            throw new Error(`クライアントタイムアウト: ${timeoutMs / 1000}秒を超えました`);
+        }
+
+        // ネットワークエラーの場合
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('ネットワークエラー: サーバーに接続できません。サーバーが起動しているか確認してください。');
+        }
+
+        throw error;
+    }
 }
 
 // ============================================
@@ -4097,19 +4158,14 @@ async function editScript() {
     console.log('✅ [editScript] APIリクエストボディ:', JSON.stringify(requestBody, null, 2));
 
     try {
-        // PowerShell Windows Formsダイアログを呼び出し
+        // PowerShell Windows Formsダイアログを呼び出し（ダイアログ用に長めのタイムアウト）
         console.log('✅ [editScript] PowerShell編集ダイアログを呼び出します...');
-        const response = await fetch(`${API_BASE}/node/edit-script`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
+        const result = await callApi('/node/edit-script', 'POST', requestBody, { timeout: 600000 });
 
-        const result = await response.json();
-
-        if (!response.ok) {
+        // HTTPエラーの場合
+        if (result._httpStatus) {
             console.error('[editScript] サーバーエラー:', result);
-            await showAlertDialog(`エラーが発生しました: ${result.error || 'Unknown error'}`, 'サーバーエラー');
+            await showAlertDialog(`サーバーエラー (${result._httpStatus}): ${result.error || result._httpStatusText}`, 'サーバーエラー');
             return;
         }
 
@@ -5917,15 +5973,15 @@ async function switchFolder() {
     console.log('✅ [フォルダ管理] ダイアログを開く（PowerShell Windows Forms版）');
 
     try {
-        // API経由でPowerShell Windows Forms ダイアログを表示
-        const response = await fetch(`${API_BASE}/folders/switch-dialog`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        // API経由でPowerShell Windows Forms ダイアログを表示（ダイアログ用に長めのタイムアウト）
+        const result = await callApi('/folders/switch-dialog', 'POST', null, { timeout: 300000 });
 
-        const result = await response.json();
+        // HTTPエラーの場合
+        if (result._httpStatus) {
+            console.error('❌ [フォルダ切替] HTTPエラー:', result._httpStatus);
+            await showAlertDialog(`サーバーエラー (${result._httpStatus}): ${result.error || result._httpStatusText}`, 'サーバーエラー');
+            return;
+        }
 
         if (result.cancelled) {
             console.log('✅ [フォルダ切替] キャンセルされました');
@@ -7323,19 +7379,14 @@ async function openNodeSettings(node) {
     if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] APIリクエストボディ:', JSON.stringify(requestBody, null, 2));
 
     try {
-        // PowerShell Windows Formsダイアログを呼び出し
+        // PowerShell Windows Formsダイアログを呼び出し（ダイアログ用に長めのタイムアウト）
         if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] PowerShell設定ダイアログを呼び出します...');
-        const response = await fetch(`${API_BASE}/node/settings`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
+        const result = await callApi('/node/settings', 'POST', requestBody, { timeout: 600000 });
 
-        const result = await response.json();
-
-        if (!response.ok) {
+        // HTTPエラーの場合
+        if (result._httpStatus) {
             console.error('❌ [ノード設定] サーバーエラー:', result);
-            await showAlertDialog(`エラーが発生しました: ${result.error || 'Unknown error'}`, 'サーバーエラー');
+            await showAlertDialog(`サーバーエラー (${result._httpStatus}): ${result.error || result._httpStatusText}`, 'サーバーエラー');
             return;
         }
 
