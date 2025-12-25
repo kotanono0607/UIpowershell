@@ -1,4 +1,4 @@
-﻿﻿function 13_9 {
+﻿function 13_9 {
     # Excel(操作) - シート削除
     # Excelファイルから指定シートを削除
 

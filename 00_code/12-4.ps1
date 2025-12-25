@@ -1,4 +1,4 @@
-﻿﻿function 12_4 {
+﻿function 12_4 {
     # コメント：スクリプト内にコメント（メモ）を追加
 
     Add-Type -AssemblyName System.Windows.Forms

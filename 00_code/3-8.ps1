@@ -1,4 +1,4 @@
-﻿﻿function 3_8 {
+﻿function 3_8 {
     # IME切替：日本語入力のオン・オフを切り替え
 
     Add-Type -AssemblyName System.Windows.Forms

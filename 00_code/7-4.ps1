@@ -1,4 +1,4 @@
-﻿﻿function 7_4 {
+﻿function 7_4 {
     # 確認ダイアログ：Yes/Noでユーザーに確認を求める
 
     $変数ファイルパス = $global:JSONPath

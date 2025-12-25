@@ -1,4 +1,4 @@
-﻿﻿function 5_4 {
+﻿function 5_4 {
     # コマンド実行：コマンドプロンプトでコマンドを実行
 
     $変数ファイルパス = $global:JSONPath

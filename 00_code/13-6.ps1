@@ -1,4 +1,4 @@
-﻿﻿function 13_6 {
+﻿function 13_6 {
     # Excel(操作) - 数式設定
     # Excelファイルの指定セルに数式を設定
 

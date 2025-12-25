@@ -1,4 +1,4 @@
-﻿﻿function 3_7 {
+﻿function 3_7 {
     # 変数から入力：変数の値を文字列として入力
 
     $変数ファイルパス = $global:JSONPath

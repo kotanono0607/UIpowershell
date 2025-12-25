@@ -1,4 +1,4 @@
-﻿﻿function 13_7 {
+﻿function 13_7 {
     # Excel(操作) - シート追加
     # Excelファイルに新しいシートを追加
 

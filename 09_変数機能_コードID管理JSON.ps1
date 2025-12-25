@@ -1,4 +1,4 @@
-﻿﻿
+﻿
 function JSON初回 {
 # ファイルパスの設定
 $スクリプトディレクトリ = $PSScriptRoot

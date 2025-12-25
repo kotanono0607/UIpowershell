@@ -1,4 +1,4 @@
-﻿﻿function 3_9 {
+﻿function 3_9 {
     # カスタムキー送信：SendKeys形式でキーを送信
 
     Add-Type -AssemblyName System.Windows.Forms

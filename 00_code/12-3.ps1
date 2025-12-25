@@ -1,4 +1,4 @@
-﻿﻿function 12_3 {
+﻿function 12_3 {
     # ログ出力：ログファイルにメッセージを出力
 
     Add-Type -AssemblyName System.Windows.Forms
