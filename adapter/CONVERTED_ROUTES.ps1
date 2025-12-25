@@ -2382,13 +2382,17 @@ Add-PodeRoute -Method Post -Path "/api/node/settings" -ScriptBlock {
         Write-PodeJsonResponse -Value $result -Depth 5
 
     } catch {
-        Set-PodeResponseStatus -Code 500
+        # エラーログを出力
+        Write-Host "[/api/node/settings] ERROR: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "[/api/node/settings] StackTrace: $($_.ScriptStackTrace)" -ForegroundColor Yellow
+
         $errorResult = @{
             success = $false
             error = $_.Exception.Message
             stackTrace = $_.ScriptStackTrace
         }
-        Write-PodeJsonResponse -Value $errorResult -Depth 5
+        # StatusCodeを含めてJSONレスポンスを返す（Set-PodeResponseStatusは使わない）
+        Write-PodeJsonResponse -Value $errorResult -Depth 5 -StatusCode 500
     }
 }
 
