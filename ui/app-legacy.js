@@ -7398,14 +7398,36 @@ async function executeNodeFunction(functionName, params = {}, timeoutMs = 300000
 // 個別のgenerate関数（フォールバック用）
 // ============================================
 
-// 1_1: 順次処理
+// 1_1: 順次処理（自動インクリメント）
 async function generate_1_1() {
-    try {
-        return await executeNodeFunction('1_1');
-    } catch (error) {
-        console.warn('[generate_1_1] API呼び出し失敗、フォールバックを使用', error);
-        return 'Write-Host "OK"';
+    // 現在のレイヤーの順次ノードから最大番号を取得
+    let maxNumber = 0;
+
+    // 全レイヤーの順次ノードを確認
+    for (const layerKey in layerStructure) {
+        const layerNodes = layerStructure[layerKey]?.nodes || [];
+        for (const node of layerNodes) {
+            // "順次N" パターンにマッチするノードを探す
+            const match = node.text?.match(/^順次(\d+)$/);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxNumber) {
+                    maxNumber = num;
+                }
+            }
+        }
     }
+
+    // 次の番号
+    const nextNumber = maxNumber + 1;
+
+    // JSON形式で返す（ノード名更新用）
+    const response = {
+        code: `Write-Host "${nextNumber}OK"`,
+        nodeName: `順次${nextNumber}`
+    };
+
+    return JSON.stringify(response);
 }
 
 // 1_6: メッセージボックス表示
