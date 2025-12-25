@@ -5227,6 +5227,35 @@ async function openDebugModal() {
         layerDetails.push(`  レイヤー ${layerKey}: ${layer.nodes?.length || 0} ノード, ${layer.edges?.length || 0} エッジ`);
     }
 
+    // ボタン設定の読み込み状況
+    const buttonSettingsInfo = buttonSettings.length > 0
+        ? `${buttonSettings.length} 件読み込み済み`
+        : '未読み込み';
+
+    // カテゴリごとのボタン数を集計
+    const categoryCount = {};
+    buttonSettings.forEach(btn => {
+        const cat = btn.カテゴリ || '未分類';
+        categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+    });
+    const categoryDetails = Object.entries(categoryCount)
+        .map(([cat, count]) => `  ${cat}: ${count} 件`)
+        .join('\n');
+
+    // 実装済みテンプレート一覧（codeGeneratorFunctionsに登録されているもの）
+    const implementedFunctions = Object.keys(codeGeneratorFunctions);
+    const implementedList = implementedFunctions.length > 0
+        ? implementedFunctions.map(fn => `  ${fn}`).join('\n')
+        : '  (なし)';
+
+    // ボタン設定の詳細リスト（処理番号と名前）
+    const buttonList = buttonSettings.slice(0, 50).map(btn =>
+        `  ${btn.処理番号 || '?'}: ${btn.テキスト || '(名前なし)'}`
+    ).join('\n');
+    const buttonListNote = buttonSettings.length > 50
+        ? `\n  ... 他 ${buttonSettings.length - 50} 件`
+        : '';
+
     const message = `
 【デバッグ情報】
 
@@ -5241,6 +5270,16 @@ async function openDebugModal() {
 
 【レイヤー詳細】
 ${layerDetails.join('\n')}
+
+【ボタン設定】
+状態: ${buttonSettingsInfo}
+${categoryDetails}
+
+【実装済みテンプレート】(JavaScript側)
+${implementedList}
+
+【登録済みボタン一覧】
+${buttonList}${buttonListNote}
     `.trim();
 
     await showAlertDialog(message, 'デバッグ情報');
