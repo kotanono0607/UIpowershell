@@ -314,10 +314,9 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
             $元のコード = IDでエントリを取得 -ID $originalNodeId
             if ($元のコード) {
                 $コード追加結果 = エントリを追加_指定ID -文字列 $元のコード -ID $newNodeId
-                if ($コード追加結果) {
-                }
             }
         } catch {
+            # エラーを無視（意図的）
         }
 
         # ノードを追加
@@ -719,8 +718,6 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
 
         # 変更を永続化
         $exportResult = Export-VariablesToJson_v2
-        if (-not $exportResult.success) {
-        }
 
         # 成功レスポンス
         $result = @{
@@ -842,6 +839,7 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
                 $global:folderPath = Join-Path $RootDir "03_history\$folderName"
                 $global:jsonパス = Join-Path $global:folderPath "コード.json"
             } catch {
+                # エラーを無視（意図的）
             }
         } else {
         }
@@ -1127,6 +1125,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
                 # 相対パス対応: フォルダ名を直接取得
                 $現在のフォルダ = $mainData.フォルダパス
             } catch {
+                # エラーを無視（意図的）
             }
         }
 
@@ -1151,8 +1150,6 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
         # 新しいフォルダが作成された場合はAPI経由で作成
         if ($ダイアログ結果.newFolder) {
             $作成結果 = フォルダ作成イベント_v2 -FolderName $ダイアログ結果.newFolder
-            if (-not $作成結果.success) {
-            }
         }
 
         # 選択されたフォルダが現在のフォルダと異なる場合は切り替え
@@ -1342,8 +1339,6 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
                 $memoryData["$i"] = @{ "構成" = $構成; "edges" = $layerEdges }
             } else {
                 $memoryData["$i"] = @{ "構成" = $構成 }
-                if ($構成.Count -gt 0) {
-                }
             }
         }
 
@@ -1355,6 +1350,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
                 $memoryBeforeContent = Get-Content $memoryPath -Raw -Encoding UTF8
                 $memoryBefore = $memoryBeforeContent | ConvertFrom-Json
             } catch {
+                # エラーを無視（意図的）
             }
         }
 
@@ -1381,6 +1377,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
                 -MemoryBefore $memoryBefore `
                 -MemoryAfter $memoryData
         } catch {
+            # エラーを無視（意図的）
         }
 
         # ファイル保存確認
@@ -1653,6 +1650,7 @@ Add-PodeRoute -Method Post -Path "/api/id/generate" -ScriptBlock {
             $global:folderPath = Join-Path $RootDir "03_history\$folderName"
             $global:jsonパス = Join-Path $global:folderPath "コード.json"
         } catch {
+            # エラーを無視（意図的）
         }
     }
 
@@ -1696,6 +1694,7 @@ Add-PodeRoute -Method Post -Path "/api/entry/add" -ScriptBlock {
             $global:folderPath = Join-Path $RootDir "03_history\$folderName"
             $global:jsonパス = Join-Path $global:folderPath "コード.json"
         } catch {
+            # エラーを無視（意図的）
         }
     }
 
@@ -1748,6 +1747,7 @@ Add-PodeRoute -Method Get -Path "/api/entry/:id" -ScriptBlock {
             $global:folderPath = Join-Path $RootDir "03_history\$folderName"
             $global:jsonパス = Join-Path $global:folderPath "コード.json"
         } catch {
+            # エラーを無視（意図的）
         }
     }
 
@@ -1906,6 +1906,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             $scriptContent = Get-Content -Path $scriptPath -Raw -Encoding UTF8
             $scriptLoaded = $true
         } catch {
+            # エラーを無視（意図的）
         }
 
         if (-not $scriptLoaded) {
@@ -1966,6 +1967,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
                 $JSONPath = Join-Path $folderPath "variables.json"
                 $runspace.SessionStateProxy.SetVariable('global:JSONPath', $JSONPath)
             } catch {
+                # エラーを無視（意図的）
             }
         } else {
         }
@@ -2076,6 +2078,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
                     $ps.Commands.Clear()
                     break
                 } catch {
+                    # エラーを無視（意図的）
                 }
             }
         }
@@ -2146,8 +2149,6 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             $parentId = ($functionName -replace '_.*$', '')
 
             # 警告: コードに "---" が含まれる場合、複数エントリに分割される
-            if ($code -match '---') {
-            }
 
             # コードID管理関数の初期化（未読み込みの場合のみ）
             if (-not (Get-Command エントリを追加_指定ID -ErrorAction SilentlyContinue)) {
@@ -2159,6 +2160,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             try {
                 $savedId = エントリを追加_指定ID -文字列 $code -ID $parentId
             } catch {
+                # エラーを無視（意図的）
             }
         }
 
@@ -2170,8 +2172,6 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             success = $false
             error = $_.Exception.Message
             stackTrace = $_.ScriptStackTrace
-        }
-        if ($_.ScriptStackTrace) {
         }
         Write-PodeJsonResponse -Value $errorResult -Depth 5
     }

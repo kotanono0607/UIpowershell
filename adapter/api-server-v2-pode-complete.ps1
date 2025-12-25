@@ -48,6 +48,7 @@ foreach ($file in $serverLogs) {
         Remove-Item -Path $file.FullName -Force
         $deletedCount++
     } catch {
+        # エラーを無視（意図的）
     }
 }
 
@@ -58,6 +59,7 @@ foreach ($file in $browserLogs) {
         Remove-Item -Path $file.FullName -Force
         $deletedCount++
     } catch {
+        # エラーを無視（意図的）
     }
 }
 
@@ -68,6 +70,7 @@ foreach ($file in $controlLogs) {
         Remove-Item -Path $file.FullName -Force
         $deletedCount++
     } catch {
+        # エラーを無視（意図的）
     }
 }
 
@@ -135,8 +138,6 @@ if (Test-Path $localPodePath) {
     }
 }
 
-if (-not $localPodeFound) {
-}
 
 # ============================================
 # PowerShell 5.1対応: PodeモジュールのUTF-8 BOM修正
@@ -214,6 +215,7 @@ if ($podeConsoleFile -and (Test-Path $podeConsoleFile)) {
         } else {
         }
     } catch {
+        # エラーを無視（意図的）
     }
 } else {
 }
@@ -283,6 +285,7 @@ try {
                 } else {
                 }
             } catch {
+                # エラーを無視（意図的）
             }
         }
 
@@ -454,8 +457,6 @@ Start-PodeServer -RootPath $adapterPath {
             }
         }
 
-        if (-not $edgeFound) {
-        }
     }
 
 } # Start-PodeServer ブロックの終了

@@ -2206,6 +2206,7 @@ $originalScript
                         $profileContent.version = $newVersion
                         $profileContent | ConvertTo-Json -Depth 10 | Set-Content -Path $robotProfilePath -Encoding UTF8 -Force
                     } catch {
+                        # エラーを無視（意図的）
                     }
                 }
 
@@ -2227,6 +2228,7 @@ pause
 "@
                     Set-Content -Path $stopBatPath -Value $stopBatContent -Encoding UTF8 -Force
                 } catch {
+                    # エラーを無視（意図的）
                 }
 
                 $開く結果 = [System.Windows.Forms.MessageBox]::Show(
@@ -2308,8 +2310,6 @@ pause
                 }
             }
 
-            if (-not $resolvedRootDir) {
-            }
 
             # win32API.psm1を読み込み
             if ($resolvedRootDir) {
