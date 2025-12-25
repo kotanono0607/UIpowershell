@@ -32,6 +32,10 @@ function 10_6 {
         $入力フォーム.FormBorderStyle = "FixedDialog"
         $入力フォーム.MaximizeBox = $false
         $入力フォーム.Topmost = $true
+    $入力フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
         $ラベル = New-Object System.Windows.Forms.Label
         $ラベル.Text = "ウィンドウ名（部分一致）："
@@ -66,6 +70,10 @@ function 10_6 {
     $フォーム.FormBorderStyle = "FixedDialog"
     $フォーム.MaximizeBox = $false
     $フォーム.Topmost = $true
+    $フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
     # 対象ウィンドウ
     $ラベル1 = New-Object System.Windows.Forms.Label

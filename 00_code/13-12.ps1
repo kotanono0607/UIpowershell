@@ -44,6 +44,10 @@
     $フォーム.MaximizeBox = $false
     $フォーム.MinimizeBox = $false
     $フォーム.Topmost = $true
+    $フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
 
     # ファイルパス
     $ラベル1 = New-Object System.Windows.Forms.Label
