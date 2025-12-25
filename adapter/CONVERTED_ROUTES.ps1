@@ -6,6 +6,43 @@
 # ==============================================================================
 
 # ==============================================================================
+# エラーログ出力関数（500エラー詳細記録用）
+# ==============================================================================
+function Write-ApiErrorLog {
+    param(
+        [string]$Endpoint,
+        [System.Management.Automation.ErrorRecord]$ErrorRecord
+    )
+    try {
+        $rootDir = Get-PodeState -Name 'RootDir'
+        $logDir = Join-Path $rootDir "logs"
+        if (-not (Test-Path $logDir)) {
+            New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+        }
+
+        $dateStr = Get-Date -Format "yyyyMMdd"
+        $errorLogFile = Join-Path $logDir "api-errors_$dateStr.log"
+
+        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
+        $errorMessage = $ErrorRecord.Exception.Message
+        $scriptStackTrace = $ErrorRecord.ScriptStackTrace
+        $positionMessage = $ErrorRecord.InvocationInfo.PositionMessage
+
+        $logEntry = @"
+[$timestamp] [ERROR] Endpoint: $Endpoint
+  Message: $errorMessage
+  Position: $positionMessage
+  StackTrace:
+$scriptStackTrace
+---
+"@
+        Add-Content -Path $errorLogFile -Value $logEntry -Encoding UTF8
+    } catch {
+        # ログ出力自体のエラーは無視
+    }
+}
+
+# ==============================================================================
 # v2ファイルとAdapterファイルをルート定義スコープ内で読み込み
 # （Podeのスレッド分離問題を回避するため）
 # ==============================================================================
@@ -203,6 +240,7 @@ Add-PodeRoute -Method Post -Path "/api/nodes" -ScriptBlock {
 
         Write-PodeJsonResponse -Value $result
     } catch {
+        Write-ApiErrorLog -Endpoint "/api/nodes" -ErrorRecord $_
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -2167,6 +2205,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         Write-PodeJsonResponse -Value $result -Depth 5
 
     } catch {
+        Write-ApiErrorLog -Endpoint "/api/node/execute/$functionName" -ErrorRecord $_
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
