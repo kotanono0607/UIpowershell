@@ -1,4 +1,13 @@
-[2025-12-25T10:05:45.490Z] [LOG] UIpowershell Aurora Arrow Patch Applied
-[2025-12-25T10:05:45.732Z] [ERROR] │ ❌ フォルダ一覧取得失敗
-[2025-12-25T10:05:45.732Z] [ERROR] │ ❌ フォルダが1つも存在しません
-[2025-12-25T10:05:45.732Z] [ERROR] │    「フォルダ作成」ボタンから新しいフォルダを作成してください
+[2025-12-25T10:09:20.663Z] [LOG] UIpowershell Aurora Arrow Patch Applied
+[2025-12-25T11:36:54.442Z] [ERROR] [ノード関数実行] ⚠ JSONパースエラー: {}
+[2025-12-25T11:36:54.442Z] [ERROR] [ノード関数実行] 受信したテキスト (先頭200文字): <html style='background-color: #01b0c4; overflow-y: hidden'>
+
+    <head>
+        <title>400</title>
+        <meta charset='utf-8'>
+    </head>
+
+    <body style='color: white; font-family: Helve
+[2025-12-25T11:36:54.442Z] [ERROR] [ノード関数実行] エラー: {}
+[2025-12-25T11:36:54.443Z] [ERROR] [コード生成] API呼び出しエラー: {}
+[2025-12-25T11:36:54.443Z] [ERROR] [コード生成] 関数 8_1 の実行に失敗しました
