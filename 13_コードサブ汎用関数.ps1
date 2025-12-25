@@ -684,9 +684,11 @@ function ノード設定を編集 {
     $数値_幅 = New-Object System.Windows.Forms.NumericUpDown
     $数値_幅.Location = New-Object System.Drawing.Point(240, 48)
     $数値_幅.Size = New-Object System.Drawing.Size(100, 25)
-    $数値_幅.Minimum = 80
+    $数値_幅.Minimum = 40
     $数値_幅.Maximum = 500
-    $数値_幅.Value = if ($ノード情報.width) { $ノード情報.width } else { 120 }
+    # 値をMinimum/Maximum範囲内にクランプ
+    $widthValue = if ($ノード情報.width) { $ノード情報.width } else { 120 }
+    $数値_幅.Value = [Math]::Max($数値_幅.Minimum, [Math]::Min($数値_幅.Maximum, $widthValue))
     $グループ_外観.Controls.Add($数値_幅)
 
     # 高さ
@@ -699,9 +701,11 @@ function ノード設定を編集 {
     $数値_高さ = New-Object System.Windows.Forms.NumericUpDown
     $数値_高さ.Location = New-Object System.Drawing.Point(360, 48)
     $数値_高さ.Size = New-Object System.Drawing.Size(100, 25)
-    $数値_高さ.Minimum = 30
+    $数値_高さ.Minimum = 20
     $数値_高さ.Maximum = 200
-    $数値_高さ.Value = if ($ノード情報.height) { $ノード情報.height } else { 40 }
+    # 値をMinimum/Maximum範囲内にクランプ
+    $heightValue = if ($ノード情報.height) { $ノード情報.height } else { 40 }
+    $数値_高さ.Value = [Math]::Max($数値_高さ.Minimum, [Math]::Min($数値_高さ.Maximum, $heightValue))
     $グループ_外観.Controls.Add($数値_高さ)
 
     # X座標
