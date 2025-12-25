@@ -61,3 +61,12 @@
 [2025-12-25 20:36:54.307] [STEP] 7. Function executed, processing result
 [2025-12-25 20:36:54.317] [STEP] ERROR: 関数実行中にエラーが発生しました: 引数が空の文字列であるため、パラメーター 'Path' にバインドできません。
 null 値の式ではメソッドを呼び出せません。
+[2025-12-25 20:37:19.981] [STEP] 1. Request received: /api/node/execute/8_1
+[2025-12-25 20:37:19.982] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\8-1.ps1
+[2025-12-25 20:37:20.067] [STEP] 3. Executing script to define function
+[2025-12-25 20:37:20.069] [STEP] 4. Function defined successfully
+[2025-12-25 20:37:20.071] [STEP] 5. Creating STA runspace
+[2025-12-25 20:37:20.197] [STEP] 6. Executing function: 8_1
+[2025-12-25 20:37:56.392] [STEP] 7. Function executed, processing result
+[2025-12-25 20:37:56.447] [STEP] 8. Sending response
+[2025-12-25 20:37:56.449] [STEP] 9. Response sent successfully
