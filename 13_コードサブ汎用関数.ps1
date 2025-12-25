@@ -90,12 +90,19 @@ public class MainMenuHelper {
 # メインメニューを最小化する関数
 function メインメニューを最小化 {
     try {
-        # MainMenuHelper型が存在する場合のみ実行
-        if ([type]::GetType('MainMenuHelper', $false)) {
-            $handle = [MainMenuHelper]::FindUIpowershellWindow()
-            if ($handle -ne [IntPtr]::Zero) {
-                [MainMenuHelper]::ShowWindow($handle, [MainMenuHelper]::SW_MINIMIZE) | Out-Null
-                return $handle
+        # MainMenuHelper型が存在する場合のみ実行（リフレクションで動的に呼び出し）
+        $helperType = [type]::GetType('MainMenuHelper', $false)
+        if ($helperType) {
+            $findMethod = $helperType.GetMethod('FindUIpowershellWindow')
+            $showMethod = $helperType.GetMethod('ShowWindow')
+            $swMinimize = $helperType.GetField('SW_MINIMIZE').GetValue($null)
+
+            if ($findMethod -and $showMethod) {
+                $handle = $findMethod.Invoke($null, @())
+                if ($handle -ne [IntPtr]::Zero) {
+                    $showMethod.Invoke($null, @($handle, $swMinimize)) | Out-Null
+                    return $handle
+                }
             }
         }
     } catch {
@@ -110,9 +117,15 @@ function メインメニューを復元 {
         [IntPtr]$ハンドル
     )
     try {
-        # MainMenuHelper型が存在する場合のみ実行
-        if ([type]::GetType('MainMenuHelper', $false) -and $ハンドル -ne [IntPtr]::Zero) {
-            [MainMenuHelper]::ShowWindow($ハンドル, [MainMenuHelper]::SW_RESTORE) | Out-Null
+        # MainMenuHelper型が存在する場合のみ実行（リフレクションで動的に呼び出し）
+        $helperType = [type]::GetType('MainMenuHelper', $false)
+        if ($helperType -and $ハンドル -ne [IntPtr]::Zero) {
+            $showMethod = $helperType.GetMethod('ShowWindow')
+            $swRestore = $helperType.GetField('SW_RESTORE').GetValue($null)
+
+            if ($showMethod) {
+                $showMethod.Invoke($null, @($ハンドル, $swRestore)) | Out-Null
+            }
         }
     } catch {
         # エラー時は何もしない（意図的に無視）
@@ -140,10 +153,14 @@ function フォームを前面表示に設定 {
 
         # Windows APIで強制的に前面に持ってくる（MainMenuHelper型が存在する場合のみ）
         try {
-            if ([type]::GetType('MainMenuHelper', $false)) {
+            $helperType = [type]::GetType('MainMenuHelper', $false)
+            if ($helperType) {
                 $handle = $this.Handle
                 if ($handle -ne [IntPtr]::Zero) {
-                    [MainMenuHelper]::ForceForegroundWindow($handle) | Out-Null
+                    $method = $helperType.GetMethod('ForceForegroundWindow')
+                    if ($method) {
+                        $method.Invoke($null, @($handle)) | Out-Null
+                    }
                 }
             }
         } catch {
