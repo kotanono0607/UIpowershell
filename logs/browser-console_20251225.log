@@ -1,1 +1,14 @@
-[2025-12-25T12:15:17.845Z] [LOG] UIpowershell Aurora Arrow Patch Applied
+[2025-12-25T12:16:56.421Z] [LOG] UIpowershell Aurora Arrow Patch Applied
+[2025-12-25T12:17:13.634Z] [ERROR] [ノード関数実行] エラー: Error: 不明なエラー | Stack: Error: 不明なエラー
+    at executeNodeFunction (http://localhost:8080/app-legacy.js?v=1.1.0:7382:23)
+    at async generateCode (http://localhost:8080/app-legacy.js?v=1.1.0:7520:31)
+    at async addConditionSet (http://localhost:8080/app-legacy.js?v=1.1.0:2353:20)
+    at async addNodeToLayer (http://localhost:8080/app-legacy.js?v=1.1.0:2160:22)
+    at async btn.onclick (http://localhost:8080/app-legacy.js?v=1.1.0:1994:17)
+[2025-12-25T12:17:13.634Z] [ERROR] [コード生成] API呼び出しエラー: Error: 不明なエラー | Stack: Error: 不明なエラー
+    at executeNodeFunction (http://localhost:8080/app-legacy.js?v=1.1.0:7382:23)
+    at async generateCode (http://localhost:8080/app-legacy.js?v=1.1.0:7520:31)
+    at async addConditionSet (http://localhost:8080/app-legacy.js?v=1.1.0:2353:20)
+    at async addNodeToLayer (http://localhost:8080/app-legacy.js?v=1.1.0:2160:22)
+    at async btn.onclick (http://localhost:8080/app-legacy.js?v=1.1.0:1994:17)
+[2025-12-25T12:17:13.634Z] [ERROR] [コード生成] 関数 1_2 の実行に失敗しました
