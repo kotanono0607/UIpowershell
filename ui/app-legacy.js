@@ -1756,6 +1756,7 @@ async function callApi(endpoint, method = 'GET', body = null, options = {}) {
         }
         if (response.status === 500) {
             // 500エラーでもレスポンスボディを読んで詳細を取得
+            let errorMsgToThrow = 'サーバーで問題が発生しました。ログを確認してください。';
             try {
                 const errorText = await response.text();
                 const errorData = JSON.parse(errorText);
@@ -1765,10 +1766,11 @@ async function callApi(endpoint, method = 'GET', body = null, options = {}) {
                 if (stackTrace) {
                     console.error('[callApi] スタックトレース:', stackTrace);
                 }
-                throw new Error(`サーバー内部エラー: ${errorMsg}`);
+                errorMsgToThrow = errorMsg;
             } catch (parseError) {
-                throw new Error('サーバー内部エラー: サーバーで問題が発生しました。ログを確認してください。');
+                // JSON解析に失敗した場合はデフォルトメッセージを使用
             }
+            throw new Error(`サーバー内部エラー: ${errorMsgToThrow}`);
         }
         if (response.status === 503) {
             throw new Error('サービス利用不可: サーバーが一時的に利用できません。しばらく待ってから再試行してください。');
