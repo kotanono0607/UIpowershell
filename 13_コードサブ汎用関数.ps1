@@ -1,7 +1,8 @@
 ﻿# 必要なアセンブリの読み込み
 Add-Type -AssemblyName System.Windows.Forms
 
-# メインメニュー最小化/復元用のAPI定義
+# メインメニュー最小化/復元用のAPI定義（既に読み込み済みの場合はスキップ）
+if (-not ([System.Management.Automation.PSTypeName]'MainMenuHelper').Type) {
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
@@ -79,6 +80,7 @@ public class MainMenuHelper {
     }
 }
 "@ -ErrorAction SilentlyContinue
+}
 
 # メインメニューを最小化する関数
 function メインメニューを最小化 {
