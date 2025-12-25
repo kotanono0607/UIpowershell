@@ -9,7 +9,10 @@ on:
 
 jobs:
   deploy:
-    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    # ログ自動送信コミットはスキップ（無限ループ防止）
+    if: |
+      (github.event_name == 'push' || github.event.workflow_run.conclusion == 'success') &&
+      !contains(github.event.head_commit.message, 'debug: ログファイル自動送信')
     runs-on: self-hosted
     steps:
       - name: Checkout code
