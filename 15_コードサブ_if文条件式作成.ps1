@@ -1,4 +1,4 @@
-﻿function ShowLoopBuilder {
+﻿﻿function ShowLoopBuilder {
     param(
         [string]$JSONPath  # 変数リストを格納したJSONファイルのパス
     )

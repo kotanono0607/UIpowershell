@@ -1,4 +1,4 @@
-﻿function 3_5 {
+﻿﻿function 3_5 {
     # キー連打：指定したキーを複数回連続で送信
 
     Add-Type -AssemblyName System.Windows.Forms

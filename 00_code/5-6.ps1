@@ -1,4 +1,4 @@
-﻿function 5_6 {
+﻿﻿function 5_6 {
     # PowerShell実行：PowerShellスクリプトまたはコマンドを実行
 
     $変数ファイルパス = $global:JSONPath

@@ -1,4 +1,4 @@
-﻿function 9_7 {
+﻿﻿function 9_7 {
     # ウインドウ情報取得：ウインドウの位置とサイズを取得
 
     $変数ファイルパス = $global:JSONPath
