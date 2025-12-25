@@ -675,6 +675,39 @@
         </div>
     </div>
 
+    <!-- デバッグモーダル -->
+    <div id="debug-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container debug-modal-container">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span class="modal-icon">🐛</span>
+                    <span>デバッグ情報</span>
+                </div>
+                <button class="modal-close-btn" onclick="closeDebugModal()">✕</button>
+            </div>
+            <div class="debug-tabs">
+                <div class="debug-tab active" data-tab="basic" onclick="switchDebugTab('basic')">📊 基本情報</div>
+                <div class="debug-tab" data-tab="buttons" onclick="switchDebugTab('buttons')">🔘 ボタン設定</div>
+                <div class="debug-tab" data-tab="templates" onclick="switchDebugTab('templates')">📝 テンプレート</div>
+                <div class="debug-tab" data-tab="layers" onclick="switchDebugTab('layers')">📑 レイヤー</div>
+            </div>
+            <div class="modal-content debug-modal-content">
+                <div id="debug-tab-basic" class="debug-tab-content active">
+                    <!-- 動的に生成 -->
+                </div>
+                <div id="debug-tab-buttons" class="debug-tab-content" style="display: none;">
+                    <!-- 動的に生成 -->
+                </div>
+                <div id="debug-tab-templates" class="debug-tab-content" style="display: none;">
+                    <!-- 動的に生成 -->
+                </div>
+                <div id="debug-tab-layers" class="debug-tab-content" style="display: none;">
+                    <!-- 動的に生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- arrow-drawing.jsの内容はapp-legacy.jsに統合されました -->
     <script src="app-legacy.js?v=1.1.0"></script>
     <!-- Aurora Arrow Patch: Neumorphism + Auroraデザインのグラデーション矢印 -->
