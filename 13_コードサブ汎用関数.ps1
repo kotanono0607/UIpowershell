@@ -90,13 +90,16 @@ public class MainMenuHelper {
 # メインメニューを最小化する関数
 function メインメニューを最小化 {
     try {
-        $handle = [MainMenuHelper]::FindUIpowershellWindow()
-        if ($handle -ne [IntPtr]::Zero) {
-            [MainMenuHelper]::ShowWindow($handle, [MainMenuHelper]::SW_MINIMIZE) | Out-Null
-            return $handle
+        # MainMenuHelper型が存在する場合のみ実行
+        if ([type]::GetType('MainMenuHelper', $false)) {
+            $handle = [MainMenuHelper]::FindUIpowershellWindow()
+            if ($handle -ne [IntPtr]::Zero) {
+                [MainMenuHelper]::ShowWindow($handle, [MainMenuHelper]::SW_MINIMIZE) | Out-Null
+                return $handle
+            }
         }
     } catch {
-        # エラー時は何もしない
+        # エラー時は何もしない（意図的に無視）
     }
     return [IntPtr]::Zero
 }
@@ -107,11 +110,12 @@ function メインメニューを復元 {
         [IntPtr]$ハンドル
     )
     try {
-        if ($ハンドル -ne [IntPtr]::Zero) {
+        # MainMenuHelper型が存在する場合のみ実行
+        if ([type]::GetType('MainMenuHelper', $false) -and $ハンドル -ne [IntPtr]::Zero) {
             [MainMenuHelper]::ShowWindow($ハンドル, [MainMenuHelper]::SW_RESTORE) | Out-Null
         }
     } catch {
-        # エラー時は何もしない
+        # エラー時は何もしない（意図的に無視）
     }
 }
 
@@ -134,14 +138,16 @@ function フォームを前面表示に設定 {
         $this.Activate()
         $this.BringToFront()
 
-        # Windows APIで強制的に前面に持ってくる
+        # Windows APIで強制的に前面に持ってくる（MainMenuHelper型が存在する場合のみ）
         try {
-            $handle = $this.Handle
-            if ($handle -ne [IntPtr]::Zero) {
-                [MainMenuHelper]::ForceForegroundWindow($handle) | Out-Null
+            if ([type]::GetType('MainMenuHelper', $false)) {
+                $handle = $this.Handle
+                if ($handle -ne [IntPtr]::Zero) {
+                    [MainMenuHelper]::ForceForegroundWindow($handle) | Out-Null
+                }
             }
         } catch {
-            # エラー時は標準の方法で前面化
+            # エラー時は標準の方法で前面化（意図的に無視）
         }
 
         # 少し待ってから再度前面化（他のウィンドウが割り込む場合の対策）
