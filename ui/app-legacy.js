@@ -2150,6 +2150,28 @@ async function addNodeToLayer(setting) {
         try {
             const generatedCode = await generateCode(setting.処理番号, baseId);
             if (generatedCode) {
+                // JSONレスポンスからノード名を取得して更新
+                try {
+                    if (typeof generatedCode === 'string' && generatedCode.startsWith('{')) {
+                        const parsed = JSON.parse(generatedCode);
+                        if (parsed.nodeName) {
+                            // ノード名を更新
+                            node.text = parsed.nodeName;
+                            // nodes配列内のノードも更新
+                            const nodeInArray = nodes.find(n => n.id === node.id);
+                            if (nodeInArray) {
+                                nodeInArray.text = parsed.nodeName;
+                            }
+                            // layerStructure内のノードも更新
+                            const nodeInLayer = layerStructure[leftVisibleLayer].nodes.find(n => n.id === node.id);
+                            if (nodeInLayer) {
+                                nodeInLayer.text = parsed.nodeName;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // JSONパース失敗時は無視（通常のコード文字列として扱う）
+                }
             } else {
                 // キャンセルされた場合：作成済みのノードを削除
                 console.warn('[addNodeToLayer] ⚠ コード生成がキャンセルされました - ノードを削除します');
