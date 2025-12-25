@@ -25,6 +25,8 @@
             <div class="menu-item menu-accent" onclick="executeCode()">▶ コード生成</div>
             <div class="menu-item menu-accent-light" onclick="openPartialExecuteDialog()">⏯ 部分実行</div>
             <div class="menu-item menu-danger" onclick="deleteAllNodes()">🗑 全削除</div>
+            <div class="menu-item disabled" id="btn-undo" onclick="undoOperation()">⬅ Undo</div>
+            <div class="menu-item disabled" id="btn-redo" onclick="redoOperation()">➡ Redo</div>
             <div class="menu-dropdown">
                 <div class="menu-item">🧰 道具箱 ▼</div>
                 <div class="menu-dropdown-content">
@@ -34,8 +36,7 @@
                     <div class="menu-dropdown-item" onclick="restoreSnapshot()">↩ 復元</div>
                 </div>
             </div>
-            <div class="menu-item disabled" id="btn-undo" onclick="undoOperation()">⬅ Undo</div>
-            <div class="menu-item disabled" id="btn-redo" onclick="redoOperation()">➡ Redo</div>
+            <div class="menu-item" onclick="openDebugModal()">🐛 デバッグ</div>
             <div class="menu-item" onclick="openHelpModal()">❓ ヘルプ</div>
             <div class="menu-item menu-danger" onclick="exitApplication()">⏹ 終了</div>
         </div>

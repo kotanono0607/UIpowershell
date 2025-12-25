@@ -5204,6 +5204,49 @@ function closeHelpModal() {
 }
 
 // ============================================
+// デバッグモーダル
+// ============================================
+
+async function openDebugModal() {
+    // デバッグ情報を収集
+    const debugInfo = {
+        currentLayer: leftVisibleLayer,
+        totalLayers: Object.keys(layerStructure).length,
+        totalNodes: nodes.length,
+        currentLayerNodes: layerStructure[leftVisibleLayer]?.nodes?.length || 0,
+        currentLayerEdges: layerStructure[leftVisibleLayer]?.edges?.length || 0,
+        currentFolder: currentFolder,
+        nodeCounter: nodeCounter,
+        partialExecuteMode: partialExecuteMode.active
+    };
+
+    // 各レイヤーのノード数
+    const layerDetails = [];
+    for (const layerKey in layerStructure) {
+        const layer = layerStructure[layerKey];
+        layerDetails.push(`  レイヤー ${layerKey}: ${layer.nodes?.length || 0} ノード, ${layer.edges?.length || 0} エッジ`);
+    }
+
+    const message = `
+【デバッグ情報】
+
+現在のレイヤー: ${debugInfo.currentLayer}
+総レイヤー数: ${debugInfo.totalLayers}
+総ノード数: ${debugInfo.totalNodes}
+現在レイヤーのノード数: ${debugInfo.currentLayerNodes}
+現在レイヤーのエッジ数: ${debugInfo.currentLayerEdges}
+現在のフォルダ: ${debugInfo.currentFolder || '(未設定)'}
+ノードカウンター: ${debugInfo.nodeCounter}
+部分実行モード: ${debugInfo.partialExecuteMode ? 'ON' : 'OFF'}
+
+【レイヤー詳細】
+${layerDetails.join('\n')}
+    `.trim();
+
+    await showAlertDialog(message, 'デバッグ情報');
+}
+
+// ============================================
 // フォルダ管理
 // ============================================
 
