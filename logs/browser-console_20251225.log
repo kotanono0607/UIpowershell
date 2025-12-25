@@ -1,12 +1,1 @@
-[2025-12-25T12:09:26.328Z] [LOG] UIpowershell Aurora Arrow Patch Applied
-[2025-12-25T12:09:31.234Z] [ERROR] [callApi] 500エラー詳細: "Value" の設定中に例外が発生しました: "'24' の値は 'Value' に対して有効ではありません。'Value' は 'Minimum' と 'Maximum' の間でなければなりません。
-パラメーター名:Value"
-[2025-12-25T12:09:31.234Z] [ERROR] [callApi] スタックトレース: ノード設定を編集、C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\13_コードサブ汎用関数.ps1: 行 704
-<ScriptBlock>、C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\adapter\CONVERTED_ROUTES.ps1: 行 2364
-Invoke-PodeScriptBlock、C:\Users\hello\Documents\WindowsPowerShell\Modules\Pode\2.11.0\Public\Utilities.ps1: 行 573
-<ScriptBlock>、<ファイルなし>: 行 124
-[2025-12-25T12:09:31.234Z] [ERROR] ❌ [ノード設定] エラー: Error: サーバー内部エラー: "Value" の設定中に例外が発生しました: "'24' の値は 'Value' に対して有効ではありません。'Value' は 'Minimum' と 'Maximum' の間でなければなりません。
-パラメーター名:Value" | Stack: Error: サーバー内部エラー: "Value" の設定中に例外が発生しました: "'24' の値は 'Value' に対して有効ではありません。'Value' は 'Minimum' と 'Maximum' の間でなければなりません。
-パラメーター名:Value"
-    at callApi (http://localhost:8080/app-legacy.js?v=1.1.0:1773:19)
-    at async openNodeSettings (http://localhost:8080/app-legacy.js?v=1.1.0:6584:24)
+[2025-12-25T12:11:26.058Z] [LOG] UIpowershell Aurora Arrow Patch Applied
