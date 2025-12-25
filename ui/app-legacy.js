@@ -27,7 +27,19 @@ function sendBrowserLog(level, args) {
                 logs: [{
                     level: level,
                     timestamp: new Date().toISOString(),
-                    message: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
+                    message: args.map(arg => {
+                        if (arg instanceof Error) {
+                            // Errorオブジェクトは特別処理
+                            return `Error: ${arg.message} | Stack: ${arg.stack || 'N/A'}`;
+                        } else if (typeof arg === 'object') {
+                            try {
+                                return JSON.stringify(arg);
+                            } catch (e) {
+                                return String(arg);
+                            }
+                        }
+                        return String(arg);
+                    }).join(' ')
                 }]
             })
         }).catch(() => {});
