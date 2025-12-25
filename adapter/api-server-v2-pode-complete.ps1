@@ -411,17 +411,20 @@ $global:RootDir = $script:RootDir
 $global:uiPath = $script:uiPath
 
 # server.psd1の設定を読み込み（タイムアウト延長等）
-$serverConfigPath = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "server.psd1"
+# Podeは -RootPath で指定したディレクトリから server.psd1 を自動読み込み
+$adapterPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$serverConfigPath = Join-Path $adapterPath "server.psd1"
 if (Test-Path $serverConfigPath) {
     Write-Host "[設定] server.psd1 を読み込みます: $serverConfigPath" -ForegroundColor Green
     Write-Host "[設定] リクエストタイムアウト: 300秒（5分）" -ForegroundColor Gray
 } else {
     Write-Host "[警告] server.psd1 が見つかりません: $serverConfigPath" -ForegroundColor Yellow
+    Write-Host "[警告] デフォルトのタイムアウト（30秒）が適用されます" -ForegroundColor Yellow
 }
 
 # Start-PodeServer でサーバー設定とルート定義を行う
-# -FilePath で設定ファイルを明示的に指定（タイムアウト延長対応）
-Start-PodeServer -FilePath $serverConfigPath {
+# -RootPath で adapter ディレクトリを指定し、server.psd1 を自動読み込み
+Start-PodeServer -RootPath $adapterPath {
 
     # ============================================
     # 注: v2ファイルとAdapterファイルの読み込みは
@@ -436,6 +439,16 @@ Start-PodeServer -FilePath $serverConfigPath {
 
     # ロギング設定
     New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging
+
+    # 設定が読み込まれたか確認
+    $config = Get-PodeConfig
+    if ($config -and $config.Server -and $config.Server.Request) {
+        $timeout = $config.Server.Request.Timeout
+        Write-Host "[設定] ✅ Pode設定読み込み成功 - リクエストタイムアウト: ${timeout}秒" -ForegroundColor Green
+    } else {
+        Write-Host "[設定] ⚠ server.psd1の設定が読み込まれていません" -ForegroundColor Yellow
+        Write-Host "[設定] デフォルトタイムアウト（30秒）が使用されます" -ForegroundColor Yellow
+    }
 
     Write-ControlLog "[SERVER] Podeサーバーエンドポイント設定完了 (ポート: $global:ServerPort)"
 
