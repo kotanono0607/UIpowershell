@@ -453,7 +453,6 @@ function キー操作 {
         # SendKeysを使用してキーを送信
         Add-Type -AssemblyName System.Windows.Forms
         [System.Windows.Forms.SendKeys]::SendWait($sendKeysCommand)
-        Write-Host "キー操作を実行しました: $キーコマンド" -ForegroundColor Green
     }
     catch {
         Write-Warning "キー操作の実行に失敗しました: $($_.Exception.Message)"
@@ -471,7 +470,6 @@ function 文字列入力 {
         # SendKeysを使用して文字列を送信
         Add-Type -AssemblyName System.Windows.Forms
         [System.Windows.Forms.SendKeys]::SendWait($入力文字列)
-        Write-Host "文字列を入力しました: $入力文字列" -ForegroundColor Green
     }
     catch {
         Write-Warning "文字列入力の実行に失敗しました: $($_.Exception.Message)"
@@ -522,9 +520,6 @@ function 複数行テキストを編集 {
         [string]$初期テキスト = ""      # 初期表示するテキスト
     )
 
-    Write-Host "[複数行テキストを編集] 関数呼び出し - タイトル: $フォームタイトル" -ForegroundColor Cyan
-    Write-Host "[複数行テキストを編集] 初期テキスト長: $($初期テキスト.Length)文字" -ForegroundColor Gray
-    Write-Host "[複数行テキストを編集] 初期テキスト内容: [$初期テキスト]" -ForegroundColor Gray
 
     # フォームの作成
     $フォーム = New-Object System.Windows.Forms.Form
@@ -589,8 +584,6 @@ function ノード設定を編集 {
         [hashtable]$ノード情報       # ノードの全情報を含むハッシュテーブル
     )
 
-    Write-Host "[ノード設定を編集] 関数呼び出し - ノードID: $($ノード情報.id)" -ForegroundColor Cyan
-    Write-Host "[ノード設定を編集] 処理番号: $($ノード情報.処理番号)" -ForegroundColor Gray
 
     # フォームの作成
     $フォーム = New-Object System.Windows.Forms.Form
@@ -826,7 +819,6 @@ function ノード設定を編集 {
 
     # フォームの結果に応じて処理
     if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
-        Write-Host "[ノード設定を編集] ✅ 保存ボタンが押されました" -ForegroundColor Green
         
         $結果 = @{
             text = $テキスト_ノード名.Text
@@ -841,20 +833,16 @@ function ノード設定を編集 {
         # カスタムフィールドを追加
         if ($テキスト_条件式) {
             $結果.conditionExpression = $テキスト_条件式.Text
-            Write-Host "[ノード設定を編集] 条件式: $($テキスト_条件式.Text)" -ForegroundColor Gray
         }
         if ($数値_ループ回数) {
             $結果.loopCount = [int]$数値_ループ回数.Value
-            Write-Host "[ノード設定を編集] ループ回数: $($数値_ループ回数.Value)" -ForegroundColor Gray
         }
         if ($テキスト_ループ変数) {
             $結果.loopVariable = $テキスト_ループ変数.Text
-            Write-Host "[ノード設定を編集] ループ変数: $($テキスト_ループ変数.Text)" -ForegroundColor Gray
         }
 
         return $結果
     } else {
-        Write-Host "[ノード設定を編集] ⚠️ キャンセルされました" -ForegroundColor Yellow
         return $null
     }
 }
@@ -883,8 +871,6 @@ function 変数管理を表示 {
         [array]$変数リスト = @()
     )
 
-    Write-Host "[変数管理] ========== ダイアログ開始 ==========" -ForegroundColor Cyan
-    Write-Host "[変数管理] 変数数: $($変数リスト.Count)" -ForegroundColor Gray
 
     # フォーム作成
     $フォーム = New-Object System.Windows.Forms.Form
@@ -940,7 +926,6 @@ function 変数管理を表示 {
             $リストビュー.Items.Add($item) | Out-Null
         }
 
-        Write-Host "[変数管理] ListView更新: $($script:現在の変数リスト.Count)個の変数" -ForegroundColor Gray
     }
 
     # 追加ボタン
@@ -974,13 +959,11 @@ function 変数管理を表示 {
 
     # 追加ボタンクリックイベント
     $ボタン_追加.Add_Click({
-        Write-Host "[変数管理] 追加ボタンがクリックされました" -ForegroundColor Cyan
 
         # 変数追加ダイアログを表示
         $result = Show-AddVariableDialog
 
         if ($result) {
-            Write-Host "[変数管理] 新しい変数を追加: $($result.name)" -ForegroundColor Green
             # リストに追加（実際のAPI呼び出しはJavaScript側で行う）
             $script:現在の変数リスト += $result
             Update-VariableListView
@@ -1000,13 +983,11 @@ function 変数管理を表示 {
         }
 
         $selectedVar = $リストビュー.SelectedItems[0].Tag
-        Write-Host "[変数管理] 編集ボタンがクリックされました: $($selectedVar.name)" -ForegroundColor Cyan
 
         # 変数編集ダイアログを表示
         $result = Show-EditVariableDialog -変数情報 $selectedVar
 
         if ($result) {
-            Write-Host "[変数管理] 変数を更新: $($result.name)" -ForegroundColor Green
             # リストを更新
             $index = 0
             for ($i = 0; $i -lt $script:現在の変数リスト.Count; $i++) {
@@ -1033,7 +1014,6 @@ function 変数管理を表示 {
         }
 
         $selectedVar = $リストビュー.SelectedItems[0].Tag
-        Write-Host "[変数管理] 削除ボタンがクリックされました: $($selectedVar.name)" -ForegroundColor Cyan
 
         # 確認ダイアログ
         $confirmResult = [System.Windows.Forms.MessageBox]::Show(
@@ -1044,7 +1024,6 @@ function 変数管理を表示 {
         )
 
         if ($confirmResult -eq [System.Windows.Forms.DialogResult]::Yes) {
-            Write-Host "[変数管理] 変数を削除: $($selectedVar.name)" -ForegroundColor Green
             # リストから削除
             $script:現在の変数リスト = $script:現在の変数リスト | Where-Object { $_.name -ne $selectedVar.name }
             Update-VariableListView
@@ -1060,16 +1039,13 @@ function 変数管理を表示 {
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
 
-    Write-Host "[変数管理] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
 
     if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
-        Write-Host "[変数管理] ✅ 変数管理を閉じました" -ForegroundColor Green
         return @{
             success = $true
             variables = $script:現在の変数リスト
         }
     } else {
-        Write-Host "[変数管理] ⚠️ キャンセルされました" -ForegroundColor Yellow
         return $null
     }
 }
@@ -1312,9 +1288,6 @@ function フォルダ切替を表示 {
         [string]$現在のフォルダ = ""
     )
 
-    Write-Host "[フォルダ切替] ========== ダイアログ開始 ==========" -ForegroundColor Cyan
-    Write-Host "[フォルダ切替] フォルダ数: $($フォルダリスト.Count)" -ForegroundColor Gray
-    Write-Host "[フォルダ切替] 現在のフォルダ: $現在のフォルダ" -ForegroundColor Gray
 
     # フォルダリストをスクリプト変数に保存
     $script:現在のフォルダリスト = [System.Collections.ArrayList]::new($フォルダリスト)
@@ -1366,7 +1339,6 @@ function フォルダ切替を表示 {
             $リストボックス.SelectedIndex = $index
         }
 
-        Write-Host "[フォルダ切替] ListBox更新: $($script:現在のフォルダリスト.Count)個のフォルダ" -ForegroundColor Gray
     }
 
     # 選択ボタン
@@ -1403,7 +1375,6 @@ function フォルダ切替を表示 {
     $ボタン_選択.Add_Click({
         if ($リストボックス.SelectedItem) {
             $script:選択されたフォルダ = $リストボックス.SelectedItem.ToString()
-            Write-Host "[フォルダ切替] フォルダが選択されました: $($script:選択されたフォルダ)" -ForegroundColor Green
             $フォーム.DialogResult = [System.Windows.Forms.DialogResult]::OK
             $フォーム.Close()
         } else {
@@ -1485,7 +1456,6 @@ function フォルダ切替を表示 {
                 return
             }
 
-            Write-Host "[フォルダ切替] 新しいフォルダを作成: $新しいフォルダ名" -ForegroundColor Green
             $script:現在のフォルダリスト.Add($新しいフォルダ名) | Out-Null
             $script:新規作成されたフォルダ = $新しいフォルダ名
             Update-FolderListBox
@@ -1521,7 +1491,6 @@ function フォルダ切替を表示 {
             )
 
             if ($確認結果 -eq [System.Windows.Forms.DialogResult]::Yes) {
-                Write-Host "[フォルダ管理] フォルダを削除: $削除対象フォルダ" -ForegroundColor Red
 
                 # 03_historyフォルダからフォルダを削除
                 $historyPath = Join-Path $global:RootDir "03_history"
@@ -1530,7 +1499,6 @@ function フォルダ切替を表示 {
                 if (Test-Path $削除パス) {
                     try {
                         Remove-Item -Path $削除パス -Recurse -Force
-                        Write-Host "[フォルダ管理] フォルダ削除完了: $削除パス" -ForegroundColor Green
 
                         # リストから削除
                         $script:現在のフォルダリスト.Remove($削除対象フォルダ)
@@ -1543,7 +1511,6 @@ function フォルダ切替を表示 {
                             [System.Windows.Forms.MessageBoxIcon]::Information
                         ) | Out-Null
                     } catch {
-                        Write-Host "[フォルダ管理] フォルダ削除エラー: $($_.Exception.Message)" -ForegroundColor Red
                         [System.Windows.Forms.MessageBox]::Show(
                             "フォルダの削除に失敗しました。`n$($_.Exception.Message)",
                             "削除エラー",
@@ -1552,7 +1519,6 @@ function フォルダ切替を表示 {
                         ) | Out-Null
                     }
                 } else {
-                    Write-Host "[フォルダ管理] フォルダが見つかりません: $削除パス" -ForegroundColor Yellow
                     # リストからは削除
                     $script:現在のフォルダリスト.Remove($削除対象フォルダ)
                     Update-FolderListBox
@@ -1572,7 +1538,6 @@ function フォルダ切替を表示 {
     $リストボックス.Add_DoubleClick({
         if ($リストボックス.SelectedItem) {
             $script:選択されたフォルダ = $リストボックス.SelectedItem.ToString()
-            Write-Host "[フォルダ切替] フォルダが選択されました（ダブルクリック）: $($script:選択されたフォルダ)" -ForegroundColor Green
             $フォーム.DialogResult = [System.Windows.Forms.DialogResult]::OK
             $フォーム.Close()
         }
@@ -1588,10 +1553,8 @@ function フォルダ切替を表示 {
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
 
-    Write-Host "[フォルダ管理] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
 
     if ($ダイアログ結果 -eq [System.Windows.Forms.DialogResult]::OK) {
-        Write-Host "[フォルダ切替] ✅ フォルダが選択されました: $($script:選択されたフォルダ)" -ForegroundColor Green
         return @{
             success = $true
             action = "select"
@@ -1599,7 +1562,6 @@ function フォルダ切替を表示 {
             newFolder = $script:新規作成されたフォルダ
         }
     } else {
-        Write-Host "[フォルダ切替] ⚠️ キャンセルされました" -ForegroundColor Yellow
         return $null
     }
 }
@@ -1631,10 +1593,6 @@ function コード結果を表示 {
         [hashtable]$生成結果
     )
 
-    Write-Host "[コード結果] ========== ダイアログ開始 ==========" -ForegroundColor Cyan
-    Write-Host "[コード結果] ノード数: $($生成結果.nodeCount)" -ForegroundColor Gray
-    Write-Host "[コード結果] 出力先: $($生成結果.outputPath)" -ForegroundColor Gray
-    Write-Host "[コード結果] コード長: $($生成結果.code.Length)文字" -ForegroundColor Gray
 
     # フォーム作成
     $フォーム = New-Object System.Windows.Forms.Form
@@ -1788,7 +1746,6 @@ function コード結果を表示 {
             $copyScript = "Get-Content -Path '$tempFile' -Raw -Encoding UTF8 | Set-Clipboard; Remove-Item -Path '$tempFile' -Force"
             Start-Process powershell -ArgumentList "-STA", "-NoProfile", "-WindowStyle", "Hidden", "-Command", $copyScript -Wait
 
-            Write-Host "[コード結果] ✅ クリップボードにコピーしました" -ForegroundColor Green
             [System.Windows.Forms.MessageBox]::Show(
                 "生成されたコードをクリップボードにコピーしました！",
                 "コピー完了",
@@ -1796,7 +1753,6 @@ function コード結果を表示 {
                 [System.Windows.Forms.MessageBoxIcon]::Information
             ) | Out-Null
         } catch {
-            Write-Host "[コード結果] ❌ コピーエラー: $_" -ForegroundColor Red
             [System.Windows.Forms.MessageBox]::Show(
                 "コピーに失敗しました: $_",
                 "エラー",
@@ -1810,10 +1766,8 @@ function コード結果を表示 {
     $ボタン_ファイル開く.Add_Click({
         if ($生成結果.outputPath -and (Test-Path $生成結果.outputPath)) {
             try {
-                Write-Host "[コード結果] ファイルを開きます: $($生成結果.outputPath)" -ForegroundColor Cyan
                 Start-Process $生成結果.outputPath
             } catch {
-                Write-Host "[コード結果] ❌ ファイルを開けませんでした: $_" -ForegroundColor Red
                 [System.Windows.Forms.MessageBox]::Show(
                     "ファイルを開けませんでした: $_",
                     "エラー",
@@ -1835,10 +1789,8 @@ function コード結果を表示 {
     $ボタン_ISE編集.Add_Click({
         if ($生成結果.outputPath -and (Test-Path $生成結果.outputPath)) {
             try {
-                Write-Host "[コード結果] ISEで編集します: $($生成結果.outputPath)" -ForegroundColor Cyan
                 Start-Process -FilePath "powershell_ise.exe" -ArgumentList $生成結果.outputPath
             } catch {
-                Write-Host "[コード結果] ❌ ISEを起動できませんでした: $_" -ForegroundColor Red
                 [System.Windows.Forms.MessageBox]::Show(
                     "PowerShell ISEを起動できませんでした: $_",
                     "エラー",
@@ -1869,14 +1821,12 @@ function コード結果を表示 {
         }
 
         try {
-            Write-Host "[EXE作成] ps2exeによるEXE変換を開始..." -ForegroundColor Cyan
 
             # ps2exeモジュールの存在確認
             $ps2exeModule = Get-Module -ListAvailable -Name ps2exe | Select-Object -First 1
             if (-not $ps2exeModule) {
                 throw "ps2exeモジュールがインストールされていません。`nInstall-Module ps2exe でインストールしてください。"
             }
-            Write-Host "[EXE作成] ps2exeモジュール検出: $($ps2exeModule.ModuleBase)" -ForegroundColor Gray
 
             # robot-profile.jsonのパスを解決（メタデータ用に先に読み込む）
             $robotProfilePath = $null
@@ -1906,7 +1856,6 @@ function コード結果を表示 {
             # robot-profile.jsonを読み込み
             if ($robotProfilePath -and (Test-Path $robotProfilePath)) {
                 $profileContent = Get-Content -Path $robotProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
-                Write-Host "[EXE作成] プロファイル読み込み: $robotProfilePath" -ForegroundColor Gray
             }
 
             # バージョン自動インクリメント
@@ -1944,7 +1893,6 @@ function コード結果を表示 {
             if ($profileContent -and $null -ne $profileContent.hasDisplay) {
                 $hasDisplay = [bool]$profileContent.hasDisplay
             }
-            Write-Host "[EXE作成] 表示設定: $( if ($hasDisplay) { 'あり（コンソール表示）' } else { 'なし（サイレント）' })" -ForegroundColor Cyan
 
             # メタ情報をrobot-profile.jsonから設定
             # ps2exeでは -title がWindowsの「ファイルの説明」に表示される
@@ -1970,9 +1918,6 @@ function コード結果を表示 {
             $outputDir = Split-Path $生成結果.outputPath -Parent
             $exePath = Join-Path $outputDir "$safeFileName.exe"
 
-            Write-Host "[EXE作成] 入力: $($生成結果.outputPath)" -ForegroundColor Gray
-            Write-Host "[EXE作成] 出力: $exePath" -ForegroundColor Gray
-            Write-Host "[EXE作成] ロボット名: $robotName" -ForegroundColor Cyan
 
             # 確認ダイアログ
             $確認結果 = [System.Windows.Forms.MessageBox]::Show(
@@ -1983,12 +1928,10 @@ function コード結果を表示 {
             )
 
             if ($確認結果 -ne [System.Windows.Forms.DialogResult]::Yes) {
-                Write-Host "[EXE作成] キャンセルされました" -ForegroundColor Yellow
                 return
             }
 
             # win32API.psm1を埋め込んだ一時ファイルを作成
-            Write-Host "[EXE作成] win32API.psm1を埋め込みます..." -ForegroundColor Cyan
 
             # win32API.psm1のパスを解決（複数の方法でフォールバック）
             $win32ApiPath = $null
@@ -1996,7 +1939,6 @@ function コード結果を表示 {
             # 方法1: $global:RootDir から取得
             if ($global:RootDir -and (Test-Path (Join-Path $global:RootDir "win32API.psm1"))) {
                 $win32ApiPath = Join-Path $global:RootDir "win32API.psm1"
-                Write-Host "[EXE作成] RootDirから検出: $win32ApiPath" -ForegroundColor Gray
             }
             # 方法2: $global:folderPath から2階層上（03_history/XXXX → root）
             elseif ($global:folderPath) {
@@ -2004,7 +1946,6 @@ function コード結果を表示 {
                 $pathFromFolder = Join-Path $rootFromFolder "win32API.psm1"
                 if (Test-Path $pathFromFolder) {
                     $win32ApiPath = $pathFromFolder
-                    Write-Host "[EXE作成] folderPathから検出: $win32ApiPath" -ForegroundColor Gray
                 }
             }
             # 方法3: 出力ファイルから3階層上（03_history/XXXX/output.ps1 → root）
@@ -2013,7 +1954,6 @@ function コード結果を表示 {
                 $pathFromOutput = Join-Path $rootFromOutput "win32API.psm1"
                 if (Test-Path $pathFromOutput) {
                     $win32ApiPath = $pathFromOutput
-                    Write-Host "[EXE作成] 出力パスから検出: $win32ApiPath" -ForegroundColor Gray
                 }
             }
 
@@ -2031,7 +1971,6 @@ function コード結果を表示 {
                     # Write-Host行を削除（複数行対応）
                     $originalScript = $originalScript -replace '(?m)^\s*Write-Host\s+.*$', '# [サイレント] Write-Host削除'
                     $win32ApiContent = $win32ApiContent -replace '(?m)^\s*Write-Host\s+.*$', '# [サイレント] Write-Host削除'
-                    Write-Host "[EXE作成] Write-Hostを削除しました（サイレントモード）" -ForegroundColor Cyan
                 }
 
                 # 結合（win32API.psm1の関数を先頭に配置）
@@ -2048,12 +1987,9 @@ $originalScript
 "@
                 # 一時ファイルに保存
                 Set-Content -Path $tempScriptPath -Value $combinedScript -Encoding UTF8 -Force
-                Write-Host "[EXE作成] ✅ win32API.psm1を埋め込みました" -ForegroundColor Green
-                Write-Host "[EXE作成] 一時ファイル: $tempScriptPath" -ForegroundColor Gray
 
                 $inputFileForExe = $tempScriptPath
             } else {
-                Write-Host "[EXE作成] ⚠ win32API.psm1が見つかりません。埋め込みなしで続行します" -ForegroundColor Yellow
 
                 # 表示なしの場合、Write-Hostを削除
                 if (-not $hasDisplay) {
@@ -2061,7 +1997,6 @@ $originalScript
                     $originalScript = $originalScript -replace '(?m)^\s*Write-Host\s+.*$', '# [サイレント] Write-Host削除'
                     Set-Content -Path $tempScriptPath -Value $originalScript -Encoding UTF8 -Force
                     $inputFileForExe = $tempScriptPath
-                    Write-Host "[EXE作成] Write-Hostを削除しました（サイレントモード）" -ForegroundColor Cyan
                 } else {
                     $inputFileForExe = $生成結果.outputPath
                 }
@@ -2072,7 +2007,6 @@ $originalScript
 
             if ($profileContent) {
                 try {
-                    Write-Host "[EXE作成] ロボットアイコンを生成中..." -ForegroundColor Cyan
                     Add-Type -AssemblyName System.Drawing
 
                     $iconSize = 256
@@ -2087,7 +2021,6 @@ $originalScript
 
                     if ($hasUserImage) {
                         # ユーザー画像を使用
-                        Write-Host "[EXE作成] ユーザーアップロード画像を使用します" -ForegroundColor Cyan
 
                         # Base64データから画像を作成
                         $base64Data = $userImageData -replace '^data:image/[^;]+;base64,', ''
@@ -2148,10 +2081,8 @@ $originalScript
                         $icoMs.Dispose()
                         $resized.Dispose()
 
-                        Write-Host "[EXE作成] ✅ ユーザー画像からアイコンを生成しました: $iconPath" -ForegroundColor Green
                     } else {
                         # robo.png + 背景色を使用（デフォルト）
-                        Write-Host "[EXE作成] デフォルト画像(robo.png + 背景色)を使用します" -ForegroundColor Cyan
 
                         # robo.pngのパスを検索
                         $roboPngPath = $null
@@ -2164,13 +2095,11 @@ $originalScript
                         }
 
                         if ($roboPngPath) {
-                            Write-Host "[EXE作成] robo.png検出: $roboPngPath" -ForegroundColor Gray
 
                             # 背景色で全体を塗りつぶし
                             $bgColorValue = $profileContent.bgcolor
                             if ($bgColorValue -and $bgColorValue -ne "") {
                                 $bgColor = [System.Drawing.ColorTranslator]::FromHtml($bgColorValue)
-                                Write-Host "[EXE作成] 背景色: R=$($bgColor.R), G=$($bgColor.G), B=$($bgColor.B)" -ForegroundColor Cyan
                                 $graphics.Clear($bgColor)
                             } else {
                                 $graphics.Clear([System.Drawing.Color]::FromArgb(232, 244, 252))  # デフォルト薄いブルー
@@ -2185,7 +2114,6 @@ $originalScript
                             # まずPNGとして保存（デバッグ用）
                             $tempPngPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_debug.png")
                             $resized.Save($tempPngPath, [System.Drawing.Imaging.ImageFormat]::Png)
-                            Write-Host "[EXE作成] デバッグPNG: $tempPngPath" -ForegroundColor Gray
 
                             # ICOファイルとして保存（複数サイズ対応）
                             $iconPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "robot_icon_$(Get-Date -Format 'yyyyMMddHHmmss').ico")
@@ -2225,28 +2153,18 @@ $originalScript
                             $ms.Dispose()
                             $resized.Dispose()
 
-                            Write-Host "[EXE作成] ✅ 背景色付きアイコンを生成しました: $iconPath" -ForegroundColor Green
                         } else {
-                            Write-Host "[EXE作成] ⚠ robo.pngが見つかりません" -ForegroundColor Yellow
                         }
                     }
                 } catch {
-                    Write-Host "[EXE作成] ⚠ アイコン変換エラー: $($_.Exception.Message)" -ForegroundColor Yellow
                     $iconPath = $null
                 }
             }
 
             # ps2exeを実行（メタ情報付き）
             Import-Module ps2exe -Force
-            Write-Host "[EXE作成] メタ情報:" -ForegroundColor Gray
-            Write-Host "  タイトル(Title): $metaTitle" -ForegroundColor Gray
-            Write-Host "  説明(Description): $metaDescription" -ForegroundColor Gray
-            Write-Host "  製品名(Product): $metaProduct" -ForegroundColor Gray
-            Write-Host "  バージョン(Version): $metaVersion" -ForegroundColor Gray
-            Write-Host "  著作権(Copyright): $metaCopyright" -ForegroundColor Gray
 
             if ($iconPath -and (Test-Path $iconPath)) {
-                Write-Host "[EXE作成] カスタムアイコンを使用: $iconPath" -ForegroundColor Cyan
                 if ($hasDisplay) {
                     # 表示あり：コンソール付きで生成
                     Invoke-ps2exe -inputFile $inputFileForExe -outputFile $exePath `
@@ -2277,21 +2195,17 @@ $originalScript
             # 一時ファイルを削除
             if ((Test-Path $tempScriptPath) -and ($tempScriptPath -ne $生成結果.outputPath)) {
                 Remove-Item -Path $tempScriptPath -Force -ErrorAction SilentlyContinue
-                Write-Host "[EXE作成] 一時ファイルを削除しました" -ForegroundColor Gray
             }
 
             # 成功確認
             if (Test-Path $exePath) {
-                Write-Host "[EXE作成] ✅ EXE作成成功: $exePath" -ForegroundColor Green
 
                 # バージョンをrobot-profile.jsonに保存
                 if ($robotProfilePath -and (Test-Path $robotProfilePath)) {
                     try {
                         $profileContent.version = $newVersion
                         $profileContent | ConvertTo-Json -Depth 10 | Set-Content -Path $robotProfilePath -Encoding UTF8 -Force
-                        Write-Host "[EXE作成] バージョン更新: $newVersion" -ForegroundColor Gray
                     } catch {
-                        Write-Host "[EXE作成] ⚠ バージョン保存エラー: $($_.Exception.Message)" -ForegroundColor Yellow
                     }
                 }
 
@@ -2312,9 +2226,7 @@ if %errorlevel% equ 0 (
 pause
 "@
                     Set-Content -Path $stopBatPath -Value $stopBatContent -Encoding UTF8 -Force
-                    Write-Host "[EXE作成] ✅ 強制停止スクリプト作成: $stopBatPath" -ForegroundColor Green
                 } catch {
-                    Write-Host "[EXE作成] ⚠ 停止スクリプト作成エラー: $($_.Exception.Message)" -ForegroundColor Yellow
                 }
 
                 $開く結果 = [System.Windows.Forms.MessageBox]::Show(
@@ -2336,7 +2248,6 @@ pause
             }
 
         } catch {
-            Write-Host "[EXE作成] ❌ エラー: $_" -ForegroundColor Red
             [System.Windows.Forms.MessageBox]::Show(
                 "EXE作成中にエラーが発生しました:`n`n$_",
                 "EXE作成エラー",
@@ -2349,7 +2260,6 @@ pause
     # 実行ボタンクリックイベント
     $ボタン_実行.Add_Click({
         try {
-            Write-Host "[実行] 生成コードを実行します..." -ForegroundColor Cyan
 
             # テキストボックスの内容を取得（編集されている可能性あり）
             $実行コード = $テキスト_コード.Text
@@ -2373,7 +2283,6 @@ pause
             )
 
             if ($確認結果 -ne [System.Windows.Forms.DialogResult]::Yes) {
-                Write-Host "[実行] キャンセルされました" -ForegroundColor Yellow
                 return
             }
 
@@ -2383,14 +2292,12 @@ pause
             # 方法1: $global:RootDir から取得
             if ($global:RootDir -and (Test-Path $global:RootDir)) {
                 $resolvedRootDir = $global:RootDir
-                Write-Host "[実行] RootDirから検出: $resolvedRootDir" -ForegroundColor Gray
             }
             # 方法2: $global:folderPath から2階層上（03_history/XXXX → root）
             elseif ($global:folderPath) {
                 $rootFromFolder = Split-Path (Split-Path $global:folderPath -Parent) -Parent
                 if (Test-Path $rootFromFolder) {
                     $resolvedRootDir = $rootFromFolder
-                    Write-Host "[実行] folderPathから検出: $resolvedRootDir" -ForegroundColor Gray
                 }
             }
             # 方法3: 出力ファイルから3階層上（03_history/XXXX/output.ps1 → root）
@@ -2398,12 +2305,10 @@ pause
                 $rootFromOutput = Split-Path (Split-Path (Split-Path $生成結果.outputPath -Parent) -Parent) -Parent
                 if (Test-Path $rootFromOutput) {
                     $resolvedRootDir = $rootFromOutput
-                    Write-Host "[実行] 出力パスから検出: $resolvedRootDir" -ForegroundColor Gray
                 }
             }
 
             if (-not $resolvedRootDir) {
-                Write-Host "[実行] ⚠ RootDirを解決できませんでした" -ForegroundColor Yellow
             }
 
             # win32API.psm1を読み込み
@@ -2411,22 +2316,18 @@ pause
                 $win32ApiPath = Join-Path $resolvedRootDir "win32API.psm1"
                 if (Test-Path $win32ApiPath) {
                     Import-Module $win32ApiPath -Force -ErrorAction SilentlyContinue
-                    Write-Host "[実行] win32API.psm1を読み込みました" -ForegroundColor Gray
                 }
 
                 # 汎用関数を読み込み
                 $汎用関数パス = Join-Path $resolvedRootDir "13_コードサブ汎用関数.ps1"
                 if (Test-Path $汎用関数パス) {
                     . $汎用関数パス
-                    Write-Host "[実行] 汎用関数を読み込みました" -ForegroundColor Gray
                 }
             }
 
             # スクリプトを実行
-            Write-Host "[実行] コード実行開始..." -ForegroundColor Cyan
             $output = Invoke-Expression $実行コード 2>&1 | Out-String
 
-            Write-Host "[実行] ✅ 実行完了" -ForegroundColor Green
             [System.Windows.Forms.MessageBox]::Show(
                 "🔥 コード実行完了！`n`n出力:`n$output",
                 "実行完了",
@@ -2435,7 +2336,6 @@ pause
             ) | Out-Null
 
         } catch {
-            Write-Host "[実行] ❌ エラー: $_" -ForegroundColor Red
             [System.Windows.Forms.MessageBox]::Show(
                 "実行中にエラーが発生しました:`n`n$($_.Exception.Message)",
                 "実行エラー",
@@ -2452,8 +2352,6 @@ pause
     $ダイアログ結果 = $フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
 
-    Write-Host "[コード結果] ダイアログ結果: $ダイアログ結果" -ForegroundColor Gray
-    Write-Host "[コード結果] ✅ ダイアログを閉じました" -ForegroundColor Green
 
     return @{
         success = $true

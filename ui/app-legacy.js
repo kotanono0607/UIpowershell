@@ -14,324 +14,27 @@ const NODE_WIDTH = 120;      // ノードの幅
 const NODE_SPACING = 10;     // ノード間の間隔（10px）
 
 // ============================================
-// デバッグ設定
+// エラーログ送信（console.errorのみサーバーに送信）
 // ============================================
 
-// 🔴 マスターフラグ: trueにすると全てのconsole.logが表示される（フィルター無効化）
-// エラー対応時のみ true にしてください（通常は false）
-const DISABLE_LOG_FILTER = false;
-
-// ログフィルター設定（true = 表示, false = 非表示）
-const DEBUG_FLAGS = {
-    layerize: false,         // レイヤー化処理のログ
-    parentPinkNode: false,   // 親ピンクノード更新のログ
-    nodeOperation: false,    // ノード操作のログ（追加・削除など）
-    arrow: false,            // 矢印描画のログ
-    rendering: false,        // レンダリング処理のログ
-    memory: false,           // memory.json保存のログ
-    other: false             // その他のログ
-};
-
-// レイヤーナビゲーション用ログ設定
-// 注意: history以外はすべてfalseにして、履歴ログだけを表示
-const LOG_CONFIG = {
-    breadcrumb: false,       // パンくずリストのログ
-    pink: false,             // ピンクノード処理のログ
-    initialization: false,   // 初期化処理のログ
-    history: true,           // ✅ Undo/Redo履歴のログ（これだけtrue）
-    controlLog: false,       // コントロールログ（起動時のタイムスタンプ）
-    hoverPreview: false,     // ホバープレビューのログ
-    loopGroups: false,       // ループグループ検出のログ
-    apiTiming: false,        // API呼び出しタイミングのログ
-    memoryLoad: false,       // memory.json読み込み警告
-    buttonSettings: false,   // ボタン設定読み込みログ
-    folderInit: false,       // フォルダ初期化ログ
-    general: false,          // その他の一般ログ
-    scriptDebug: false       // スクリプト化デバッグログ（問題調査用）
-};
-
-// フィルター付きログ関数
-function debugLog(category, ...args) {
-    if (DEBUG_FLAGS[category]) {
-        console.log(...args);
-    }
-}
-
-// ============================================
-// コントロールログ関数
-// ============================================
-
-/**
- * コントロールログを記録（サーバーに送信）
- * 起動時からノード生成可能までのタイムスタンプを記録
- * @param {string} message - ログメッセージ
- */
-async function writeControlLog(message) {
-    const now = new Date();
-    const timestamp = now.toISOString().replace('T', ' ').substring(0, 23);
-
-    // 時刻をミリ秒付きでフォーマット (HH:MM:SS.mmm)
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
-    const timeOnly = `${hours}:${minutes}:${seconds}.${milliseconds}`;
-
-    const logMessage = `🕒 [ControlLog] [${timeOnly}] ${message}`;
-
-    // ブラウザコンソールに表示（LOG_CONFIG.controlLogがtrueの場合のみ）
-    if (LOG_CONFIG.controlLog) {
-        console.log(logMessage);
-    }
-
+// エラーログをサーバーに送信（エラー発見用）
+const originalConsoleError = console.error;
+console.error = function(...args) {
+    originalConsoleError.apply(console, args);
     try {
-        await fetch(`${API_BASE}/control-log`, {
+        fetch(`${API_BASE}/browser-logs`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: `[BROWSER] [${timestamp}] ${message}` })
-        });
-    } catch (error) {
-        // サーバーへの送信失敗は無視（起動初期はサーバーがまだ起動していない可能性がある）
-    }
-}
-
-// ============================================
-// ブラウザコンソールログキャプチャ
-// ============================================
-
-// オリジナルのconsoleメソッドを保存
-const originalConsole = {
-    log: console.log,
-    error: console.error,
-    warn: console.warn,
-    info: console.info,
-    debug: console.debug
-};
-
-// ログバッファ
-let consoleLogBuffer = [];
-
-// ログをサーバーに送信
-async function sendLogsToServer(logs) {
-    if (logs.length === 0) return;
-
-    try {
-        await fetch(`${API_BASE}/browser-logs`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
-                logs: logs,
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent
+                logs: [{
+                    level: 'error',
+                    timestamp: new Date().toISOString(),
+                    message: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
+                }]
             })
-        });
-    } catch (err) {
-        // サーバー送信失敗時はオリジナルconsoleに出力のみ
-        originalConsole.error('[ログ送信エラー]', err);
-    }
-}
-
-// コンソールメソッドをラップ（ログフィルター付き）
-function wrapConsoleMethod(method, level) {
-    console[method] = function(...args) {
-        // DISABLE_LOG_FILTERがtrueの場合はフィルターをスキップ
-        if (DISABLE_LOG_FILTER) {
-            originalConsole[method].apply(console, args);
-            const logEntry = {
-                level: level,
-                timestamp: new Date().toISOString(),
-                message: args.map(arg => {
-                    if (typeof arg === 'object') {
-                        try { return JSON.stringify(arg); } catch (e) { return String(arg); }
-                    }
-                    return String(arg);
-                }).join(' ')
-            };
-            consoleLogBuffer.push(logEntry);
-            if (level === 'error') {
-                sendLogsToServer([logEntry]);
-                consoleLogBuffer = consoleLogBuffer.filter(log => log !== logEntry);
-            }
-            return;
-        }
-
-        // console.logのみフィルターを適用
-        if (method === 'log') {
-            // ログメッセージを文字列化
-            const message = args.map(arg => String(arg)).join(' ');
-
-            // LOG_CONFIG.pinkがtrueの場合、ピンク関連のログは常に表示
-            const pinkRelatedPrefixes = [
-                '[ホバープレビュー]', '[ピンク展開]', '[ピンク展開ポップアップ]', '[ピンク検出]', '[ピンクノード', '[ドリルダウン]'
-            ];
-            const isPinkLog = pinkRelatedPrefixes.some(prefix => message.includes(prefix));
-            if (LOG_CONFIG.pink && isPinkLog) {
-                // LOG_CONFIG.pinkが有効な場合はフィルターをスキップ
-                originalConsole[method].apply(console, args);
-                const logEntry = {
-                    level: level,
-                    timestamp: new Date().toISOString(),
-                    message: message
-                };
-                consoleLogBuffer.push(logEntry);
-                return;
-            }
-
-            // LOG_CONFIGに基づいてログを制御
-            // ⚠️ 警告は常に表示、❌ エラーも常に表示
-            const alwaysShowPrefixes = ['⚠', '❌'];
-            if (alwaysShowPrefixes.some(prefix => message.includes(prefix))) {
-                // 警告とエラーは常に表示
-                originalConsole[method].apply(console, args);
-                const logEntry = {
-                    level: level,
-                    timestamp: new Date().toISOString(),
-                    message: message
-                };
-                consoleLogBuffer.push(logEntry);
-                return;
-            }
-
-            // LOG_CONFIGで制御されるログ（アイコンがあっても制御対象）
-            const logPrefixConfig = [
-                { prefix: '🔍 [API Timing]', flag: 'apiTiming' },
-                { prefix: '[ボタン設定]', flag: 'buttonSettings' },
-                { prefix: '[ボタン生成]', flag: 'buttonSettings' },
-                { prefix: '[初期化]', flag: 'folderInit' },
-                { prefix: '│ ✅', flag: 'folderInit' },
-                { prefix: '[ボタン有効化]', flag: 'folderInit' },
-                { prefix: '[ボタンクリック]', flag: 'general' },
-                { prefix: '[addNodeToLayer]', flag: 'general' },
-                { prefix: '🕒 [ControlLog]', flag: 'controlLog' },
-                { prefix: '[横スクロール]', flag: 'general' },
-                { prefix: '[memory.json読み込み]', flag: 'memoryLoad' },
-                { prefix: '✅ UIpowershell 初期化完了', flag: 'general' },
-                // スクリプト化デバッグログ
-                { prefix: '┌─ [memory.json', flag: 'scriptDebug' },
-                { prefix: '│ [L', flag: 'scriptDebug' },
-                { prefix: '│   ★', flag: 'scriptDebug' },
-                { prefix: '└─ [memory.json', flag: 'scriptDebug' },
-                { prefix: '┌─ [コード.json', flag: 'scriptDebug' },
-                { prefix: '│ エントリ', flag: 'scriptDebug' },
-                { prefix: '│ 最後のID', flag: 'scriptDebug' },
-                { prefix: '│   [', flag: 'scriptDebug' },
-                { prefix: '└────', flag: 'scriptDebug' }
-            ];
-
-            // LOG_CONFIGで制御されるログの処理
-            for (const config of logPrefixConfig) {
-                if (message.includes(config.prefix)) {
-                    if (LOG_CONFIG[config.flag]) {
-                        // フラグがtrueの場合は表示
-                        originalConsole[method].apply(console, args);
-                        const logEntry = {
-                            level: level,
-                            timestamp: new Date().toISOString(),
-                            message: message
-                        };
-                        consoleLogBuffer.push(logEntry);
-                        return;
-                    } else {
-                        // フラグがfalseの場合はサーバーにはログを送るが、ブラウザコンソールには表示しない
-                        const logEntry = {
-                            level: level,
-                            timestamp: new Date().toISOString(),
-                            message: message
-                        };
-                        consoleLogBuffer.push(logEntry);
-                        return; // ブラウザコンソールへの出力をスキップ
-                    }
-                }
-            }
-
-            // 履歴ログは必ず表示（LOG_CONFIG.historyに関わらず）
-            if (message.includes('[履歴]')) {
-                originalConsole[method].apply(console, args);
-                const logEntry = {
-                    level: level,
-                    timestamp: new Date().toISOString(),
-                    message: message
-                };
-                consoleLogBuffer.push(logEntry);
-                return;
-            }
-
-            // その他のログ：アイコンがないログは抑制
-            const hasIcon = ['❌', '✅', '⚠', '🕒', '🎉', '🔍'].some(icon => message.includes(icon));
-            if (!hasIcon) {
-                // アイコンがないログは抑制
-                const logEntry = {
-                    level: level,
-                    timestamp: new Date().toISOString(),
-                    message: message
-                };
-                consoleLogBuffer.push(logEntry);
-                return; // ブラウザコンソールへの出力をスキップ
-            }
-        }
-
-        // オリジナルのconsoleを実行（重要なログとerror/warn/info/debugは全て表示）
-        originalConsole[method].apply(console, args);
-
-        // ログをバッファに追加
-        const logEntry = {
-            level: level,
-            timestamp: new Date().toISOString(),
-            message: args.map(arg => {
-                if (typeof arg === 'object') {
-                    try {
-                        return JSON.stringify(arg);
-                    } catch (e) {
-                        return String(arg);
-                    }
-                }
-                return String(arg);
-            }).join(' ')
-        };
-
-        consoleLogBuffer.push(logEntry);
-
-        // エラーは即座に送信
-        if (level === 'error') {
-            sendLogsToServer([logEntry]);
-            consoleLogBuffer = consoleLogBuffer.filter(log => log !== logEntry);
-        }
-    };
-}
-
-// console.log, error, warn, info, debugをラップ
-wrapConsoleMethod('log', 'log');
-wrapConsoleMethod('error', 'error');
-wrapConsoleMethod('warn', 'warn');
-wrapConsoleMethod('info', 'info');
-wrapConsoleMethod('debug', 'debug');
-
-// 定期的にバッファをサーバーに送信（5秒ごと）
-setInterval(() => {
-    if (consoleLogBuffer.length > 0) {
-        const logsToSend = [...consoleLogBuffer];
-        consoleLogBuffer = [];
-        sendLogsToServer(logsToSend);
-    }
-}, 5000);
-
-// ページアンロード時に残りのログを送信
-window.addEventListener('beforeunload', () => {
-    if (consoleLogBuffer.length > 0) {
-        const logsToSend = [...consoleLogBuffer];
-        // sendBeacon APIを使用（非同期で確実に送信）
-        const data = JSON.stringify({
-            logs: logsToSend,
-            timestamp: new Date().toISOString(),
-            userAgent: navigator.userAgent
-        });
-        navigator.sendBeacon(`${API_BASE}/browser-logs`, new Blob([data], { type: 'application/json' }));
-    }
-});
-
-console.log('[ブラウザログ] コンソールログキャプチャ機能を初期化しました');
+        }).catch(() => {});
+    } catch (e) {}
+};
 
 // ============================================
 // グローバル状態
@@ -433,7 +136,6 @@ const glowState = {
 
 // Canvas要素を各レイヤーパネルに追加
 function initializeArrowCanvas() {
-    console.log('[矢印] initializeArrowCanvas() 開始');
     let createdCanvasCount = 0;
 
     // 左パネルの各レイヤーにcanvas要素を追加
@@ -454,14 +156,6 @@ function initializeArrowCanvas() {
                 // node-list-containerを相対配置に（Canvasを追加する前に設定）
                 nodeList.style.position = 'relative';
 
-                console.log(`[初期化] layer-${i} Canvas作成前の親要素:`, {
-                    scrollWidth: nodeList.scrollWidth,
-                    scrollHeight: nodeList.scrollHeight,
-                    clientWidth: nodeList.clientWidth,
-                    clientHeight: nodeList.clientHeight,
-                    offsetWidth: nodeList.offsetWidth,
-                    offsetHeight: nodeList.offsetHeight
-                });
 
                 // Canvasサイズを親要素に合わせる（内部描画サイズのみ設定、CSSで表示サイズは100%）
                 // 親要素のサイズが0の場合はデフォルト値を使用
@@ -476,20 +170,9 @@ function initializeArrowCanvas() {
 
                 nodeList.appendChild(canvas);
 
-                console.log(`[初期化] layer-${i} Canvas作成後:`, {
-                    canvasWidth: canvas.width,
-                    canvasHeight: canvas.height,
-                    canvasStyleWidth: canvas.style.width,
-                    canvasStyleHeight: canvas.style.height,
-                    canvasOffsetWidth: canvas.offsetWidth,
-                    canvasOffsetHeight: canvas.offsetHeight,
-                    canvasParent: canvas.parentElement,
-                    canvasInDOM: document.body.contains(canvas)
-                });
 
                 arrowState.canvasMap.set(`layer-${i}`, canvas);
                 createdCanvasCount++;
-                console.log(`[矢印] Canvas作成: layer-${i} (${canvas.width}x${canvas.height})`);
             } else {
                 console.warn(`[矢印] .node-list-containerが見つかりません: layer-${i}`);
             }
@@ -528,12 +211,10 @@ function initializeArrowCanvas() {
 
         arrowState.canvasMap.set('main', canvas);
         createdCanvasCount++;
-        console.log(`[矢印] Canvas作成: main (${canvas.width}x${canvas.height})`);
     } else {
         console.warn(`[矢印] main-containerが見つかりません`);
     }
 
-    console.log(`[矢印] initializeArrowCanvas() 完了: ${createdCanvasCount}個のCanvasを作成`);
 }
 
 // 矢印ヘッドを描画するヘルパー関数
@@ -593,28 +274,20 @@ function drawDownArrow(ctx, fromNode, toNode, color = '#000000') {
     const endY = Math.floor(toTop) + 0.5;
 
     // 詳細デバッグログ
-    console.log(`[座標デバッグ] fromNode: top=${fromTop}, left=${fromLeft}, height=${fromHeight}, width=${fromWidth}`);
-    console.log(`[座標デバッグ] toNode: top=${toTop}, left=${toLeft}`);
-    console.log(`[座標デバッグ] 計算された矢印座標: (${startX}, ${startY}) → (${endX}, ${endY}), color=${color}`);
-    console.log(`[座標デバッグ] Canvas dimensions: ${ctx.canvas.width} x ${ctx.canvas.height}`);
 
     // 線を描画
-    console.log(`[矢印色デバッグ] 指定色: ${color}, ctx.strokeStyle設定前: ${ctx.strokeStyle}`);
     ctx.strokeStyle = color;
-    console.log(`[矢印色デバッグ] ctx.strokeStyle設定後: ${ctx.strokeStyle}`);
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.stroke();
 
-    console.log(`[座標デバッグ] stroke() 実行完了, 最終strokeStyle: ${ctx.strokeStyle}`);
 
     // Canvas画像データを確認（実際に描画されたか検証）
     try {
         const imageData = ctx.getImageData(Math.floor(startX), Math.floor(startY), 1, 1);
         const pixel = imageData.data;
-        console.log(`[描画検証] startX位置のピクセル: rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]})`);
     } catch (e) {
         console.error(`[描画検証] getImageData失敗:`, e);
     }
@@ -630,7 +303,6 @@ function drawCrossPanelPinkArrows() {
         return; // ピンク選択中でない場合は何もしない
     }
 
-    console.log('[パネル間矢印] ピンク選択中のため、パネル間矢印を描画します');
 
     // 左パネルのcanvasを取得
     const leftCanvas = arrowState.canvasMap.get(`layer-${leftVisibleLayer}`);
@@ -676,7 +348,6 @@ function drawCrossPanelPinkArrows() {
     ctx.lineTo(endX, endY);
     ctx.stroke();
 
-    console.log(`[パネル間矢印] 左パネル矢印描画完了: (${startX}, ${startY}) → (${endX}, ${endY})`);
 
     // 右パネルの矢印を描画
     drawRightPanelPinkArrows();
@@ -739,21 +410,12 @@ function drawPanelArrows(layerId) {
         canvas.style.height = parentHeight + 'px';
 
         if (canvas.width !== oldWidth || canvas.height !== oldHeight) {
-            console.log(`[Canvas デバッグ] Canvas サイズ調整: ${oldWidth}x${oldHeight} → ${canvas.width}x${canvas.height}`);
         }
     }
 
-    console.log(`[Canvas デバッグ] Canvas element:`, canvas);
-    console.log(`[Canvas デバッグ] Canvas visible:`, canvas.offsetWidth > 0 && canvas.offsetHeight > 0);
-    console.log(`[Canvas デバッグ] Canvas style.display:`, canvas.style.display);
-    console.log(`[Canvas デバッグ] Canvas style.visibility:`, canvas.style.visibility);
-    console.log(`[Canvas デバッグ] Canvas style.opacity:`, canvas.style.opacity);
-    console.log(`[Canvas デバッグ] Canvas dimensions: ${canvas.width}x${canvas.height}, offset: ${canvas.offsetWidth}x${canvas.offsetHeight}`);
 
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    console.log(`[Canvas デバッグ] Context:`, ctx);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    console.log(`[Canvas デバッグ] clearRect完了: (0, 0, ${canvas.width}, ${canvas.height})`);
     ctx.imageSmoothingEnabled = false;  // シャープな線のためにスムージングを無効化
 
     // 非表示ノード（折りたたみ中のグループノード等）をフィルタリング
@@ -792,7 +454,6 @@ function drawPanelArrows(layerId) {
 
         // 通常ノード → 通常ノード
         if (isCurrentNormal && isNextNormal) {
-            console.log(`[デバッグ] 通常→通常の矢印を描画: ${i} → ${i+1}`);
             drawDownArrow(ctx, currentNode, nextNode, '#000000');
             arrowCount++;
         }
@@ -862,40 +523,16 @@ function drawPanelArrows(layerId) {
 
     // ループの矢印を描画
     const loopGroups = findLoopGroups(nodes);
-    if (LOG_CONFIG.loopGroups) {
-        console.log(`🔍 [drawPanelArrows] layerId=${layerId}, ループグループ数: ${loopGroups.length}, loopArrowOffset: ${loopArrowOffset}`);
-    }
     loopGroups.forEach(group => {
-        if (LOG_CONFIG.loopGroups) {
-            console.log(`🔍 [drawPanelArrows] ループ矢印描画: ${group.startNode.textContent} → ${group.endNode.textContent}`);
-        }
         drawLoopArrows(ctx, group.startNode, group.endNode, containerRect, scrollTop, scrollLeft, loopArrowOffset);
     });
 
     // console.log(`[デバッグ] drawPanelArrows() 完了: ${layerId}`);
 
     // 描画完了後のCanvas最終状態を確認
-    console.log(`[描画完了] Canvas最終状態:`, {
-        layerId: layerId,
-        canvasWidth: canvas.width,
-        canvasHeight: canvas.height,
-        canvasStyleWidth: canvas.style.width,
-        canvasStyleHeight: canvas.style.height,
-        canvasOffsetWidth: canvas.offsetWidth,
-        canvasOffsetHeight: canvas.offsetHeight,
-        canvasVisible: canvas.offsetWidth > 0 && canvas.offsetHeight > 0,
-        canvasDisplay: window.getComputedStyle(canvas).display,
-        canvasVisibility: window.getComputedStyle(canvas).visibility,
-        canvasOpacity: window.getComputedStyle(canvas).opacity,
-        canvasZIndex: window.getComputedStyle(canvas).zIndex,
-        canvasPosition: window.getComputedStyle(canvas).position,
-        parentElement: canvas.parentElement?.className,
-        inDOM: document.body.contains(canvas)
-    });
 
     // デバッグ用：ブラウザ開発者ツールで確認できるようにグローバル変数に保存
     window.DEBUG_CANVAS = canvas;
-    console.log(`[デバッグ] Canvas要素をwindow.DEBUG_CANVASに保存しました。ブラウザコンソールで確認できます。`);
 }
 
 // 条件分岐グループを見つける
@@ -979,7 +616,6 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
     }
 
     // 内部ノードをデバッグ出力
-    console.log(`[条件分岐デバッグ] innerNodes数: ${innerNodes.length}, 分岐数: ${branchCount}, Grayインデックス: [${grayIndices.join(', ')}]`);
 
     // 各分岐のノードを収集
     // branches[0] = 開始→最初のGray間のノード（False分岐）
@@ -1006,9 +642,7 @@ function drawConditionalBranchArrows(ctx, startNode, endNode, innerNodes, contai
         prevGrayIndex = (i < grayIndices.length) ? grayIndices[i] : innerNodes.length;
     }
 
-    console.log(`[条件分岐] 分岐数: ${branches.length}`);
     branches.forEach((b, idx) => {
-        console.log(`  分岐${idx}: ${b.length}ノード`);
     });
 
     // 分岐ごとの色を定義（多重分岐対応）
@@ -1304,11 +938,9 @@ function drawBranchEndArrow(ctx, sourceNode, endNode, color, direction = 'left',
 function drawEdgeBasedConditionArrows(ctx, layer, nodes) {
     const edges = layerStructure[layer]?.edges || [];
     if (edges.length === 0) {
-        console.log(`[エッジ描画] レイヤー${layer}: エッジなし`);
         return false;  // エッジがない場合は旧方式にフォールバック
     }
 
-    console.log(`[エッジ描画] レイヤー${layer}: ${edges.length}本のエッジを処理`);
 
     // 条件分岐用エッジのみ処理
     const conditionEdges = edges.filter(e => e.type === 'true' || e.type === 'false');
@@ -1404,7 +1036,6 @@ function drawEdgeBasedConditionArrows(ctx, layer, nodes) {
             ctx.fillText('False', horizontalEndX - 30, lineStartY - 5);
         }
 
-        console.log(`[エッジ描画] ${edge.type}分岐: ${edge.source} → ${edge.target}`);
     });
 
     return conditionEdges.length > 0;  // エッジを描画した場合true
@@ -1431,14 +1062,8 @@ function findLoopGroups(nodes) {
         const text = node.textContent.trim();
         const groupId = node.dataset.groupId;
 
-        if (LOG_CONFIG.loopGroups) {
-            console.log(`🔍 [findLoopGroups] ノード検証: text="${text}", color=${color}, isLemonChiffon=${isLemonChiffonColor(color)}, groupId=${groupId}`);
-        }
 
         if (isLemonChiffonColor(color) && groupId) {
-            if (LOG_CONFIG.loopGroups) {
-                console.log(`🔍 [findLoopGroups] ✅ ループノード検出: text="${text}", groupId=${groupId}`);
-            }
             if (!groupMap.has(groupId)) {
                 groupMap.set(groupId, []);
             }
@@ -1447,13 +1072,7 @@ function findLoopGroups(nodes) {
     });
 
     // 各グループで開始と終了を特定
-    if (LOG_CONFIG.loopGroups) {
-        console.log(`🔍 [findLoopGroups] groupMap.size=${groupMap.size}`);
-    }
     groupMap.forEach((groupNodes, groupId) => {
-        if (LOG_CONFIG.loopGroups) {
-            console.log(`🔍 [findLoopGroups] GroupID=${groupId}, ノード数=${groupNodes.length}`);
-        }
         if (groupNodes.length === 2) {
             // ★修正: getBoundingClientRect()はdisplay:noneから表示切替直後に正しい値を返さないため
             // style.topを使用（drawLoopArrowsと同じ方式）
@@ -1463,20 +1082,11 @@ function findLoopGroups(nodes) {
                 return aTop - bTop;
             });
 
-            if (LOG_CONFIG.loopGroups) {
-                console.log(`🔍 [findLoopGroups] ✅ ループグループ追加: ${sorted[0].textContent} → ${sorted[1].textContent}`);
-            }
             groups.push({ startNode: sorted[0], endNode: sorted[1] });
         } else {
-            if (LOG_CONFIG.loopGroups) {
-                console.log(`🔍 [findLoopGroups] ⚠️ ノード数が2でない: ${groupNodes.length}`);
-            }
         }
     });
 
-    if (LOG_CONFIG.loopGroups) {
-        console.log(`🔍 [findLoopGroups] 最終結果: ${groups.length}グループ`);
-    }
     return groups;
 }
 
@@ -1612,10 +1222,8 @@ function isBlueColor(colorString) {
         const b = parseInt(match[3]);
         // rgb(200, 220, 255) 薄い青
         const isMatch = (r === 200 && g === 220 && b === 255);
-        console.log(`[isBlueColor] 検証: r=${r}, g=${g}, b=${b}, match=${isMatch}, input="${colorString}"`);
         return isMatch;
     }
-    console.log(`[isBlueColor] パターンマッチ失敗: "${colorString}"`);
     return false;
 }
 
@@ -1648,9 +1256,6 @@ function isPinkColor(colorString) {
                (r === 227 && g === 206 && b === 229) || // ピンク青色
                (r === 252 && g === 160 && b === 158);   // ピンク赤色（旧色）
 
-        if (LOG_CONFIG.pink) {
-            console.log(`[ピンク検出] 色: ${colorString}, RGB: (${r},${g},${b}), ピンク判定: ${isPink}`);
-        }
         return isPink;
     }
     return false;
@@ -1896,17 +1501,6 @@ function debugCanvasInfo(layerId = 'layer-1') {
         return;
     }
 
-    console.log(`=== Canvas Debug Info for ${layerId} ===`);
-    console.log('Canvas element:', canvas);
-    console.log('Canvas.width (内部):', canvas.width);
-    console.log('Canvas.height (内部):', canvas.height);
-    console.log('Canvas.style.width (CSS):', canvas.style.width);
-    console.log('Canvas.style.height (CSS):', canvas.style.height);
-    console.log('Canvas.offsetWidth:', canvas.offsetWidth);
-    console.log('Canvas.offsetHeight:', canvas.offsetHeight);
-    console.log('Canvas.parentElement:', canvas.parentElement);
-    console.log('Computed styles:', window.getComputedStyle(canvas));
-    console.log('In DOM:', document.body.contains(canvas));
 
     // テスト描画
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -1916,7 +1510,6 @@ function debugCanvasInfo(layerId = 'layer-1') {
     ctx.moveTo(10, 10);
     ctx.lineTo(100, 100);
     ctx.stroke();
-    console.log('テスト描画完了: 赤い線を (10,10) から (100,100) に描画しました');
 
     return canvas;
 }
@@ -1985,23 +1578,16 @@ function checkScreenWidth() {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('═══════════════════════════════════════════════');
-    console.log('UIpowershell Legacy UI v1.0.171 - 起動開始');
-    console.log('═══════════════════════════════════════════════');
 
     // コントロールログ: DOMContentLoaded
-    await writeControlLog('✅ [INIT] DOMContentLoaded - HTMLロード完了');
 
     // 矢印描画機能を初期化（arrow-drawing.jsの内容が統合されているため即座に利用可能）
-    console.log('[矢印] Arrow drawing initialization...');
     initializeArrowCanvas();
     refreshAllArrows();
     window.arrowDrawing.initialized = true;
-    console.log('[矢印] Arrow drawing initialized successfully');
     // console.log(`[デバッグ] Canvas数: ${window.arrowDrawing.state.canvasMap.size}`);
 
     // コントロールログ: 矢印描画初期化完了
-    await writeControlLog('✅ [INIT] 矢印描画機能の初期化完了');
 
     // ドロップ位置インジケーターを作成
     createDropIndicator();
@@ -2014,22 +1600,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // API接続テスト
     await testApiConnection();
-    await writeControlLog('✅ [INIT] APIサーバー接続テスト完了');
 
     // 左右パネル表示を初期化
     updateDualPanelDisplay();
 
     // カテゴリ設定.jsonを読み込み
     await loadCategorySettings();
-    await writeControlLog('✅ [INIT] カテゴリ設定の読み込み完了');
 
     // カテゴリボタン・パネルを動的生成
     generateCategoryUI();
-    await writeControlLog('✅ [INIT] カテゴリUI動的生成完了');
 
     // ボタン設定.jsonを読み込み
     await loadButtonSettings();
-    await writeControlLog('✅ [INIT] ボタン設定の読み込み完了');
 
     // カテゴリーパネルにノード追加ボタンを生成（初期は無効化）
     generateAddNodeButtons();
@@ -2042,48 +1624,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ダイアログのイベントリスナー設定（DOM ready後）
     setupDialogEventListeners();
-    await writeControlLog('✅ [INIT] イベントリスナー設定完了');
 
     // 変数を読み込み
     await loadVariables();
-    await writeControlLog('✅ [INIT] 変数の読み込み完了');
 
     // フォルダ一覧を読み込み（デフォルトフォルダ自動選択）
-    console.log('[初期化] フォルダ初期化を開始...');
     await loadFolders();
-    console.log('[初期化] ✅ フォルダ初期化完了 - currentFolder:', currentFolder);
-    await writeControlLog('✅ [INIT] フォルダ初期化完了');
 
     // ボタンを有効化
     enableAddNodeButtons();
-    await writeControlLog('✅ [INIT] ノード追加ボタンを有効化');
 
     // 既存のノードを読み込み（memory.jsonから）
     // ※loadFolders()の後に実行（currentFolderが設定された後）
     await loadExistingNodes();
-    await writeControlLog('✅ [INIT] 既存ノードの読み込み完了');
 
     // Excel接続情報を復元（変数も含む）
     await loadConnectionState();
-    await writeControlLog('✅ [INIT] 接続情報の復元完了');
 
-    console.log('═══════════════════════════════════════════════');
-    console.log(`✅ UIpowershell 初期化完了 [Version: ${APP_VERSION}]`);
-    console.log('═══════════════════════════════════════════════');
 
     // ロボットプロファイルを読み込み
     await loadRobotProfile();
     setupRobotProfileAutoSave();
-    await writeControlLog('✅ [INIT] ロボットプロファイル読み込み完了');
 
     // コントロールログ: 初期化完了、ノード生成可能
-    await writeControlLog('🎉 [READY] 初期化完了 - ノード生成可能');
 
     // ローディングオーバーレイを非表示
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
         loadingOverlay.classList.add('hidden');
-        console.log('[初期化] ローディングオーバーレイを非表示にしました');
     }
 
     // 横スクロールバー問題のデバッグ
@@ -2104,9 +1672,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const overflow = totalChildWidth - availableWidth;
 
-            if (overflow > 0 && LOG_CONFIG.general) {
-                console.log(`⚠️ [横スクロール] はみ出し +${overflow}px（推奨: コンテナ ${containerWidth - overflow - 5}px以下）`);
-            }
         }
     }, 500);
 });
@@ -2120,20 +1685,15 @@ window.addEventListener('resize', checkScreenWidth);
 
 async function testApiConnection() {
     const t0 = performance.now();
-    console.log('🔍 [API Timing] /health リクエスト開始');
 
     try {
         const t1 = performance.now();
         const response = await fetch(`${API_BASE}/health`);
         const t2 = performance.now();
-        console.log(`🔍 [API Timing] /health フェッチ完了: ${(t2-t1).toFixed(1)}ms`);
 
         const data = await response.json();
         const t3 = performance.now();
-        console.log(`🔍 [API Timing] /health JSON解析完了: ${(t3-t2).toFixed(1)}ms`);
-        console.log(`🔍 [API Timing] /health 合計: ${(t3-t0).toFixed(1)}ms`);
 
-        console.log('API接続成功:', data);
         return true;
     } catch (error) {
         console.error('API接続失敗:', error);
@@ -2145,7 +1705,6 @@ async function testApiConnection() {
 async function callApi(endpoint, method = 'GET', body = null, options = {}) {
     const t0 = performance.now();
     const timeoutMs = options.timeout || 120000; // デフォルト2分
-    console.log(`🔍 [API Timing] ${endpoint} リクエスト開始 (${method})`);
 
     const fetchOptions = {
         method: method,
@@ -2166,7 +1725,6 @@ async function callApi(endpoint, method = 'GET', body = null, options = {}) {
         const response = await fetch(`${API_BASE}${endpoint}`, fetchOptions);
         const t2 = performance.now();
         clearTimeout(timeoutId);
-        console.log(`🔍 [API Timing] ${endpoint} フェッチ完了: ${(t2-t1).toFixed(1)}ms`);
 
         // HTTPステータスコード別のエラーハンドリング
         if (response.status === 408) {
@@ -2202,8 +1760,6 @@ async function callApi(endpoint, method = 'GET', body = null, options = {}) {
         }
 
         const t3 = performance.now();
-        console.log(`🔍 [API Timing] ${endpoint} JSON解析完了: ${(t3-t2).toFixed(1)}ms`);
-        console.log(`🔍 [API Timing] ${endpoint} 合計: ${(t3-t0).toFixed(1)}ms`);
 
         // response.okでない場合はエラー情報を含めて返す
         if (!response.ok) {
@@ -2236,15 +1792,12 @@ async function callApi(endpoint, method = 'GET', body = null, options = {}) {
 async function loadButtonSettings() {
     const t0 = performance.now();
     try {
-        console.log('[ボタン設定] ロード開始...');
-        console.log('🔍 [API Timing] /button-settings.json リクエスト開始');
 
         // APIサーバー経由でボタン設定.jsonを読み込み
         // 注: 日本語URLのエンコード問題を避けるため、英語エイリアスを使用
         const t1 = performance.now();
         const response = await fetch('/button-settings.json');
         const t2 = performance.now();
-        console.log(`🔍 [API Timing] /button-settings.json フェッチ完了: ${(t2-t1).toFixed(1)}ms`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -2252,11 +1805,7 @@ async function loadButtonSettings() {
 
         buttonSettings = await response.json();
         const t3 = performance.now();
-        console.log(`🔍 [API Timing] /button-settings.json JSON解析完了: ${(t3-t2).toFixed(1)}ms`);
-        console.log(`🔍 [API Timing] /button-settings.json 合計: ${(t3-t0).toFixed(1)}ms`);
 
-        console.log('[ボタン設定] ✅ ロード完了:', buttonSettings.length, '個');
-        console.log('[ボタン設定] 最初の3つ:', buttonSettings.slice(0, 3));
     } catch (error) {
         console.error('[ボタン設定] ❌ ロード失敗:', error);
         console.error('[ボタン設定] エラー詳細:', error.message);
@@ -2271,7 +1820,6 @@ async function loadButtonSettings() {
 
 async function loadCategorySettings() {
     try {
-        console.log('[カテゴリ設定] ロード開始...');
 
         const response = await fetch('/category-settings.json');
         if (!response.ok) {
@@ -2279,7 +1827,6 @@ async function loadCategorySettings() {
         }
 
         categorySettings = await response.json();
-        console.log('[カテゴリ設定] ✅ ロード完了:', categorySettings.length, '個');
     } catch (error) {
         console.error('[カテゴリ設定] ❌ ロード失敗:', error);
         categorySettings = [];
@@ -2291,7 +1838,6 @@ async function loadCategorySettings() {
 // ============================================
 
 function generateCategoryUI() {
-    console.log('[カテゴリUI] 動的生成開始...');
 
     const categoryButtonsContainer = document.getElementById('category-buttons');
     const nodePanelsContainer = document.getElementById('node-buttons-container');
@@ -2333,7 +1879,6 @@ function generateCategoryUI() {
         nodePanelsContainer.appendChild(panel);
     });
 
-    console.log('[カテゴリUI] ✅ 動的生成完了:', categorySettings.length, '個のカテゴリ');
 }
 
 // ============================================
@@ -2341,7 +1886,6 @@ function generateCategoryUI() {
 // ============================================
 
 function generateAddNodeButtons() {
-    console.log('[ボタン生成] 開始 - buttonSettings:', buttonSettings.length, '個');
 
     // カテゴリ設定から動的にpanelMappingを構築
     const panelMapping = {};
@@ -2380,7 +1924,6 @@ function generateAddNodeButtons() {
         btn.onclick = async () => {
             // 二重クリック防止: 処理中は無視
             if (btn.disabled || btn.dataset.processing === 'true') {
-                console.log('[ボタンクリック] ⚠ 処理中のため無視しました');
                 return;
             }
 
@@ -2389,14 +1932,6 @@ function generateAddNodeButtons() {
             btn.style.opacity = '0.6';
             btn.style.cursor = 'wait';
 
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('[ボタンクリック] ✅ ボタンがクリックされました');
-            console.log('[ボタンクリック] テキスト:', setting.テキスト);
-            console.log('[ボタンクリック] 処理番号:', setting.処理番号);
-            console.log('[ボタンクリック] 関数名:', setting.関数名);
-            console.log('[ボタンクリック] 背景色:', setting.背景色);
-            console.log('[ボタンクリック] setting全体:', setting);
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
             try {
                 // ============================================
@@ -2439,24 +1974,19 @@ function generateAddNodeButtons() {
         generatedCount++;
 
         if (index < 3) {
-            console.log(`[ボタン生成] ${index + 1}/${buttonSettings.length}: ${setting.テキスト} (${setting.処理番号}) → ${panelId}`);
         }
     });
 
-    console.log(`[ボタン生成] ✅ 完了 - ${generatedCount}/${buttonSettings.length} 個のボタンを生成しました`);
-    console.log(`[ボタン生成] ℹ️  ボタンは初期化完了まで無効化されています`);
 }
 
 // ノード追加ボタンを有効化
 function enableAddNodeButtons() {
-    console.log('[ボタン有効化] 開始...');
     const buttons = document.querySelectorAll('.add-node-btn');
     let count = 0;
     buttons.forEach(btn => {
         btn.disabled = false;
         count++;
     });
-    console.log(`[ボタン有効化] ✅ ${count}個のボタンを有効化しました`);
 }
 
 // 色名→CSSカラーコード変換
@@ -2516,20 +2046,15 @@ function switchCategory(categoryNum) {
 
 // 親ピンクノードのスクリプトを更新する関数（完全再構築方式）
 async function updateParentPinkNode(addedNodes, deletedNodes = []) {
-    console.log('[親ピンクノード更新] ========== 開始（完全再構築方式） ==========');
-    console.log('[親ピンクノード更新] 現在のレイヤー:', leftVisibleLayer);
 
     // レイヤー1の場合は親がいないのでスキップ
     if (leftVisibleLayer < 2) {
-        console.log('[親ピンクノード更新] レイヤー1なので親ピンクノードなし');
         return;
     }
 
     const parentLayer = leftVisibleLayer - 1;
-    console.log('[親ピンクノード更新] 親レイヤー:', parentLayer);
 
     const parentPinkNodeId = pinkSelectionArray[parentLayer].expandedNode;
-    console.log('[親ピンクノード更新] 親ピンクノードID:', parentPinkNodeId);
 
     if (!parentPinkNodeId) {
         console.warn('[親ピンクノード更新] ⚠ 親ピンクノードIDが見つかりません');
@@ -2544,25 +2069,16 @@ async function updateParentPinkNode(addedNodes, deletedNodes = []) {
         return;
     }
 
-    console.log('[親ピンクノード更新] ✅ 親ピンクノード取得成功:', `${parentPinkNode.id}(${parentPinkNode.text})`);
-    console.log('[親ピンクノード更新] 親ピンクノードの現在のscript:', parentPinkNode.script);
 
     // ★★★ 新方式: 現在のレイヤーから完全再構築 ★★★
-    console.log('[親ピンクノード更新] ========== 現在のレイヤーから完全再構築 ==========');
 
     // 現在のレイヤーのすべてのノードをY座標でソート
     const currentLayerNodes = [...layerStructure[leftVisibleLayer].nodes].sort((a, b) => a.y - b.y);
-    console.log('[親ピンクノード更新] 現在のレイヤーのノード数:', currentLayerNodes.length);
-    console.log('[親ピンクノード更新] ノード一覧:', currentLayerNodes.map(n => `${n.id}(${n.text})`).join(', '));
 
     // 🔍 各ノードの詳細情報をログ出力
-    console.log('[親ピンクノード更新] 🔍 各ノードの詳細:');
     currentLayerNodes.forEach((node, idx) => {
-        console.log(`  [${idx}] ID=${node.id}, text="${node.text}", color=${node.color}`);
-        console.log(`       scriptフィールド: ${node.script ? node.script.substring(0, 100) : '(なし)'}`);
         // code.jsonエントリも確認
         const codeEntry = codeData["エントリ"] ? codeData["エントリ"][`${node.id}-1`] : null;
-        console.log(`       code.jsonエントリ[${node.id}-1]: ${codeEntry ? codeEntry.substring(0, 100) : '(なし)'}`);
     });
 
     // 全ノードからscriptを再構築（Pinkノードのscriptは含めない）
@@ -2570,38 +2086,24 @@ async function updateParentPinkNode(addedNodes, deletedNodes = []) {
         `${node.id};${node.color};${node.text};`
     ).join('_');
 
-    console.log('[親ピンクノード更新] 🔍 再構築後のscript:', newScript);
-    console.log('[親ピンクノード更新] ⚠️ 注意: このscriptにはメタ情報のみで、実際のコード内容は含まれていません');
 
     // 親ピンクノードのscriptを更新
-    console.log('[親ピンクノード更新] ========== 親ピンクノードscript更新 ==========');
-    console.log('[親ピンクノード更新] 更新前の親ピンクノードscript:', parentPinkNode.script);
     parentPinkNode.script = newScript;
-    console.log('[親ピンクノード更新] 更新後の親ピンクノードscript:', parentPinkNode.script);
 
     // グローバルnodesも更新
     const globalNode = nodes.find(n => n.id === parentPinkNodeId);
     if (globalNode) {
-        console.log('[親ピンクノード更新] グローバルnodesも更新します');
         globalNode.script = parentPinkNode.script;
     }
 
     // コード.jsonに保存（"AAAA\n"プレフィックス付き、改行区切り）
     const formattedEntryString = 'AAAA\n' + parentPinkNode.script.replace(/_/g, '\n');
-    console.log('[親ピンクノード更新] ========== code.json保存 ==========');
-    console.log('[親ピンクノード更新] 保存するノードID:', parentPinkNodeId);
-    console.log('[親ピンクノード更新] フォーマット後のエントリ:', formattedEntryString);
-    console.log('[親ピンクノード更新] 🔍 code.jsonに保存される内容にはPowerShellコードが含まれていません');
-    console.log('[親ピンクノード更新] 🔍 子ノードの実際のコードは各ノードIDのエントリに保存されています');
 
     try {
         await setCodeEntry(parentPinkNodeId, formattedEntryString);
-        console.log('[親ピンクノード更新] ✅ コード.json保存成功 - ノードID:', parentPinkNodeId);
 
         // 🔍 保存後のcode.jsonエントリを確認
         const savedEntry = codeData["エントリ"] ? codeData["エントリ"][`${parentPinkNodeId}-1`] : null;
-        console.log('[親ピンクノード更新] 🔍 保存後のcode.jsonエントリ確認:');
-        console.log(`  code.json["エントリ"]["${parentPinkNodeId}-1"]:`, savedEntry);
     } catch (error) {
         console.error('[親ピンクノード更新] ❌ コード.json保存エラー:', error);
         await showAlertDialog('親ピンクノードの更新に失敗しました。コンソールを確認してください。', '保存エラー');
@@ -2609,15 +2111,6 @@ async function updateParentPinkNode(addedNodes, deletedNodes = []) {
 }
 
 async function addNodeToLayer(setting) {
-    console.log('┌────────────────────────────────────────');
-    console.log('│ [addNodeToLayer] 開始');
-    console.log('├────────────────────────────────────────');
-    console.log('│ 処理番号:', setting.処理番号);
-    console.log('│ テキスト:', setting.テキスト);
-    console.log('│ 関数名:', setting.関数名);
-    console.log('│ 背景色:', setting.背景色);
-    console.log('│ 現在のレイヤー:', leftVisibleLayer);
-    console.log('└────────────────────────────────────────');
 
     let addedNodes = [];
 
@@ -2625,41 +2118,26 @@ async function addNodeToLayer(setting) {
     if (setting.処理番号 === '1-2') {
         // 条件分岐：多重分岐対応（開始・中間×N・終了）
         // branchCountはPowerShellダイアログで選択される
-        console.log(`[addNodeToLayer] 条件分岐セット追加を開始`);
         addedNodes = await addConditionSet(setting);
         if (addedNodes === null) {
-            console.log('[addNodeToLayer] 条件分岐セット追加がキャンセルされました');
             return;
         }
-        console.log('[addNodeToLayer] 条件分岐セット追加が完了');
     } else if (setting.処理番号 === '1-3') {
         // ループ：2個セット（開始・終了）
-        console.log('[addNodeToLayer] ループセット追加を開始');
         addedNodes = await addLoopSet(setting);
-        console.log('[addNodeToLayer] ループセット追加が完了');
     } else {
         // 通常ノード：1個
-        console.log('[addNodeToLayer] 通常ノード追加を開始');
         const node = addSingleNode(setting);
         addedNodes = [node];
-        console.log('[addNodeToLayer] ノードを作成しました - ID:', node.id, 'name:', node.name);
 
         // コード生成
-        console.log('[addNodeToLayer] generateCode() を呼び出します');
-        console.log('[addNodeToLayer]   - 処理番号:', setting.処理番号);
-        console.log('[addNodeToLayer]   - ノードID:', node.id);
-        console.log('[addNodeToLayer]   - ノード名:', node.name);
-        console.log('[addNodeToLayer]   - 関数名:', setting.関数名);
 
         // ベースIDを抽出 (PowerShell互換: "1-1" → "1")
         const baseId = node.id.split('-')[0];
-        console.log('[addNodeToLayer]   - ベースID:', baseId);
 
         try {
             const generatedCode = await generateCode(setting.処理番号, baseId);
             if (generatedCode) {
-                console.log('[addNodeToLayer] ✅ コード生成成功');
-                console.log('[addNodeToLayer] 生成されたコード:', generatedCode.substring(0, 100) + '...');
             } else {
                 // キャンセルされた場合：作成済みのノードを削除
                 console.warn('[addNodeToLayer] ⚠ コード生成がキャンセルされました - ノードを削除します');
@@ -2676,7 +2154,6 @@ async function addNodeToLayer(setting) {
                     layerStructure[leftVisibleLayer].nodes.splice(layerIndex, 1);
                 }
 
-                console.log('[addNodeToLayer] ノード削除完了 - 処理を中止します');
                 return;
             }
         } catch (error) {
@@ -2696,40 +2173,30 @@ async function addNodeToLayer(setting) {
         }
 
         // ★修正：画面を再描画（矢印も更新される）
-        console.log('[addNodeToLayer] renderNodesInLayer() を呼び出します');
         renderNodesInLayer(leftVisibleLayer);
         reorderNodesInLayer(leftVisibleLayer);
-        console.log('[addNodeToLayer] 通常ノード追加が完了');
     }
 
     // ★ 同じレイヤーのピンクノード展開状態を無効化（レイヤー編集により既存の展開状態は無効）
     if (pinkSelectionArray[leftVisibleLayer].expandedNode !== null) {
-        console.log(`[addNodeToLayer] ⚠️ レイヤー${leftVisibleLayer}のピンクノード展開状態を無効化します（ノード追加によりレイヤーが変更されたため）`);
-        console.log(`[addNodeToLayer] 無効化前: expandedNode=${pinkSelectionArray[leftVisibleLayer].expandedNode}, value=${pinkSelectionArray[leftVisibleLayer].value}`);
         pinkSelectionArray[leftVisibleLayer].value = 0;
         pinkSelectionArray[leftVisibleLayer].expandedNode = null;
         pinkSelectionArray[leftVisibleLayer].yCoord = 0;
         pinkSelectionArray[leftVisibleLayer].initialY = 0;
-        console.log(`[addNodeToLayer] ✅ 無効化完了`);
     }
 
     // ★ ドリルダウンパネルが編集されたレイヤーの子レイヤーを表示している場合は閉じる
     if (drilldownState.active && drilldownState.targetLayer === leftVisibleLayer + 1) {
-        console.log(`[addNodeToLayer] ⚠️ ドリルダウンパネルを閉じます（編集中のレイヤー${leftVisibleLayer}の子レイヤーを表示中のため）`);
         closeDrilldownPanel();
     }
 
     // ★ レイヤー2以降の場合、親ピンクノードに反映
-    console.log('[addNodeToLayer] 追加されたノード数:', addedNodes.length);
     if (leftVisibleLayer >= 2 && addedNodes.length > 0) {
-        console.log('[addNodeToLayer] 親ピンクノードに反映します');
         await updateParentPinkNode(addedNodes);
     }
 
     // memory.json自動保存
-    console.log('[addNodeToLayer] memory.json自動保存を実行');
     saveMemoryJson();
-    console.log('[addNodeToLayer] 完了');
 }
 
 // 単一ノードを追加
@@ -2776,7 +2243,6 @@ async function addLoopSet(setting) {
     const baseId = nodeCounter;
     nodeCounter++;
 
-    console.log(`[ループ作成] GroupID=${groupId}, ベースID=${baseId} を割り当て`);
 
     // 1. 開始ボタン
     const startNode = addSingleNode(
@@ -2789,7 +2255,6 @@ async function addLoopSet(setting) {
     );
 
     // コード生成（ループ構文） - ベースIDを渡す
-    console.log(`[ループ作成] コード生成 - ベースID: ${baseId}`);
     await generateCode(setting.処理番号, `${baseId}`);
 
     // 2. 終了ボタン
@@ -2802,7 +2267,6 @@ async function addLoopSet(setting) {
         `${baseId}-2`  // カスタムID指定
     );
 
-    console.log(`[ループ作成完了] startNode.id: ${startNode.id}, endNode.id: ${endNode.id} (GroupID=${groupId}, ベースID=${baseId})`);
 
     renderNodesInLayer(leftVisibleLayer);
     reorderNodesInLayer(leftVisibleLayer);
@@ -2822,16 +2286,13 @@ async function addConditionSet(setting) {
     const baseId = nodeCounter;
     nodeCounter++;
 
-    console.log(`[条件分岐作成] GroupID=${groupId}, ベースID=${baseId}`);
 
     // コード生成（条件式）を先に呼び出してbranchCountを取得
     // PowerShellダイアログがJSON形式で返す: {"branchCount": N, "code": "..."}
-    console.log(`[条件分岐作成] コード生成ダイアログを表示 - ベースID: ${baseId}`);
     const result = await generateCode(setting.処理番号, `${baseId}`);
 
     // キャンセル時はnullが返る
     if (result === null) {
-        console.log(`[条件分岐作成] キャンセルされました`);
         nodeCounter--;  // カウンタを戻す
         return null;
     }
@@ -2843,17 +2304,14 @@ async function addConditionSet(setting) {
         if (typeof result === 'string' && result.startsWith('{')) {
             const parsed = JSON.parse(result);
             branchCount = parsed.branchCount || 2;
-            console.log(`[条件分岐作成] JSONからbranchCount取得: ${branchCount}`);
         }
     } catch (e) {
-        console.log(`[条件分岐作成] JSONパース失敗、デフォルトbranchCount=2を使用: ${e.message}`);
     }
 
     // 分岐数を検証（最小2、最大10）
     branchCount = Math.max(2, Math.min(10, branchCount));
     const grayNodeCount = branchCount - 1;  // Grayノード数 = 分岐数 - 1
 
-    console.log(`[条件分岐作成] 分岐数=${branchCount}, Grayノード数=${grayNodeCount}`);
 
     const allNodes = [];
 
@@ -2898,7 +2356,6 @@ async function addConditionSet(setting) {
     );
     allNodes.push(endNode);
 
-    console.log(`[条件分岐作成完了] ノード数=${allNodes.length}, 開始:${startNode.id}, 終了:${endNode.id} (GroupID=${groupId})`);
 
     renderNodesInLayer(leftVisibleLayer);
     reorderNodesInLayer(leftVisibleLayer);
@@ -2940,7 +2397,6 @@ function getNextAvailableY(layer) {
 
 // 左右パネルの表示を更新
 function updateDualPanelDisplay() {
-    console.log(`[デュアルパネル] 左パネル: レイヤー${leftVisibleLayer}, 右パネル: レイヤー${rightVisibleLayer}`);
 
     // 左パネルのすべてのレイヤーを非表示
     for (let i = 0; i <= 6; i++) {
@@ -2998,7 +2454,6 @@ function renderNodesInLayer(layer, panelSide = 'left') {
 
         // ノードがない場合は右パネルを空状態にする
         if (!layerStructure[layer] || layerStructure[layer].nodes.length === 0) {
-            console.log(`[レンダリング] レイヤー${layer}にノードがないため、右パネルを空状態にします`);
             rightPanel.classList.add('empty');
             rightPanel.innerHTML = '';
             return;
@@ -3083,7 +2538,6 @@ function renderNodesInLayer(layer, panelSide = 'left') {
             }
         }
 
-        console.log(`[デバッグ] ノード配置: x=${node.x || 90}px, y=${node.y}px, text="${node.text}", groupId=${node.groupId || 'なし'}, userGroupId=${node.userGroupId || 'なし'}`);
 
         // 赤枠スタイルを適用
         if (node.redBorder) {
@@ -3109,7 +2563,6 @@ function renderNodesInLayer(layer, panelSide = 'left') {
 
             // クリックイベント（Shift+クリックで赤枠トグル、通常クリックでピンクノード展開）
             btn.addEventListener('click', (e) => {
-                console.log(`[クリック検出] ノード「${node.text}」(color:${node.color}) がクリックされました。Shift:${e.shiftKey}`);
                 if (e.shiftKey) {
                     // Shift+クリック: 赤枠トグル
                     e.preventDefault();
@@ -3117,22 +2570,18 @@ function renderNodesInLayer(layer, panelSide = 'left') {
                     handleShiftClick(node);
                 } else {
                     // 通常クリック: ピンクノードまたは関数ノードの場合は展開処理
-                    console.log(`[クリック判定] node.color === 'Pink' ? ${node.color === 'Pink'}, node.color === 'Aquamarine' ? ${node.color === 'Aquamarine'}`);
                     if (node.color === 'Pink') {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log(`[ピンクノード検出] handlePinkNodeClick を呼び出します`);
                         handlePinkNodeClick(node);
                     } else if (node.color === 'Aquamarine' || isAquamarineColor(node.color)) {
                         // 関数ノード（水色）の場合は展開処理
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log(`[関数ノード検出] expandFunctionNode を呼び出します`);
                         expandFunctionNode(node);
                     } else {
                         // Pinkノード・関数ノード以外がクリックされたらドリルダウンパネルを閉じる
                         if (drilldownState.active) {
-                            console.log(`[クリック] 非Pinkノードクリック → ドリルダウンパネルを閉じます`);
                             closeDrilldownPanel();
                         }
                     }
@@ -3168,7 +2617,6 @@ function renderNodesInLayer(layer, panelSide = 'left') {
     if (layerNodes.length > 0) {
         const maxY = Math.max(...layerNodes.map(n => n.y)) + (NODE_HEIGHT * 2); // ノード高さ + 余白
         container.style.minHeight = `${Math.max(700, maxY)}px`;
-        console.log(`[レンダリング] コンテナ高さを調整: ${Math.max(700, maxY)}px (最大Y座標: ${maxY - 80}px)`);
     }
 
     // ボード（コンテナ空白部分）の右クリックメニューを設定
@@ -3185,10 +2633,8 @@ function renderNodesInLayer(layer, panelSide = 'left') {
     renderGroupOverlays(container, layerNodes);
 
     // 矢印を再描画
-    console.log(`[デバッグ] renderNodesInLayer(${layer}): 矢印を再描画します`);
     if (window.arrowDrawing) {
         setTimeout(() => {
-            console.log(`[デバッグ] setTimeout実行: drawPanelArrows('layer-${layer}') を呼び出し`);
             window.arrowDrawing.drawPanelArrows(`layer-${layer}`);
         }, 10);
     } else {
@@ -3214,7 +2660,6 @@ function handleBoardClick(e) {
     }
     // ボード（空白部分）がクリックされたらドリルダウンパネルを閉じる
     if (drilldownState.active) {
-        console.log(`[ボードクリック] 背景クリック → ドリルダウンパネルを閉じます`);
         closeDrilldownPanel();
     }
 }
@@ -3223,14 +2668,11 @@ function handleBoardClick(e) {
 // グローエフェクトを適用
 // ============================================
 function applyGlowEffects() {
-    console.log('[グロー矢印] applyGlowEffects() 開始');
 
     if (!glowState.sourceNode || glowState.targetLayer === null) {
-        console.log('[グロー矢印] ⚠️ グローステート無効 - スキップ');
         return;
     }
 
-    console.log(`[グロー矢印] ソース: L${glowState.sourceLayer} ノードID="${glowState.sourceNode.id}" テキスト="${glowState.sourceNode.text}"`);
 
     // 1. すべてのノードからglow-sourceクラスとインラインスタイルを削除
     const existingGlowSources = document.querySelectorAll('.node-button.glow-source');
@@ -3283,7 +2725,6 @@ function applyGlowEffects() {
     // 4. ソースノードの位置を取得して、親コンテナに矢印を配置
     const sourceNodeElement = document.querySelector(`.node-button[data-node-id="${glowState.sourceNode.id}"]`);
 
-    console.log(`[グロー矢印] sourceNodeElement検索結果:`, sourceNodeElement ? '✅ 発見' : '❌ 未発見');
 
     if (sourceNodeElement) {
         // ノードの親コンテナ（.node-list-container）を取得
@@ -3301,7 +2742,6 @@ function applyGlowEffects() {
         const relativeTop = nodeRect.top - containerRect.top + container.scrollTop;
         const relativeLeft = nodeRect.left - containerRect.left + container.scrollLeft;
 
-        console.log(`[グロー矢印] ノード位置 top=${relativeTop.toFixed(0)}px left=${relativeLeft.toFixed(0)}px w=${nodeRect.width.toFixed(0)}px h=${nodeRect.height.toFixed(0)}px`);
 
         // グロー矢印要素を作成
         const arrowIndicator = document.createElement('div');
@@ -3317,19 +2757,15 @@ function applyGlowEffects() {
         // コンテナに追加（ノードではなくコンテナに追加）
         container.appendChild(arrowIndicator);
 
-        console.log(`[グロー矢印] ✅ 矢印追加完了 left=${relativeLeft + nodeRect.width + 5}px top=${relativeTop + nodeRect.height / 2}px`);
 
         // 矢印が実際に表示されているか確認
         setTimeout(() => {
             const arrowRect = arrowIndicator.getBoundingClientRect();
-            console.log(`[グロー矢印検証] 矢印位置 x=${arrowRect.left.toFixed(0)} y=${arrowRect.top.toFixed(0)} w=${arrowRect.width.toFixed(0)} h=${arrowRect.height.toFixed(0)}`);
-            console.log(`[グロー矢印検証] 矢印は${arrowRect.width > 0 && arrowRect.height > 0 ? '✅ 表示中' : '❌ 非表示'}`);
         }, 100);
     } else {
         console.error(`[グロー矢印] ❌ ノード要素が見つかりません ID="${glowState.sourceNode.id}"`);
     }
 
-    console.log('[グロー矢印] applyGlowEffects() 完了');
 }
 
 // ============================================
@@ -3379,7 +2815,6 @@ function createDropIndicator() {
         transition: top 0.1s ease-out;
     `;
     document.body.appendChild(dropIndicator);
-    console.log('[ドロップインジケーター] 初期化完了');
 }
 
 /**
@@ -3650,7 +3085,6 @@ async function handleDrop(e) {
             if (node.y < 10) node.y = 10;
         });
 
-        console.log(`[グループ移動] グループID=${groupId}, オフセット=${deltaY}, ノード数=${groupNodes.length}`);
     } else {
         // 通常のノード移動
         draggedNodeData.y = newY;
@@ -3689,7 +3123,6 @@ function swapNodes(layer, nodeId1, nodeId2) {
 function reorderNodesInLayer(layer) {
     const layerNodes = layerStructure[layer].nodes.sort((a, b) => a.y - b.y);
 
-    console.log(`[色変更] reorderNodesInLayer レイヤー${layer}: ${layerNodes.length}個のノード`);
 
     // 折りたたみ中のグループの非代表ノードを特定
     const collapsedHiddenNodes = new Set();
@@ -3732,19 +3165,15 @@ function reorderNodesInLayer(layer) {
 
             if (node.text === '条件分岐 開始') {
                 conditionGroups[gid].startIndex = i;
-                console.log(`[色変更] 条件分岐 開始 見つかった: groupId=${gid}, index=${i}`);
             } else if (node.color === 'Gray') {
                 // Grayノード（中間ノード）を配列に追加
                 conditionGroups[gid].middleIndices.push(i);
-                console.log(`[色変更] 条件分岐 中間(Gray) 見つかった: groupId=${gid}, index=${i}, text="${node.text}"`);
             } else if (node.text === '条件分岐 終了') {
                 conditionGroups[gid].endIndex = i;
-                console.log(`[色変更] 条件分岐 終了 見つかった: groupId=${gid}, index=${i}`);
             }
         }
     }
 
-    console.log(`[色変更] 検出された条件分岐グループ数: ${Object.keys(conditionGroups).length}`);
 
     let currentY = 10;
 
@@ -3775,14 +3204,12 @@ function reorderNodesInLayer(layer) {
             if (index > startIndex && index < firstMiddle) {
                 inFalseBranch = true;
                 outsideAllBranches = false;
-                console.log(`[色変更] index=${index} "${node.text}" は groupId=${gid} の False分岐内`);
                 break;
             }
             // 最後の中間〜終了の間: True分岐（LightBlue）
             else if (index > lastMiddle && index < endIndex) {
                 inTrueBranch = true;
                 outsideAllBranches = false;
-                console.log(`[色変更] index=${index} "${node.text}" は groupId=${gid} の True分岐内`);
                 break;
             }
             // 中間同士の間: 中間分岐（White - 今のところWhiteとする）
@@ -3792,7 +3219,6 @@ function reorderNodesInLayer(layer) {
                     if (index > sortedMiddles[m] && index < sortedMiddles[m + 1]) {
                         inMiddleBranch = true;
                         outsideAllBranches = false;
-                        console.log(`[色変更] index=${index} "${node.text}" は groupId=${gid} の 中間分岐${m + 1}内`);
                         break;
                     }
                 }
@@ -3809,23 +3235,19 @@ function reorderNodesInLayer(layer) {
             // False分岐: Salmon
             if (node.color !== 'Pink') {
                 node.color = 'Salmon';
-                console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → Salmon (False分岐)`);
             }
         } else if (inTrueBranch) {
             // True分岐: LightBlue
             if (node.color !== 'Pink') {
                 node.color = 'LightBlue';
-                console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → LightBlue (True分岐)`);
             }
         } else if (outsideAllBranches) {
             // すべての条件分岐の外側：SalmonまたはLightBlueの場合はWhiteに戻す
             if (node.color === 'Salmon' || node.color === 'LightBlue') {
                 node.color = 'White';
-                console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} → White (外側)`);
             }
         } else {
             // 条件分岐の構成ノード（開始、中間、終了）自体
-            console.log(`[色変更] index=${index} "${node.text}": ${beforeColor} のまま（構成ノード）`);
         }
 
         // 折りたたみ中の非表示ノードはスキップ（Y座標計算に含めない）
@@ -4001,7 +3423,6 @@ function showBoardContextMenu(e) {
         };
     }
 
-    console.log('[ボード右クリック] 位置:', boardClickPosition);
 
     // メニュー外クリックで閉じる
     setTimeout(() => {
@@ -4018,7 +3439,6 @@ async function pasteNodeFromBoardMenu() {
         return false;
     }
 
-    console.log(`[ボード貼り付け] クリック位置に貼り付け:`, boardClickPosition);
     const sourceNode = nodeClipboard.node;
     const sourceScript = nodeClipboard.script || '';
 
@@ -4048,7 +3468,6 @@ async function pasteNodeFromBoardMenu() {
             関数名: sourceNode.関数名 || ''
         };
 
-        console.log(`[ボード貼り付け] 新しいノード: ID=${newNodeId}, Y=${newY}`);
 
         // layerStructure に追加
         layerStructure[newNode.layer].nodes.push(newNode);
@@ -4065,7 +3484,6 @@ async function pasteNodeFromBoardMenu() {
         // UIを再描画
         renderNodesInLayer(leftVisibleLayer, 'left');
 
-        console.log(`[ボード貼り付け] ✅ 成功`);
         showToast(`ノードを貼り付けました`, 'success');
 
         hideContextMenu();
@@ -4104,7 +3522,6 @@ function clearAllRedBorders() {
 function openNodeSettingsFromContextMenu() {
     if (!contextMenuTarget) return;
 
-    console.log('[右クリック] ノード設定を開く:', contextMenuTarget.text, 'ID:', contextMenuTarget.id);
     openNodeSettings(contextMenuTarget);
     hideContextMenu();
 }
@@ -4113,14 +3530,12 @@ function openNodeSettingsFromContextMenu() {
 function copyNodeFromContextMenu() {
     if (!contextMenuTarget) return;
 
-    console.log('[右クリック] ノードをコピー:', contextMenuTarget.text, 'Name:', contextMenuTarget.name);
     copyNode(contextMenuTarget.name);
     hideContextMenu();
 }
 
 // 貼り付け（右クリックメニューから）
 async function pasteNodeFromContextMenu() {
-    console.log('[右クリック] ノードを貼り付け');
     await pasteNode();
     hideContextMenu();
 }
@@ -4142,12 +3557,9 @@ function renameNode() {
 async function editScript() {
     if (!contextMenuTarget) return;
 
-    console.log('✅ [editScript] ノード編集開始:', contextMenuTarget.text, 'ID:', contextMenuTarget.id);
 
     // コード.json からコード内容を取得
     const code = getCodeEntry(contextMenuTarget.id);
-    console.log('✅ [editScript] 取得したコード長:', code ? code.length : 0);
-    console.log('✅ [editScript] 取得したコード内容:', code);
 
     hideContextMenu();
 
@@ -4156,11 +3568,9 @@ async function editScript() {
         nodeName: contextMenuTarget.text,
         currentScript: code || ''
     };
-    console.log('✅ [editScript] APIリクエストボディ:', JSON.stringify(requestBody, null, 2));
 
     try {
         // PowerShell Windows Formsダイアログを呼び出し（ダイアログ用に長めのタイムアウト）
-        console.log('✅ [editScript] PowerShell編集ダイアログを呼び出します...');
         const result = await callApi('/node/edit-script', 'POST', requestBody, { timeout: 600000 });
 
         // HTTPエラーの場合
@@ -4171,17 +3581,14 @@ async function editScript() {
         }
 
         if (result.cancelled) {
-            console.log('⚠ [editScript] ユーザーがキャンセルしました');
             return;
         }
 
         if (result.success && result.newScript !== undefined) {
-            console.log('✅ [editScript] 編集完了 - 新しいスクリプト長:', result.newScript.length);
 
             // コード.json に保存
             await setCodeEntry(contextMenuTarget.id, result.newScript);
 
-            console.log(`[editScript] ✅ ノード「${contextMenuTarget.text}」のスクリプトを更新しました`);
         }
 
     } catch (error) {
@@ -4241,8 +3648,6 @@ async function executeNodeCode() {
         return;
     }
 
-    console.log(`[ノード発火] ノード: ${contextMenuTarget.text} (ID: ${contextMenuTarget.id})`);
-    console.log(`[ノード発火] コード長: ${code.length}文字`);
 
     try {
         // スクリプト実行APIエンドポイントを呼び出し
@@ -4252,7 +3657,6 @@ async function executeNodeCode() {
         });
 
         if (result.success) {
-            console.log(`[ノード発火] ✅ 実行成功`);
             await showAlertDialog(`🔥 ノード発火完了！\n\nノード: ${contextMenuTarget.text}\n\n出力:\n${result.output || '(出力なし)'}`, '発火完了');
         } else {
             console.error(`[ノード発火] ❌ 実行失敗:`, result.error);
@@ -4273,11 +3677,6 @@ async function layerizeNode() {
         return;
     }
 
-    console.log(`[レイヤー化] ========== レイヤー化開始 ==========`);
-    console.log(`[レイヤー化] 現在のleftVisibleLayer: ${leftVisibleLayer}`);
-    console.log(`[レイヤー化] 現在のrightVisibleLayer: ${rightVisibleLayer}`);
-    console.log(`[レイヤー化] パンくずリスト:`, breadcrumbStack);
-    console.log(`[レイヤー化] pinkSelectionArray:`, JSON.stringify(pinkSelectionArray, null, 2));
 
     const layerNodes = layerStructure[leftVisibleLayer].nodes;
 
@@ -4299,14 +3698,12 @@ async function layerizeNode() {
         const startIndex = Math.min(...redBorderIndices);
         const endIndex = Math.max(...redBorderIndices);
 
-        console.log(`[レイヤー化] 赤枠で囲まれた範囲: インデックス${startIndex}～${endIndex}`);
 
         // 挟まれたノードを赤枠にする
         for (let i = startIndex + 1; i < endIndex; i++) {
             const enclosedNode = sortedNodes[i];
             if (!enclosedNode.redBorder) {
                 enclosedNode.redBorder = true;
-                console.log(`  [囲み処理] ノード「${enclosedNode.text}」を赤枠に追加`);
 
                 // グローバル配列も更新
                 const globalNode = nodes.find(n => n.id === enclosedNode.id);
@@ -4335,7 +3732,6 @@ async function layerizeNode() {
         // _を|にエンコードして保存（展開時に_で分割されるのを防ぐ）
         if (node.color === 'Aquamarine' && node.script) {
             const encodedScript = node.script.replace(/_/g, '|');
-            console.log(`[レイヤー化] Aquamarineノード(${node.id})のscriptを保存(エンコード済): ${encodedScript.substring(0, 50)}...`);
             return `${node.id};${node.color};${node.text};${groupIdStr};${encodedScript}`;
         }
         return `${node.id};${node.color};${node.text};${groupIdStr}`;
@@ -4344,16 +3740,12 @@ async function layerizeNode() {
     const entryString = deletedNodeInfo.join('_');
 
     // 赤枠ノードをグローバル配列とレイヤーから削除
-    console.log(`[レイヤー化] ========== ノード削除処理開始 ==========`);
-    console.log(`[レイヤー化] 削除予定ノード数: ${sortedRedNodes.length}`);
 
     sortedRedNodes.forEach((node, index) => {
-        console.log(`[レイヤー化] [${index + 1}/${sortedRedNodes.length}] ノード削除中: ID=${node.id}, text="${node.text}"`);
 
         const globalIndex = nodes.findIndex(n => n.id === node.id);
         if (globalIndex !== -1) {
             nodes.splice(globalIndex, 1);
-            console.log(`  ✓ グローバル配列から削除 (インデックス: ${globalIndex})`);
         } else {
             console.warn(`  ⚠ グローバル配列に見つかりません`);
         }
@@ -4361,15 +3753,11 @@ async function layerizeNode() {
         const layerIndex = layerNodes.findIndex(n => n.id === node.id);
         if (layerIndex !== -1) {
             layerNodes.splice(layerIndex, 1);
-            console.log(`  ✓ レイヤー配列から削除 (インデックス: ${layerIndex})`);
-            console.log(`  → layerNodes.length = ${layerNodes.length}, layerStructure[${leftVisibleLayer}].nodes.length = ${layerStructure[leftVisibleLayer].nodes.length}`);
         } else {
             console.warn(`  ⚠ レイヤー配列に見つかりません`);
-            console.log(`  → 現在のlayerNodes内のノードID: [${layerNodes.map(n => n.id).join(', ')}]`);
         }
     });
 
-    console.log(`[レイヤー化] ✅ ${sortedRedNodes.length}個のノードを削除しました`);
 
     // 新しいピンクノードを作成
     // ID形式を addSingleNode と統一（数値-1 形式）
@@ -4392,52 +3780,37 @@ async function layerizeNode() {
     // グローバル配列とレイヤーに追加
     nodes.push(newNode);
     layerNodes.push(newNode);
-    console.log(`[レイヤー化] ✅ 新しいピンクノード作成: ID=${newNodeId}`);
 
     // Pink選択配列を更新（PowerShell互換）
     pinkSelectionArray[leftVisibleLayer].initialY = minY;
     pinkSelectionArray[leftVisibleLayer].value = 1;
 
     // ★★★ 追加: コード.jsonにピンクノードの内容を保存 ★★★
-    console.log(`[レイヤー化] ========== code.json保存処理開始 ==========`);
-    console.log(`[レイヤー化] 新しいピンクノードID: ${newNodeId}`);
-    console.log(`[レイヤー化] entryString (子ノードリスト): ${entryString}`);
 
     // 🔍 削除されたノードのcode.jsonエントリを確認
-    console.log(`[レイヤー化] 🔍 削除された各ノードのcode.jsonエントリ:`);
     sortedRedNodes.forEach(node => {
         const codeEntry = codeData["エントリ"] ? codeData["エントリ"][`${node.id}-1`] : null;
-        console.log(`  ノードID=${node.id} (${node.text}), code.json[${node.id}-1]: ${codeEntry ? codeEntry.substring(0, 80) + '...' : '(なし)'}`);
     });
 
     // entryStringを "AAAA" プレフィックス付き、改行区切りに変換
     // 現在: "30-1;Pink;スクリプト;_31-1;White;処理A;_32-1;White;処理B;"
     // 変換後: "AAAA\n30-1;Pink;スクリプト;\n31-1;White;処理A;\n32-1;White;処理B;"
     const formattedEntryString = 'AAAA\n' + entryString.replace(/_/g, '\n');
-    console.log(`[レイヤー化] フォーマット後のエントリ: ${formattedEntryString}`);
-    console.log(`[レイヤー化] 🔍 この内容にはメタ情報のみで、実際のコードは含まれていません`);
-    console.log(`[レイヤー化] 🔍 実際のコードは各子ノードIDのエントリに保存されています`);
 
     // コード.jsonに保存（setCodeEntry関数を使用）
     try {
         await setCodeEntry(newNodeId, formattedEntryString);
-        console.log(`[レイヤー化] ✅ コード.json保存成功 - ノードID: ${newNodeId}`);
 
         // 🔍 保存後のcode.jsonエントリを確認
         const savedEntry = codeData["エントリ"] ? codeData["エントリ"][`${newNodeId}-1`] : null;
-        console.log(`[レイヤー化] 🔍 保存後のcode.jsonエントリ確認:`);
-        console.log(`  code.json["エントリ"]["${newNodeId}-1"]:`, savedEntry);
     } catch (error) {
         console.error(`[レイヤー化] ❌ コード.json保存エラー:`, error);
         await showAlertDialog('ピンクノードの保存に失敗しました。コンソールを確認してください。', '保存エラー');
     }
-    console.log(`[レイヤー化] ========== code.json保存処理完了 ==========`);
 
     // ★★★ 追加: レイヤー2以降の場合、親ピンクノードに反映 ★★★
     if (leftVisibleLayer >= 2) {
-        console.log(`[レイヤー化] ========== 親ピンクノード更新処理開始 ==========`);
         await updateParentPinkNode([newNode], sortedRedNodes);
-        console.log(`[レイヤー化] ========== 親ピンクノード更新処理完了 ==========`);
     }
 
     // 左右パネルの表示を更新
@@ -4453,7 +3826,6 @@ async function layerizeNode() {
     // 矢印を再描画
     refreshAllArrows();
 
-    console.log(`[レイヤー化] ✅ 完了: レイヤー${leftVisibleLayer}の${sortedRedNodes.length}個のノード → ピンクノード${newNodeId}`);
 
     hideContextMenu();
 }
@@ -4493,7 +3865,6 @@ async function deleteNode() {
     layerStructure[leftVisibleLayer].edges = layerEdges.filter(edge => {
         const isRelated = deleteTargets.includes(edge.source) || deleteTargets.includes(edge.target);
         if (isRelated) {
-            console.log(`[削除] エッジ削除: ${edge.id} (${edge.source} → ${edge.target})`);
         }
         return !isRelated;
     });
@@ -4503,7 +3874,6 @@ async function deleteNode() {
 
     // ★ 同じレイヤーのピンクノード展開状態を無効化（レイヤー編集により既存の展開状態は無効）
     if (pinkSelectionArray[leftVisibleLayer].expandedNode !== null) {
-        console.log(`[削除完了] ⚠️ レイヤー${leftVisibleLayer}のピンクノード展開状態を無効化します（ノード削除によりレイヤーが変更されたため）`);
         pinkSelectionArray[leftVisibleLayer].value = 0;
         pinkSelectionArray[leftVisibleLayer].expandedNode = null;
         pinkSelectionArray[leftVisibleLayer].yCoord = 0;
@@ -4512,14 +3882,12 @@ async function deleteNode() {
 
     // ★ ドリルダウンパネルが編集されたレイヤーの子レイヤーを表示している場合は閉じる
     if (drilldownState.active && drilldownState.targetLayer === leftVisibleLayer + 1) {
-        console.log(`[削除完了] ⚠️ ドリルダウンパネルを閉じます（編集中のレイヤー${leftVisibleLayer}の子レイヤーを表示中のため）`);
         closeDrilldownPanel();
     }
 
     // memory.json自動保存
     saveMemoryJson();
 
-    console.log(`[削除完了] ${deleteTargets.length}個のノードを削除しました`);
 
     hideContextMenu();
 }
@@ -4545,7 +3913,6 @@ function toggleRedBorder() {
     // memory.json自動保存
     saveMemoryJson();
 
-    console.log(`[赤枠トグル] ノード「${targetNode.text}」の赤枠を${targetNode.redBorder ? '追加' : '削除'}しました`);
 
     hideContextMenu();
 }
@@ -4579,14 +3946,12 @@ function handleShiftClick(node) {
         const startIndex = Math.min(...redBorderIndices);
         const endIndex = Math.max(...redBorderIndices);
 
-        console.log(`[Shift+クリック] 赤枠で囲まれた範囲: インデックス${startIndex}～${endIndex}`);
 
         // 挟まれたノードを赤枠にする
         for (let i = startIndex + 1; i < endIndex; i++) {
             const enclosedNode = sortedNodes[i];
             if (!enclosedNode.redBorder) {
                 enclosedNode.redBorder = true;
-                console.log(`  [自動範囲拡張] ノード「${enclosedNode.text}」を赤枠に追加`);
 
                 // グローバル配列も更新
                 const globalNode = nodes.find(n => n.id === enclosedNode.id);
@@ -4602,32 +3967,24 @@ function handleShiftClick(node) {
     // memory.json自動保存
     saveMemoryJson();
 
-    console.log(`[Shift+クリック] ノード「${targetNode.text}」の赤枠を${targetNode.redBorder ? '追加' : '削除'}しました`);
 }
 
 // ピンクノードクリックで展開処理（PowerShell互換）
 async function handlePinkNodeClick(node) {
-    console.log(`[ピンク展開] === handlePinkNodeClick 開始 ===`);
-    console.log(`[ピンク展開] 「${node.text}」(ID:${node.id}) L${node.layer}→L${node.layer + 1}`);
 
     const parentLayer = node.layer;
     const nextLayer = parentLayer + 1;
 
-    console.log(`[ピンク展開] parentLayer=${parentLayer}, nextLayer=${nextLayer}`);
 
     // レイヤー上限チェック
     if (nextLayer > 6) {
-        console.log(`[ピンク展開] レイヤー上限エラー（nextLayer=${nextLayer}）`);
         await showAlertDialog('これ以上レイヤーを展開できません（最大レイヤー6）。', 'レイヤー上限');
         return;
     }
 
     // ★★★ レイヤー2以降はポップアップウィンドウで表示 ★★★
-    console.log(`[ピンク展開] nextLayer >= 2 ? ${nextLayer >= 2}`);
     if (nextLayer >= 2) {
-        console.log(`[ピンク展開] handlePinkNodeClickPopup を呼び出します`);
         await handlePinkNodeClickPopup(node);
-        console.log(`[ピンク展開] handlePinkNodeClickPopup から戻りました`);
         return;
     }
 
@@ -4657,7 +4014,6 @@ async function handlePinkNodeClick(node) {
 
     // scriptデータを解析（形式: ID;色;テキスト;スクリプト）
     const entries = node.script.split('_').filter(e => e.trim() !== '');
-    console.log(`[ピンク展開] ${entries.length}個のノードを展開`);
 
     let baseY = 10; // 初期Y座標
     const idMapping = []; // 元のID -> 新しいIDのマッピング
@@ -4719,14 +4075,11 @@ async function handlePinkNodeClick(node) {
             redBorder: false
         };
 
-        console.log(`[展開処理] ノード作成: ID=${newNodeId}, テキスト=${text}, 色=${color}, Y=${nodeY}`);
 
         // ノードのエントリを新しいIDでコード.jsonに保存
         if (color === 'Pink' && savedScriptForCodeJson) {
             // Pinkノードの場合、savedScriptForCodeJsonを使用
-            console.log(`[展開処理] ピンクノードを新しいID(${newNodeId})でコード.jsonに保存します`);
             setCodeEntry(newNodeId, savedScriptForCodeJson).then(() => {
-                console.log(`[展開処理] ✅ コード.json保存成功 - 新しいID: ${newNodeId}`);
             }).catch(error => {
                 console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
             });
@@ -4735,9 +4088,7 @@ async function handlePinkNodeClick(node) {
             // 元のIDのエントリを新しいIDでコピー
             const originalEntry = getCodeEntry(originalId);
             if (originalEntry) {
-                console.log(`[展開処理] ノード(${color})を元のID(${originalId})から新しいID(${newNodeId})にコピーします`);
                 setCodeEntry(newNodeId, originalEntry).then(() => {
-                    console.log(`[展開処理] ✅ コード.json保存成功 - 新しいID: ${newNodeId}`);
                 }).catch(error => {
                     console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
                 });
@@ -4758,8 +4109,6 @@ async function handlePinkNodeClick(node) {
     });
 
     // ★★★ 追加: 親ピンクノードのscriptを新しいIDで更新 ★★★
-    console.log(`[展開処理] 親ピンクノードのscriptを新しいIDで更新します`);
-    console.log(`[展開処理] IDマッピング: ${idMapping.map(m => `${m.originalId}->${m.newNodeId}`).join(', ')}`);
 
     let updatedScript = node.script;
     idMapping.forEach(mapping => {
@@ -4768,8 +4117,6 @@ async function handlePinkNodeClick(node) {
         updatedScript = updatedScript.replace(regex, `$1${mapping.newNodeId}$2`);
     });
 
-    console.log(`[展開処理] 更新前のscript: ${node.script}`);
-    console.log(`[展開処理] 更新後のscript: ${updatedScript}`);
 
     // 親ピンクノードを更新
     node.script = updatedScript;
@@ -4782,7 +4129,6 @@ async function handlePinkNodeClick(node) {
     const formattedEntryString = 'AAAA\n' + updatedScript.replace(/_/g, '\n');
     try {
         await setCodeEntry(node.id, formattedEntryString);
-        console.log(`[展開処理] ✅ コード.json保存成功 - ノードID: ${node.id}`);
     } catch (error) {
         console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
     }
@@ -4810,17 +4156,9 @@ async function handlePinkNodeClick(node) {
     refreshAllArrows();
 
     // プレビューパネルをクリア
-    if (LOG_CONFIG.pink) {
-        console.log(`[ピンク展開] ⏹️ プレビュークリア開始 - タイマーID: ${hoverTimer}`);
-    }
     clearTimeout(hoverTimer);
     hidePreview();
-    if (LOG_CONFIG.pink) {
-        console.log(`[ピンク展開] ⏹️ プレビュークリア完了 (handlePinkNodeClick)`);
-    }
 
-    console.log(`[展開完了] レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${entries.length}個のノード展開、レイヤー移動なし)`);
-    console.log(`[パネル表示] 左: レイヤー${leftVisibleLayer}, 右: レイヤー${rightVisibleLayer}`);
 
     // メインパネル直接表示（オーバーレイ版は使用しない）
     // レイヤー展開後、通常の2パネル表示を維持
@@ -4830,16 +4168,13 @@ async function handlePinkNodeClick(node) {
 // ピンクノード展開（ポップアップウィンドウ版）
 // ============================================
 async function handlePinkNodeClickPopup(node) {
-    console.log(`[ピンク展開ポップアップ] 「${node.text}」(ID:${node.id}) L${node.layer}→L${node.layer + 1}`);
 
     const parentLayer = node.layer;
     const nextLayer = parentLayer + 1;
 
     // 🔍 デバッグ: 展開前のlayerStructure全体の状態を出力
-    console.log(`[ピンク展開ポップアップ] 🔍 展開前のlayerStructure全体:`);
     for (let i = 0; i <= 6; i++) {
         const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
     }
 
     // scriptプロパティを解析してノードを展開
@@ -4864,12 +4199,10 @@ async function handlePinkNodeClickPopup(node) {
     glowState.targetLayer = nextLayer;
 
     // 次レイヤーをクリア
-    console.log(`[ピンク展開ポップアップ] レイヤー${nextLayer}をクリアします`);
     layerStructure[nextLayer].nodes = [];
 
     // scriptデータを解析（形式: ID;色;テキスト;スクリプト）
     const entries = node.script.split('_').filter(e => e.trim() !== '');
-    console.log(`[ピンク展開ポップアップ] ${entries.length}個のノードを展開`);
 
     let baseY = 10; // 初期Y座標
     const expandedNodes = []; // 展開されたノード配列
@@ -4896,7 +4229,6 @@ async function handlePinkNodeClickPopup(node) {
             script = parts.slice(4).join(';');
             // |を_にデコード
             script = script.replace(/\|/g, '_');
-            console.log(`[展開処理] Aquamarineノードのscriptをデコード: ${script.substring(0, 80)}...`);
         } else {
             script = parts[4] || '';
         }
@@ -4920,18 +4252,15 @@ async function handlePinkNodeClickPopup(node) {
         // 通常はレイヤー化時に保存されたscript（parts[4]）から復元されるが、
         // 古いデータの場合はグローバル配列やuserFunctionsから検索
         if (color === 'Aquamarine' && !script) {
-            console.log(`[展開処理] Aquamarineノード(${originalId})のscriptがレイヤーデータにありません。フォールバック検索開始...`);
             // 元のノードをグローバル配列から検索（originalIdで検索）
             const originalNode = nodes.find(n => n.id === originalId);
             if (originalNode && originalNode.script) {
                 script = originalNode.script;
-                console.log(`[展開処理] Aquamarineノードのscriptをグローバル配列から復元: ${script.substring(0, 50)}...`);
             } else {
                 // userFunctionsからも検索
                 const funcNode = nodes.find(n => n.functionId && n.id === originalId);
                 if (funcNode && funcNode.script) {
                     script = funcNode.script;
-                    console.log(`[展開処理] Aquamarineノードのscriptをfunctionノードから復元: ${script.substring(0, 50)}...`);
                 } else {
                     console.warn(`[展開処理] ⚠ Aquamarineノード(${originalId})のscriptが見つかりません（レイヤーデータ、グローバル配列、userFunctionsすべて検索済み）`);
                 }
@@ -4967,7 +4296,6 @@ async function handlePinkNodeClickPopup(node) {
             groupId: groupId  // 🔥 元のノードからgroupIdをコピー
         };
 
-        console.log(`[展開処理] ノード作成: ID=${newNodeId}, テキスト=${text}, 色=${color}, Y=${nodeY}, groupId=${groupId}`);
 
         // グローバル配列とレイヤーに追加
         nodes.push(newNode);
@@ -4979,9 +4307,7 @@ async function handlePinkNodeClickPopup(node) {
             // Pinkノードの場合、コード.jsonから復元したエントリを新しいIDで保存
             const savedScriptForCodeJson = getCodeEntry(originalId);
             if (savedScriptForCodeJson) {
-                console.log(`[展開処理] ピンクノードを元のID(${originalId})から新しいID(${newNodeId})にコピーします`);
                 setCodeEntry(newNodeId, savedScriptForCodeJson).then(() => {
-                    console.log(`[展開処理] ✅ コード.json保存成功 - 新しいID: ${newNodeId}`);
                 }).catch(error => {
                     console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
                 });
@@ -4993,9 +4319,7 @@ async function handlePinkNodeClickPopup(node) {
             // 元のIDのエントリを新しいIDでコピー
             const originalEntry = getCodeEntry(originalId);
             if (originalEntry) {
-                console.log(`[展開処理] ノード(${color})を元のID(${originalId})から新しいID(${newNodeId})にコピーします`);
                 setCodeEntry(newNodeId, originalEntry).then(() => {
-                    console.log(`[展開処理] ✅ コード.json保存成功 - 新しいID: ${newNodeId}`);
                 }).catch(error => {
                     console.error(`[展開処理] ❌ コード.json保存エラー:`, error);
                 });
@@ -5009,10 +4333,8 @@ async function handlePinkNodeClickPopup(node) {
     });
 
     // 🔍 デバッグ: 展開後のlayerStructure全体の状態を出力
-    console.log(`[ピンク展開ポップアップ] 🔍 展開後のlayerStructure全体:`);
     for (let i = 0; i <= 6; i++) {
         const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
     }
 
     // 親ノードのscriptを新しいIDで更新（展開後のノードで再生成）
@@ -5023,7 +4345,6 @@ async function handlePinkNodeClickPopup(node) {
         return `${n.id};${n.color};${n.text};${groupIdStr};${scriptStr}`;
     }).join('_');
 
-    console.log(`[展開処理] 親ノードのscriptを新しいIDで更新: ${newScript.substring(0, 100)}...`);
     node.script = newScript;
 
     // グローバル配列のノードも更新
@@ -5042,9 +4363,6 @@ async function handlePinkNodeClickPopup(node) {
     await saveMemoryJson();
 
     // 右パネルにドリルダウンプレビュー表示（ピンク展開時はプレビューのみ、パンくずは不変）
-    console.log(`[ピンク展開ポップアップ] ドリルダウンパネルを表示: レイヤー${parentLayer} → レイヤー${nextLayer}: ${node.text} (${expandedNodes.length}個のノード展開)`);
-    console.log(`[ピンク展開ポップアップ] 📍 パンくずは変更しません（左パネル連動のため）`);
-    console.log(`[ピンク展開ポップアップ] 現在のbreadcrumbStack:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
 
     // ドリルダウンパネルにプレビュー表示（編集ボタン付き）
     showLayerInDrilldownPanel(node, expandedNodes);
@@ -5058,14 +4376,8 @@ async function handlePinkNodeClickPopup(node) {
     refreshAllArrows();
 
     // プレビューパネルをクリア
-    if (LOG_CONFIG.pink) {
-        console.log(`[ピンク展開ポップアップ] ⏹️ プレビュークリア開始 - タイマーID: ${hoverTimer}`);
-    }
     clearTimeout(hoverTimer);
     hidePreview();
-    if (LOG_CONFIG.pink) {
-        console.log(`[ピンク展開ポップアップ] ⏹️ プレビュークリア完了 (handlePinkNodeClickPopup)`);
-    }
 }
 
 // 赤枠に挟まれたボタンスタイルを適用
@@ -5110,7 +4422,6 @@ async function applyRedBorderToGroup() {
     // memory.json自動保存
     saveMemoryJson();
 
-    console.log(`[赤枠グループ適用] ${appliedCount}個のノードに赤枠を適用しました`);
     await showAlertDialog(`${appliedCount}個のノードに赤枠を適用しました。`, '赤枠適用完了');
 
     hideContextMenu();
@@ -5124,7 +4435,6 @@ function getDeleteTargets(targetNode) {
     if (targetNode.color === 'SpringGreen') {
         const result = findConditionSet(layerNodes, targetNode);
         if (result.success) {
-            console.log(`[条件分岐削除] ${result.deleteTargets.length}個のノードを削除対象としました`);
             return result.deleteTargets;
         }
     }
@@ -5133,7 +4443,6 @@ function getDeleteTargets(targetNode) {
     if (targetNode.color === 'LemonChiffon') {
         const result = findLoopSet(layerNodes, targetNode);
         if (result.success) {
-            console.log(`[ループ削除] ${result.deleteTargets.length}個のノードを削除対象としました (GroupID=${targetNode.groupId})`);
             return result.deleteTargets;
         }
     }
@@ -5238,7 +4547,6 @@ function findLoopSet(layerNodes, targetNode) {
 
 // 全削除（現在のレイヤーのノードをすべて削除）
 async function deleteAllNodes() {
-    console.log('[全削除] 開始');
 
     // 全レイヤーのノード数を計算
     let totalNodeCount = 0;
@@ -5247,7 +4555,6 @@ async function deleteAllNodes() {
         const count = layerStructure[i].nodes.length;
         layerCounts[i] = count;
         totalNodeCount += count;
-        console.log(`[全削除] レイヤー${i}: ${count}個のノード`);
     }
 
     if (totalNodeCount === 0) {
@@ -5267,12 +4574,10 @@ async function deleteAllNodes() {
         '⚠️ 全削除確認'
     );
     if (!confirmed) {
-        console.log('[全削除] ユーザーがキャンセルしました');
         return;
     }
 
     try {
-        console.log('[全削除] 全レイヤーのノードを収集します...');
 
         // 全レイヤーのノードを収集
         const allNodes = [];
@@ -5280,25 +4585,17 @@ async function deleteAllNodes() {
             allNodes.push(...layerStructure[i].nodes);
         }
 
-        console.log('[全削除] 🔍 送信するノード総数:', allNodes.length);
         if (allNodes.length > 0) {
-            console.log('[全削除] 🔍 最初のノードの構造:', allNodes[0]);
-            console.log('[全削除] 🔍 最初のノードのid:', allNodes[0].id);
         }
         const requestBody = { nodes: allNodes };
-        console.log('[全削除] 🔍 送信するJSON (最初の500文字):', JSON.stringify(requestBody).substring(0, 500));
-        console.log('[全削除] 🔍 送信先URL:', `${API_BASE}/nodes/all`);
 
         // ステップ1: ノードの削除
-        console.log('[全削除] ステップ1: ノード削除APIを呼び出します...');
         const response = await fetch(`${API_BASE}/nodes/all`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody)
         });
 
-        console.log('[全削除] 🔍 レスポンスステータス:', response.status);
-        console.log('[全削除] 🔍 レスポンスOK:', response.ok);
 
         const result = await response.json();
 
@@ -5308,11 +4605,8 @@ async function deleteAllNodes() {
             return;
         }
 
-        console.log('[全削除] ✅ ノード削除成功:', result.message);
-        console.log('[全削除] 削除されたノード数:', result.deleteCount);
 
         // ステップ2: コード.jsonの初期化
-        console.log('[全削除] ステップ2: コード.json初期化APIを呼び出します...');
         const emptyCodeData = {
             "エントリ": {},
             "最後のID": 0
@@ -5332,19 +4626,15 @@ async function deleteAllNodes() {
             return;
         }
 
-        console.log('[全削除] ✅ コード.json初期化成功');
 
         // ステップ3: ローカルのノード配列を更新（全レイヤー）
-        console.log('[全削除] ステップ3: ローカルデータを更新します...');
         for (let i = 1; i <= 6; i++) {
             layerStructure[i].nodes = [];
-            console.log(`[全削除]   レイヤー${i}をクリア`);
         }
         nodes = [];  // グローバルnodesも空に
         codeData = emptyCodeData;  // codeDataも空に
 
         // ステップ4: レイヤー1に戻る
-        console.log('[全削除] ステップ4: レイヤー1に戻ります...');
         leftVisibleLayer = 1;
         rightVisibleLayer = 2;
         breadcrumbStack = [{ name: 'メインフロー', layer: 1 }];
@@ -5359,15 +4649,12 @@ async function deleteAllNodes() {
         }
 
         // ステップ5: 画面を再描画
-        console.log('[全削除] ステップ5: 画面を再描画します...');
         renderNodesInLayer(leftVisibleLayer, 'left');
         renderNodesInLayer(rightVisibleLayer, 'right');
 
         // ステップ6: memory.json自動保存
-        console.log('[全削除] ステップ6: memory.jsonを保存します...');
         await saveMemoryJson();
 
-        console.log('[全削除] ✅ すべての処理が完了しました');
         await showAlertDialog(`${totalNodeCount}個のノードとコード.jsonを削除しました。`, '削除完了');
     } catch (error) {
         console.error('[全削除] ❌ エラー:', error);
@@ -5381,11 +4668,9 @@ async function deleteAllNodes() {
 // ============================================
 
 async function navigateLayer(direction) {
-    console.log(`[レイヤー移動] ⬅️➡️ navigateLayer("${direction}") - 現在leftVisibleLayer=${leftVisibleLayer}`);
 
     // ドリルダウンパネルがアクティブな場合はクリア
     if (drilldownState && drilldownState.active) {
-        console.log(`[レイヤー移動] ドリルダウンパネルをクローズします`);
         closeDrilldownPanel();
     }
 
@@ -5396,10 +4681,8 @@ async function navigateLayer(direction) {
         if (leftVisibleLayer >= 1) {
             if (pinkSelectionArray[leftVisibleLayer].value !== 1) {
                 await showAlertDialog(`レイヤー${leftVisibleLayer + 1} に進むには、\nレイヤー${leftVisibleLayer} でスクリプト化ノードを展開してください。\n\n操作手順:\n1. Shift を押しながら複数のノードをクリック（赤枠が付きます）\n2. 「レイヤー化」ボタンをクリック\n3. 作成されたスクリプト化ノード（ピンク色）をクリック\n4. 次のレイヤーに展開されます`, '操作ガイド');
-                console.log(`[❌ 右矢印] レイヤー${leftVisibleLayer} でスクリプト展開中ではないため、進めません`);
                 return;
             }
-            console.log(`[✅ 右矢印] レイヤー${leftVisibleLayer} でスクリプト展開中を確認。レイヤー${leftVisibleLayer + 1} に進みます`);
         }
 
         // レイヤー範囲チェック（左パネルは最大5、右パネルは最大6）
@@ -5407,7 +4690,6 @@ async function navigateLayer(direction) {
             leftVisibleLayer++;
             rightVisibleLayer++;
 
-            console.log(`[レイヤー進む] 左パネル: レイヤー${leftVisibleLayer}, 右パネル: レイヤー${rightVisibleLayer}`);
 
             // 現在のレイヤーより深いレイヤーをクリア
             clearDeeperLayers(leftVisibleLayer);
@@ -5423,7 +4705,6 @@ async function navigateLayer(direction) {
             leftVisibleLayer--;
             rightVisibleLayer--;
 
-            console.log(`[レイヤー戻る] 左パネル: レイヤー${leftVisibleLayer}, 右パネル: レイヤー${rightVisibleLayer}`);
 
             // 現在のレイヤーより深いレイヤーをクリア
             clearDeeperLayers(leftVisibleLayer);
@@ -5454,7 +4735,6 @@ async function navigateLayer(direction) {
 
 // 現在のレイヤーより深いレイヤーをクリアする関数
 function clearDeeperLayers(leftVisibleLayer) {
-    console.log(`[クリア] レイヤー${leftVisibleLayer}より深いレイヤーをクリアします`);
     for (let i = leftVisibleLayer + 1; i <= 6; i++) {
         // レイヤー構造からノードを削除
         const clearedCount = layerStructure[i].nodes.length;
@@ -5472,7 +4752,6 @@ function clearDeeperLayers(leftVisibleLayer) {
         }
 
         if (clearedCount > 0) {
-            console.log(`  レイヤー${i}: ${clearedCount}個のノードをクリア`);
         }
     }
 }
@@ -5508,7 +4787,6 @@ async function loadVariables() {
         const result = await callApi('/variables');
         if (result.success) {
             variables = result.variables || {};
-            console.log('変数読み込み完了:', Object.keys(variables).length, '個');
             renderVariablesList();
         }
     } catch (error) {
@@ -5518,14 +4796,9 @@ async function loadVariables() {
 
 // 変数リストを描画
 function renderVariablesList() {
-    console.log('[変数リスト] renderVariablesList() 呼び出し');
-    console.log('[変数リスト] variables:', variables);
-    console.log('[変数リスト] variablesの型:', typeof variables);
-    console.log('[変数リスト] variablesのキー:', Object.keys(variables || {}));
 
     const container = document.getElementById('variables-list');
     if (!container) {
-        console.log('[変数リスト] containerが見つかりません');
         return;
     }
 
@@ -5541,7 +4814,6 @@ function renderVariablesList() {
             displayValue: data.displayValue || String(data.value || data)
         }));
     }
-    console.log('[変数リスト] varList:', varList.length, '件');
 
     if (varList.length === 0) {
         container.innerHTML = `
@@ -5706,7 +4978,6 @@ async function saveVariable() {
         }
 
         if (result.success) {
-            console.log(`✅ [変数] ${editingVariableName ? '更新' : '追加'}成功: ${name}`);
             hideVariableEditor();
             await loadVariables();
         } else {
@@ -5734,7 +5005,6 @@ async function deleteVariable(name) {
         }).then(r => r.json());
 
         if (result.success) {
-            console.log(`✅ [変数] 削除成功: ${name}`);
             await loadVariables();
         } else {
             await showAlertDialog(`変数の削除に失敗しました: ${result.error}`, 'エラー');
@@ -5878,16 +5148,12 @@ function closeHelpModal() {
 
 async function loadFolders() {
     try {
-        console.log('┌─ [フォルダ初期化] 開始 ─────────────');
 
         // 1. メイン.jsonから現在のフォルダを読み込む（PowerShell互換）
-        console.log('│ Step 1: メイン.jsonから現在のフォルダを読み込み');
         try {
             const mainJsonResult = await callApi('/main-json');
             if (mainJsonResult.success) {
                 currentFolder = mainJsonResult.folderName;
-                console.log(`│ ✅ メイン.jsonから読み込み成功: ${currentFolder}`);
-                console.log(`│    フルパス: ${mainJsonResult.folderPath}`);
             } else {
                 console.warn(`│ ⚠ メイン.jsonが存在しません: ${mainJsonResult.error}`);
                 currentFolder = null;
@@ -5898,12 +5164,9 @@ async function loadFolders() {
         }
 
         // 2. フォルダ一覧を取得
-        console.log('│ Step 2: フォルダ一覧を取得');
         const result = await callApi('/folders');
         if (result.success) {
             folders = result.folders || [];
-            console.log(`│ ✅ フォルダ一覧取得成功: ${folders.length}個`);
-            console.log(`│    フォルダ: [${folders.join(', ')}]`);
         } else {
             console.error('│ ❌ フォルダ一覧取得失敗');
             folders = [];
@@ -5918,16 +5181,13 @@ async function loadFolders() {
                 // フォルダが1つも無い場合は作成を促す
                 console.error('│ ❌ フォルダが1つも存在しません');
                 console.error('│    「フォルダ作成」ボタンから新しいフォルダを作成してください');
-                console.log('└──────────────────────────────────────');
                 return;
             }
         }
 
-        console.log('│ Step 3: 現在のフォルダ:', currentFolder);
 
         // 4. JSON読み込み
         if (currentFolder) {
-            console.log('│ Step 4: JSONファイルを読み込み');
 
             // コード.jsonとvariables.jsonを読み込む
             await loadCodeJson();
@@ -5935,16 +5195,12 @@ async function loadFolders() {
 
             // 既にノードがある場合は上書きしない（ユーザーが追加したノードを保護）
             if (nodes.length === 0) {
-                console.log('│    memory.jsonからノードを読み込み');
                 await loadExistingNodes();
             } else {
-                console.log('│    既存ノードを保護（memory.json読み込みスキップ）');
             }
 
-            console.log('│ ✅ 初期化完了');
         }
 
-        console.log('└──────────────────────────────────────');
     } catch (error) {
         console.error('┌─ [フォルダ初期化] エラー ────────────');
         console.error('│', error);
@@ -5959,19 +5215,16 @@ async function loadFolders() {
 
 // 統合されたフォルダ管理関数（作成・切替・削除）
 function folderManagement() {
-    console.log('[フォルダ管理] folderManagement() を呼び出し');
     // フォルダ管理ダイアログを表示（作成・切替・削除を統合）
     switchFolder();
 }
 
 // 後方互換性のため残す
 function createFolder() {
-    console.log('[フォルダ管理] createFolder() → folderManagement() にリダイレクト');
     folderManagement();
 }
 
 async function switchFolder() {
-    console.log('✅ [フォルダ管理] ダイアログを開く（PowerShell Windows Forms版）');
 
     try {
         // API経由でPowerShell Windows Forms ダイアログを表示（ダイアログ用に長めのタイムアウト）
@@ -5985,16 +5238,13 @@ async function switchFolder() {
         }
 
         if (result.cancelled) {
-            console.log('✅ [フォルダ切替] キャンセルされました');
             return;
         }
 
         if (result.success) {
-            console.log('✅ [フォルダ切替] フォルダ選択完了:', result.folderName);
 
             // フォルダが切り替えられた場合
             if (result.switched) {
-                console.log('✅ [フォルダ切替] フォルダが切り替えられました:', result.folderName);
                 currentFolder = result.folderName;
 
                 // コード.json、variables.json、memory.jsonを再読み込み
@@ -6003,9 +5253,7 @@ async function switchFolder() {
                 await loadExistingNodes();
                 await loadFolders();
 
-                console.log('✅ [フォルダ切替] データ再読み込み完了');
             } else {
-                console.log('✅ [フォルダ切替] 同じフォルダが選択されました（変更なし）');
             }
         } else {
             console.error('❌ [フォルダ切替] エラー:', result.error);
@@ -6019,12 +5267,9 @@ async function switchFolder() {
 }
 
 function closeFolderModal() {
-    console.log('[フォルダ切替] closeFolderModal() は廃止されました（PowerShell Windows Forms版に移行）');
 }
 
 async function selectFolder() {
-    console.log('[フォルダ切替] selectFolder() は廃止されました（PowerShell Windows Forms版に移行）');
-    console.log('[フォルダ切替] 代わりに switchFolder() を使用してください');
 }
 
 // ============================================
@@ -6032,18 +5277,15 @@ async function selectFolder() {
 // ============================================
 
 async function exitApplication() {
-    console.log('[終了] exitApplication() が呼び出されました');
 
     // 確認ダイアログを表示
     const confirmed = await showConfirmDialog('アプリケーションを終了しますか？', '終了確認');
     if (!confirmed) {
-        console.log('[終了] ユーザーがキャンセルしました');
         return;
     }
 
     try {
         // サーバーに終了リクエストを送信
-        console.log('[終了] サーバーに終了リクエストを送信...');
         const response = await fetch(`${API_BASE}/shutdown`, {
             method: 'POST',
             headers: {
@@ -6054,7 +5296,6 @@ async function exitApplication() {
         const result = await response.json();
 
         if (result.success) {
-            console.log('[終了] サーバー終了処理が開始されました');
             // ブラウザウィンドウを閉じる
             window.close();
             // window.close()が動作しない場合は終了メッセージを表示
@@ -6080,7 +5321,6 @@ async function executeCode() {
     if (!confirmed) return;
 
     const startTime = performance.now();
-    console.log(`[実行] レイヤー${leftVisibleLayer} のコード生成を開始...`);
 
     try {
         // 現在のレイヤーのノードを取得
@@ -6088,12 +5328,10 @@ async function executeCode() {
 
         // ノードが存在しない場合の検証
         if (currentLayerNodes.length === 0) {
-            console.log('❌ [実行] ノードがありません');
             await showAlertDialog('現在のレイヤーにノードがありません。ノードを追加してから実行してください。', 'ノードなし');
             return;
         }
 
-        console.log(`[実行] ノード数: ${currentLayerNodes.length}個`);
 
         // 全レイヤーのノードを収集（関数ノードのscript取得用）
         const allLayerNodes = [];
@@ -6111,7 +5349,6 @@ async function executeCode() {
                 });
             });
         });
-        console.log(`[実行] 全レイヤーノード数: ${allLayerNodes.length}個`);
 
         // 送信データを準備
         const requestData = {
@@ -6128,13 +5365,11 @@ async function executeCode() {
             openFile: false
         };
 
-        console.log('[実行] API送信データ:', JSON.stringify(requestData, null, 2));
 
         // 現在のレイヤーのノードを送信
         const apiStartTime = performance.now();
         const result = await callApi('/execute/generate', 'POST', requestData);
         if (result.success) {
-            console.log(`✅ [実行] 成功 - ノード数: ${result.nodeCount}個, コード長: ${result.code?.length || 0}文字`);
 
             // PowerShell Windows Formsでコード結果を表示
             try {
@@ -6154,7 +5389,6 @@ async function executeCode() {
                 const showResultData = await showResultResponse.json();
 
                 if (showResultData.success) {
-                    console.log('✅ [実行] コード結果ダイアログを表示しました');
                 } else {
                     console.error('❌ [実行] コード結果ダイアログ表示エラー:', showResultData.error);
                 }
@@ -6171,8 +5405,6 @@ async function executeCode() {
         console.error('❌ [実行] コード生成エラー (所要時間: ' + totalDuration + 'ms)');
         console.error('❌ [実行] エラーメッセージ:', error.message);
         console.error('❌ [実行] スタックトレース:', error.stack);
-        console.log('═══════════════════════════════════════════════');
-        console.log('');
         await showAlertDialog(`コード生成中にエラーが発生しました: ${error.message}`, 'エラー');
     }
 }
@@ -6225,7 +5457,6 @@ async function openPartialExecuteDialog() {
     // 実行ボタンを表示
     showPartialExecuteControls();
 
-    console.log('[部分実行] モード開始');
 }
 
 // 部分実行モードを終了
@@ -6246,7 +5477,6 @@ function closePartialExecuteMode() {
     // ノードのハイライトを解除
     clearPartialExecuteHighlight();
 
-    console.log('[部分実行] モード終了');
 }
 
 // 紫の横棒を描画
@@ -6473,7 +5703,6 @@ function snapBarToNodePosition(type) {
         updatePartialExecuteHighlight();
         updatePartialExecuteOverlay();
 
-        console.log(`[部分実行] ${type}バーをノード「${closestNode.text}」にスナップ: Y=${type === 'start' ? partialExecuteMode.startY : partialExecuteMode.endY}`);
     }
 }
 
@@ -6551,7 +5780,6 @@ function updatePartialExecuteNodeIndices() {
     // コントロールの表示を更新
     updatePartialExecuteControlsInfo();
 
-    console.log(`[部分実行] 範囲更新: ${startIndex + 1}〜${endIndex + 1}`);
 }
 
 // 実行コントロールを表示
@@ -6625,7 +5853,6 @@ async function executePartialCode() {
     const startIndex = partialExecuteMode.startNodeIndex;
     const endIndex = partialExecuteMode.endNodeIndex;
 
-    console.log(`[部分実行] 実行開始: インデックス ${startIndex}〜${endIndex}`);
 
     try {
         // 現在のレイヤーのノードを取得
@@ -6637,8 +5864,6 @@ async function executePartialCode() {
         // 範囲内のノードを抽出
         const selectedNodes = sortedNodes.slice(startIndex, endIndex + 1);
 
-        console.log(`[部分実行] 選択されたノード数: ${selectedNodes.length}個`);
-        console.log('[部分実行] 選択されたノード:', selectedNodes.map(n => n.text));
 
         if (selectedNodes.length === 0) {
             await showAlertDialog('選択された範囲にノードがありません。', '選択エラー');
@@ -6662,13 +5887,11 @@ async function executePartialCode() {
             endLine: endIndex + 1
         };
 
-        console.log('[部分実行] API送信データ:', JSON.stringify(requestData, null, 2));
 
         // APIを呼び出し
         const result = await callApi('/execute/generate', 'POST', requestData);
 
         if (result.success) {
-            console.log(`✅ [部分実行] 成功 - ノード数: ${result.nodeCount}個, コード長: ${result.code?.length || 0}文字`);
 
             // PowerShell Windows Formsでコード結果を表示
             try {
@@ -6690,7 +5913,6 @@ async function executePartialCode() {
                 const showResultData = await showResultResponse.json();
 
                 if (showResultData.success) {
-                    console.log('✅ [部分実行] コード結果ダイアログを表示しました');
                 } else {
                     console.error('❌ [部分実行] コード結果ダイアログ表示エラー:', showResultData.error);
                 }
@@ -6712,17 +5934,12 @@ async function executePartialCode() {
 // ============================================
 
 function closeCodeResultModal() {
-    console.log('[コード結果] closeCodeResultModal() は廃止されました（PowerShell Windows Forms版に移行）');
 }
 
 function copyGeneratedCode() {
-    console.log('[コード結果] copyGeneratedCode() は廃止されました（PowerShell Windows Forms版に移行）');
-    console.log('[コード結果] コピー機能はPowerShellダイアログ内のボタンで実行されます');
 }
 
 function openGeneratedFile() {
-    console.log('[コード結果] openGeneratedFile() は廃止されました（PowerShell Windows Forms版に移行）');
-    console.log('[コード結果] ファイルを開く機能はPowerShellダイアログ内のボタンで実行されます');
     if (window.lastGeneratedCode && window.lastGeneratedCode.path) {
         // PowerShellでファイルを開く（Windows環境）
         showAlertDialog(`ファイルを開きます: ${window.lastGeneratedCode.path}\n\n（この機能はブラウザ制限により未実装です）`, 'ファイル操作');
@@ -6736,7 +5953,6 @@ function openGeneratedFile() {
 // ============================================
 
 async function createSnapshot() {
-    console.log('[スナップショット] 作成開始');
 
     if (!currentFolder) {
         await showAlertDialog('フォルダが選択されていません。\n先にフォルダを選択または作成してください。', 'フォルダ未選択');
@@ -6754,8 +5970,6 @@ async function createSnapshot() {
             second: '2-digit'
         });
 
-        console.log(`[スナップショット] 作成日時: ${timestampJP}`);
-        console.log(`[スナップショット] フォルダ: ${currentFolder}`);
 
         // スナップショット情報
         const snapshotInfo = {
@@ -6781,11 +5995,9 @@ async function createSnapshot() {
         const storageKey = `snapshot_${currentFolder}`;
         const infoKey = `snapshot_info_${currentFolder}`;
 
-        console.log(`[スナップショット] localStorage保存: ${storageKey}`);
         localStorage.setItem(storageKey, JSON.stringify(snapshot));
         localStorage.setItem(infoKey, JSON.stringify(snapshotInfo));
 
-        console.log('[スナップショット] ✅ 保存完了');
 
         await showAlertDialog(`📸 スナップショット作成完了\n\n作成日時: ${timestampJP}\nフォルダ: ${currentFolder}\n\n「↩️ 復元」ボタンでこの状態に戻すことができます。`, 'スナップショット完了');
 
@@ -6796,7 +6008,6 @@ async function createSnapshot() {
 }
 
 async function restoreSnapshot() {
-    console.log('[スナップショット復元] 開始');
 
     if (!currentFolder) {
         await showAlertDialog('フォルダが選択されていません。\n先にフォルダを選択してください。', 'フォルダ未選択');
@@ -6811,7 +6022,6 @@ async function restoreSnapshot() {
         const snapshotData = localStorage.getItem(storageKey);
         if (!snapshotData) {
             await showAlertDialog('スナップショットが存在しません。\n\n先に「📸 スナップショット」ボタンで現在の状態を保存してください。', 'スナップショット未保存');
-            console.log('[スナップショット復元] スナップショット未保存');
             return;
         }
 
@@ -6820,7 +6030,6 @@ async function restoreSnapshot() {
         const snapshotInfo = snapshotInfoData ? JSON.parse(snapshotInfoData) : null;
         const snapshotDate = snapshotInfo ? snapshotInfo.作成日時 : '不明';
 
-        console.log(`[スナップショット復元] スナップショット作成日時: ${snapshotDate}`);
 
         // 確認ダイアログ（PowerShell版と同じ）
         const confirmed = await showConfirmDialog(
@@ -6832,14 +6041,12 @@ async function restoreSnapshot() {
         );
 
         if (!confirmed) {
-            console.log('[スナップショット復元] ユーザーがキャンセル');
             return;
         }
 
         // スナップショットを復元
         const snapshot = JSON.parse(snapshotData);
 
-        console.log('[スナップショット復元] データ復元中...');
 
         // すべてのデータを復元
         nodes = JSON.parse(JSON.stringify(snapshot.nodes));
@@ -6847,8 +6054,6 @@ async function restoreSnapshot() {
         codeData = JSON.parse(JSON.stringify(snapshot.codeData || {}));
         variables = JSON.parse(JSON.stringify(snapshot.variables));
 
-        console.log('[スナップショット復元] ノード数:', nodes.length);
-        console.log('[スナップショット復元] コードエントリ数:', Object.keys(codeData).length);
 
         // UIをリロード（現在のレイヤーを再描画）
         renderNodesInLayer(leftVisibleLayer);
@@ -6857,7 +6062,6 @@ async function restoreSnapshot() {
         await saveMemoryJson();
         await saveCodeJson();
 
-        console.log('[スナップショット復元] ✅ 復元完了');
 
         await showAlertDialog(`復元完了\n\nスナップショットから復元しました。\n\n復元日時: ${snapshotDate}`, '復元完了');
 
@@ -6875,7 +6079,6 @@ async function loadExistingNodes() {
     try {
         // 現在のフォルダが設定されていない場合は何もしない
         if (!currentFolder) {
-            console.log('フォルダが選択されていないため、ノード読み込みをスキップします');
             return;
         }
 
@@ -6889,7 +6092,6 @@ async function loadExistingNodes() {
         }
 
         const memoryData = result.data;
-        console.log('memory.json読み込み成功:', memoryData);
 
         // 全レイヤーをクリア
         nodes = [];
@@ -6899,7 +6101,6 @@ async function loadExistingNodes() {
         }
 
         // memory.jsonからノードを復元
-        console.log('┌─ [memory.json復元] 開始 ─────────────────────');
         for (let layerNum = 1; layerNum <= 6; layerNum++) {
             const layerData = memoryData[layerNum.toString()];
             if (!layerData || !layerData.構成) continue;
@@ -6910,23 +6111,17 @@ async function loadExistingNodes() {
                 if (nodeData.ID) {
                     // 新形式: IDフィールドがある
                     nodeId = nodeData.ID;
-                    console.log(`│ [L${layerNum}] ノード${index + 1}: ID復元 = ${nodeId}`);
                 } else if (nodeData.ボタン名 && nodeData.ボタン名.includes('-')) {
                     // 旧形式互換: ボタン名が「13-1」などのID形式の場合はそれを使用
                     nodeId = nodeData.ボタン名;
-                    console.log(`│ [L${layerNum}] ノード${index + 1}: ボタン名からID復元 = ${nodeId}`);
                 } else {
                     // ID形式を addSingleNode と統一（数値-1 形式）
                     const newIdNum = nodeCounter++;
                     nodeId = `${newIdNum}-1`;
-                    console.log(`│ [L${layerNum}] ノード${index + 1}: ID新規生成 = ${nodeId} (⚠️ IDフィールドなし)`);
                 }
 
                 // デバッグ: Pinkノードのscript内容を詳細出力
                 if (nodeData.ボタン色 === 'Pink') {
-                    console.log(`│   ★ Pinkノード検出: テキスト="${nodeData.テキスト}"`);
-                    console.log(`│   ★ script内容: "${nodeData.script || '(空)'}"`);
-                    console.log(`│   ★ nodeData全体:`, JSON.stringify(nodeData, null, 2));
                 }
 
                 const node = {
@@ -6954,11 +6149,9 @@ async function loadExistingNodes() {
             if (layerData.edges && Array.isArray(layerData.edges)) {
                 layerStructure[layerNum].edges = layerData.edges;
                 if (layerData.edges.length > 0) {
-                    console.log(`│ [L${layerNum}] エッジ復元: ${layerData.edges.length}本`);
                 }
             }
         }
-        console.log('└─ [memory.json復元] 完了 ─────────────────────');
 
         // nodeCounter を更新（既存ノードの最大ID + 1）
         let needsSave = false;
@@ -6971,7 +6164,6 @@ async function loadExistingNodes() {
                 }
             }
         });
-        console.log(`[memory.json読み込み] nodeCounter を ${nodeCounter} に更新しました`);
 
         // v1.1.0: conditionGroupCounter と loopGroupCounter も更新（エッジのgroupIdから）
         for (let layerNum = 0; layerNum <= 6; layerNum++) {
@@ -6993,7 +6185,6 @@ async function loadExistingNodes() {
                 }
             });
         }
-        console.log(`[memory.json読み込み] conditionGroupCounter を ${conditionGroupCounter}, loopGroupCounter を ${loopGroupCounter} に更新しました`);
 
         // ユーザーグループを復元
         if (memoryData.userGroups) {
@@ -7016,11 +6207,9 @@ async function loadExistingNodes() {
             });
         }
         if (needsSave && !isRestoringHistory) {
-            console.log('[memory.json復元] IDフィールドがないノードがあるため、memory.jsonを再保存します');
             // 非同期で保存（await不要、バックグラウンドで実行）
             setTimeout(() => saveMemoryJson(), 500);
         } else if (needsSave && isRestoringHistory) {
-            console.log('[memory.json復元] Undo/Redo実行中のため、自動保存をスキップします');
         }
 
         // 左パネルのみを再描画（起動時は右パネルを非表示）
@@ -7031,8 +6220,6 @@ async function loadExistingNodes() {
             rightPanel.classList.add('empty');
             rightPanel.innerHTML = '';
         }
-        console.log(`memory.jsonから${nodes.length}個のノードを復元しました`);
-        console.log(`[表示] 左パネル: レイヤー${leftVisibleLayer}, 右パネル: 非表示（起動時）`);
     } catch (error) {
         console.error('既存ノード読み込み失敗:', error);
     }
@@ -7050,7 +6237,6 @@ async function saveMemoryJson() {
         // 各レイヤーのノードに順番を付ける
         const formattedLayerStructure = {};
 
-        console.log('┌─ [memory.json保存] 開始 ─────────────────────');
         for (let i = 0; i <= 6; i++) {
             const layerNodes = layerStructure[i].nodes || [];
             // Y座標でソート
@@ -7071,17 +6257,14 @@ async function saveMemoryJson() {
             // デバッグ: エッジ情報を出力
             const layerEdges = layerStructure[i].edges || [];
             if (layerEdges.length > 0) {
-                console.log(`│ [L${i}] エッジ数: ${layerEdges.length}`);
             }
 
             // デバッグ: Pinkノードの情報を出力
             nodesWithIndex.forEach(node => {
                 if (node.color === 'Pink') {
-                    console.log(`│ [L${i}] Pinkノード保存: ID=${node.id}, script="${node.script || '(空)'}"`);
                 }
             });
         }
-        console.log('└─ [memory.json保存] API呼び出し ────────────────');
 
         // ユーザーグループ情報も含める
         const saveData = {
@@ -7098,7 +6281,6 @@ async function saveMemoryJson() {
         const result = await response.json();
 
         if (result.success) {
-            console.log('memory.json保存成功:', result.message);
 
             // Undo/Redoボタンの状態を更新
             await updateUndoRedoButtons();
@@ -7135,16 +6317,10 @@ async function loadCodeJson() {
                 codeData["最後のID"] = 0;
             }
             // デバッグ: コード.jsonのエントリ一覧を出力
-            console.log('┌─ [コード.json読み込み] 成功 ─────────────────');
-            console.log('│ エントリ数:', Object.keys(codeData["エントリ"]).length);
-            console.log('│ 最後のID:', codeData["最後のID"]);
-            console.log('│ エントリキー一覧:', Object.keys(codeData["エントリ"]).join(', '));
             // 各エントリの先頭50文字を出力
             Object.entries(codeData["エントリ"]).forEach(([key, value]) => {
                 const preview = value ? value.substring(0, 50).replace(/\r?\n/g, '\\n') : '(空)';
-                console.log(`│   [${key}]: "${preview}${value && value.length > 50 ? '...' : ''}"`);
             });
-            console.log('└─────────────────────────────────────────────');
         } else {
             console.error('コード.json読み込み失敗:', result.error);
             // 空のデータで初期化
@@ -7165,21 +6341,14 @@ async function loadCodeJson() {
 
 // コード.jsonを保存する
 async function saveCodeJson() {
-    console.log('┌─ [コード.json保存] 開始 ─────────────');
-    console.log('│ currentFolder:', currentFolder);
-    console.log('│ エントリ数:', Object.keys(codeData["エントリ"] || {}).length);
 
     if (!currentFolder) {
         console.error('│ ❌ エラー: フォルダが選択されていません！');
         console.error('│ コード.json保存をスキップします');
-        console.log('└──────────────────────────────────────');
         return;
     }
 
     try {
-        console.log('│ → API呼び出し: POST /folders/' + currentFolder + '/code');
-        console.log('│ → URL:', `${API_BASE}/folders/${currentFolder}/code`);
-        console.log('│ → codeData:', JSON.stringify(codeData).substring(0, 200) + '...');
 
         const response = await fetch(`${API_BASE}/folders/${currentFolder}/code`, {
             method: 'POST',
@@ -7187,16 +6356,10 @@ async function saveCodeJson() {
             body: JSON.stringify({ codeData: codeData })
         });
 
-        console.log('│ ← レスポンス受信');
-        console.log('│ ← ステータス:', response.status, response.statusText);
-        console.log('│ ← Content-Type:', response.headers.get('Content-Type'));
 
         const result = await response.json();
-        console.log('│ ← JSONパース完了:', result);
 
         if (result.success) {
-            console.log('│ ✅ 成功:', result.message);
-            console.log('│ 保存先: 03_history/' + currentFolder + '/コード.json');
         } else {
             console.error('│ ❌ 失敗:', result.error);
         }
@@ -7206,7 +6369,6 @@ async function saveCodeJson() {
         console.error('│ スタックトレース:', error.stack);
     }
 
-    console.log('└──────────────────────────────────────');
 }
 
 // 処理番号でスクリプト内容を取得
@@ -7215,11 +6377,9 @@ async function saveCodeJson() {
 function getCodeEntry(処理番号) {
     if (!処理番号) return '';
 
-    console.log('[getCodeEntry] ID:', 処理番号);
 
     // 1. まず、そのままのIDで検索（既存の動作）
     if (codeData["エントリ"][処理番号]) {
-        console.log('[getCodeEntry] ✅ 直接ヒット:', 処理番号);
         return codeData["エントリ"][処理番号];
     }
 
@@ -7230,66 +6390,50 @@ function getCodeEntry(処理番号) {
         .map(key => codeData["エントリ"][key]);
 
     if (entries.length > 0) {
-        console.log(`[getCodeEntry] ✅ サブID検索ヒット: ${entries.length}個のエントリを結合`);
         // "---"で結合して返す（PowerShell互換）
         return entries.join('\n---\n');
     }
 
-    console.log('[getCodeEntry] ❌ エントリが見つかりません:', 処理番号);
     return '';
 }
 
 // 処理番号でスクリプト内容を設定
 // PowerShell互換: "---" で分割してサブIDを自動生成
 async function setCodeEntry(id, content) {
-    console.log('┌─ [setCodeEntry] 開始 ────────────────');
-    console.log('│ ID:', id);
-    console.log('│ content長:', content ? content.length : 0);
 
     if (!id) {
         console.error('│ ❌ エラー: IDが指定されていません');
-        console.log('└──────────────────────────────────────');
         return;
     }
 
     if (!content || content.trim() === '') {
         console.error('│ ❌ エラー: コンテンツが空です');
-        console.log('└──────────────────────────────────────');
         return;
     }
 
     // 🔧 修正: codeDataの初期化確認
     if (!codeData["エントリ"]) {
         codeData["エントリ"] = {};
-        console.log('│ codeData["エントリ"]を初期化しました');
     }
 
     // "---" で文字列を分割
     const separator = '---';
     const parts = content.split(separator);
 
-    console.log(`│ 分割数: ${parts.length}`);
 
     // 各部分にサブIDを割り当てて追加
     for (let i = 0; i < parts.length; i++) {
         const subId = `${id}-${i + 1}`;
         const trimmedContent = parts[i].trim();
         codeData["エントリ"][subId] = trimmedContent;
-        console.log(`│   [${subId}] ${trimmedContent.substring(0, 50)}${trimmedContent.length > 50 ? '...' : ''}`);
     }
 
     // 最後のIDを更新
     const numericId = parseInt(id);
     if (!isNaN(numericId) && numericId > codeData["最後のID"]) {
         codeData["最後のID"] = numericId;
-        console.log(`│ 最後のIDを更新: ${numericId}`);
     }
 
-    console.log('│ メモリ上のcodeDataに保存完了');
-    console.log('│ 現在のエントリ数:', Object.keys(codeData["エントリ"]).length);
-    console.log('│');
-    console.log('│ saveCodeJson()を呼び出します...');
-    console.log('└──────────────────────────────────────');
 
     // コード.jsonを保存
     await saveCodeJson();
@@ -7303,7 +6447,6 @@ let currentSettingsNode = null;
 
 // ノード設定（PowerShell Windows Forms版）
 async function openNodeSettings(node) {
-    if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] モーダルを開く:', node.text, 'ID:', node.id);
 
     // ノードIDで最新の情報を取得（layerStructureから）
     let actualNode = null;
@@ -7326,7 +6469,6 @@ async function openNodeSettings(node) {
 
     // Pinkノードの場合、コード.jsonにエントリがなければscriptプロパティから子ノード情報を使用
     if (!scriptContent && actualNode.color === 'Pink' && actualNode.script) {
-        if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] Pinkノード: scriptプロパティから子ノード情報を取得');
         // Pinkノードのscriptは子ノードのメタ情報（ID;色;テキスト;groupId）
         // これをAAA形式に変換してダイアログに表示
         scriptContent = 'AAAA\n' + actualNode.script.replace(/_/g, '\n');
@@ -7334,7 +6476,6 @@ async function openNodeSettings(node) {
 
     // 関数ノード（Aquamarine）の場合、scriptプロパティから子ノード情報を見やすく整形して表示
     if ((actualNode.color === 'Aquamarine' || isAquamarineColor(actualNode.color)) && actualNode.script) {
-        if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] 関数ノード: scriptプロパティから子ノード情報を取得');
         // 関数ノードのscriptは子ノードのメタ情報（ID;色;テキスト;groupId）
         // 見やすく整形して表示
         const nodeList = actualNode.script.split('_');
@@ -7351,7 +6492,6 @@ async function openNodeSettings(node) {
         scriptContent = `=== 関数に含まれるノード ===\n\n${formattedList}\n\n=== 元データ ===\n${actualNode.script.replace(/_/g, '\n')}`;
     }
 
-    if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] スクリプト取得:', scriptContent ? scriptContent.length : 0, '文字');
 
     // リクエストボディを作成
     const requestBody = {
@@ -7377,11 +6517,9 @@ async function openNodeSettings(node) {
         requestBody.loopVariable = actualNode.loopVariable;
     }
 
-    if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] APIリクエストボディ:', JSON.stringify(requestBody, null, 2));
 
     try {
         // PowerShell Windows Formsダイアログを呼び出し（ダイアログ用に長めのタイムアウト）
-        if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] PowerShell設定ダイアログを呼び出します...');
         const result = await callApi('/node/settings', 'POST', requestBody, { timeout: 600000 });
 
         // HTTPエラーの場合
@@ -7396,7 +6534,6 @@ async function openNodeSettings(node) {
         }
 
         if (result.success && result.settings) {
-            if (LOG_CONFIG.scriptDebug) console.log('✅ [ノード設定] 編集完了:', result.settings);
 
             // ノード情報を更新
             actualNode.text = result.settings.text;
@@ -7465,11 +6602,9 @@ function checkSameColorCollision(nodeColor, currentY, newY, movingNodeId) {
         if (nodeY >= minY && nodeY <= maxY) {
             // 同色かチェック
             if (nodeColor === 'SpringGreen' && nodeColorNormalized === 'SpringGreen') {
-                console.log(`[同色衝突] SpringGreenノード "${node.text}" と衝突`);
                 return true;
             }
             if (nodeColor === 'LemonChiffon' && nodeColorNormalized === 'LemonChiffon') {
-                console.log(`[同色衝突] LemonChiffonノード "${node.text}" と衝突`);
                 return true;
             }
         }
@@ -7529,7 +6664,6 @@ function checkGroupOrderViolation(movingNode, currentY, newY) {
 
         // 他のノードが移動範囲内に存在する場合、順序違反
         if (node.y > minY && node.y < maxY) {
-            console.log(`[グループ順序違反] ノード "${movingNode.text}" (groupId=${groupId}) が同じグループ内のノード "${node.text}" をまたぐため禁止`);
             return true;
         }
     }
@@ -7931,13 +7065,6 @@ function setupEventListeners() {
         container.addEventListener('drop', handleDrop);
     });
 
-    console.log('📌 キーボードショートカット有効化:');
-    console.log('  ← / →: レイヤー移動');
-    console.log('  Ctrl+S: 保存');
-    console.log('  Ctrl+E: コード生成');
-    console.log('  Ctrl+Shift+V: 変数管理');
-    console.log('  Delete: ノード削除');
-    console.log('  Esc: モーダルを閉じる');
 }
 
 // ============================================
@@ -7956,7 +7083,6 @@ function setupDialogEventListeners() {
     const btnConditionSave = document.getElementById('btn-condition-save');
     if (btnConditionSave) {
         btnConditionSave.addEventListener('click', () => {
-            console.log('[条件分岐ダイアログ] 保存ボタンがクリックされました');
             let code = document.getElementById('condition-preview').value;
 
             if (!code || code.trim() === '') {
@@ -7975,13 +7101,10 @@ function setupDialogEventListeners() {
             });
             code = processedLines.join('\n');
 
-            console.log('[条件分岐ダイアログ] 保存するコード:', code);
-            console.log('[条件分岐ダイアログ] conditionBuilderResolver:', conditionBuilderResolver ? '存在' : 'null');
 
             document.getElementById('condition-builder-modal').classList.remove('show');
 
             if (conditionBuilderResolver) {
-                console.log('[条件分岐ダイアログ] resolverを呼び出します');
                 conditionBuilderResolver(code);
                 conditionBuilderResolver = null;
             } else {
@@ -7993,7 +7116,6 @@ function setupDialogEventListeners() {
     const btnConditionCancel = document.getElementById('btn-condition-cancel');
     if (btnConditionCancel) {
         btnConditionCancel.addEventListener('click', () => {
-            console.log('[条件分岐ダイアログ] キャンセル');
 
             document.getElementById('condition-builder-modal').classList.remove('show');
 
@@ -8016,7 +7138,6 @@ function setupDialogEventListeners() {
     const btnLoopSave = document.getElementById('btn-loop-save');
     if (btnLoopSave) {
         btnLoopSave.addEventListener('click', () => {
-            console.log('[ループダイアログ] 保存ボタンがクリックされました');
             let code = document.getElementById('loop-preview').value;
 
             if (!code || code.trim() === '') {
@@ -8035,13 +7156,10 @@ function setupDialogEventListeners() {
             });
             code = processedLines.join('\n');
 
-            console.log('[ループダイアログ] 保存するコード:', code);
-            console.log('[ループダイアログ] loopBuilderResolver:', loopBuilderResolver ? '存在' : 'null');
 
             document.getElementById('loop-builder-modal').classList.remove('show');
 
             if (loopBuilderResolver) {
-                console.log('[ループダイアログ] resolverを呼び出します');
                 loopBuilderResolver(code);
                 loopBuilderResolver = null;
             } else {
@@ -8053,7 +7171,6 @@ function setupDialogEventListeners() {
     const btnLoopCancel = document.getElementById('btn-loop-cancel');
     if (btnLoopCancel) {
         btnLoopCancel.addEventListener('click', () => {
-            console.log('[ループダイアログ] キャンセル');
 
             document.getElementById('loop-builder-modal').classList.remove('show');
 
@@ -8064,7 +7181,6 @@ function setupDialogEventListeners() {
         });
     }
 
-    console.log('📌 ダイアログイベントリスナー設定完了');
 }
 
 // ============================================
@@ -8086,7 +7202,6 @@ async function loadVariablesJson() {
 
         if (result.success) {
             variablesData = result.data || {};
-            console.log('variables.json読み込み成功:', variablesData);
         } else {
             variablesData = {};
         }
@@ -8143,7 +7258,6 @@ function getArrayVariables() {
  */
 async function executeNodeFunction(functionName, params = {}, timeoutMs = 300000) {
     try {
-        console.log(`[ノード関数実行] 関数: ${functionName}, パラメータ:`, params);
 
         // AbortControllerで長いタイムアウトを設定（ダイアログ操作対応）
         const controller = new AbortController();
@@ -8198,12 +7312,10 @@ async function executeNodeFunction(functionName, params = {}, timeoutMs = 300000
 
             // キャンセルされた場合はnullを返す（エラーではない）
             if (result.cancelled) {
-                console.log(`[ノード関数実行] ユーザーがキャンセルしました`);
                 return null;
             }
 
             if (result.success && result.code) {
-                console.log(`[ノード関数実行] 成功 - コード長: ${result.code.length}文字`);
                 return result.code;
             } else {
                 throw new Error(result.error || '不明なエラー');
@@ -8294,8 +7406,6 @@ const codeGeneratorFunctions = {
 // コード生成のメイン関数
 async function generateCode(処理番号, ノードID, 直接エントリ = null) {
     try {
-        console.log(`[コード生成] 開始 - 処理番号: ${処理番号}, ノードID: ${ノードID}`);
-        console.log(`[コード生成] buttonSettings数: ${buttonSettings.length}`);
 
         // 処理番号から関数名を取得
         const 関数名 = getFunctionNameFromProcessingNumber(処理番号);
@@ -8306,7 +7416,6 @@ async function generateCode(処理番号, ノードID, 直接エントリ = null
             return null;
         }
 
-        console.log(`[コード生成] 関数名: ${関数名}`);
 
         // 関数を実行
         const generatorFunc = codeGeneratorFunctions[関数名];
@@ -8314,7 +7423,6 @@ async function generateCode(処理番号, ノードID, 直接エントリ = null
 
         if (generatorFunc) {
             // codeGeneratorFunctionsに登録されている場合
-            console.log(`[コード生成] 登録済み関数を実行します: ${関数名}`);
 
             // 特殊処理: 99-1の場合は直接エントリを渡す
             if (処理番号 === '99-1') {
@@ -8325,7 +7433,6 @@ async function generateCode(処理番号, ノードID, 直接エントリ = null
             }
         } else {
             // 未実装の場合は、API経由で00_code/*.ps1を呼び出す
-            console.log(`[コード生成] 未実装関数 - API経由で00_code/*.ps1を呼び出します: ${関数名}`);
             try {
                 entryString = await executeNodeFunction(関数名, {});
             } catch (error) {
@@ -8335,11 +7442,9 @@ async function generateCode(処理番号, ノードID, 直接エントリ = null
             }
         }
 
-        console.log(`[コード生成] 生成されたコード:`, entryString);
 
         // ユーザーがキャンセルした場合
         if (entryString === null || entryString === undefined) {
-            console.log('[コード生成] ユーザーがキャンセルしました');
             return null;
         }
 
@@ -8358,19 +7463,15 @@ async function generateCode(処理番号, ノードID, 直接エントリ = null
                 if (parsed.code) {
                     // JSONの場合はcodeフィールドのみを保存
                     codeToSave = parsed.code;
-                    console.log(`[コード生成] JSONレスポンスからコードを抽出: branchCount=${parsed.branchCount}`);
                 }
             }
         } catch (e) {
             // JSONパース失敗時はそのまま使用
-            console.log(`[コード生成] JSONパース失敗、元の値をそのまま使用`);
         }
 
         // コード.jsonに保存
-        console.log(`[コード生成] コード.jsonに保存します - ノードID: ${ノードID}`);
         await setCodeEntry(ノードID, codeToSave);
 
-        console.log(`[コード生成] 成功: ノードID ${ノードID} に保存しました`);
         return entryString;  // 呼び出し元にはJSONを含む元の値を返す
     } catch (error) {
         console.error('[コード生成] エラーが発生しました:', error);
@@ -8408,7 +7509,6 @@ function showConditionBuilderDialog(isFromLoopBuilder = false) {
         // 最初の条件を追加
         addConditionRow();
 
-        console.log('[条件分岐ダイアログ] 表示しました');
     });
 }
 
@@ -8622,7 +7722,6 @@ function showLoopBuilderDialog() {
         loopTypeSelect.value = 'for';
         updateLoopSettings();
 
-        console.log('[ループダイアログ] 表示しました');
     });
 }
 
@@ -8824,14 +7923,12 @@ function toggleDarkMode() {
         icon.textContent = '🌙';
         text.textContent = 'ダーク';
         localStorage.setItem('darkMode', 'false');
-        console.log('[ダークモード] ライトモードに切り替え');
     } else {
         // ダークモードに切り替え
         body.classList.add('dark-mode');
         icon.textContent = '☀️';
         text.textContent = 'ライト';
         localStorage.setItem('darkMode', 'true');
-        console.log('[ダークモード] ダークモードに切り替え');
     }
 }
 
@@ -8846,9 +7943,7 @@ function initDarkMode() {
         body.classList.add('dark-mode');
         if (icon) icon.textContent = '☀️';
         if (text) text.textContent = 'ライト';
-        console.log('[ダークモード] ダークモードで起動');
     } else {
-        console.log('[ダークモード] ライトモードで起動');
     }
 }
 
@@ -8886,8 +7981,6 @@ let editModeState = {
 
 // パンくずリストを左パネルの現在レイヤーに合わせて更新
 function updateBreadcrumbForLayer(layer) {
-    console.log(`[パンくずリスト] 🔄 updateBreadcrumbForLayer(${layer}) 呼び出し - leftVisibleLayer=${leftVisibleLayer}`);
-    console.log(`[パンくずリスト] 更新前:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
 
     breadcrumbStack = [];
 
@@ -8898,15 +7991,12 @@ function updateBreadcrumbForLayer(layer) {
         });
     }
 
-    console.log(`[パンくずリスト] 更新後:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
 
     renderBreadcrumb();
 }
 
 // パンくずリストを描画
 function renderBreadcrumb() {
-    console.log(`[パンくずリスト] 🎨 renderBreadcrumb() 呼び出し`);
-    console.log(`[パンくずリスト] 現在のスタック:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
 
     const breadcrumb = document.getElementById('breadcrumb');
     if (!breadcrumb) return;
@@ -8942,22 +8032,14 @@ function renderBreadcrumb() {
         }
     });
 
-    if (LOG_CONFIG.breadcrumb) {
-        console.log('[パンくずリスト] 描画完了:', breadcrumbStack.map(b => b.name).join(' ↓ '));
-    }
 }
 
 // パンくずリストからレイヤーに移動
 function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
-    if (LOG_CONFIG.breadcrumb) {
-        console.log(`[パンくずナビゲーション] レイヤー${targetLayer}に移動、インデックス${targetIndex}`);
-    }
 
     // 🔍 デバッグ: パンくずナビゲーション前のlayerStructure全体の状態を出力
-    console.log(`[パンくずナビゲーション] 🔍 ナビゲーション前のlayerStructure全体:`);
     for (let i = 0; i <= 6; i++) {
         const layerNodeIds = layerStructure[i].nodes.map(n => `${n.id}(${n.text})`).join(', ');
-        console.log(`🔍   L${i}: [${layerNodeIds}] (${layerStructure[i].nodes.length}個)`);
     }
 
     // スタックを切り詰め
@@ -9001,9 +8083,6 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
         rightPanel.innerHTML = '';
     }
 
-    if (LOG_CONFIG.breadcrumb) {
-        console.log(`[パンくずナビゲーション] メインパネル表示に切り替え - 左: L${leftVisibleLayer}, 右パネル: リセット`);
-    }
 
     // パンくずリストを更新
     renderBreadcrumb();
@@ -9020,17 +8099,11 @@ function navigateToBreadcrumbLayer(targetLayer, targetIndex) {
 
 // ホバープレビューのセットアップ
 function setupHoverPreview() {
-    if (LOG_CONFIG.pink) {
-        console.log('[ホバープレビュー] setupHoverPreview初期化開始');
-    }
 
     // 全てのピンクノードにホバーイベントを設定
     document.addEventListener('mouseenter', (e) => {
         if (e.target && e.target.classList && e.target.classList.contains('node-button')) {
             const bgColor = window.getComputedStyle(e.target).backgroundColor;
-            if (LOG_CONFIG.pink) {
-                console.log(`[ホバープレビュー] ノードにマウスエンター: ${e.target.dataset.nodeId}, 色: ${bgColor}`);
-            }
             if (isPinkColor(bgColor)) {
                 handlePinkNodeHover(e.target, e);
             }
@@ -9039,98 +8112,45 @@ function setupHoverPreview() {
 
     document.addEventListener('mouseleave', (e) => {
         if (e.target && e.target.classList && e.target.classList.contains('node-button')) {
-            if (LOG_CONFIG.pink) {
-                console.log(`[ホバープレビュー] ノードからマウスリーブ: ${e.target.dataset.nodeId}, タイマーID: ${hoverTimer}`);
-            }
             clearTimeout(hoverTimer);
-            if (LOG_CONFIG.pink) {
-                console.log(`[ホバープレビュー] ⏹️ タイマークリア実行 (mouseleave)`);
-            }
             hidePreview();
         }
     }, true);
 
     // プレビューパネルのDOM変更を監視
     const previewElement = document.getElementById('hoverPreview');
-    if (previewElement && LOG_CONFIG.pink) {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                    const classList = previewElement.classList;
-                    const hasShow = classList.contains('show');
-                    console.log(`[ホバープレビュー] 🔶 DOM変更検出: showクラス=${hasShow}, 全クラス=[${previewElement.className}]`);
-                    console.log(`[ホバープレビュー] 🔶 変更時スタックトレース:`);
-                    console.trace();
-                }
-            });
-        });
-        observer.observe(previewElement, { attributes: true, attributeFilter: ['class'] });
-        console.log('[ホバープレビュー] 🔶 DOM変更監視を開始しました');
-    }
 
-    if (LOG_CONFIG.pink) {
-        console.log('[ホバープレビュー] setupHoverPreview初期化完了');
-    }
 }
 
 // ピンクノードのホバー処理
 function handlePinkNodeHover(node, event) {
     const nodeData = getNodeDataFromElement(node);
-    if (LOG_CONFIG.pink) {
-        console.log(`[ホバープレビュー] handlePinkNodeHover呼び出し - ノードID: ${node.dataset.nodeId}, nodeData: ${nodeData ? 'あり' : 'なし'}`);
-        if (nodeData) {
-            console.log(`[ホバープレビュー] ノードデータ - text: ${nodeData.text}, layer: ${nodeData.layer}`);
-        }
-    }
     if (!nodeData) return;
 
     // ★ アクティブ状態をチェック（レイヤー編集後の古いピンクノードはプレビューを表示しない）
     const layer = nodeData.layer;
     const isActive = pinkSelectionArray[layer].expandedNode === nodeData.id;
 
-    if (LOG_CONFIG.pink) {
-        console.log(`[ホバープレビュー] アクティブ状態チェック - layer: ${layer}, expandedNode: ${pinkSelectionArray[layer].expandedNode}, nodeData.id: ${nodeData.id}, isActive: ${isActive}`);
-    }
 
     if (!isActive) {
-        if (LOG_CONFIG.pink) {
-            console.log(`[ホバープレビュー] ⚠️ 非アクティブなピンクノードのため、プレビューを表示しません`);
-        }
         return;
     }
 
     // 0.8秒後にプレビュー表示
     hoverTimer = setTimeout(() => {
-        if (LOG_CONFIG.pink) {
-            console.log(`[ホバープレビュー] ⏰ タイマー発火 - 0.8秒経過、showPreview呼び出し (タイマーID: ${hoverTimer})`);
-        }
         showPreview(event, nodeData);
     }, 800);
-    if (LOG_CONFIG.pink) {
-        console.log(`[ホバープレビュー] ⏱️ タイマー設定完了 - タイマーID: ${hoverTimer}, ノード: ${nodeData.text}`);
-    }
 }
 
 // プレビュー表示
 function showPreview(event, nodeData) {
-    if (LOG_CONFIG.pink) {
-        console.log(`[ホバープレビュー] 🔴 showPreview開始 - nodeData.text: ${nodeData.text}, layer: ${nodeData.layer}`);
-        console.log(`[ホバープレビュー] 🔴 呼び出し元スタックトレース:`);
-        console.trace();
-    }
 
     const preview = document.getElementById('hoverPreview');
     const previewTitle = document.getElementById('previewTitle');
     const previewContent = document.getElementById('previewContent');
 
-    if (LOG_CONFIG.pink) {
-        console.log(`[ホバープレビュー] DOM要素チェック - preview: ${preview ? 'あり' : 'なし'}, previewTitle: ${previewTitle ? 'あり' : 'なし'}, previewContent: ${previewContent ? 'あり' : 'なし'}`);
-    }
 
     if (!preview || !previewTitle || !previewContent) {
-        if (LOG_CONFIG.pink) {
-            console.error('[ホバープレビュー] プレビュー用のDOM要素が見つかりません');
-        }
         return;
     }
 
@@ -9144,9 +8164,6 @@ function showPreview(event, nodeData) {
     // このピンクノードが展開する次のレイヤーのノードを取得
     const layerNodes = getNodesForPreview(nodeData);
 
-    if (LOG_CONFIG.pink) {
-        console.log(`[ホバープレビュー] レイヤーノード数: ${layerNodes ? layerNodes.length : 0}`);
-    }
 
     if (layerNodes && layerNodes.length > 0) {
         layerNodes.slice(0, 5).forEach((childNode, index) => {
@@ -9183,34 +8200,16 @@ function showPreview(event, nodeData) {
     preview.style.top = rect.top + 'px';
 
     // 表示
-    if (LOG_CONFIG.pink) {
-        console.log(`[ホバープレビュー] 🟢 showクラスを追加します - 現在のクラス: ${preview.className}`);
-    }
     preview.classList.add('show');
-    if (LOG_CONFIG.pink) {
-        console.log(`[ホバープレビュー] 🟢 showクラス追加完了 - 新しいクラス: ${preview.className}`);
-        console.log(`[ホバープレビュー] プレビュー表示完了 - 位置: (${preview.style.left}, ${preview.style.top})`);
-    }
 }
 
 // プレビュー非表示
 function hidePreview() {
-    if (LOG_CONFIG.pink) {
-        console.log('[ホバープレビュー] 🔵 hidePreview呼び出し');
-        console.log('[ホバープレビュー] 🔵 呼び出し元スタックトレース:');
-        console.trace();
-    }
     const preview = document.getElementById('hoverPreview');
     if (preview) {
         const hadShowClass = preview.classList.contains('show');
         preview.classList.remove('show');
-        if (LOG_CONFIG.pink) {
-            console.log(`[ホバープレビュー] プレビュー非表示実行 - showクラスあり: ${hadShowClass}`);
-        }
     } else {
-        if (LOG_CONFIG.pink) {
-            console.log('[ホバープレビュー] プレビュー要素が見つかりません');
-        }
     }
 }
 
@@ -9252,18 +8251,12 @@ function handlePinkNodeDrilldown(nodeElement) {
         return;
     }
 
-    if (LOG_CONFIG.pink) {
-        console.log('[ピンクノードドリルダウン]', nodeData.text, 'レイヤー', nodeData.layer);
-    }
 
     // 右パネルにプレビュー表示（ドリルダウンはプレビュー機能なのでパンくずは更新しない）
     const nextLayer = nodeData.layer + 1;
     const expandedNodes = layerStructure[nextLayer]?.nodes || [];
     showLayerInDrilldownPanel(nodeData, expandedNodes);
 
-    if (LOG_CONFIG.pink) {
-        console.log(`[ピンクノードドリルダウン] 右パネルプレビュー表示: レイヤー${nextLayer}`);
-    }
 }
 
 // ドリルダウンパネルにレイヤーを表示
@@ -9273,13 +8266,9 @@ function showLayerInDrilldownPanel(parentNodeData) {
     console.warn(`🔍🔍🔍 [ドリルダウン] showLayerInDrilldownPanel() 呼び出し回数: ${window.DRILLDOWN_CALLED}`);
     console.error(`🔍🔍🔍 [ドリルダウン] 親ノード: L${parentNodeData?.layer} "${parentNodeData?.text}"`);
 
-    console.log(`🔍 [ドリルダウン] 🔷 showLayerInDrilldownPanel() 呼び出し - 親ノード: L${parentNodeData.layer} "${parentNodeData.text}"`);
-    console.log(`🔍 [ドリルダウン] leftVisibleLayer=${leftVisibleLayer}`);
-    console.log(`🔍 [ドリルダウン] 現在のbreadcrumbStack:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
 
     const rightPanel = document.getElementById('right-layer-panel');
     if (!rightPanel) {
-        console.log(`🔍 [ドリルダウン] ❌ right-layer-panel が見つかりません`);
         return;
     }
 
@@ -9290,9 +8279,7 @@ function showLayerInDrilldownPanel(parentNodeData) {
         ? layerStructure[targetLayer].nodes
         : [];
 
-    console.log(`🔍 [ドリルダウン] レイヤー${targetLayer}のノード数: ${layerNodes.length}`);
     if (layerNodes.length > 0) {
-        console.log(`🔍 [ドリルダウン] 最初のノード:`, layerNodes[0]);
     }
 
     // 空状態を解除
@@ -9301,7 +8288,6 @@ function showLayerInDrilldownPanel(parentNodeData) {
     // アニメーションクラス追加
     rightPanel.classList.add('slide-in');
 
-    console.log(`🔍 [ドリルダウン] rightPanel.innerHTML生成開始`);
 
     // コンテンツ生成
     const layerName = parentNodeData.text || `スクリプト${parentNodeData.layer}`;
@@ -9339,31 +8325,23 @@ function showLayerInDrilldownPanel(parentNodeData) {
         if (e.target.closest('.node-button')) {
             return;
         }
-        console.log(`[ドリルダウン] パネルクリック → 編集モードに入ります（レイヤー${targetLayer}）`);
         enterEditMode(targetLayer);
     }, { once: true }); // 一度だけ実行（編集モードに入ったら不要）
 
     // ノードを描画（既存のrenderNodesInLayerと同じロジック）
     const nodeContainer = rightPanel.querySelector('#drilldown-nodes');
-    console.log(`🔍 [ドリルダウン] nodeContainer=${nodeContainer ? '✅あり' : '❌なし'}, layerNodes.length=${layerNodes.length}`);
-    console.log(`🔍 [ドリルダウン] 条件チェック: nodeContainer=${!!nodeContainer}, layerNodes.length=${layerNodes.length}, layerNodes.length > 0=${layerNodes.length > 0}`);
-    console.log(`🔍 [ドリルダウン] 条件全体: ${!!(nodeContainer && layerNodes.length > 0)}`);
 
     if (nodeContainer && layerNodes.length > 0) {
-        console.log(`🔍 [ドリルダウン] ✅ IF文の中に入りました！ノード描画開始: ${layerNodes.length}個`);
         // Y座標でソート
         const sortedNodes = layerNodes.sort((a, b) => a.y - b.y);
-        console.log(`🔍 [ドリルダウン] sortedNodes.length=${sortedNodes.length}`);
 
         try {
             sortedNodes.forEach((node, index) => {
-                console.log(`🔍 [ドリルダウン] forEachループ ${index}回目開始`);
 
                 const btn = document.createElement('div');
                 btn.className = 'node-button';
 
                 // デバッグ: ノードデータの確認
-                console.log(`🔍 [ドリルダウン] ノードデータ: text="${node.text}", color=${node.color}, groupId=${node.groupId}, id=${node.id}`);
 
                 // テキストの省略表示（20文字以上は省略）
                 const displayText = node.text.length > 20 ? node.text.substring(0, 20) + '...' : node.text;
@@ -9379,9 +8357,7 @@ function showLayerInDrilldownPanel(parentNodeData) {
                 // GroupIDを設定（ループ検出用）
                 if (node.groupId !== null && node.groupId !== undefined) {
                     btn.dataset.groupId = node.groupId;
-                    console.log(`🔍 [ドリルダウン] ノードにGroupID設定: text="${node.text}", groupId=${node.groupId}`);
                 } else {
-                    console.log(`🔍 [ドリルダウン] GroupIDなし: text="${node.text}", groupId=${node.groupId}`);
                 }
 
                 // 赤枠スタイルを適用
@@ -9414,31 +8390,25 @@ function showLayerInDrilldownPanel(parentNodeData) {
                 }
 
                 nodeContainer.appendChild(btn);
-                console.log(`🔍 [ドリルダウン] forEachループ ${index}回目完了`);
             });
         } catch (error) {
-            console.log(`🔍 [ドリルダウン] ❌ エラー発生: ${error.message}`);
             console.error(`🔍 [ドリルダウン] エラー詳細:`, error);
         }
 
-        console.log(`🔍 [ドリルダウン] ノード描画完了: ${sortedNodes.length}個`);
 
         // ノード数が多い場合にコンテナの高さを動的に調整（コンテンツに合わせる）
         if (sortedNodes.length > 0) {
             const maxY = Math.max(...sortedNodes.map(n => n.y)) + (NODE_HEIGHT * 2); // ノード高さ + 余白
             // 固定の700pxではなく、コンテンツの高さのみを設定（スクロールバー防止）
             nodeContainer.style.minHeight = `${maxY}px`;
-            console.log(`🔍 [ドリルダウン] コンテナ高さを調整: ${maxY}px`);
         }
 
         // Canvas要素を追加して矢印を描画
         const existingCanvas = nodeContainer.querySelector('.arrow-canvas');
         if (existingCanvas) {
-            console.log(`🔍 [ドリルダウン] 既存Canvasを削除`);
             existingCanvas.remove(); // 既存のCanvasがあれば削除
         }
 
-        console.log(`🔍 [ドリルダウン] Canvas要素作成開始`);
         const canvas = document.createElement('canvas');
         canvas.className = 'arrow-canvas';
         canvas.style.position = 'absolute';
@@ -9459,13 +8429,10 @@ function showLayerInDrilldownPanel(parentNodeData) {
 
         // CanvasをarrowState.canvasMapに登録
         arrowState.canvasMap.set('drilldown-panel', canvas);
-        console.log('🔍 [ドリルダウン] Canvasをarrowstate.canvasMapに登録: drilldown-panel');
 
         // 矢印を描画（編集パネルと共通のdrawPanelArrows関数を使用）
         setTimeout(() => {
-            console.log('🔍 [ドリルダウン] drawPanelArrows呼び出し開始');
             drawPanelArrows('drilldown-panel');
-            console.log('🔍 [ドリルダウン] drawPanelArrows呼び出し完了');
         }, 100);
     } else if (nodeContainer) {
         nodeContainer.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">ノードがありません</div>';
@@ -9484,8 +8451,6 @@ function showLayerInDrilldownPanel(parentNodeData) {
 
 // ドリルダウンパネルを閉じる
 function closeDrilldownPanel() {
-    console.log(`[ドリルダウン] ❌ closeDrilldownPanel() 呼び出し`);
-    console.log(`[ドリルダウン] 現在のbreadcrumbStack:`, breadcrumbStack.map(b => `L${b.layer}:${b.name}`).join(' → '));
 
     const rightPanel = document.getElementById('right-layer-panel');
     const leftPanel = document.getElementById('left-layer-panel');
@@ -9522,14 +8487,10 @@ function closeDrilldownPanel() {
 
     // ★ パンくずリストは左パネルに連動するため、ドリルダウンを閉じても変更しない
 
-    if (LOG_CONFIG.pink) {
-        console.log('[ドリルダウン] パネルを閉じました');
-    }
 }
 
 // グロー効果をすべて解除
 function clearGlowEffects() {
-    console.log('[グロー効果] clearGlowEffects() - グロー効果を解除');
 
     // グロー状態をクリア
     glowState.sourceNode = null;
@@ -9555,7 +8516,6 @@ function clearGlowEffects() {
     // グロー矢印インジケーター（▶）を削除
     const existingArrows = document.querySelectorAll('.glow-arrow-indicator');
     existingArrows.forEach(el => el.remove());
-    console.log(`[グロー効果] ${existingArrows.length}個のグロー矢印を削除しました`);
 
     // ピンク矢印の状態もクリア
     arrowState.pinkSelected = false;
@@ -9566,14 +8526,10 @@ function clearGlowEffects() {
         window.arrowDrawing.drawPanelArrows(`layer-${leftVisibleLayer}`);
     }
 
-    console.log(`[グロー効果] ${existingGlowSources.length}個のグロー効果を解除しました`);
 }
 
 // 編集モードに入る（指定したレイヤーを左パネルで編集）
 function enterEditMode(targetLayer) {
-    if (LOG_CONFIG.breadcrumb) {
-        console.log(`[編集モード] レイヤー${targetLayer}の編集モードに入ります`);
-    }
 
     // ドリルダウンパネルを閉じる（パンくずリストは維持）
     const rightPanel = document.getElementById('right-layer-panel');
@@ -9635,21 +8591,12 @@ function enterEditMode(targetLayer) {
             drawPanelArrows(`layer-${targetLayer}`);
         }, 100);
 
-        if (LOG_CONFIG.breadcrumb) {
-            console.log(`[編集モード] レイヤー${targetLayer}を表示しました`);
-        }
     }
 
-    if (LOG_CONFIG.breadcrumb) {
-        console.log(`[編集モード] 編集モード有効化 - currentLayer: ${targetLayer}, leftVisibleLayer: ${leftVisibleLayer}`);
-    }
 }
 
 // 編集モードを終了してメインフローに戻る
 function exitEditMode() {
-    if (LOG_CONFIG.breadcrumb) {
-        console.log('[編集モード] 編集モードを終了します');
-    }
 
     // 左パネルの全レイヤーを非表示
     for (let i = 0; i <= 6; i++) {
@@ -9681,9 +8628,6 @@ function exitEditMode() {
     // leftVisibleLayerをレイヤー1に戻す
     leftVisibleLayer = 1;
 
-    if (LOG_CONFIG.breadcrumb) {
-        console.log('[編集モード] メインフローに戻りました - leftVisibleLayer: 1');
-    }
 }
 
 // ESCキー処理
@@ -9737,10 +8681,8 @@ function getCurrentLayerData() {
 
 // 現在のレイヤーデータを再読み込み
 async function loadCurrentLayerData() {
-    console.log('[レイヤー] レイヤーデータを再読み込み中...');
     try {
         await loadExistingNodes();
-        console.log('[レイヤー] ✅ レイヤーデータの再読み込み完了');
     } catch (error) {
         console.error('[レイヤー] レイヤーデータの再読み込み失敗:', error);
         throw error;
@@ -9760,7 +8702,6 @@ function findNonOverlappingY(targetLayer, desiredY, nodeHeight = NODE_HEIGHT, gr
     // 重複チェック：同じY座標にノードがあれば下にずらす
     while (existingYs.includes(newY)) {
         newY += gridSize;
-        console.log(`[Y座標調整] 重複検出、新しいY=${newY}`);
     }
 
     return newY;
@@ -9768,7 +8709,6 @@ function findNonOverlappingY(targetLayer, desiredY, nodeHeight = NODE_HEIGHT, gr
 
 // ノードをコピー
 async function copyNode(nodeId) {
-    console.log(`[コピー] ノードをコピー: ${nodeId}`);
 
     // レイヤー情報から元のノードを取得
     const currentLayer = getCurrentLayerData();
@@ -9782,7 +8722,6 @@ async function copyNode(nodeId) {
 
     // コード.json から最新のスクリプトを取得
     const script = getCodeEntry(sourceNode.id);
-    console.log(`[コピー] コード.jsonからスクリプトを取得: ${script ? script.length : 0}文字`);
 
     // クリップボードに保存（サーバー側で検索するために id プロパティを使用）
     nodeClipboard = {
@@ -9792,8 +8731,6 @@ async function copyNode(nodeId) {
         script: script          // コード.jsonから取得したスクリプトを保存
     };
 
-    console.log(`[コピー] ✅ ノードをクリップボードにコピーしました:`, sourceNode);
-    console.log(`[コピー] ID=${sourceNode.id}, Name=${nodeId}, Script長=${script ? script.length : 0}`);
     showToast('ノードをコピーしました', 'success');
     return true;
 }
@@ -9806,7 +8743,6 @@ async function pasteNode() {
         return false;
     }
 
-    console.log(`[貼り付け] ノードを貼り付け:`, nodeClipboard);
     const sourceNode = nodeClipboard.node;
     const sourceScript = nodeClipboard.script || '';
 
@@ -9837,17 +8773,14 @@ async function pasteNode() {
             関数名: sourceNode.関数名 || ''
         };
 
-        console.log(`[貼り付け] 新しいノードを作成: ID=${newNodeId}, Y=${newY}, Script長=${sourceScript ? sourceScript.length : 0}`);
 
         // layerStructure に新しいノードを追加
         layerStructure[newNode.layer].nodes.push(newNode);
         nodes.push(newNode);
 
-        console.log(`[貼り付け] レイヤー${newNode.layer}に追加完了`);
 
         // スクリプトがある場合は、コード.jsonにも保存
         if (sourceScript && sourceScript.trim() !== '') {
-            console.log(`[貼り付け] コード.jsonにスクリプトを保存: ID=${newNodeId}, Script長=${sourceScript.length}`);
             await setCodeEntry(newNodeId, sourceScript);
         }
 
@@ -9857,7 +8790,6 @@ async function pasteNode() {
         // UIを再描画
         renderNodesInLayer(leftVisibleLayer, 'left');
 
-        console.log(`[貼り付け] ✅ ノード貼り付け成功`);
         showToast(`ノードを貼り付けました`, 'success');
 
         return true;
@@ -9892,7 +8824,6 @@ document.addEventListener('keydown', (e) => {
 // 選択中のノードを取得
 function getSelectedNode() {
     if (!selectedNodeState.nodeId) {
-        console.log('[選択] 選択されたノードがありません');
         return null;
     }
 
@@ -9906,7 +8837,6 @@ function getSelectedNode() {
     // ノードを検索（name プロパティはボタン名に対応）
     const node = layerData.構成.find(n => n.name === selectedNodeState.nodeId);
     if (node) {
-        console.log('[選択] 選択ノード:', node);
         return node;
     }
 
@@ -9919,12 +8849,10 @@ function setSelectedNode(nodeId, layerId) {
     selectedNodeState.nodeId = nodeId;
     selectedNodeState.layerId = layerId || leftVisibleLayer;
     selectedNodeState.lastClickTime = Date.now();
-    console.log('[選択] ノードを選択:', nodeId);
 }
 
 // トースト通知を表示（簡易実装）
 function showToast(message, type = 'info') {
-    console.log(`[トースト ${type}] ${message}`);
     showAlertDialog(message, 'お知らせ'); // カスタムモーダルダイアログを使用
 }
 
@@ -9938,17 +8866,14 @@ window.addEventListener('message', (event) => {
         return;
     }
 
-    console.log('[postMessage] メッセージ受信:', event.data);
 
     if (event.data.type === 'POPUP_READY') {
         // ポップアップが準備完了 - データを送信
-        console.log('[postMessage] ポップアップが準備完了しました');
 
         // すべてのポップアップにデータを送信（どのレイヤーか特定できないため）
         layerPopupData.forEach((data, layer) => {
             const popup = layerPopups.get(layer);
             if (popup && !popup.closed) {
-                console.log(`[postMessage] レイヤー${layer}にデータを送信: ${data.nodes.length}ノード`);
                 popup.postMessage({
                     type: 'SHOW_LAYER_DETAIL',
                     layer: data.layer,
@@ -9960,7 +8885,6 @@ window.addEventListener('message', (event) => {
     } else if (event.data.type === 'POPUP_CLOSED') {
         // ポップアップが閉じられた
         const layer = event.data.layer;
-        console.log(`[postMessage] ポップアップ（レイヤー${layer}）が閉じられました`);
         if (layerPopups.has(layer)) {
             layerPopups.delete(layer);
         }
@@ -9970,7 +8894,6 @@ window.addEventListener('message', (event) => {
     } else if (event.data.type === 'REQUEST_LAYER_DATA') {
         // ポップアップからレイヤーデータ更新をリクエスト
         const layer = event.data.layer;
-        console.log(`[postMessage] レイヤー${layer}のデータ更新リクエストを受信`);
 
         const layerNodes = layerStructure[layer].nodes || [];
         const popup = layerPopups.get(layer);
@@ -9980,20 +8903,15 @@ window.addEventListener('message', (event) => {
                 type: 'UPDATE_NODES',
                 nodes: layerNodes
             }, window.location.origin);
-            console.log(`[postMessage] レイヤー${layer}にデータを送信: ${layerNodes.length}ノード`);
         }
     } else if (event.data.type === 'NODE_CLICKED_IN_POPUP') {
         // ポップアップ内でノードがクリックされた
-        console.log(`[postMessage] ポップアップ内でノードクリック: ${event.data.nodeId}`);
         // 必要に応じて処理を追加
     }
 });
 
 // 初期化処理
 function initLayerNavigation() {
-    if (LOG_CONFIG.initialization) {
-        console.log('[レイヤーナビゲーション] 初期化開始');
-    }
 
     // パンくずリストを初期化
     renderBreadcrumb();
@@ -10001,9 +8919,6 @@ function initLayerNavigation() {
     // ホバープレビューを設定
     setupHoverPreview();
 
-    if (LOG_CONFIG.initialization) {
-        console.log('[レイヤーナビゲーション] 初期化完了');
-    }
 }
 
 // 注: drawDrilldownArrows関数は削除され、代わりに共通のdrawPanelArrows関数を使用するようになりました
@@ -10616,9 +9531,6 @@ async function updateUndoRedoButtons() {
                 redoBtn.classList.add('disabled');
             }
 
-            if (LOG_CONFIG.history) {
-                console.log(`[履歴] ボタン状態更新: Undo=${data.canUndo}, Redo=${data.canRedo}, Position=${data.position}/${data.count}`);
-            }
         }
     } catch (error) {
         console.error('[履歴] ボタン状態更新エラー:', error);
@@ -10632,7 +9544,6 @@ async function undoOperation() {
     // ボタンが無効な場合は何もしない
     const undoBtn = document.getElementById('btn-undo');
     if (undoBtn && undoBtn.classList.contains('disabled')) {
-        console.log('[履歴] Undoボタンが無効です');
         return;
     }
 
@@ -10640,27 +9551,17 @@ async function undoOperation() {
         // 履歴復元中フラグを立てる（自動保存を防ぐため）
         isRestoringHistory = true;
 
-        if (LOG_CONFIG.history) {
-            console.log('[履歴] Undo実行開始...');
-        }
 
         const response = await fetch(`${API_BASE}/history/undo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
 
-        if (LOG_CONFIG.history) {
-            console.log('[履歴] レスポンス受信:', response.status, response.statusText);
-        }
 
         const data = await response.json();
 
-        if (LOG_CONFIG.history) {
-            console.log('[履歴] レスポンスデータ:', JSON.stringify(data));
-        }
 
         if (data.success) {
-            console.log('[履歴] Undo成功:', data.operation?.description);
 
             // memory.jsonを再読み込み
             await loadExistingNodes();
@@ -10690,7 +9591,6 @@ async function redoOperation() {
     // ボタンが無効な場合は何もしない
     const redoBtn = document.getElementById('btn-redo');
     if (redoBtn && redoBtn.classList.contains('disabled')) {
-        console.log('[履歴] Redoボタンが無効です');
         return;
     }
 
@@ -10698,27 +9598,17 @@ async function redoOperation() {
         // 履歴復元中フラグを立てる（自動保存を防ぐため）
         isRestoringHistory = true;
 
-        if (LOG_CONFIG.history) {
-            console.log('[履歴] Redo実行開始...');
-        }
 
         const response = await fetch(`${API_BASE}/history/redo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
 
-        if (LOG_CONFIG.history) {
-            console.log('[履歴] レスポンス受信:', response.status, response.statusText);
-        }
 
         const data = await response.json();
 
-        if (LOG_CONFIG.history) {
-            console.log('[履歴] レスポンスデータ:', JSON.stringify(data));
-        }
 
         if (data.success) {
-            console.log('[履歴] Redo成功:', data.operation?.description);
 
             // memory.jsonを再読み込み
             await loadExistingNodes();
@@ -10745,9 +9635,6 @@ async function redoOperation() {
  * 履歴を初期化
  */
 async function initializeHistory() {
-    if (LOG_CONFIG.history) {
-        console.log('[履歴] 初期化開始...');
-    }
 
     try {
         const response = await fetch(`${API_BASE}/history/init`, {
@@ -10758,19 +9645,10 @@ async function initializeHistory() {
         const data = await response.json();
 
         if (data.success) {
-            if (LOG_CONFIG.history) {
-                console.log('[履歴] 初期化完了:', data);
-            }
             await updateUndoRedoButtons();
         } else {
-            if (LOG_CONFIG.history) {
-                console.warn('[履歴] 初期化失敗:', data.error);
-            }
         }
     } catch (error) {
-        if (LOG_CONFIG.history) {
-            console.error('[履歴] 初期化エラー:', error);
-        }
     }
 }
 
@@ -10797,7 +9675,6 @@ if (document.readyState === 'loading') {
 // 左パネル タブ切り替え
 // ============================================
 function switchLeftPanelTab(tabId) {
-    console.log(`[タブ] 切り替え: ${tabId}`);
 
     // タブヘッダーのアクティブ状態を更新
     document.querySelectorAll('.left-panel-tab').forEach(tab => {
@@ -10875,7 +9752,6 @@ async function saveConnectionState() {
             }
         };
 
-        console.log('[接続情報] 保存開始:', currentFolder);
 
         const response = await fetch('/api/connection', {
             method: 'POST',
@@ -10884,7 +9760,6 @@ async function saveConnectionState() {
         });
 
         if (response.ok) {
-            console.log('[接続情報] 保存完了');
         }
     } catch (error) {
         console.error('[接続情報] 保存エラー:', error);
@@ -10899,7 +9774,6 @@ async function loadConnectionState() {
             return;
         }
 
-        console.log('[接続情報] 復元開始 フォルダ:', currentFolder);
 
         const response = await fetch(`/api/connection?folder=${encodeURIComponent(currentFolder)}`);
         if (!response.ok) return;
@@ -10910,7 +9784,6 @@ async function loadConnectionState() {
         const excel = result.data.excel;
         if (!excel.connected) return;
 
-        console.log('[接続情報] 復元データ:', excel);
 
         // 状態を復元
         excelConnectionState.connected = excel.connected;
@@ -10946,7 +9819,6 @@ async function loadConnectionState() {
             if (varResult.success && varResult.data) {
                 // variablesが配列の場合はオブジェクトに変換
                 if (Array.isArray(variables)) {
-                    console.log('[接続情報] variablesを配列からオブジェクトに変換');
                     variables = {};
                 }
 
@@ -10954,7 +9826,6 @@ async function loadConnectionState() {
                 const varName = excel.variableName;
                 if (varResult.data[varName]) {
                     variables[varName] = varResult.data[varName];
-                    console.log('[接続情報] Excel変数を復元:', varName);
                 }
             }
         } catch (varError) {
@@ -10964,7 +9835,6 @@ async function loadConnectionState() {
         // 変数タブのリスト更新
         renderVariablesList();
 
-        console.log('[接続情報] 復元完了');
     } catch (error) {
         console.error('[接続情報] 復元エラー:', error);
     }
@@ -11000,7 +9870,6 @@ function updateExcelConnectionUI() {
 
 // Excelファイル参照ボタン
 async function browseExcelFile() {
-    console.log('[Excel接続] ファイル選択開始');
     try {
         const response = await fetch('/api/excel/browse', {
             method: 'POST',
@@ -11012,7 +9881,6 @@ async function browseExcelFile() {
         }
 
         const result = await response.json();
-        console.log('[Excel接続] ファイル選択結果:', result);
 
         if (result.success && result.filePath) {
             document.getElementById('excel-file-path').value = result.filePath;
@@ -11029,7 +9897,6 @@ async function browseExcelFile() {
 
 // Excelシート一覧を取得
 async function loadExcelSheets(filePath) {
-    console.log('[Excel接続] シート一覧取得:', filePath);
     try {
         const response = await fetch('/api/excel/sheets', {
             method: 'POST',
@@ -11042,7 +9909,6 @@ async function loadExcelSheets(filePath) {
         }
 
         const result = await response.json();
-        console.log('[Excel接続] シート一覧:', result);
 
         const sheetSelect = document.getElementById('excel-sheet-select');
         sheetSelect.innerHTML = '<option value="">シートを選択...</option>';
@@ -11085,7 +9951,6 @@ async function connectExcel() {
         return;
     }
 
-    console.log('[Excel接続] 接続開始:', { filePath, sheetName, variableName });
 
     try {
         const response = await fetch('/api/excel/connect', {
@@ -11103,7 +9968,6 @@ async function connectExcel() {
         }
 
         const result = await response.json();
-        console.log('[Excel接続] 接続結果:', result);
 
         if (result.success) {
             excelConnectionState.connected = true;
@@ -11115,9 +9979,7 @@ async function connectExcel() {
             excelConnectionState.headers = result.headers || [];
 
             // サーバーで変数が保存されたので、変数を再読み込み
-            console.log('[Excel接続] サーバーから変数を再読み込み');
             await loadVariables();
-            console.log('[Excel接続] 変数読み込み完了, キー:', Object.keys(variables));
 
             updateExcelConnectionUI();
 
@@ -11125,7 +9987,6 @@ async function connectExcel() {
             await saveConnectionState();
 
             alert(`Excel接続完了: ${result.rowCount}行 x ${result.colCount}列 のデータを読み込みました`);
-            console.log('[Excel接続] 接続完了');
         } else {
             throw new Error(result.error || '接続に失敗しました');
         }
@@ -11137,7 +9998,6 @@ async function connectExcel() {
 
 // Excel切断
 async function disconnectExcel() {
-    console.log('[Excel接続] 切断');
 
     // 変数から削除
     if (excelConnectionState.variableName && variables[excelConnectionState.variableName]) {
@@ -11202,7 +10062,6 @@ function updateRobotImage(input) {
                 avatarImg.src = e.target.result;
             }
 
-            console.log('[ロボット] 画像が更新されました');
 
             // 画像更新後にプロファイルを保存
             saveRobotProfile();
@@ -11234,7 +10093,6 @@ function selectRobotBgColor(element) {
     // Canvasで背景色付き画像を生成（完了後に保存）
     generateRobotImageWithBg(color, true);
 
-    console.log('[ロボット] 背景色を変更:', color);
 }
 
 // 背景色付きロボット画像を生成
@@ -11304,7 +10162,6 @@ async function saveRobotProfile() {
 
         const result = await response.json();
         if (result.success) {
-            console.log('[ロボット] プロファイルを保存しました');
         } else {
             console.error('[ロボット] 保存エラー:', result.error);
         }
@@ -11385,7 +10242,6 @@ async function loadRobotProfile() {
                 document.getElementById('robot-has-display').checked = profile.hasDisplay !== false;
             }
 
-            console.log('[ロボット] プロファイルを読み込みました');
         } else {
             // プロファイルがない場合、デフォルト背景色で画像を生成
             generateRobotImageWithBg('#e8f4fc');
@@ -11424,7 +10280,6 @@ function setupRobotProfileAutoSave() {
         }
     });
 
-    console.log('[ロボット] 自動保存を設定しました');
 }
 
 // ============================================
@@ -11497,7 +10352,6 @@ function renderFunctionsList(filterText = '') {
         listContainer.appendChild(item);
     });
 
-    console.log(`[関数] ${filteredFunctions.length}/${userFunctions.length}個の関数を描画しました`);
 }
 
 /**
@@ -11512,7 +10366,6 @@ function filterFunctions(searchText) {
  * 赤枠ノードを関数化する
  */
 async function functionizeNodes() {
-    console.log('[関数化] ========== 関数化開始 ==========');
 
     const layerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
     let redBorderNodes = layerNodes.filter(n => n.redBorder);
@@ -11558,7 +10411,6 @@ async function functionizeNodes() {
         nodes: sortedRedNodes.map(node => {
             // スクリプトをコード.jsonから取得
             const script = getCodeEntry(node.id) || node.script || '';
-            console.log(`[関数化] ノード ${node.text} (${node.id}) のスクリプト取得: ${script.length}文字`);
             return {
                 id: node.id,
                 text: node.text,
@@ -11579,7 +10431,6 @@ async function functionizeNodes() {
     // 関数リストに追加
     userFunctions.push(newFunction);
 
-    console.log(`[関数化] 関数を作成: ${newFunction.name} (${newFunction.nodes.length}ノード)`);
 
     // 関数をファイルに保存
     await saveFunctionToFile(newFunction);
@@ -11600,7 +10451,6 @@ async function functionizeNodes() {
     await showAlertDialog(`関数「${functionName}」を作成しました。`, '関数化完了');
 
     hideContextMenu();
-    console.log('[関数化] ========== 関数化完了 ==========');
 }
 
 /**
@@ -11613,7 +10463,6 @@ async function addFunctionToBoard(functionId) {
         return;
     }
 
-    console.log(`[関数] ボードに追加: ${func.name}`);
 
     const layerNodes = layerStructure[leftVisibleLayer]?.nodes || [];
 
@@ -11648,12 +10497,10 @@ async function addFunctionToBoard(functionId) {
     nodes.push(functionNode);
     layerNodes.push(functionNode);
 
-    console.log(`[関数] 関数ノード作成: ID=${newNodeId}, 関数=${func.name}`);
 
     // 関数内の各ノードのスクリプトをコード.jsonに保存
     for (const node of func.nodes) {
         if (node.script && node.script.trim() !== '') {
-            console.log(`[関数] ノード「${node.text}」のスクリプトをコード.jsonに保存 (ID: ${node.id}, ${node.script.length}文字)`);
             try {
                 await setCodeEntry(node.id, node.script);
             } catch (error) {
@@ -11697,7 +10544,6 @@ async function saveFunctionToFile(func) {
             throw new Error(`HTTP ${response.status}`);
         }
 
-        console.log(`[関数] ファイルに保存: ${func.name}`);
     } catch (error) {
         console.error(`[関数] 保存エラー:`, error);
         // API未実装の場合はローカルストレージに保存
@@ -11711,7 +10557,6 @@ async function saveFunctionToFile(func) {
 function saveFunctionsToLocalStorage() {
     try {
         localStorage.setItem('userFunctions', JSON.stringify(userFunctions));
-        console.log(`[関数] ローカルストレージに保存: ${userFunctions.length}個`);
     } catch (error) {
         console.error(`[関数] ローカルストレージ保存エラー:`, error);
     }
@@ -11732,7 +10577,6 @@ function loadFunctionsFromLocalStorage() {
                     functionIdCounter = idNum + 1;
                 }
             });
-            console.log(`[関数] ローカルストレージから読み込み: ${userFunctions.length}個`);
         }
     } catch (error) {
         console.error(`[関数] ローカルストレージ読み込みエラー:`, error);
@@ -11776,7 +10620,6 @@ async function deleteFunction(functionId) {
     // リストを再描画
     renderFunctionsList();
 
-    console.log(`[関数] 削除完了: ${func.name}`);
 }
 
 /**
@@ -11799,7 +10642,6 @@ async function exportFunction(functionId) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    console.log(`[関数] エクスポート: ${func.name}`);
 }
 
 /**
@@ -11815,7 +10657,6 @@ function editFunction(functionId) {
         return;
     }
 
-    console.log(`[関数エディタ] 開始: ${func.name} (${func.nodes.length}ノード)`);
 
     currentEditingFunctionId = functionId;
     currentEditingNodes = JSON.parse(JSON.stringify(func.nodes)); // ディープコピー
@@ -11949,7 +10790,6 @@ function handleNodeDrop(e) {
         const [movedNode] = currentEditingNodes.splice(draggedNodeIndex, 1);
         currentEditingNodes.splice(targetIndex, 0, movedNode);
 
-        console.log(`[関数エディタ] ノード並べ替え: ${draggedNodeIndex} → ${targetIndex}`);
 
         renderFunctionEditorNodes();
     }
@@ -11973,7 +10813,6 @@ async function editFunctionNodeName(index) {
     const node = currentEditingNodes[index];
     if (!node) return;
 
-    console.log(`[関数エディタ] 名前変更: ${index} - ${node.text}`);
 
     const newText = await showPromptDialog(
         'ノード名を入力してください:',
@@ -11985,7 +10824,6 @@ async function editFunctionNodeName(index) {
 
     node.text = newText.trim() || '無題';
 
-    console.log(`[関数エディタ] 名前更新: ${node.text}`);
     renderFunctionEditorNodes();
 }
 
@@ -11996,7 +10834,6 @@ async function editFunctionNodeScript(index) {
     const node = currentEditingNodes[index];
     if (!node) return;
 
-    console.log(`[関数エディタ] スクリプト編集: ${index} - ${node.text}`);
 
     // スクリプトが空の場合、generateCodeで生成するか確認
     let currentScript = node.script || '';
@@ -12012,7 +10849,6 @@ async function editFunctionNodeScript(index) {
                 const generatedScript = await generateCode(node.処理番号, node.id);
                 if (generatedScript) {
                     node.script = generatedScript;
-                    console.log(`[関数エディタ] スクリプト生成完了: ${generatedScript.length}文字`);
                     renderFunctionEditorNodes();
                     return;
                 }
@@ -12046,15 +10882,12 @@ async function editFunctionNodeScript(index) {
         }
 
         if (result.cancelled) {
-            console.log('[関数エディタ] スクリプト編集がキャンセルされました');
             return;
         }
 
         if (result.success && result.newScript !== undefined) {
             node.script = result.newScript;
 
-            console.log(`[関数エディタ] スクリプト更新: ${node.text}`);
-            console.log(`[関数エディタ] 新スクリプト長: ${result.newScript.length}文字`);
 
             renderFunctionEditorNodes();
         }
@@ -12080,7 +10913,6 @@ async function deleteFunctionNode(index) {
     if (!confirmed) return;
 
     currentEditingNodes.splice(index, 1);
-    console.log(`[関数エディタ] ノード削除: ${index}`);
     renderFunctionEditorNodes();
 }
 
@@ -12118,7 +10950,6 @@ function openNodePalette() {
     }
 
     modal.style.display = 'flex';
-    console.log(`[ノードパレット] 開く - ${buttonSettings.length}個のボタン`);
 }
 
 /**
@@ -12135,7 +10966,6 @@ function closeNodePalette() {
  * パレットからノードを選択して追加
  */
 async function selectNodeFromPalette(setting) {
-    console.log(`[関数エディタ] ノード選択: ${setting.テキスト} (${setting.処理番号})`);
 
     // パレットを一旦閉じる
     closeNodePalette();
@@ -12157,7 +10987,6 @@ async function selectNodeFromPalette(setting) {
         const generatedScript = await generateCode(setting.処理番号, tempNodeId);
 
         if (generatedScript === null || generatedScript === undefined) {
-            console.log('[関数エディタ] スクリプト生成がキャンセルされました');
             return;
         }
 
@@ -12172,8 +11001,6 @@ async function selectNodeFromPalette(setting) {
         };
 
         currentEditingNodes.push(newNode);
-        console.log(`[関数エディタ] ノード追加完了: ${newNode.text} (${setting.処理番号})`);
-        console.log(`[関数エディタ] スクリプト長: ${generatedScript.length}文字`);
 
         renderFunctionEditorNodes();
 
@@ -12205,12 +11032,10 @@ async function saveFunctionEdits() {
     func.nodes = JSON.parse(JSON.stringify(currentEditingNodes));
     func.updatedAt = new Date().toISOString();
 
-    console.log(`[関数エディタ] 保存: ${func.name} (${func.nodes.length}ノード)`);
 
     // 各ノードのスクリプトをコード.jsonに保存
     for (const node of func.nodes) {
         if (node.script && node.script.trim() !== '') {
-            console.log(`[関数エディタ] ノード「${node.text}」のスクリプトをコード.jsonに保存 (ID: ${node.id}, ${node.script.length}文字)`);
             try {
                 await setCodeEntry(node.id, node.script);
             } catch (error) {
@@ -12250,7 +11075,6 @@ async function saveFunctionEdits() {
     });
 
     if (updatedCount > 0) {
-        console.log(`[関数エディタ] ボード上の${updatedCount}個の関数ノードを更新しました`);
         // 画面を再描画
         renderNodesInLayer(leftVisibleLayer, 'left');
         // memory.jsonを保存
@@ -12263,7 +11087,6 @@ async function saveFunctionEdits() {
     // エディタを閉じる
     closeFunctionEditor();
 
-    console.log(`[関数エディタ] 保存完了`);
 }
 
 /**
@@ -12276,7 +11099,6 @@ async function duplicateFunction(functionId) {
         return;
     }
 
-    console.log(`[関数複製] 開始: ${func.name}`);
 
     // 新しい関数名を入力
     const newName = await showPromptDialog(
@@ -12286,7 +11108,6 @@ async function duplicateFunction(functionId) {
     );
 
     if (!newName || newName.trim() === '') {
-        console.log('[関数複製] キャンセルされました');
         return;
     }
 
@@ -12304,7 +11125,6 @@ async function duplicateFunction(functionId) {
     // 関数リストに追加
     userFunctions.push(newFunction);
 
-    console.log(`[関数複製] 作成完了: ${newFunction.name} (${newFunction.nodes.length}ノード)`);
 
     // ファイルに保存
     await saveFunctionToFile(newFunction);
@@ -12315,7 +11135,6 @@ async function duplicateFunction(functionId) {
     // リストを再描画
     renderFunctionsList();
 
-    console.log(`[関数複製] 完了: ${func.name} → ${newFunction.name}`);
 }
 
 /**
@@ -12356,7 +11175,6 @@ async function importFunction() {
             renderFunctionsList();
 
             await showAlertDialog(`関数「${func.name}」をインポートしました。`, 'インポート完了');
-            console.log(`[関数] インポート: ${func.name}`);
         } catch (error) {
             console.error(`[関数] インポートエラー:`, error);
             await showAlertDialog('ファイルの読み込みに失敗しました。', 'インポートエラー');
@@ -12401,7 +11219,6 @@ async function expandFunctionNode(node) {
         return;
     }
 
-    console.log(`[関数] 関数ノードを展開: ${func.name}`);
 
     // 関数の内容をモーダルで表示（ピンクノードと同様）
     const functionNodes = func.nodes.map((n, index) => ({
@@ -12466,7 +11283,6 @@ async function groupizeNodes() {
         node.redBorder = false; // 赤枠を解除
     });
 
-    console.log(`[グループ化] グループ「${groupName}」を作成しました (ID: ${newGroupId}, ノード数: ${sortedNodes.length})`);
 
     // 再描画
     renderNodesInLayer(leftVisibleLayer);
@@ -12772,7 +11588,6 @@ async function ungroupNodes() {
     // グループ情報を削除
     delete userGroups[groupId];
 
-    console.log(`[グループ解除] グループ「${groupInfo.name}」を解除しました`);
 
     // 再描画
     renderNodesInLayer(leftVisibleLayer);
@@ -12799,7 +11614,6 @@ async function toggleGroupCollapse() {
     // 折りたたみ状態をトグル
     groupInfo.collapsed = !groupInfo.collapsed;
 
-    console.log(`[グループ] グループ「${groupInfo.name}」を${groupInfo.collapsed ? '折りたたみ' : '展開'}しました`);
 
     // 再描画
     renderNodesInLayer(leftVisibleLayer);
@@ -12833,7 +11647,6 @@ function restoreUserGroups(savedGroups) {
         // userGroupCounterを更新
         const maxId = Math.max(3000, ...Object.keys(userGroups).map(id => parseInt(id)));
         userGroupCounter = maxId + 1;
-        console.log(`[グループ復元] ${Object.keys(userGroups).length}個のグループを復元しました`);
     }
 }
 

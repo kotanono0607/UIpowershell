@@ -5,7 +5,6 @@ $スクリプトディレクトリ = $PSScriptRoot
 $global:jsonパス = Join-Path -Path $スクリプトディレクトリ -ChildPath "コード.json"
 
 
-
 # メイン.json のパスを設定
 #$スクリプトディレクトリ = $PSScriptRoot
 #$メインJSONパス = Join-Path -Path $スクリプトディレクトリ -ChildPath "メイン.json"
@@ -16,7 +15,6 @@ if (-not $スクリプトディレクトリ) {
     #Write-Host "スクリプトディレクトリが取得できません。スクリプトは .ps1 ファイルとして保存され、直接実行されている必要があります。"
     return
 }
-
 
 
 $メインJSONパス = "$スクリプトディレクトリ\03_history\メイン.json" 
@@ -65,10 +63,6 @@ if ($コードデータ) {
 
 
 }
-
-
-
-
 
 
 JSON初回
@@ -235,8 +229,6 @@ function IDでエントリを削除 {
 # 他の関数や設定部分は省略
 
 
-
-
 # 文字列を追加する関数（IDを指定可能）
 function エントリを追加_指定ID {
     param (
@@ -307,11 +299,7 @@ function IDでエントリを取得 {
     )
 
     # デバッグモード（環境変数で制御）
-    $DebugMode = $env:UIPOWERSHELL_DEBUG -eq "1"
 
-    if ($DebugMode) {
-        Write-Host "[DEBUG] IDでエントリを取得 - 検索ID: $ID" -ForegroundColor Yellow
-    }
 
     # JSONファイルが存在しない場合
     if (-Not (Test-Path $global:jsonパス)) {
@@ -330,9 +318,6 @@ function IDでエントリを取得 {
     if ($json内容.PSObject.Properties['エントリ']) {
         # 1. まず、そのままのIDで検索
         if ($json内容."エントリ".PSObject.Properties.Name -contains $ID) {
-            if ($DebugMode) {
-                Write-Host "[DEBUG] ✅ 直接ヒット: $ID" -ForegroundColor Green
-            }
             return $json内容."エントリ".$ID
         }
 
@@ -342,10 +327,6 @@ function IDでエントリを取得 {
         $matchingKeys = $allKeys | Where-Object { $_ -match $subIdPattern } | Sort-Object
 
         if ($matchingKeys.Count -gt 0) {
-            if ($DebugMode) {
-                Write-Host "[DEBUG] ✅ サブID検索ヒット: $($matchingKeys.Count)個のエントリを結合" -ForegroundColor Green
-                Write-Host "[DEBUG] マッチしたキー: $($matchingKeys -join ', ')" -ForegroundColor Cyan
-            }
 
             # すべてのサブIDエントリを取得して結合
             $entries = @()
@@ -358,16 +339,8 @@ function IDでエントリを取得 {
         }
 
         # 3. どちらも見つからない場合
-        if ($DebugMode) {
-            $利用可能なキー = $json内容."エントリ".PSObject.Properties.Name
-            Write-Warning "指定されたID ($ID) のエントリは存在しません。"
-            Write-Host "[DEBUG] 利用可能なキー数: $($利用可能なキー.Count)" -ForegroundColor Yellow
-        }
         return $null
     } else {
-        if ($DebugMode) {
-            Write-Host "[DEBUG] 'エントリ' プロパティが存在しません" -ForegroundColor Red
-        }
         return $null
     }
 }
@@ -402,7 +375,6 @@ function 全エントリを表示 {
 
 # エントリを削除する関数（重複定義 - この関数は既に上で定義されているため不要）
 # 注: この関数定義は185-233行目と重複しています
-
 
 
 # IDと新しい文字列を引数にエントリを置換する関数
@@ -460,8 +432,6 @@ function IDでエントリを置換 {
 
     #Write-Output "ID $ID のエントリが置換されました。"
 }
-
-
 
 
 # 自動生成バージョンのIDを生成する関数（サブIDなし）

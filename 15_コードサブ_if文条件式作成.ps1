@@ -22,11 +22,9 @@
                 $folderPath = $jsonContent."フォルダパス"
                 $JSONPath = Join-Path $folderPath "variables.json"
             } else {
-                Write-Host "[WARNING] メイン.jsonが見つかりません: $メインJsonPath" -ForegroundColor Yellow
                 $JSONPath = $null
             }
         } catch {
-            Write-Host "[WARNING] JSONPath取得エラー: $_" -ForegroundColor Yellow
             $JSONPath = $null
         }
     }
@@ -38,7 +36,6 @@
 
     # 変数リストが空の場合は空の配列を使用（情報表示のみ）
     if ($variablesList.Count -eq 0) {
-        Write-Host "情報: 単一値変数が未登録です。固定値のみ使用可能です。変数を使いたい場合は、先に変数を登録してください。" -ForegroundColor Cyan
         $variablesList = @()  # 空の配列を設定
     }
 
@@ -508,8 +505,6 @@ function Get-ArrayVariableNames {
 }
 
 
-
-
 function ShowConditionBuilder {
     param(
         [string]$JSONPath,  # 変数リストを格納したJSONファイルのパス
@@ -535,11 +530,9 @@ function ShowConditionBuilder {
                 $folderPath = $jsonContent."フォルダパス"
                 $JSONPath = Join-Path $folderPath "variables.json"
             } else {
-                Write-Host "[WARNING] メイン.jsonが見つかりません: $メインJsonPath" -ForegroundColor Yellow
                 $JSONPath = $null
             }
         } catch {
-            Write-Host "[WARNING] JSONPath取得エラー: $_" -ForegroundColor Yellow
             $JSONPath = $null
         }
     }
@@ -549,7 +542,6 @@ function ShowConditionBuilder {
 
     # 変数リストが空の場合は空の配列を使用（情報表示のみ）
     if ($variablesList.Count -eq 0) {
-        Write-Host "情報: 変数が未登録です。固定値の比較のみ可能です。変数を使いたい場合は、先に変数を登録してください。" -ForegroundColor Cyan
         $variablesList = @()  # 空の配列を設定
     }
 
