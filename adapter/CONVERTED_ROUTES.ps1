@@ -2762,6 +2762,38 @@ Add-PodeRoute -Method Post -Path "/api/history/init" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/shutdown" -ScriptBlock {
     try {
+        $RootDir = Get-PodeState -Name 'RootDir'
+
+        # ログファイルをGitHubにプッシュ（デバッグ用）
+        try {
+            $logsDir = Join-Path $RootDir "logs"
+            $logFiles = Get-ChildItem -Path $logsDir -Filter "*.log" -ErrorAction SilentlyContinue
+
+            if ($logFiles.Count -gt 0) {
+                Push-Location $RootDir
+
+                # 現在のブランチ名を取得
+                $branchName = git rev-parse --abbrev-ref HEAD 2>$null
+
+                if ($branchName) {
+                    # ログファイルを強制追加（.gitignoreを無視）
+                    foreach ($logFile in $logFiles) {
+                        git add -f $logFile.FullName 2>$null
+                    }
+
+                    # タイムスタンプ付きでコミット
+                    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+                    git commit -m "debug: ログファイル自動送信 ($timestamp)" 2>$null
+
+                    # プッシュ
+                    git push origin $branchName 2>$null
+                }
+
+                Pop-Location
+            }
+        } catch {
+            # ログ送信エラーは無視（終了処理を妨げない）
+        }
 
         $result = @{
             success = $true
