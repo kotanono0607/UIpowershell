@@ -10,7 +10,6 @@
 # （Podeのスレッド分離問題を回避するため）
 # ==============================================================================
 
-Write-Host "[CONVERTED_ROUTES.ps1] v2ファイルとAdapterファイルを読み込みます..." -ForegroundColor Cyan
 
 # RootDirを取得（Get-PodeStateから）
 $RootDir = Get-PodeState -Name 'RootDir'
@@ -37,9 +36,7 @@ foreach ($file in $v2FilesToLoad) {
     $filePath = Join-Path $RootDir $file
     if (Test-Path $filePath) {
         . $filePath
-        Write-Host "  [OK] $file" -ForegroundColor Green
     } else {
-        Write-Host "  [警告] $file が見つかりません" -ForegroundColor Yellow
     }
 }
 
@@ -50,9 +47,7 @@ foreach ($file in $adapterFiles) {
     $filePath = Join-Path $adapterDir $file
     if (Test-Path $filePath) {
         . $filePath
-        Write-Host "  [OK] $file" -ForegroundColor Green
     } else {
-        Write-Host "  [警告] $file が見つかりません" -ForegroundColor Yellow
     }
 }
 
@@ -60,12 +55,8 @@ foreach ($file in $adapterFiles) {
 $afterFunctions = Get-Command -CommandType Function -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
 $newFunctions = $afterFunctions | Where-Object { $_ -notin $beforeFunctions }
 
-Write-Host "  [デバッグ] 読み込み前の関数数: $($beforeFunctions.Count)" -ForegroundColor Yellow
-Write-Host "  [デバッグ] 読み込み後の関数数: $($afterFunctions.Count)" -ForegroundColor Yellow
-Write-Host "  [デバッグ] 新しい関数数: $($newFunctions.Count)" -ForegroundColor Yellow
 
 if ($newFunctions.Count -gt 0) {
-    Write-Host "  [情報] 新しく定義された関数をグローバルスコープにエクスポート中..." -ForegroundColor Cyan
     $exportCount = 0
     $exportedFunctions = @()
     foreach ($funcName in $newFunctions) {
@@ -77,13 +68,8 @@ if ($newFunctions.Count -gt 0) {
         }
     }
 
-    Write-Host "[CONVERTED_ROUTES.ps1] 全関数の読み込み完了！($exportCount 個の関数をグローバル化)" -ForegroundColor Green
-    Write-Host "  [デバッグ] エクスポートされた関数: $($exportedFunctions -join ', ')" -ForegroundColor Yellow
 } else {
-    Write-Host "  [警告] 新しい関数が検出されませんでした！" -ForegroundColor Red
-    Write-Host "  [警告] これはスコープ問題が発生する可能性があります" -ForegroundColor Red
 }
-Write-Host ""
 
 # ==============================================================================
 # 【重要】Podeランスペース分離問題の解決策
@@ -119,8 +105,6 @@ if (-not (Get-Command Get-VariableList_v2 -ErrorAction SilentlyContinue)) {
 $adapterDir = Split-Path -Parent $PSCommandPath
 Set-PodeState -Name 'AdapterDir' -Value $adapterDir
 
-Write-Host "[情報] Podeランスペース用の共通初期化コードを準備しました" -ForegroundColor Cyan
-Write-Host ""
 
 # ------------------------------
 # ヘルスチェック
@@ -137,7 +121,6 @@ Add-PodeRoute -Method Get -Path "/api/health" -ScriptBlock {
     Write-PodeJsonResponse -Value $result
 
     $sw.Stop()
-    Write-Host "⏱️ [API Timing] /health 処理時間: $($sw.ElapsedMilliseconds)ms" -ForegroundColor Yellow
 }
 
 # ------------------------------
@@ -187,14 +170,10 @@ Add-PodeRoute -Method Put -Path "/api/nodes" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/nodes" -ScriptBlock {
     try {
-        Write-Host "[API] POST /api/nodes - ノード追加リクエスト受信" -ForegroundColor Cyan
 
         $body = $WebEvent.Data
-        Write-Host "[API] リクエストボディの型: $($body.GetType().FullName)" -ForegroundColor Gray
-        Write-Host "[API] リクエストボディ: $($body | ConvertTo-Json -Compress)" -ForegroundColor Gray
 
         # PSCustomObject を hashtable に変換
-        Write-Host "[API] PSCustomObject を hashtable に変換中..." -ForegroundColor Gray
         $nodeHashtable = @{}
         foreach ($prop in $body.PSObject.Properties) {
             $nodeHashtable[$prop.Name] = $prop.Value
@@ -202,38 +181,28 @@ Add-PodeRoute -Method Post -Path "/api/nodes" -ScriptBlock {
 
         # idが存在しない場合は新規生成
         if (-not $nodeHashtable.ContainsKey('id') -or -not $nodeHashtable['id']) {
-            Write-Host "[API] IDが指定されていないため、新規生成します..." -ForegroundColor Gray
 
             # タイムスタンプベースのユニークIDを生成
             $timestamp = [DateTime]::Now.ToString("yyyyMMddHHmmssfff")
             $random = Get-Random -Minimum 100 -Maximum 999
             $nodeHashtable['id'] = "node-$timestamp-$random"
 
-            Write-Host "[API] 生成されたID: $($nodeHashtable['id'])" -ForegroundColor Green
         }
 
         # nameが存在しない場合は、idから生成
         if (-not $nodeHashtable.ContainsKey('name') -or -not $nodeHashtable['name']) {
             $nodeHashtable['name'] = $nodeHashtable['id']
-            Write-Host "[API] name が指定されていないため、id を使用: $($nodeHashtable['name'])" -ForegroundColor Gray
         }
 
-        Write-Host "[API] 変換後のhashtable: $($nodeHashtable | ConvertTo-Json -Compress)" -ForegroundColor Gray
 
-        Write-Host "[API] Add-Node を呼び出します..." -ForegroundColor Gray
         $result = Add-Node -Node $nodeHashtable
 
-        Write-Host "[API] Add-Node の結果: success=$($result.success)" -ForegroundColor Gray
         if ($result.success) {
-            Write-Host "[API] ✅ ノード追加成功: $($result.nodeId)" -ForegroundColor Green
         } else {
-            Write-Host "[API] ⚠️ ノード追加失敗: $($result.error)" -ForegroundColor Yellow
         }
 
         Write-PodeJsonResponse -Value $result
     } catch {
-        Write-Host "[API] ❌ エラー: $($_.Exception.Message)" -ForegroundColor Red
-        Write-Host "[API] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -249,15 +218,12 @@ Add-PodeRoute -Method Post -Path "/api/nodes" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
     try {
-        Write-Host "[API] POST /api/nodes/copy - ノードコピーリクエスト受信" -ForegroundColor Cyan
 
         $body = $WebEvent.Data
-        Write-Host "[API] リクエストボディ: $($body | ConvertTo-Json -Compress)" -ForegroundColor Gray
 
         $originalNodeId = $body.nodeId
 
         if (-not $originalNodeId) {
-            Write-Host "[API] ❌ nodeIdが指定されていません" -ForegroundColor Red
             Set-PodeResponseStatus -Code 400
             $errorResult = @{
                 success = $false
@@ -267,15 +233,12 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
             return
         }
 
-        Write-Host "[API] コピー元ノードID: $originalNodeId" -ForegroundColor Gray
 
         # 元のノードを取得（直接検索）
-        Write-Host "[API] ノードを検索中..." -ForegroundColor Gray
 
         # Get-AllNodes を使用してすべてのノードを取得
         $allNodesResult = Get-AllNodes
         if (-not $allNodesResult -or -not $allNodesResult.success) {
-            Write-Host "[API] ❌ ノード一覧の取得に失敗しました" -ForegroundColor Red
             Set-PodeResponseStatus -Code 500
             $errorResult = @{
                 success = $false
@@ -287,18 +250,15 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
 
         $allNodes = $allNodesResult.nodes
         $nodeCount = $allNodes.Count
-        Write-Host "[API] 現在のノード数: $nodeCount" -ForegroundColor Gray
 
         if ($nodeCount -gt 0) {
             $nodeIds = $allNodes | Select-Object -First 5 | ForEach-Object { $_.id }
-            Write-Host "[API] ノードID一覧（最初の5件）: $($nodeIds -join ', ')" -ForegroundColor Gray
         }
 
         # 元のノードを検索
         $sourceNode = $allNodes | Where-Object { $_.id -eq $originalNodeId }
 
         if (-not $sourceNode) {
-            Write-Host "[API] ❌ ノードが見つかりません: $originalNodeId" -ForegroundColor Red
             Set-PodeResponseStatus -Code 404
             $errorResult = @{
                 success = $false
@@ -308,15 +268,11 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
             return
         }
 
-        Write-Host "[API] 元のノード取得成功: ID=$($sourceNode.id), Name=$($sourceNode.name)" -ForegroundColor Green
 
         # 新しいIDを生成
-        Write-Host "[API] IDを自動生成する を呼び出します..." -ForegroundColor Gray
         $newId = IDを自動生成する
-        Write-Host "[API] 生成されたID: $newId" -ForegroundColor Gray
 
         if (-not $newId) {
-            Write-Host "[API] ❌ IDの生成に失敗しました" -ForegroundColor Red
             Set-PodeResponseStatus -Code 500
             $errorResult = @{
                 success = $false
@@ -327,7 +283,6 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
         }
 
         $newNodeId = "$newId-1"
-        Write-Host "[API] 新しいノードID生成: $newNodeId" -ForegroundColor Green
 
         # Y座標をオフセット（30px下に配置）
         $offsetY = 30
@@ -335,7 +290,6 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
         $newY = $originalY + $offsetY
 
         # 新しいノードを作成（元のノードのプロパティをコピー）
-        Write-Host "[API] ノードをコピー中..." -ForegroundColor Gray
 
         # hashtableとして新しいノードを作成
         $newNode = @{
@@ -354,27 +308,22 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
             関数名 = $sourceNode.関数名
         }
 
-        Write-Host "[API] 新しいノード作成: ID=$newNodeId, Y=$newY, Name=$($newNode.name)" -ForegroundColor Green
 
         # コードエントリもコピー（元のノードにコードがある場合）
         try {
             $元のコード = IDでエントリを取得 -ID $originalNodeId
             if ($元のコード) {
-                Write-Host "[API] 元のノードのコードをコピーします" -ForegroundColor Cyan
                 $コード追加結果 = エントリを追加_指定ID -文字列 $元のコード -ID $newNodeId
                 if ($コード追加結果) {
-                    Write-Host "[API] コードエントリのコピー成功" -ForegroundColor Green
                 }
             }
         } catch {
-            Write-Host "[API] ⚠️ コードエントリのコピーに失敗（スキップ）: $_" -ForegroundColor Yellow
         }
 
         # ノードを追加
         $result = Add-Node -Node $newNode
 
         if ($result.success) {
-            Write-Host "[API] ✅ ノードコピー成功: $newNodeId" -ForegroundColor Green
 
             $response = @{
                 success = $true
@@ -389,7 +338,6 @@ Add-PodeRoute -Method Post -Path "/api/nodes/copy" -ScriptBlock {
         }
 
     } catch {
-        Write-Host "[API] ❌ エラー: $_" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -419,43 +367,30 @@ Add-PodeRoute -Method Delete -Path "/api/nodes/all" -ScriptBlock {
         . (Join-Path $adapterDir "node-operations.ps1")
     }
 
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
-    Write-Host "[API] 🔥 DELETE /api/nodes/all エンドポイントが呼ばれました！" -ForegroundColor Magenta
-    Write-Host "[API] 🔍 Request.Method: $($WebEvent.Method)" -ForegroundColor Cyan
-    Write-Host "[API] 🔍 Request.Path: $($WebEvent.Path)" -ForegroundColor Cyan
 
     try {
-        Write-Host "[API] 全ノード削除リクエスト受信" -ForegroundColor Cyan
 
         $body = $WebEvent.Data
-        Write-Host "[API] JSON解析成功" -ForegroundColor Green
-        Write-Host "[API] body のプロパティ: $($body.PSObject.Properties.Name -join ', ')" -ForegroundColor Gray
 
         # $body.nodesのnullチェック
         $nodes = $body.nodes
         if ($null -eq $nodes) {
-            Write-Host "[API] ⚠️ body.nodesがnullです。空配列として処理します" -ForegroundColor Yellow
             $nodes = @()
         } else {
-            Write-Host "[API] body.nodesの型: $($nodes.GetType().FullName)" -ForegroundColor Gray
         }
 
-        Write-Host "[API] 削除対象ノード数: $($nodes.Count)" -ForegroundColor Yellow
 
         # 最初の数個のノードIDを表示
         if ($nodes.Count -gt 0) {
             $sampleIds = $nodes | Select-Object -First 3 | ForEach-Object { $_.id }
-            Write-Host "[API] サンプルノードID: $($sampleIds -join ', ')" -ForegroundColor Gray
         }
 
         # ノード配列が空でも関数を呼び出す（関数内で空チェックあり）
         $result = すべてのノードを削除_v2 -ノード配列 $nodes
 
-        Write-Host "[API] ✅ 全ノード削除完了: $($result.deleteCount)個" -ForegroundColor Green
 
         Write-PodeJsonResponse -Value $result
     } catch {
-        Write-Host "[API] ❌ エラー発生: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -532,7 +467,6 @@ Add-PodeRoute -Method Get -Path "/api/variables" -ScriptBlock {
     Write-PodeJsonResponse -Value $result
 
     $sw.Stop()
-    Write-Host "⏱️ [API Timing] /variables 処理時間: $($sw.ElapsedMilliseconds)ms" -ForegroundColor Yellow
 }
 
 # ------------------------------
@@ -693,7 +627,6 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
     }
 
     try {
-        Write-Host "[API] /api/variables/manage - 変数管理ダイアログを表示" -ForegroundColor Cyan
 
         # 現在の変数一覧を取得
         $変数一覧結果 = Get-VariableList_v2
@@ -706,7 +639,6 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
             return
         }
 
-        Write-Host "[API] 現在の変数数: $($変数一覧結果.variables.Count)" -ForegroundColor Gray
 
         # 元の変数リストを保存（比較用）
         $元の変数リスト = $変数一覧結果.variables
@@ -718,7 +650,6 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
         $ダイアログ結果 = 変数管理を表示 -変数リスト $変数一覧結果.variables
 
         if ($null -eq $ダイアログ結果) {
-            Write-Host "[API] 変数管理ダイアログがキャンセルされました" -ForegroundColor Yellow
             $result = @{
                 success = $false
                 cancelled = $true
@@ -728,7 +659,6 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
             return
         }
 
-        Write-Host "[API] ダイアログ完了 - 変数リストを比較して変更を適用します" -ForegroundColor Green
 
         # 変更を検出して適用
         $新しい変数リスト = $ダイアログ結果.variables
@@ -762,7 +692,6 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
                 $新しい値文字列 = if ($新しい値 -is [array]) { $新しい値 -join "," } else { $新しい値 }
 
                 if ($元の値文字列 -ne $新しい値文字列) {
-                    Write-Host "[API] 変数を更新: $($var.name)" -ForegroundColor Cyan
                     $updateResult = Update-Variable_v2 -Name $var.name -Value $var.value
                     if ($updateResult.success) {
                         $変更カウント.更新++
@@ -770,7 +699,6 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
                 }
             } else {
                 # 新しい変数
-                Write-Host "[API] 変数を追加: $($var.name)" -ForegroundColor Green
                 $addResult = Add-Variable_v2 -Name $var.name -Value $var.value -Type $var.type
                 if ($addResult.success) {
                     $変更カウント.追加++
@@ -781,7 +709,6 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
         # 削除を検出
         foreach ($var in $元の変数リスト) {
             if (-not $新しい変数マップ.ContainsKey($var.name)) {
-                Write-Host "[API] 変数を削除: $($var.name)" -ForegroundColor Yellow
                 $removeResult = Remove-Variable_v2 -Name $var.name
                 if ($removeResult.success) {
                     $変更カウント.削除++
@@ -789,12 +716,10 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
             }
         }
 
-        Write-Host "[API] 変更完了 - 追加:$($変更カウント.追加), 更新:$($変更カウント.更新), 削除:$($変更カウント.削除)" -ForegroundColor Green
 
         # 変更を永続化
         $exportResult = Export-VariablesToJson_v2
         if (-not $exportResult.success) {
-            Write-Host "[API] ⚠️ 変数のJSON保存に失敗: $($exportResult.error)" -ForegroundColor Yellow
         }
 
         # 成功レスポンス
@@ -808,8 +733,6 @@ Add-PodeRoute -Method Post -Path "/api/variables/manage" -ScriptBlock {
         Write-PodeJsonResponse -Value $result -Depth 5
 
     } catch {
-        Write-Host "[API] ❌ エラー: $_" -ForegroundColor Red
-        Write-Host "[API] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -904,13 +827,7 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
 
     try {
         # デバッグモード（環境変数で制御）
-        $DebugMode = $env:UIPOWERSHELL_DEBUG -eq "1"
 
-        if ($DebugMode) {
-            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-            Write-Host "[/api/execute/generate] リクエスト受信" -ForegroundColor Cyan
-            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-        }
 
         # $global:folderPath と $global:jsonパス を設定（IDでエントリを取得 で使用）
         # メイン.json からフォルダパスを読み取る
@@ -924,13 +841,9 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
                 $folderName = $mainData.フォルダパス
                 $global:folderPath = Join-Path $RootDir "03_history\$folderName"
                 $global:jsonパス = Join-Path $global:folderPath "コード.json"
-                Write-Host "[実行] フォルダパス: $global:folderPath" -ForegroundColor Gray
-                Write-Host "[実行] コード.json: $global:jsonパス" -ForegroundColor Gray
             } catch {
-                Write-Host "[実行] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
             }
         } else {
-            Write-Host "[実行] ⚠️ メイン.jsonが見つかりません: $mainJsonPath" -ForegroundColor Yellow
         }
 
         $body = $WebEvent.Data
@@ -952,7 +865,6 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
         # 全レイヤーのノード配列（関数ノードのscript取得用）
         if ($body.allNodes) {
             $global:全レイヤーノード配列 = @($body.allNodes)
-            Write-Host "[実行] 全レイヤーノード数: $($global:全レイヤーノード配列.Count)" -ForegroundColor Gray
         } else {
             $global:全レイヤーノード配列 = $nodeArray
         }
@@ -961,38 +873,16 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
         $outputPath = if ($body.outputPath) { $body.outputPath } else { $null }
         $openFile = if ($body.PSObject.Properties.Name -contains 'openFile') { [bool]$body.openFile } else { $false }
 
-        if ($DebugMode) {
-            Write-Host "[DEBUG] ノード数: $($nodeArray.Count)" -ForegroundColor Green
-        }
 
         $result = 実行イベント_v2 `
             -ノード配列 $nodeArray `
             -OutputPath $outputPath `
             -OpenFile $openFile
 
-        if ($DebugMode) {
-            Write-Host "[DEBUG] 実行イベント_v2 completed - success: $($result.success)" -ForegroundColor Green
-            if ($result.code) {
-                Write-Host "[DEBUG] コード長: $($result.code.Length) 文字" -ForegroundColor Green
-            }
-        } else {
-            # 通常モード: 簡潔なログのみ
-            Write-Host "[実行] ノード数: $($nodeArray.Count), 成功: $($result.success)" -ForegroundColor $(if ($result.success) { "Green" } else { "Red" })
-        }
 
         Write-PodeJsonResponse -Value $result
 
-        if ($DebugMode) {
-            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
-            Write-Host "[/api/execute/generate] ✅ 成功" -ForegroundColor Green
-            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
-        }
     } catch {
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Red
-        Write-Host "[/api/execute/generate] ❌ エラー発生" -ForegroundColor Red
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Red
-        Write-Host "[ERROR] Exception: $($_.Exception.Message)" -ForegroundColor Red
-        Write-Host "[ERROR] Stack trace: $($_.ScriptStackTrace)" -ForegroundColor Red
 
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
@@ -1009,7 +899,6 @@ Add-PodeRoute -Method Post -Path "/api/execute/generate" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/code-result/show" -ScriptBlock {
     try {
-        Write-Host "[API] /api/code-result/show - コード結果ダイアログを表示" -ForegroundColor Cyan
 
         $body = $WebEvent.Data
 
@@ -1021,8 +910,6 @@ Add-PodeRoute -Method Post -Path "/api/code-result/show" -ScriptBlock {
             timestamp = if ($body.timestamp) { $body.timestamp } else { Get-Date -Format "yyyy/MM/dd HH:mm:ss" }
         }
 
-        Write-Host "[API] ノード数: $($生成結果.nodeCount)" -ForegroundColor Gray
-        Write-Host "[API] コード長: $($生成結果.code.Length)文字" -ForegroundColor Gray
 
         # 共通関数ファイルを読み込み
         . (Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1")
@@ -1030,7 +917,6 @@ Add-PodeRoute -Method Post -Path "/api/code-result/show" -ScriptBlock {
         # PowerShell Windows Forms ダイアログを表示
         $ダイアログ結果 = コード結果を表示 -生成結果 $生成結果
 
-        Write-Host "[API] ✅ コード結果ダイアログ完了" -ForegroundColor Green
 
         # 成功レスポンス
         $result = @{
@@ -1041,8 +927,6 @@ Add-PodeRoute -Method Post -Path "/api/code-result/show" -ScriptBlock {
         Write-PodeJsonResponse -Value $result -Depth 5
 
     } catch {
-        Write-Host "[API] ❌ エラー: $_" -ForegroundColor Red
-        Write-Host "[API] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -1217,7 +1101,6 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
     }
 
     try {
-        Write-Host "[API] /api/folders/switch-dialog - フォルダ切替ダイアログを表示" -ForegroundColor Cyan
 
         # 現在のフォルダ一覧を取得
         $フォルダ一覧結果 = フォルダ切替イベント_v2 -FolderName "list"
@@ -1243,13 +1126,10 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
                 $mainData = $content | ConvertFrom-Json
                 # 相対パス対応: フォルダ名を直接取得
                 $現在のフォルダ = $mainData.フォルダパス
-                Write-Host "[API] 現在のフォルダ: $現在のフォルダ" -ForegroundColor Gray
             } catch {
-                Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗しました: $_" -ForegroundColor Yellow
             }
         }
 
-        Write-Host "[API] フォルダ数: $($フォルダリスト.Count)" -ForegroundColor Gray
 
         # 共通関数ファイルを読み込み
         . (Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1")
@@ -1258,7 +1138,6 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
         $ダイアログ結果 = フォルダ切替を表示 -フォルダリスト $フォルダリスト -現在のフォルダ $現在のフォルダ
 
         if ($null -eq $ダイアログ結果) {
-            Write-Host "[API] フォルダ切替ダイアログがキャンセルされました" -ForegroundColor Yellow
             $result = @{
                 success = $false
                 cancelled = $true
@@ -1268,26 +1147,20 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
             return
         }
 
-        Write-Host "[API] ダイアログ完了 - 選択されたフォルダ: $($ダイアログ結果.folderName)" -ForegroundColor Green
 
         # 新しいフォルダが作成された場合はAPI経由で作成
         if ($ダイアログ結果.newFolder) {
-            Write-Host "[API] 新しいフォルダを作成: $($ダイアログ結果.newFolder)" -ForegroundColor Cyan
             $作成結果 = フォルダ作成イベント_v2 -FolderName $ダイアログ結果.newFolder
             if (-not $作成結果.success) {
-                Write-Host "[API] ⚠️ フォルダ作成に失敗: $($作成結果.error)" -ForegroundColor Yellow
             }
         }
 
         # 選択されたフォルダが現在のフォルダと異なる場合は切り替え
         if ($ダイアログ結果.folderName -ne $現在のフォルダ) {
-            Write-Host "[API] フォルダを切り替え: $($ダイアログ結果.folderName)" -ForegroundColor Cyan
             $切替結果 = フォルダ切替イベント_v2 -FolderName $ダイアログ結果.folderName
 
             if ($切替結果.success) {
-                Write-Host "[API] ✅ フォルダ切り替え成功" -ForegroundColor Green
             } else {
-                Write-Host "[API] ❌ フォルダ切り替え失敗: $($切替結果.error)" -ForegroundColor Red
             }
 
             # 成功レスポンス
@@ -1301,7 +1174,6 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
             }
         } else {
             # 同じフォルダが選択された場合
-            Write-Host "[API] 同じフォルダが選択されました（切り替えなし）" -ForegroundColor Gray
             $result = @{
                 success = $true
                 cancelled = $false
@@ -1314,8 +1186,6 @@ Add-PodeRoute -Method Post -Path "/api/folders/switch-dialog" -ScriptBlock {
         Write-PodeJsonResponse -Value $result -Depth 5
 
     } catch {
-        Write-Host "[API] ❌ エラー: $_" -ForegroundColor Red
-        Write-Host "[API] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -1418,28 +1288,20 @@ Add-PodeRoute -Method Get -Path "/api/folders/:name/memory" -ScriptBlock {
 Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
     try {
         $folderName = $WebEvent.Parameters['name']
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-        Write-Host "[API] memory.json保存リクエスト受信" -ForegroundColor Cyan
-        Write-Host "[API] フォルダ名: $folderName" -ForegroundColor Yellow
 
         $body = $WebEvent.Data
-        Write-Host "[API] JSON解析成功" -ForegroundColor Green
 
         $layerStructure = $body.layerStructure
-        Write-Host "[API] layerStructure取得: $($layerStructure.PSObject.Properties.Name.Count) レイヤー" -ForegroundColor Gray
 
         $rootDir = Get-PodeState -Name 'RootDir'
         $folderPath = Join-Path $rootDir "03_history\$folderName"
         $memoryPath = Join-Path $folderPath "memory.json"
 
-        Write-Host "[API] 保存先パス: $memoryPath" -ForegroundColor Gray
 
         # フォルダが存在しない場合は作成
         if (-not (Test-Path $folderPath)) {
-            Write-Host "[API] フォルダを作成します: $folderPath" -ForegroundColor Yellow
             New-Item -ItemType Directory -Path $folderPath -Force | Out-Null
         } else {
-            Write-Host "[API] フォルダは既に存在します" -ForegroundColor Gray
         }
 
         # memory.json形式に変換
@@ -1478,16 +1340,13 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
             $layerEdges = $layerStructure."$i".edges
             if ($layerEdges -and $layerEdges.Count -gt 0) {
                 $memoryData["$i"] = @{ "構成" = $構成; "edges" = $layerEdges }
-                Write-Host "[API] レイヤー$i : $($構成.Count)個のノード, $($layerEdges.Count)本のエッジ" -ForegroundColor Gray
             } else {
                 $memoryData["$i"] = @{ "構成" = $構成 }
                 if ($構成.Count -gt 0) {
-                    Write-Host "[API] レイヤー$i : $($構成.Count)個のノード" -ForegroundColor Gray
                 }
             }
         }
 
-        Write-Host "[API] 合計ノード数: $totalNodes" -ForegroundColor Yellow
 
         # 履歴記録: 保存前の状態を取得
         $memoryBefore = $null
@@ -1496,18 +1355,15 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
                 $memoryBeforeContent = Get-Content $memoryPath -Raw -Encoding UTF8
                 $memoryBefore = $memoryBeforeContent | ConvertFrom-Json
             } catch {
-                Write-Host "[履歴] memory.json読み込みエラー（新規作成の可能性あり）" -ForegroundColor DarkGray
             }
         }
 
         # JSON形式で保存
         $json = $memoryData | ConvertTo-Json -Depth 10
-        Write-Host "[API] JSON生成完了 (長さ: $($json.Length) 文字)" -ForegroundColor Gray
 
         # UTF-8 without BOMで保存（文字化け防止）
         $utf8NoBom = New-Object System.Text.UTF8Encoding $false
         [System.IO.File]::WriteAllText($memoryPath, $json, $utf8NoBom)
-        Write-Host "[API] UTF-8 (BOMなし) でファイルを保存しました" -ForegroundColor Green
 
         # 履歴記録: 保存後の状態を記録
         try {
@@ -1516,7 +1372,6 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
                 $RootDir = Get-PodeState -Name 'RootDir'
                 . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
                 . (Join-Path $RootDir "17_操作履歴管理.ps1")
-                Write-Host "[履歴] ✅ 履歴管理関数を読み込みました" -ForegroundColor Green
             }
 
             Record-Operation `
@@ -1526,17 +1381,12 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
                 -MemoryBefore $memoryBefore `
                 -MemoryAfter $memoryData
         } catch {
-            Write-Host "[履歴] Record-Operationエラー: $($_.Exception.Message)" -ForegroundColor Red
         }
 
         # ファイル保存確認
         if (Test-Path $memoryPath) {
             $fileInfo = Get-Item $memoryPath
-            Write-Host "[API] ✅ ファイル保存成功" -ForegroundColor Green
-            Write-Host "[API]    ファイルサイズ: $($fileInfo.Length) バイト" -ForegroundColor Gray
-            Write-Host "[API]    最終更新時刻: $($fileInfo.LastWriteTime)" -ForegroundColor Gray
         } else {
-            Write-Host "[API] ❌ ファイル保存失敗" -ForegroundColor Red
         }
 
         $result = @{
@@ -1547,10 +1397,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/memory" -ScriptBlock {
         }
         Write-PodeJsonResponse -Value $result
 
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     } catch {
-        Write-Host "[API] ❌ エラー発生: $($_.Exception.Message)" -ForegroundColor Red
-        Write-Host "[API] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
 
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
@@ -1577,7 +1424,6 @@ Add-PodeRoute -Method Get -Path "/api/folders/:name/code" -ScriptBlock {
             # ✅ 修正: JSON読み込み後、LF(\n) を CRLF(\r\n) に変換
             # ConvertFrom-Jsonは既に\nを実際のLF文字に変換しているため、LF→CRLFの変換が必要
             if ($codeData."エントリ") {
-                Write-Host "[GET /code] 🔧 改行文字の正規化を開始（LF → CRLF）..." -ForegroundColor Yellow
                 $convertedCount = 0
                 foreach ($key in $codeData."エントリ".PSObject.Properties.Name) {
                     $originalValue = $codeData."エントリ".$key
@@ -1588,11 +1434,9 @@ Add-PodeRoute -Method Get -Path "/api/folders/:name/code" -ScriptBlock {
                         if ($newValue -ne $originalValue) {
                             $codeData."エントリ".$key = $newValue
                             $convertedCount++
-                            Write-Host "[GET /code]   - [$key] LF→CRLF変換: $($originalValue.Length)文字 → $($newValue.Length)文字" -ForegroundColor DarkGray
                         }
                     }
                 }
-                Write-Host "[GET /code] ✅ $convertedCount 個のエントリで改行を正規化しました" -ForegroundColor Green
             }
 
             $result = @{
@@ -1630,32 +1474,24 @@ Add-PodeRoute -Method Get -Path "/api/folders/:name/code" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/folders/:name/code" -ScriptBlock {
     try {
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-        Write-Host "[API] コード.json保存リクエスト受信" -ForegroundColor Cyan
 
         $folderName = $WebEvent.Parameters['name']
-        Write-Host "[API] フォルダ名: $folderName" -ForegroundColor Yellow
 
         $body = $WebEvent.Data
-        Write-Host "[API] ✅ ConvertFrom-Json完了" -ForegroundColor Green
 
         if ($null -eq $body) {
-            Write-Host "[API] ❌ エラー: bodyがnullです" -ForegroundColor Red
             throw "リクエストボディが空です"
         }
 
-        Write-Host "[API] bodyの内容: $($body | ConvertTo-Json -Compress -Depth 2)" -ForegroundColor Yellow
 
         $codeData = $body.codeData
         if ($null -eq $codeData) {
-            Write-Host "[API] ❌ エラー: codeDataがnullです" -ForegroundColor Red
             throw "codeDataが見つかりません"
         }
 
         # ✅ 修正: JSON読み込み後、LF(\n) を CRLF(\r\n) に変換
         # ConvertFrom-Jsonは既に\nを実際のLF文字に変換しているため、LF→CRLFの変換が必要
         if ($codeData."エントリ") {
-            Write-Host "[API] 🔧 改行文字の正規化を開始（LF → CRLF）..." -ForegroundColor Yellow
             $convertedCount = 0
             foreach ($key in $codeData."エントリ".PSObject.Properties.Name) {
                 $originalValue = $codeData."エントリ".$key
@@ -1666,49 +1502,34 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/code" -ScriptBlock {
                     if ($newValue -ne $originalValue) {
                         $codeData."エントリ".$key = $newValue
                         $convertedCount++
-                        Write-Host "[API]   - [$key] LF→CRLF変換: $($originalValue.Length)文字 → $($newValue.Length)文字" -ForegroundColor DarkGray
                     }
                 }
             }
-            Write-Host "[API] ✅ $convertedCount 個のエントリで改行を正規化しました" -ForegroundColor Green
         }
 
-        Write-Host "[API] ✅ codeDataを取得しました" -ForegroundColor Green
-        Write-Host "[API] codeDataの内容: $($codeData | ConvertTo-Json -Compress -Depth 2)" -ForegroundColor Yellow
 
         $rootDir = Get-PodeState -Name 'RootDir'
         $folderPath = Join-Path $rootDir "03_history\$folderName"
         $codePath = Join-Path $folderPath "コード.json"
 
-        Write-Host "[API] 保存先パス: $codePath" -ForegroundColor Yellow
-        Write-Host "[API] フォルダパス: $folderPath" -ForegroundColor Yellow
 
         # フォルダが存在しない場合は作成
         if (-not (Test-Path $folderPath)) {
-            Write-Host "[API] フォルダが存在しないため作成します" -ForegroundColor Magenta
             New-Item -ItemType Directory -Path $folderPath -Force | Out-Null
         } else {
-            Write-Host "[API] フォルダは既に存在します" -ForegroundColor Green
         }
 
         # JSON形式で保存
         $json = $codeData | ConvertTo-Json -Depth 10
-        Write-Host "[API] JSON生成完了 (長さ: $($json.Length) 文字)" -ForegroundColor Yellow
-        Write-Host "[API] JSON内容の最初の200文字: $($json.Substring(0, [Math]::Min(200, $json.Length)))" -ForegroundColor Gray
 
         # UTF-8 without BOMで保存（文字化け防止）
         $utf8NoBom = New-Object System.Text.UTF8Encoding $false
         [System.IO.File]::WriteAllText($codePath, $json, $utf8NoBom)
-        Write-Host "[API] UTF-8 (BOMなし) でファイルを保存しました" -ForegroundColor Green
 
         # 保存確認
         if (Test-Path $codePath) {
             $fileInfo = Get-Item $codePath
-            Write-Host "[API] ✅ ファイル保存成功" -ForegroundColor Green
-            Write-Host "[API]    ファイルサイズ: $($fileInfo.Length) バイト" -ForegroundColor Green
-            Write-Host "[API]    最終更新時刻: $($fileInfo.LastWriteTime)" -ForegroundColor Green
         } else {
-            Write-Host "[API] ❌ ファイル保存後に存在確認失敗" -ForegroundColor Red
         }
 
         $result = @{
@@ -1719,10 +1540,7 @@ Add-PodeRoute -Method Post -Path "/api/folders/:name/code" -ScriptBlock {
         }
         Write-PodeJsonResponse -Value $result
 
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     } catch {
-        Write-Host "[API] ❌ エラー発生: $($_.Exception.Message)" -ForegroundColor Red
-        Write-Host "[API] スタックトレース: $($_.Exception.StackTrace)" -ForegroundColor Red
 
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
@@ -1835,7 +1653,6 @@ Add-PodeRoute -Method Post -Path "/api/id/generate" -ScriptBlock {
             $global:folderPath = Join-Path $RootDir "03_history\$folderName"
             $global:jsonパス = Join-Path $global:folderPath "コード.json"
         } catch {
-            Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
         }
     }
 
@@ -1879,7 +1696,6 @@ Add-PodeRoute -Method Post -Path "/api/entry/add" -ScriptBlock {
             $global:folderPath = Join-Path $RootDir "03_history\$folderName"
             $global:jsonパス = Join-Path $global:folderPath "コード.json"
         } catch {
-            Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
         }
     }
 
@@ -1932,7 +1748,6 @@ Add-PodeRoute -Method Get -Path "/api/entry/:id" -ScriptBlock {
             $global:folderPath = Join-Path $RootDir "03_history\$folderName"
             $global:jsonパス = Join-Path $global:folderPath "コード.json"
         } catch {
-            Write-Host "[API] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
         }
     }
 
@@ -2046,7 +1861,6 @@ Add-PodeRoute -Method Get -Path "/api/node/functions" -ScriptBlock {
 Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock {
     try {
         $functionName = $WebEvent.Parameters['functionName']
-        Write-Host "[ノード関数実行] 関数名: $functionName" -ForegroundColor Cyan
 
         # RootDirを取得してグローバル変数に設定（関数内で使用するため）
         $RootDir = Get-PodeState -Name 'RootDir'
@@ -2057,7 +1871,6 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         $fileName = $functionName -replace '_', '-'
         $scriptPath = Join-Path $RootDir "00_code\$fileName.ps1"
 
-        Write-Host "[ノード関数実行] スクリプトパス: $scriptPath" -ForegroundColor Gray
 
         if (-not (Test-Path $scriptPath)) {
             Set-PodeResponseStatus -Code 404
@@ -2070,26 +1883,19 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         }
 
         # スクリプトを読み込み
-        Write-Host "[ノード関数実行] 📂 ファイルを読み込み中..." -ForegroundColor Yellow
-        Write-Host "[ノード関数実行] 📄 ファイルパス: $scriptPath" -ForegroundColor Gray
-        Write-Host "[ノード関数実行] ⏰ ファイル更新日時: $((Get-Item $scriptPath).LastWriteTime)" -ForegroundColor Gray
 
         # ファイル内容をプレビュー表示（デバッグ用）
         $fileContent = Get-Content $scriptPath -Raw
         $preview = $fileContent.Substring(0, [Math]::Min(200, $fileContent.Length))
-        Write-Host "[ノード関数実行] 📝 ファイルプレビュー (先頭200文字):" -ForegroundColor Gray
-        Write-Host $preview -ForegroundColor DarkGray
 
         # 汎用関数を読み込み（13_コードサブ汎用関数.ps1）
         $汎用関数パス = Join-Path $RootDir "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
             . $汎用関数パス
-            Write-Host "[ノード関数実行] ✅ 汎用関数を読み込みました" -ForegroundColor Green
         }
 
         # スクリプトのディレクトリを取得（$PSScriptRoot の置換に使用）
         $scriptDir = Split-Path -Parent $scriptPath
-        Write-Host "[ノード関数実行] 📁 スクリプトディレクトリ: $scriptDir" -ForegroundColor Cyan
 
         # スクリプトを読み込み（エンコーディング自動判定）
         # まず UTF-8 で試して、失敗したら Default (Shift-JIS) で試す
@@ -2099,9 +1905,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             # UTF-8 で試す
             $scriptContent = Get-Content -Path $scriptPath -Raw -Encoding UTF8
             $scriptLoaded = $true
-            Write-Host "[ノード関数実行] ✅ スクリプト読み込み完了 (UTF-8)" -ForegroundColor Green
         } catch {
-            Write-Host "[ノード関数実行] UTF-8での読み込みに失敗、Default エンコーディングで再試行..." -ForegroundColor Yellow
         }
 
         if (-not $scriptLoaded) {
@@ -2109,7 +1913,6 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
                 # Default (Shift-JIS) で試す
                 $scriptContent = Get-Content -Path $scriptPath -Raw -Encoding Default
                 $scriptLoaded = $true
-                Write-Host "[ノード関数実行] ✅ スクリプト読み込み完了 (Default/Shift-JIS)" -ForegroundColor Green
             } catch {
                 throw "スクリプトの読み込みに失敗しました: $_"
             }
@@ -2119,7 +1922,6 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         # PowerShell の自動変数 $PSScriptRoot は Invoke-Expression では動作しないため
         $scriptDirEscaped = $scriptDir -replace '\\', '\\'
         $scriptContent = $scriptContent -replace '\$PSScriptRoot', "'$scriptDirEscaped'"
-        Write-Host "[ノード関数実行] 🔄 `$PSScriptRoot を '$scriptDir' で置換" -ForegroundColor Cyan
 
         # スクリプトを実行して関数を定義
         Invoke-Expression $scriptContent
@@ -2132,11 +1934,9 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             $bodyJson.PSObject.Properties | ForEach-Object {
                 $params[$_.Name] = $_.Value
             }
-            Write-Host "[ノード関数実行] パラメータ: $($params | ConvertTo-Json -Compress)" -ForegroundColor Gray
         }
 
         # 関数を実行（UI関数用にSTAアパートメントで実行）
-        Write-Host "[ノード関数実行] 🚀 関数 '$functionName' を実行中..." -ForegroundColor Yellow
 
         # STA runspace を作成（WPF UIに必要）
         $runspace = [runspacefactory]::CreateRunspace()
@@ -2165,14 +1965,9 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
                 # $global:JSONPath を設定（8-1等で変数管理に使用）
                 $JSONPath = Join-Path $folderPath "variables.json"
                 $runspace.SessionStateProxy.SetVariable('global:JSONPath', $JSONPath)
-                Write-Host "[ノード関数実行] 📁 フォルダパス設定: $folderPath" -ForegroundColor Gray
-                Write-Host "[ノード関数実行] 📄 コード.json パス: $jsonパス" -ForegroundColor Gray
-                Write-Host "[ノード関数実行] 📊 variables.json パス: $JSONPath" -ForegroundColor Gray
             } catch {
-                Write-Host "[ノード関数実行] ⚠️ メイン.jsonの読み込みに失敗: $_" -ForegroundColor Yellow
             }
         } else {
-            Write-Host "[ノード関数実行] ⚠️ メイン.jsonが見つかりません: $mainJsonPath" -ForegroundColor Yellow
         }
 
         # PowerShell インスタンスを作成
@@ -2192,13 +1987,10 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             $result = $ps.Invoke()
             if ($ps.HadErrors) {
                 $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
-                Write-Host "[ノード関数実行] ⚠️ 汎用関数の読み込みでエラー: $errorMsg" -ForegroundColor Yellow
                 $ps.Streams.Error.Clear()
             }
             $ps.Commands.Clear()
-            Write-Host "[ノード関数実行] ✅ STA runspace に汎用関数を読み込みました" -ForegroundColor Green
         } else {
-            Write-Host "[ノード関数実行] ⚠️ 汎用関数が見つかりません: $汎用関数パス" -ForegroundColor Yellow
         }
 
         # Excel関数を読み込み（8-1ノード等で使用）
@@ -2213,11 +2005,9 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             $result = $ps.Invoke()
             if ($ps.HadErrors) {
                 $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
-                Write-Host "[ノード関数実行] ⚠️ Excel関数の読み込みでエラー: $errorMsg" -ForegroundColor Yellow
                 $ps.Streams.Error.Clear()
             }
             $ps.Commands.Clear()
-            Write-Host "[ノード関数実行] ✅ STA runspace にExcel関数を読み込みました" -ForegroundColor Green
         }
 
         # JSON操作ユーティリティを読み込み（Read-JsonSafe, Write-JsonSafe等）
@@ -2232,11 +2022,9 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             $result = $ps.Invoke()
             if ($ps.HadErrors) {
                 $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
-                Write-Host "[ノード関数実行] ⚠️ JSON操作ユーティリティの読み込みでエラー: $errorMsg" -ForegroundColor Yellow
                 $ps.Streams.Error.Clear()
             }
             $ps.Commands.Clear()
-            Write-Host "[ノード関数実行] ✅ STA runspace にJSON操作ユーティリティを読み込みました" -ForegroundColor Green
         }
 
         # 変数管理関数を読み込み（8-1ノード等で使用）
@@ -2251,11 +2039,9 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             $result = $ps.Invoke()
             if ($ps.HadErrors) {
                 $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
-                Write-Host "[ノード関数実行] ⚠️ 変数管理関数の読み込みでエラー: $errorMsg" -ForegroundColor Yellow
                 $ps.Streams.Error.Clear()
             }
             $ps.Commands.Clear()
-            Write-Host "[ノード関数実行] ✅ STA runspace に変数管理関数を読み込みました" -ForegroundColor Green
         }
 
         # PowerShell プロファイルを読み込み（デバッグ表示、ウインドウハンドルでアクティブにする等の依存関数）
@@ -2271,7 +2057,6 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         $profileLoaded = $false
         foreach ($profilePath in $profilePaths) {
             if (Test-Path $profilePath) {
-                Write-Host "[ノード関数実行] 📄 プロファイル候補: $profilePath" -ForegroundColor Gray
                 try {
                     # エンコーディング自動判定
                     try {
@@ -2284,25 +2069,19 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
                     $result = $ps.Invoke()
                     if ($ps.HadErrors) {
                         $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
-                        Write-Host "[ノード関数実行] ⚠️ プロファイル読み込みでエラー: $errorMsg" -ForegroundColor Yellow
                         $ps.Streams.Error.Clear()
                     } else {
-                        Write-Host "[ノード関数実行] ✅ PowerShell プロファイルを読み込みました: $profilePath" -ForegroundColor Green
                         $profileLoaded = $true
                     }
                     $ps.Commands.Clear()
                     break
                 } catch {
-                    Write-Host "[ノード関数実行] ⚠️ プロファイル読み込み失敗: $profilePath - $_" -ForegroundColor Yellow
                 }
             }
         }
 
         if (-not $profileLoaded) {
-            Write-Host "[ノード関数実行] ⚠️ PowerShell プロファイルが見つかりませんでした" -ForegroundColor Yellow
-            Write-Host "[ノード関数実行] 確認したパス:" -ForegroundColor Yellow
             foreach ($path in $profilePaths) {
-                Write-Host "  - $path" -ForegroundColor Gray
             }
         }
 
@@ -2311,11 +2090,9 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         $result = $ps.Invoke()
         if ($ps.HadErrors) {
             $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
-            Write-Host "[ノード関数実行] ⚠️ スクリプト定義でエラー: $errorMsg" -ForegroundColor Yellow
             $ps.Streams.Error.Clear()
         }
         $ps.Commands.Clear()
-        Write-Host "[ノード関数実行] ✅ STA runspace にノード関数を定義しました" -ForegroundColor Green
 
         # 関数を実行
         $ps.AddCommand($functionName)
@@ -2343,12 +2120,10 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             $runspace.Dispose()
         }
 
-        Write-Host "[ノード関数実行] ✅ 関数実行完了" -ForegroundColor Green
 
         # $codeが$nullの場合、またはキャンセル文字列の場合はキャンセル扱い
         $isCancel = ($null -eq $code) -or ($code -eq "# キャンセルされました")
         if ($isCancel) {
-            Write-Host "[ノード関数実行] ⚠️ ユーザーがキャンセルしました" -ForegroundColor Yellow
             $result = @{
                 success = $false
                 cancelled = $true
@@ -2357,9 +2132,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
                 error = "ユーザーがキャンセルしました"
             }
         } else {
-            Write-Host "[ノード関数実行] 📤 生成されたコード (先頭200文字):" -ForegroundColor Gray
             $codePreview = $code.Substring(0, [Math]::Min(200, $code.Length))
-            Write-Host $codePreview -ForegroundColor DarkGray
 
             $result = @{
                 success = $true
@@ -2374,7 +2147,6 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
 
             # 警告: コードに "---" が含まれる場合、複数エントリに分割される
             if ($code -match '---') {
-                Write-Host "[ノード関数実行] ⚠️ コードに '---' セパレータが含まれています。複数エントリに分割されます" -ForegroundColor Yellow
             }
 
             # コードID管理関数の初期化（未読み込みの場合のみ）
@@ -2382,15 +2154,11 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
                 $RootDir = Get-PodeState -Name 'RootDir'
                 . (Join-Path $RootDir "00_共通ユーティリティ_JSON操作.ps1")
                 . (Join-Path $RootDir "09_変数機能_コードID管理JSON.ps1")
-                Write-Host "[ノード関数実行] ✅ コードID管理関数を読み込みました" -ForegroundColor Green
             }
 
             try {
                 $savedId = エントリを追加_指定ID -文字列 $code -ID $parentId
-                Write-Host "[ノード関数実行] ✅ コードを保存しました: 親ID=$parentId (エントリID=$parentId-1)" -ForegroundColor Green
             } catch {
-                Write-Host "[ノード関数実行] ⚠️ コードの保存に失敗しました: $($_.Exception.Message)" -ForegroundColor Yellow
-                Write-Host "[ノード関数実行] スタックトレース: $($_.ScriptStackTrace)" -ForegroundColor Red
             }
         }
 
@@ -2403,9 +2171,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             error = $_.Exception.Message
             stackTrace = $_.ScriptStackTrace
         }
-        Write-Host "[ノード関数実行エラー] $($_.Exception.Message)" -ForegroundColor Red
         if ($_.ScriptStackTrace) {
-            Write-Host "[ノード関数実行エラー] 発生場所 $($_.ScriptStackTrace)" -ForegroundColor Red
         }
         Write-PodeJsonResponse -Value $errorResult -Depth 5
     }
@@ -2416,30 +2182,23 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/node/edit-script" -ScriptBlock {
     try {
-        Write-Host "[スクリプト編集] リクエスト受信" -ForegroundColor Cyan
 
         $body = $WebEvent.Data
         $nodeId = $body.nodeId
         $nodeName = $body.nodeName
         $currentScript = $body.currentScript
 
-        Write-Host "[スクリプト編集] ノードID: $nodeId, ノード名: $nodeName" -ForegroundColor Gray
-        Write-Host "[スクリプト編集] 現在のスクリプト長: $($currentScript.Length)文字" -ForegroundColor Gray
-        Write-Host "[スクリプト編集] 現在のスクリプト内容: [$currentScript]" -ForegroundColor Gray
 
         # ✅ 修正: JSON読み込み後、LF(\n) を CRLF(\r\n) に変換
         # ConvertFrom-Jsonは既に\nを実際のLF文字に変換しているため、LF→CRLFの変換が必要
         if ($currentScript) {
-            Write-Host "[スクリプト編集] 🔧 改行文字の正規化を開始（LF → CRLF）..." -ForegroundColor Yellow
             $originalLength = $currentScript.Length
             # LF(\n)のみをCRLF(\r\n)に変換（既にCRLFの場合は変更なし）
             # まず既存のCRLFをプレースホルダーに置換し、LFをCRLFに変換してから戻す
             $currentScript = $currentScript -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
             $newLength = $currentScript.Length
             if ($newLength -ne $originalLength) {
-                Write-Host "[スクリプト編集] ✅ 改行を正規化しました: $originalLength 文字 → $newLength 文字" -ForegroundColor Green
             } else {
-                Write-Host "[スクリプト編集] ✅ 改行の正規化は不要でした（既にCRLF）" -ForegroundColor Green
             }
         }
 
@@ -2447,18 +2206,15 @@ Add-PodeRoute -Method Post -Path "/api/node/edit-script" -ScriptBlock {
         $汎用関数パス = Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
             . $汎用関数パス
-            Write-Host "[スクリプト編集] ✅ 汎用関数を読み込みました" -ForegroundColor Green
         } else {
             throw "汎用関数ファイルが見つかりません: $汎用関数パス"
         }
 
         # PowerShell Windows Formsダイアログを表示
-        Write-Host "[スクリプト編集] 📝 編集ダイアログを表示します..." -ForegroundColor Cyan
         $editedScript = 複数行テキストを編集 -フォームタイトル "スクリプト編集 - $nodeName" -ラベルテキスト "スクリプトを編集してください:" -初期テキスト $currentScript
 
         if ($null -eq $editedScript) {
             # キャンセルされた
-            Write-Host "[スクリプト編集] ⚠️ ユーザーがキャンセルしました" -ForegroundColor Yellow
             $result = @{
                 success = $false
                 cancelled = $true
@@ -2466,7 +2222,6 @@ Add-PodeRoute -Method Post -Path "/api/node/edit-script" -ScriptBlock {
             }
         } else {
             # 編集成功
-            Write-Host "[スクリプト編集] ✅ 編集完了（長さ: $($editedScript.Length)文字）" -ForegroundColor Green
             $result = @{
                 success = $true
                 cancelled = $false
@@ -2483,7 +2238,6 @@ Add-PodeRoute -Method Post -Path "/api/node/edit-script" -ScriptBlock {
             error = $_.Exception.Message
             stackTrace = $_.ScriptStackTrace
         }
-        Write-Host "[スクリプト編集エラー] $($_.Exception.Message)" -ForegroundColor Red
         Write-PodeJsonResponse -Value $errorResult -Depth 5
     }
 }
@@ -2493,7 +2247,6 @@ Add-PodeRoute -Method Post -Path "/api/node/edit-script" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/node/settings" -ScriptBlock {
     try {
-        Write-Host "[ノード設定] リクエスト受信" -ForegroundColor Cyan
 
         $body = $WebEvent.Data
 
@@ -2521,24 +2274,20 @@ Add-PodeRoute -Method Post -Path "/api/node/settings" -ScriptBlock {
             $ノード情報.loopVariable = $body.loopVariable
         }
 
-        Write-Host "[ノード設定] ノードID: $($ノード情報.id), 処理番号: $($ノード情報.処理番号)" -ForegroundColor Gray
 
         # 汎用関数を読み込み（ノード設定を編集）
         $汎用関数パス = Join-Path (Get-PodeState -Name 'RootDir') "13_コードサブ汎用関数.ps1"
         if (Test-Path $汎用関数パス) {
             . $汎用関数パス
-            Write-Host "[ノード設定] ✅ 汎用関数を読み込みました" -ForegroundColor Green
         } else {
             throw "汎用関数ファイルが見つかりません: $汎用関数パス"
         }
 
         # PowerShell Windows Formsダイアログを表示
-        Write-Host "[ノード設定] 📝 設定ダイアログを表示します..." -ForegroundColor Cyan
         $編集結果 = ノード設定を編集 -ノード情報 $ノード情報
 
         if ($null -eq $編集結果) {
             # キャンセルされた
-            Write-Host "[ノード設定] ⚠️ ユーザーがキャンセルしました" -ForegroundColor Yellow
             $result = @{
                 success = $false
                 cancelled = $true
@@ -2546,7 +2295,6 @@ Add-PodeRoute -Method Post -Path "/api/node/settings" -ScriptBlock {
             }
         } else {
             # 編集成功
-            Write-Host "[ノード設定] ✅ 編集完了" -ForegroundColor Green
             $result = @{
                 success = $true
                 cancelled = $false
@@ -2563,7 +2311,6 @@ Add-PodeRoute -Method Post -Path "/api/node/settings" -ScriptBlock {
             error = $_.Exception.Message
             stackTrace = $_.ScriptStackTrace
         }
-        Write-Host "[ノード設定エラー] $($_.Exception.Message)" -ForegroundColor Red
         Write-PodeJsonResponse -Value $errorResult -Depth 5
     }
 }
@@ -2612,7 +2359,6 @@ Add-PodeRoute -Method Post -Path "/api/browser-logs" -ScriptBlock {
         Write-PodeJsonResponse -Value $result
 
     } catch {
-        Write-Host "[ブラウザログAPI] エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -2641,7 +2387,6 @@ Add-PodeRoute -Method Post -Path "/api/control-log" -ScriptBlock {
         Write-PodeJsonResponse -Value $result
 
     } catch {
-        Write-Host "[コントロールログAPI] エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -2839,12 +2584,10 @@ Add-PodeRoute -Method Get -Path "/api/history/status" -ScriptBlock {
             $folderName = $mainData.フォルダパス
             $folderPath = Join-Path $RootDir "03_history\$folderName"
 
-            Write-Host "[履歴API] フォルダパス: $folderPath" -ForegroundColor Cyan
 
             # Get-HistoryStatus関数を使用（Pode Runspace分離対策）
             $result = Get-HistoryStatus -FolderPath $folderPath
 
-            Write-Host "[履歴API] Get-HistoryStatus結果: totalCount=$($result.totalCount), position=$($result.position), canUndo=$($result.canUndo)" -ForegroundColor Cyan
 
             # レスポンス形式をフロントエンドに合わせる
             $responseData = @{
@@ -2855,7 +2598,6 @@ Add-PodeRoute -Method Get -Path "/api/history/status" -ScriptBlock {
                 count = $result.totalCount
             }
 
-            Write-Host "[履歴API] レスポンス: count=$($responseData.count), position=$($responseData.position)" -ForegroundColor Cyan
 
             Write-PodeJsonResponse -Value $responseData
         } else {
@@ -2911,11 +2653,9 @@ Add-PodeRoute -Method Post -Path "/api/history/undo" -ScriptBlock {
         # Undo実行
         $result = Undo-Operation -FolderPath $folderPath
 
-        Write-Host "[履歴API] Undo結果: success=$($result.success), position=$($result.position)" -ForegroundColor Cyan
 
         Write-PodeJsonResponse -Value $result
 
-        Write-Host "[履歴API] Undoレスポンス送信完了" -ForegroundColor Green
 
     } catch {
         Set-PodeResponseStatus -Code 500
@@ -2959,11 +2699,9 @@ Add-PodeRoute -Method Post -Path "/api/history/redo" -ScriptBlock {
         # Redo実行
         $result = Redo-Operation -FolderPath $folderPath
 
-        Write-Host "[履歴API] Redo結果: success=$($result.success), position=$($result.position)" -ForegroundColor Cyan
 
         Write-PodeJsonResponse -Value $result
 
-        Write-Host "[履歴API] Redoレスポンス送信完了" -ForegroundColor Green
 
     } catch {
         Set-PodeResponseStatus -Code 500
@@ -3024,7 +2762,6 @@ Add-PodeRoute -Method Post -Path "/api/history/init" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Post -Path "/api/shutdown" -ScriptBlock {
     try {
-        Write-Host "[API] アプリケーション終了リクエストを受信しました" -ForegroundColor Yellow
 
         $result = @{
             success = $true
@@ -3041,7 +2778,6 @@ Add-PodeRoute -Method Post -Path "/api/shutdown" -ScriptBlock {
         } -ArgumentList $currentPID | Out-Null
 
         # サーバーを終了
-        Write-Host "[API] サーバーを終了します..." -ForegroundColor Yellow
         Close-PodeServer
 
     } catch {
@@ -3129,7 +2865,6 @@ Add-PodeRoute -Method Post -Path "/api/robot-profile" -ScriptBlock {
         $json = $profile | ConvertTo-Json -Depth 10
         $json | Out-File -FilePath $profilePath -Encoding UTF8 -Force
 
-        Write-Host "[API] ロボットプロファイルを保存しました: $profilePath" -ForegroundColor Green
 
         $result = @{
             success = $true
@@ -3162,7 +2897,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/browse" -ScriptBlock {
         # 外部スクリプトのパス
         $dialogScript = Join-Path $adapterDir "excel-file-dialog.ps1"
 
-        Write-Host "[Excel接続] ファイル選択ダイアログを起動: $dialogScript" -ForegroundColor Cyan
 
         # 外部プロセスでダイアログを実行（STAモード必須）
         $process = Start-Process -FilePath "powershell.exe" -ArgumentList @(
@@ -3173,7 +2907,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/browse" -ScriptBlock {
             "-OutputPath", $tempFile
         ) -Wait -PassThru -WindowStyle Hidden
 
-        Write-Host "[Excel接続] ダイアログプロセス終了コード: $($process.ExitCode)" -ForegroundColor Cyan
 
         # 結果ファイルを読み込み
         if (Test-Path $tempFile) {
@@ -3183,7 +2916,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/browse" -ScriptBlock {
             # 一時ファイルを削除
             Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
 
-            Write-Host "[Excel接続] ファイル選択結果: $($result.filePath)" -ForegroundColor Green
 
             # ハッシュテーブルに変換して返す
             $response = @{
@@ -3196,7 +2928,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/browse" -ScriptBlock {
             throw "ダイアログ結果ファイルが見つかりません"
         }
     } catch {
-        Write-Host "[Excel接続] エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -3212,7 +2943,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/sheets" -ScriptBlock {
         $body = $WebEvent.Data
         $filePath = $body.filePath
 
-        Write-Host "[Excel接続] シート一覧取得開始: $filePath" -ForegroundColor Cyan
 
         if (-not $filePath -or -not (Test-Path $filePath)) {
             throw "ファイルが見つかりません: $filePath"
@@ -3227,7 +2957,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/sheets" -ScriptBlock {
         # 外部スクリプトのパス
         $sheetsScript = Join-Path $adapterDir "excel-get-sheets.ps1"
 
-        Write-Host "[Excel接続] シート取得スクリプトを起動: $sheetsScript" -ForegroundColor Cyan
 
         # 外部プロセスでシート一覧を取得
         $process = Start-Process -FilePath "powershell.exe" -ArgumentList @(
@@ -3238,7 +2967,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/sheets" -ScriptBlock {
             "-OutputPath", $tempFile
         ) -Wait -PassThru -WindowStyle Hidden
 
-        Write-Host "[Excel接続] シート取得プロセス終了コード: $($process.ExitCode)" -ForegroundColor Cyan
 
         # 結果ファイルを読み込み
         if (Test-Path $tempFile) {
@@ -3249,7 +2977,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/sheets" -ScriptBlock {
             Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
 
             if ($result.success) {
-                Write-Host "[Excel接続] シート一覧: $($result.sheets -join ', ')" -ForegroundColor Green
                 $response = @{
                     success = $true
                     sheets = @($result.sheets)
@@ -3262,7 +2989,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/sheets" -ScriptBlock {
             throw "シート取得結果ファイルが見つかりません"
         }
     } catch {
-        Write-Host "[Excel接続] シート取得エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -3297,7 +3023,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
         # 外部スクリプトのパス
         $readScript = Join-Path $adapterDir "excel-read-data.ps1"
 
-        Write-Host "[Excel接続] データ読み込みスクリプトを起動: $readScript" -ForegroundColor Cyan
 
         # 外部プロセスでデータを読み込み
         $process = Start-Process -FilePath "powershell.exe" -ArgumentList @(
@@ -3309,7 +3034,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
             "-OutputPath", $tempFile
         ) -Wait -PassThru -WindowStyle Hidden
 
-        Write-Host "[Excel接続] データ読み込みプロセス終了コード: $($process.ExitCode)" -ForegroundColor Cyan
 
         # 結果ファイルを読み込み
         if (Test-Path $tempFile) {
@@ -3325,7 +3049,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
                 $colCount = $excelResult.colCount
                 $headers = @($excelResult.headers)
 
-                Write-Host "[Excel接続] 読み込み完了: $rowCount 行 x $colCount 列" -ForegroundColor Green
 
                 # 変数ファイルに保存
                 $folderInfo = Get-Content (Join-Path $RootDir "03_history\メイン.json") -Encoding UTF8 | ConvertFrom-Json
@@ -3357,7 +3080,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
                     $global:variables = @{}
                 }
                 $global:variables[$variableName] = $data
-                Write-Host "[Excel接続] グローバル変数を更新: $variableName (${rowCount}行 x ${colCount}列)" -ForegroundColor Green
 
                 # データ全体を返すと接続がタイムアウトするため、統計情報のみ返す
                 $result = @{
@@ -3368,7 +3090,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
                     variableName = $variableName
                 }
 
-                Write-Host "[Excel接続] レスポンス送信: $($result | ConvertTo-Json -Compress)" -ForegroundColor Green
                 Write-PodeJsonResponse -Value $result
             } else {
                 throw $excelResult.error
@@ -3377,7 +3098,6 @@ Add-PodeRoute -Method Post -Path "/api/excel/connect" -ScriptBlock {
             throw "データ読み込み結果ファイルが見つかりません"
         }
     } catch {
-        Write-Host "[Excel接続] エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -3400,7 +3120,6 @@ Add-PodeRoute -Method Get -Path '/api/connection' -ScriptBlock {
         $currentFolder = $WebEvent.Query['folder']
 
         if (-not $currentFolder) {
-            Write-Host "[接続情報取得] フォルダが指定されていません" -ForegroundColor Yellow
             $result = @{
                 success = $true
                 data = $null
@@ -3410,17 +3129,14 @@ Add-PodeRoute -Method Get -Path '/api/connection' -ScriptBlock {
         }
 
         $connectionPath = Join-Path $RootDir "03_history\$currentFolder\connection.json"
-        Write-Host "[接続情報取得] フォルダ: $currentFolder, パス: $connectionPath" -ForegroundColor Cyan
 
         if (Test-Path $connectionPath) {
             $connectionData = Get-Content $connectionPath -Encoding UTF8 -Raw | ConvertFrom-Json
-            Write-Host "[接続情報取得] データ読み込み成功" -ForegroundColor Green
             $result = @{
                 success = $true
                 data = $connectionData
             }
         } else {
-            Write-Host "[接続情報取得] ファイルが存在しません" -ForegroundColor Yellow
             $result = @{
                 success = $true
                 data = $null
@@ -3430,7 +3146,6 @@ Add-PodeRoute -Method Get -Path '/api/connection' -ScriptBlock {
         Write-PodeJsonResponse -Value $result
     }
     catch {
-        Write-Host "[接続情報取得] エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false
@@ -3450,7 +3165,6 @@ Add-PodeRoute -Method Post -Path '/api/connection' -ScriptBlock {
         $currentFolder = $body.folder
 
         if (-not $currentFolder) {
-            Write-Host "[接続情報保存] フォルダが指定されていません" -ForegroundColor Yellow
             Set-PodeResponseStatus -Code 400
             $errorResult = @{
                 success = $false
@@ -3461,7 +3175,6 @@ Add-PodeRoute -Method Post -Path '/api/connection' -ScriptBlock {
         }
 
         $connectionPath = Join-Path $RootDir "03_history\$currentFolder\connection.json"
-        Write-Host "[接続情報保存] フォルダ: $currentFolder, パス: $connectionPath" -ForegroundColor Cyan
 
         # 接続情報を保存（folderキーは除外して保存）
         $saveData = @{
@@ -3469,7 +3182,6 @@ Add-PodeRoute -Method Post -Path '/api/connection' -ScriptBlock {
         }
         $saveData | ConvertTo-Json -Depth 10 | Out-File -FilePath $connectionPath -Encoding UTF8 -Force
 
-        Write-Host "[接続情報保存] 保存完了" -ForegroundColor Green
 
         $result = @{
             success = $true
@@ -3477,7 +3189,6 @@ Add-PodeRoute -Method Post -Path '/api/connection' -ScriptBlock {
         Write-PodeJsonResponse -Value $result
     }
     catch {
-        Write-Host "[接続情報保存] エラー: $($_.Exception.Message)" -ForegroundColor Red
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
             success = $false

@@ -54,12 +54,10 @@ function Initialize-HistoryStack {
                 $global:CurrentHistoryPosition = $historyData.CurrentHistoryPosition
                 $global:MaxHistoryCount = if ($historyData.MaxHistoryCount) { $historyData.MaxHistoryCount } else { 50 }
 
-                Write-Host "[操作履歴] 履歴を読み込みました: $($global:HistoryStack.Count)件" -ForegroundColor Cyan
             } else {
                 # ファイルは存在するがデータが空
                 $global:HistoryStack = @()
                 $global:CurrentHistoryPosition = 0
-                Write-Host "[操作履歴] 新規履歴スタックを作成しました" -ForegroundColor Green
             }
         } else {
             # 新規作成
@@ -73,7 +71,6 @@ function Initialize-HistoryStack {
             }
 
             Write-JsonSafe -Path $historyPath -Data $initialData -Depth 10 -Silent $false
-            Write-Host "[操作履歴] 新規履歴ファイルを作成しました: $historyPath" -ForegroundColor Green
         }
 
         return @{
@@ -159,7 +156,6 @@ function Record-Operation {
         # 現在の位置より後ろの履歴を削除（Redo分岐を破棄）
         if ($global:CurrentHistoryPosition -lt $global:HistoryStack.Count) {
             $global:HistoryStack = $global:HistoryStack[0..($global:CurrentHistoryPosition - 1)]
-            Write-Host "[操作履歴] Redo分岐を削除しました" -ForegroundColor Yellow
         }
 
         # ===== 差分抽出処理 =====
@@ -234,7 +230,6 @@ function Record-Operation {
                 }
             }
 
-            Write-Host "[操作履歴] 変更されたレイヤー: $($affectedLayers -join ', ')" -ForegroundColor Cyan
         }
 
         # コード差分も同様に処理
@@ -271,7 +266,6 @@ function Record-Operation {
             $deleteCount = $global:HistoryStack.Count - $global:MaxHistoryCount
             $global:HistoryStack = $global:HistoryStack[$deleteCount..($global:HistoryStack.Count - 1)]
             $global:CurrentHistoryPosition = $global:HistoryStack.Count
-            Write-Host "[操作履歴] 古い履歴 $deleteCount 件を削除しました" -ForegroundColor Yellow
         }
 
         # history.jsonに保存
@@ -285,7 +279,6 @@ function Record-Operation {
 
         Write-JsonSafe -Path $historyPath -Data $historyData -Depth 10 -Silent $true
 
-        Write-Host "[操作履歴] 操作を記録: $Description (位置: $global:CurrentHistoryPosition, 影響レイヤー: $($affectedLayers.Count))" -ForegroundColor Green
 
         return @{
             success = $true
@@ -331,7 +324,6 @@ function Undo-Operation {
         $historyPath = Join-Path $FolderPath 'history.json'
 
         if (-not (Test-Path $historyPath)) {
-            Write-Host "[操作履歴] history.jsonが見つかりません" -ForegroundColor Yellow
             return @{
                 success = $false
                 error = "履歴ファイルが見つかりません"
@@ -359,7 +351,6 @@ function Undo-Operation {
 
         # Undo可能かチェック
         if ($currentPosition -le 0) {
-            Write-Host "[操作履歴] これ以上Undoできません" -ForegroundColor Yellow
             return @{
                 success = $false
                 error = "Undo不可: 履歴の最初です"
@@ -398,23 +389,19 @@ function Undo-Operation {
                 }
 
                 Write-JsonSafe -Path $memoryPath -Data $currentMemory -Depth 10 -Silent $true | Out-Null
-                Write-Host "[操作履歴] memory.jsonを差分復元しました (レイヤー: $($currentOp.affectedLayers -join ', '))" -ForegroundColor Cyan
             }
 
             # コード差分の復元
             if ($currentOp.codeDiff -and $currentOp.codeDiff.before) {
                 Write-JsonSafe -Path $codePath -Data $currentOp.codeDiff.before -Depth 10 -Silent $true | Out-Null
-                Write-Host "[操作履歴] コード.jsonを差分復元しました" -ForegroundColor Cyan
             }
         }
         # ===== 旧形式（v1形式）との互換性 =====
         elseif ($currentOp.memory_before) {
             Write-JsonSafe -Path $memoryPath -Data $currentOp.memory_before -Depth 10 -Silent $true | Out-Null
-            Write-Host "[操作履歴] memory.jsonを復元しました (旧形式)" -ForegroundColor Cyan
 
             if ($currentOp.code_before) {
                 Write-JsonSafe -Path $codePath -Data $currentOp.code_before -Depth 10 -Silent $true | Out-Null
-                Write-Host "[操作履歴] コード.jsonを復元しました (旧形式)" -ForegroundColor Cyan
             }
         }
 
@@ -430,7 +417,6 @@ function Undo-Operation {
         }
         Write-JsonSafe -Path $historyPath -Data $updatedHistoryData -Depth 10 -Silent $true | Out-Null
 
-        Write-Host "[操作履歴] Undo実行: $($currentOp.description) (位置: $currentPosition)" -ForegroundColor Green
 
         return @{
             success = $true
@@ -479,7 +465,6 @@ function Redo-Operation {
         $historyPath = Join-Path $FolderPath 'history.json'
 
         if (-not (Test-Path $historyPath)) {
-            Write-Host "[操作履歴] history.jsonが見つかりません" -ForegroundColor Yellow
             return @{
                 success = $false
                 error = "履歴ファイルが見つかりません"
@@ -506,7 +491,6 @@ function Redo-Operation {
 
         # Redo可能かチェック
         if ($currentPosition -ge $historyStack.Count) {
-            Write-Host "[操作履歴] これ以上Redoできません" -ForegroundColor Yellow
             return @{
                 success = $false
                 error = "Redo不可: 履歴の最後です"
@@ -545,23 +529,19 @@ function Redo-Operation {
                 }
 
                 Write-JsonSafe -Path $memoryPath -Data $currentMemory -Depth 10 -Silent $true | Out-Null
-                Write-Host "[操作履歴] memory.jsonを差分復元しました (レイヤー: $($nextOp.affectedLayers -join ', '))" -ForegroundColor Cyan
             }
 
             # コード差分の復元
             if ($nextOp.codeDiff -and $nextOp.codeDiff.after) {
                 Write-JsonSafe -Path $codePath -Data $nextOp.codeDiff.after -Depth 10 -Silent $true | Out-Null
-                Write-Host "[操作履歴] コード.jsonを差分復元しました" -ForegroundColor Cyan
             }
         }
         # ===== 旧形式（v1形式）との互換性 =====
         elseif ($nextOp.memory_after) {
             Write-JsonSafe -Path $memoryPath -Data $nextOp.memory_after -Depth 10 -Silent $true | Out-Null
-            Write-Host "[操作履歴] memory.jsonを復元しました (旧形式)" -ForegroundColor Cyan
 
             if ($nextOp.code_after) {
                 Write-JsonSafe -Path $codePath -Data $nextOp.code_after -Depth 10 -Silent $true | Out-Null
-                Write-Host "[操作履歴] コード.jsonを復元しました (旧形式)" -ForegroundColor Cyan
             }
         }
 
@@ -576,7 +556,6 @@ function Redo-Operation {
         }
         Write-JsonSafe -Path $historyPath -Data $updatedHistoryData -Depth 10 -Silent $true | Out-Null
 
-        Write-Host "[操作履歴] Redo実行: $($nextOp.description) (位置: $currentPosition)" -ForegroundColor Green
 
         return @{
             success = $true
@@ -721,7 +700,6 @@ function Clear-HistoryStack {
 
         Write-JsonSafe -Path $historyPath -Data $historyData -Depth 10 -Silent $false
 
-        Write-Host "[操作履歴] 履歴をクリアしました" -ForegroundColor Green
 
         return @{
             success = $true

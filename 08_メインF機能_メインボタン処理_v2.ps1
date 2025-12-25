@@ -147,7 +147,6 @@ function 実行イベント_v2 {
         # 全レイヤーノード配列が設定されていればそれを使用（関数ノード展開用）
         if ($global:全レイヤーノード配列 -and $global:全レイヤーノード配列.Count -gt 0) {
             $global:現在のノード配列 = $global:全レイヤーノード配列
-            Write-Host "[実行イベント_v2] 全レイヤーノード配列を使用: $($global:全レイヤーノード配列.Count)個" -ForegroundColor Cyan
         } else {
             $global:現在のノード配列 = $ノード配列
         }
@@ -161,7 +160,6 @@ function 実行イベント_v2 {
         }
 
         # デバッグモード（環境変数で制御）
-        $DebugMode = $env:UIPOWERSHELL_DEBUG -eq "1"
 
         # Y座標でソート（配列として強制）
         $buttons = @($ノード配列 | Sort-Object { $_.y })
@@ -171,9 +169,6 @@ function 実行イベント_v2 {
 
         # ボタンの総数を取得
         $buttonCount = $buttons.Count
-        if ($DebugMode) {
-            Write-Host "ノードカウント: $buttonCount"
-        }
 
         # 最後に見つかったGreenボタンの親IDを格納
         $lastGreenParentId = $null
@@ -187,64 +182,32 @@ function 実行イベント_v2 {
             $colorName = if ($button.color) { $button.color } elseif ($button.BackColor) { $button.BackColor } else { "White" }
 
             # デバッグ: Aquamarineノードのscript確認
-            if ($DebugMode -and $colorName -eq "Aquamarine") {
-                Write-Host "[DEBUG] Aquamarineノード検出: $buttonName" -ForegroundColor Cyan
-                Write-Host "[DEBUG]   script存在: $(if ($button.script) { 'あり (' + $button.script.Substring(0, [Math]::Min(50, $button.script.Length)) + '...)' } else { 'なし' })" -ForegroundColor Cyan
-                Write-Host "[DEBUG]   全プロパティ: $($button | ConvertTo-Json -Compress)" -ForegroundColor Yellow
-            }
 
             # ボタン情報をコンソールに出力（デバッグモードのみ）
-            if ($DebugMode) {
-                $buttonInfo = "ノード名: $buttonName, テキスト: $buttonText, 色: $colorName"
-                Write-Host $buttonInfo
-            }
 
             # ノードIDをそのまま使用（例: "5-1", "6-1"）
             # コード.jsonのキーは "1-1", "6-1" などのノードID形式で保存されている
             $id = $buttonName
-            if ($DebugMode) {
-                Write-Host "[DEBUG] ノードIDをそのまま使用: $id" -ForegroundColor Cyan
-            }
 
             # エントリを取得（まずノードIDそのままで検索）
             try {
                 $取得したエントリ = IDでエントリを取得 -ID $id
-                if ($DebugMode) {
-                    Write-Host "[DEBUG] ノードID '$id' で検索結果: $(if ($取得したエントリ) { '見つかりました' } else { '見つかりません' })" -ForegroundColor Cyan
-                }
 
                 # 見つからない場合は "-1" を追加して再検索
                 if ([string]::IsNullOrWhiteSpace($取得したエントリ)) {
                     $idWithSuffix = "$id-1"
-                    if ($DebugMode) {
-                        Write-Host "[DEBUG] ノードID '$id' で見つからないため、'$idWithSuffix' で再検索..." -ForegroundColor Yellow
-                    }
                     $取得したエントリ = IDでエントリを取得 -ID $idWithSuffix
-                    if ($DebugMode) {
-                        Write-Host "[DEBUG] ノードID '$idWithSuffix' で検索結果: $(if ($取得したエントリ) { '見つかりました' } else { '見つかりません' })" -ForegroundColor Cyan
-                    }
                     if ($取得したエントリ) {
                         $id = $idWithSuffix
-                        if ($DebugMode) {
-                            Write-Host "[DEBUG] 使用するID: $id" -ForegroundColor Green
-                        }
                     }
                 }
 
-                if ($取得したエントリ -and $DebugMode) {
-                    Write-Host "取得したエントリ: $取得したエントリ"
-                }
             } catch {
-                Write-Host "[ERROR] IDでエントリを取得に失敗: $($_.Exception.Message)" -ForegroundColor Red
                 $取得したエントリ = $null
             }
 
             # Pinkノードの場合はscriptプロパティを優先的に使用（ID不整合問題を回避）
             if ($colorName -eq "Pink" -and $button.script) {
-                if ($DebugMode) {
-                    Write-Host "[Pinkノード] scriptプロパティを優先使用" -ForegroundColor Magenta
-                    Write-Host "[Pinkノード] script内容: $($button.script)" -ForegroundColor Magenta
-                }
 
                 # scriptがノードリスト形式か直接コード形式かを判定
                 # ノードリスト形式:
@@ -254,29 +217,20 @@ function 実行イベント_v2 {
                 $isNodeListFormat = ($button.script -match "^AAAA") -or ($button.script -match "^[\w\-]+;[\w]+;[^;]*;")
 
                 if ($isNodeListFormat) {
-                    if ($DebugMode) { Write-Host "[Pinkノード] ノードリスト形式を検出 → 展開処理" -ForegroundColor Magenta }
 
                     # 既にAAAAで始まっている場合はそのまま、そうでなければAAAAを付加
                     if ($button.script -match "^AAAA") {
                         # "_" を改行に置換（フロントエンドでの区切り文字対応）
                         $ノードリスト文字列 = $button.script -replace "_", "`n"
-                        if ($DebugMode) { Write-Host "[Pinkノード] AAAA形式をそのまま使用" -ForegroundColor Magenta }
                     } else {
                         # scriptプロパティからノードリスト文字列を生成（AAAA形式に変換）
                         $scriptContent = $button.script -replace "_", "`n"
                         $ノードリスト文字列 = "AAAA`n$scriptContent"
-                        if ($DebugMode) { Write-Host "[Pinkノード] AAAA形式に変換" -ForegroundColor Magenta }
                     }
-                    if ($DebugMode) { Write-Host "[Pinkノード] 生成したノードリスト: $ノードリスト文字列" -ForegroundColor Magenta }
 
                     # ノードリストを展開
                     $取得したエントリ = ノードリストを展開 -ノードリスト文字列 $ノードリスト文字列
-                    if ($DebugMode) {
-                        Write-Host "[Pinkノード] 展開後の内容: $取得したエントリ" -ForegroundColor Magenta
-                        Write-Host "[Pinkノード] 展開後の長さ: $($取得したエントリ.Length) 文字" -ForegroundColor Magenta
-                    }
                 } else {
-                    if ($DebugMode) { Write-Host "[Pinkノード] 直接コード形式を検出 → そのまま出力" -ForegroundColor Magenta }
                     # 直接コード形式の場合はそのまま使用
                     $取得したエントリ = $button.script
                 }
@@ -291,37 +245,24 @@ function 実行イベント_v2 {
             }
             # 関数ノード（Aquamarine）の場合はPinkノードと同様にscriptプロパティを使用
             elseif ($colorName -eq "Aquamarine" -and $button.script) {
-                if ($DebugMode) {
-                    Write-Host "[関数ノード] scriptプロパティを優先使用" -ForegroundColor Cyan
-                    Write-Host "[関数ノード] script内容: $($button.script)" -ForegroundColor Cyan
-                }
 
                 # scriptがノードリスト形式か直接コード形式かを判定
                 # ノードリスト形式: "ID;色;テキスト;" パターン（例: "26-1;White;順次;_27-1;White;順次;"）
                 $isNodeListFormat = ($button.script -match "^AAAA") -or ($button.script -match "^[\w\-]+;[\w]+;[^;]*;")
 
                 if ($isNodeListFormat) {
-                    if ($DebugMode) { Write-Host "[関数ノード] ノードリスト形式を検出 → 展開処理" -ForegroundColor Cyan }
 
                     # 既にAAAAで始まっている場合はそのまま、そうでなければAAAAを付加
                     if ($button.script -match "^AAAA") {
                         $ノードリスト文字列 = $button.script -replace "_", "`n"
-                        if ($DebugMode) { Write-Host "[関数ノード] AAAA形式をそのまま使用" -ForegroundColor Cyan }
                     } else {
                         $scriptContent = $button.script -replace "_", "`n"
                         $ノードリスト文字列 = "AAAA`n$scriptContent"
-                        if ($DebugMode) { Write-Host "[関数ノード] AAAA形式に変換" -ForegroundColor Cyan }
                     }
-                    if ($DebugMode) { Write-Host "[関数ノード] 生成したノードリスト: $ノードリスト文字列" -ForegroundColor Cyan }
 
                     # ノードリストを展開
                     $取得したエントリ = ノードリストを展開 -ノードリスト文字列 $ノードリスト文字列
-                    if ($DebugMode) {
-                        Write-Host "[関数ノード] 展開後の内容: $取得したエントリ" -ForegroundColor Cyan
-                        Write-Host "[関数ノード] 展開後の長さ: $($取得したエントリ.Length) 文字" -ForegroundColor Cyan
-                    }
                 } else {
-                    if ($DebugMode) { Write-Host "[関数ノード] 直接コード形式を検出 → そのまま出力" -ForegroundColor Cyan }
                     $取得したエントリ = $button.script
                 }
 
@@ -334,24 +275,15 @@ function 実行イベント_v2 {
                 $output += "$headerComment$取得したエントリ`r`n$footerComment`r`n"
             } elseif ($取得したエントリ -ne $null -and $取得したエントリ -ne "") {
                 # エントリの内容をコンソールに出力（デバッグモードのみ）
-                if ($DebugMode) {
-                    Write-Host "エントリID: $id`n内容:`n$取得したエントリ`n"
-                }
 
                 # エントリが "AAAA" で始まる場合は展開（Pinkノード）
                 $isPinkExpanded = $false
                 if ($取得したエントリ -match "^AAAA") {
-                    Write-Host "[Pinkノード展開] ★展開開始: $取得したエントリ" -ForegroundColor Magenta
                     $取得したエントリ = ノードリストを展開 -ノードリスト文字列 $取得したエントリ
-                    Write-Host "[Pinkノード展開] ★展開後: $($取得したエントリ.Length) 文字" -ForegroundColor Magenta
-                    Write-Host "[Pinkノード展開] ★内容: $取得したエントリ" -ForegroundColor Magenta
                     $isPinkExpanded = $true
                 }
 
                 # エントリの内容のみを$outputに追加（空行を追加）
-                if ($DebugMode) {
-                    Write-Host "[出力追加] outputに追加中: 長さ=$($取得したエントリ.Length) 文字" -ForegroundColor Cyan
-                }
                 # 改行コードの正規化: LF → CRLF（既にCRLFの場合は保持）
                 $取得したエントリ = $取得したエントリ -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
 
@@ -370,14 +302,7 @@ function 実行イベント_v2 {
                     $nodeComment = New-NodeComment -NodeType $nodeType -NodeText $buttonText -NodeId $buttonName -GroupId $groupIdValue -Layer $layerValue
                     $output += "$nodeComment$取得したエントリ`r`n`r`n"
                 }
-                if ($DebugMode) {
-                    Write-Host "[出力追加] 追加後のoutput長: $($output.Length) 文字" -ForegroundColor Cyan
-                }
             } else {
-                if ($DebugMode) {
-                    Write-Host "[WARNING] エントリが見つかりません: ノードID=$buttonName, ベースID=$id" -ForegroundColor Yellow
-                    Write-Host "[WARNING] このノードはスキップされます" -ForegroundColor Yellow
-                }
             }
 
             # 現在のノードがGreenの場合、lastGreenParentIdを更新
@@ -426,7 +351,6 @@ function 実行イベント_v2 {
         try {
             # -Value パラメータを使用して明示的に書き込む（改行を保持）
             Set-Content -Path $OutputPath -Value $output -Force -Encoding UTF8
-            Write-Host "出力をファイルに書き込みました: $OutputPath"
         }
         catch {
             return @{
@@ -439,7 +363,6 @@ function 実行イベント_v2 {
         if ($OpenFile) {
             try {
                 Start-Process -FilePath "powershell_ise.exe" -ArgumentList $OutputPath -NoNewWindow
-                Write-Host "PowerShell ISEでファイルを開きました"
             }
             catch {
                 Write-Warning "ファイルを開く際にエラーが発生しました: $($_.Exception.Message)"
@@ -447,19 +370,9 @@ function 実行イベント_v2 {
         }
 
         # 最終的なレスポンスデータのログ出力
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
-        Write-Host "[実行イベント完了] レスポンス情報:" -ForegroundColor Green
-        Write-Host "  success: $true" -ForegroundColor Green
-        Write-Host "  nodeCount: $buttonCount" -ForegroundColor Green
-        Write-Host "  outputPath: $OutputPath" -ForegroundColor Green
-        Write-Host "  output長: $($output.Length) 文字" -ForegroundColor Green
-        Write-Host "  outputが空: $([string]::IsNullOrWhiteSpace($output))" -ForegroundColor Green
         if ($output.Length -gt 0) {
-            Write-Host "  output先頭200文字: $($output.Substring(0, [Math]::Min(200, $output.Length)))" -ForegroundColor Green
         } else {
-            Write-Host "  ⚠ output が空です！" -ForegroundColor Yellow
         }
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
 
         return @{
             success = $true
@@ -803,7 +716,6 @@ function ノードリストを展開 {
     # 最大再帰深度（無限ループ防止）
     $最大再帰深度 = 10
     if ($再帰深度 -ge $最大再帰深度) {
-        Write-Host "[ノードリスト展開] ⚠️ 最大再帰深度 ($最大再帰深度) に達しました。循環参照の可能性があります。" -ForegroundColor Red
         return ""
     }
 
@@ -813,12 +725,7 @@ function ノードリストを展開 {
     }
 
     # デバッグモード（環境変数で制御）
-    $DebugMode = $env:UIPOWERSHELL_DEBUG -eq "1"
 
-    if ($DebugMode) {
-        Write-Host "=== ノードリスト展開開始 (深度: $再帰深度) ===" -ForegroundColor Magenta
-        Write-Host "入力: $ノードリスト文字列" -ForegroundColor Gray
-    }
 
     # "AAAA" を除去
     $ノードリスト文字列 = $ノードリスト文字列 -replace "^AAAA\s*", ""
@@ -826,9 +733,6 @@ function ノードリストを展開 {
     # 行ごとに分割
     $lines = $ノードリスト文字列 -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
 
-    if ($DebugMode) {
-        Write-Host "ノード数: $($lines.Count)" -ForegroundColor Gray
-    }
 
     $output = ""
 
@@ -840,11 +744,9 @@ function ノードリストを展開 {
             $nodeColor = if ($parts.Count -ge 2) { $parts[1].Trim() } else { "" }
             $nodeText = if ($parts.Count -ge 3) { $parts[2].Trim() } else { "" }
 
-            Write-Host "[ノードリスト展開] 処理中: ID=$nodeId, 色=$nodeColor, テキスト=$nodeText (深度: $再帰深度)" -ForegroundColor Gray
 
             # 循環参照チェック
             if ($処理済みID.Contains($nodeId)) {
-                Write-Host "[ノードリスト展開] ⚠️ 循環参照検出: ID=$nodeId は既に処理済み（スキップ）" -ForegroundColor Red
                 continue
             }
 
@@ -853,7 +755,6 @@ function ノードリストを展開 {
 
             # Aquamarineノード（関数ノード）の場合
             if ($nodeColor -eq "Aquamarine") {
-                Write-Host "[ノードリスト展開] 関数ノード検出: $nodeId" -ForegroundColor Cyan
 
                 $aquamarineScript = $null
 
@@ -866,13 +767,11 @@ function ノードリストを展開 {
                     if ($embeddedScript -and $embeddedScript.Trim() -ne "") {
                         # |を_にデコード
                         $aquamarineScript = $embeddedScript -replace "\|", "_"
-                        Write-Host "[ノードリスト展開] 埋め込みscriptを復元: $($aquamarineScript.Substring(0, [Math]::Min(80, $aquamarineScript.Length)))..." -ForegroundColor Cyan
                     }
                 }
 
                 # 埋め込みscriptがない場合、グローバル配列から検索（フォールバック）
                 if (-not $aquamarineScript -and $global:現在のノード配列) {
-                    Write-Host "[ノードリスト展開] 埋め込みscriptなし → グローバル配列から検索" -ForegroundColor Yellow
 
                     $aquamarineNode = $global:現在のノード配列 | Where-Object {
                         $nid = if ($_.id) { $_.id } elseif ($_.name) { $_.name } else { "" }
@@ -881,7 +780,6 @@ function ノードリストを展開 {
 
                     if ($aquamarineNode -and $aquamarineNode.script) {
                         $aquamarineScript = $aquamarineNode.script
-                        Write-Host "[ノードリスト展開] グローバル配列からscript取得成功" -ForegroundColor Cyan
                     }
                 }
 
@@ -890,7 +788,6 @@ function ノードリストを展開 {
                     $scriptContent = $aquamarineScript -replace "_", "`n"
                     $ノードリスト文字列 = "AAAA`n$scriptContent"
 
-                    Write-Host "[ノードリスト展開] 関数ノードを再帰展開 (深度: $($再帰深度 + 1))" -ForegroundColor Cyan
                     $entry = ノードリストを展開 -ノードリスト文字列 $ノードリスト文字列 -処理済みID $処理済みID -再帰深度 ($再帰深度 + 1)
 
                     # 改行コードの正規化
@@ -901,7 +798,6 @@ function ノードリストを展開 {
                     $footerComment = "# [関数終了] $nodeText (ID: $nodeId)`r`n"
                     $output += "$headerComment$entry`r`n$footerComment"
                 } else {
-                    Write-Host "[ノードリスト展開] ⚠️ 関数ノード '$nodeId' のscriptが見つかりません（スキップ）" -ForegroundColor Yellow
                 }
                 continue  # 次のノードへ
             }
@@ -912,11 +808,9 @@ function ノードリストを展開 {
             # 見つからない場合は "-1" を追加して再検索
             if ([string]::IsNullOrWhiteSpace($entry)) {
                 $nodeIdWithSuffix = "$nodeId-1"
-                Write-Host "[ノードリスト展開] ID '$nodeId' で見つからない → '$nodeIdWithSuffix' で再検索" -ForegroundColor Yellow
 
                 # 循環参照チェック（-1付きバージョン）
                 if ($処理済みID.Contains($nodeIdWithSuffix)) {
-                    Write-Host "[ノードリスト展開] ⚠️ 循環参照検出: ID=$nodeIdWithSuffix は既に処理済み（スキップ）" -ForegroundColor Red
                     continue
                 }
 
@@ -924,16 +818,13 @@ function ノードリストを展開 {
                 if ($entry) {
                     $nodeId = $nodeIdWithSuffix
                     [void]$処理済みID.Add($nodeIdWithSuffix)
-                    Write-Host "[ノードリスト展開] '$nodeIdWithSuffix' で見つかりました" -ForegroundColor Green
                 }
             }
 
             if ($entry -ne $null -and $entry -ne "") {
-                Write-Host "[ノードリスト展開] エントリ取得成功: $($entry.Substring(0, [Math]::Min(50, $entry.Length)))..." -ForegroundColor Gray
 
                 # エントリが "AAAA" で始まる場合は再帰的に展開
                 if ($entry -match "^AAAA") {
-                    Write-Host "[ノードリスト展開] AAAA検出 → 再帰的に展開 (深度: $($再帰深度 + 1))" -ForegroundColor Magenta
                     $entry = ノードリストを展開 -ノードリスト文字列 $entry -処理済みID $処理済みID -再帰深度 ($再帰深度 + 1)
                 }
 
@@ -955,17 +846,12 @@ function ノードリストを展開 {
             } else {
                 # エントリが見つからない場合の処理
                 if ($nodeColor -eq "Pink") {
-                    Write-Host "[ノードリスト展開] ⚠️ Pinkノード '$nodeId' のエントリが見つかりません（スキップ）" -ForegroundColor Yellow
                 } else {
-                    Write-Host "[ノードリスト展開] ⚠️ エントリが見つかりません: $nodeId（スキップ）" -ForegroundColor Yellow
                 }
             }
         }
     }
 
-    if ($DebugMode) {
-        Write-Host "=== ノードリスト展開完了 (深度: $再帰深度) ===" -ForegroundColor Magenta
-    }
     return $output
 }
 
