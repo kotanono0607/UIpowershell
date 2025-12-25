@@ -1900,18 +1900,18 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
     try {
         $functionName = $WebEvent.Parameters['functionName']
 
-        # リクエストログ（デバッグ用）
-        try {
-            $logDir = Join-Path (Get-PodeState -Name 'RootDir') "logs"
-            $dateStr = Get-Date -Format "yyyyMMdd"
-            $requestLogFile = Join-Path $logDir "api-requests_$dateStr.log"
-            $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
-            $bodyPreview = if ($WebEvent.Data) { ($WebEvent.Data | ConvertTo-Json -Compress).Substring(0, [Math]::Min(200, ($WebEvent.Data | ConvertTo-Json -Compress).Length)) } else { "(empty)" }
-            $logEntry = "[$timestamp] [REQUEST] /api/node/execute/$functionName Body: $bodyPreview"
-            Add-Content -Path $requestLogFile -Value $logEntry -Encoding UTF8
-        } catch {
-            # リクエストログのエラーは無視
+        # デバッグログ関数
+        $logDir = Join-Path (Get-PodeState -Name 'RootDir') "logs"
+        $dateStr = Get-Date -Format "yyyyMMdd"
+        $debugLogFile = Join-Path $logDir "api-debug_$dateStr.log"
+
+        function Write-DebugStep {
+            param([string]$Step)
+            $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
+            Add-Content -Path $debugLogFile -Value "[$ts] [STEP] $Step" -Encoding UTF8
         }
+
+        Write-DebugStep "1. Request received: /api/node/execute/$functionName"
 
         # RootDirを取得してグローバル変数に設定（関数内で使用するため）
         $RootDir = Get-PodeState -Name 'RootDir'
@@ -1922,6 +1922,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         $fileName = $functionName -replace '_', '-'
         $scriptPath = Join-Path $RootDir "00_code\$fileName.ps1"
 
+        Write-DebugStep "2. Script path: $scriptPath"
 
         if (-not (Test-Path $scriptPath)) {
             Set-PodeResponseStatus -Code 404
@@ -1976,7 +1977,9 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         $scriptContent = $scriptContent -replace '\$PSScriptRoot', "'$scriptDirEscaped'"
 
         # スクリプトを実行して関数を定義
+        Write-DebugStep "3. Executing script to define function"
         Invoke-Expression $scriptContent
+        Write-DebugStep "4. Function defined successfully"
 
         # リクエストボディを取得
         $params = @{}
@@ -1989,6 +1992,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         }
 
         # 関数を実行（UI関数用にSTAアパートメントで実行）
+        Write-DebugStep "5. Creating STA runspace"
 
         # STA runspace を作成（WPF UIに必要）
         $runspace = [runspacefactory]::CreateRunspace()
@@ -2149,6 +2153,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
         $ps.Commands.Clear()
 
         # 関数を実行
+        Write-DebugStep "6. Executing function: $functionName"
         $ps.AddCommand($functionName)
         if ($params.Count -gt 0) {
             $ps.AddParameters($params)
@@ -2156,6 +2161,7 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
 
         try {
             $code = $ps.Invoke()
+            Write-DebugStep "7. Function executed, processing result"
             if ($ps.HadErrors) {
                 $errorMsg = ($ps.Streams.Error | ForEach-Object { $_.ToString() }) -join "`n"
                 throw "関数実行中にエラーが発生しました: $errorMsg"
@@ -2215,9 +2221,12 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             }
         }
 
+        Write-DebugStep "8. Sending response"
         Write-PodeJsonResponse -Value $result -Depth 5
+        Write-DebugStep "9. Response sent successfully"
 
     } catch {
+        Write-DebugStep "ERROR: $($_.Exception.Message)"
         Write-ApiErrorLog -Endpoint "/api/node/execute/$functionName" -ErrorRecord $_
         Set-PodeResponseStatus -Code 500
         $errorResult = @{
