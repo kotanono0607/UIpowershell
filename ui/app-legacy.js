@@ -2078,6 +2078,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // コントロールログ: 初期化完了、ノード生成可能
     await writeControlLog('🎉 [READY] 初期化完了 - ノード生成可能');
 
+    // ローディングオーバーレイを非表示
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+        console.log('[初期化] ローディングオーバーレイを非表示にしました');
+    }
+
     // 横スクロールバー問題のデバッグ
     setTimeout(() => {
         const leftPanel = document.getElementById('left-panel');
@@ -2309,6 +2316,17 @@ function generateAddNodeButtons() {
         btn.disabled = true;  // 初期化完了まで無効化
 
         btn.onclick = async () => {
+            // 二重クリック防止: 処理中は無視
+            if (btn.disabled || btn.dataset.processing === 'true') {
+                console.log('[ボタンクリック] ⚠ 処理中のため無視しました');
+                return;
+            }
+
+            // 処理中フラグを設定
+            btn.dataset.processing = 'true';
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'wait';
+
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             console.log('[ボタンクリック] ✅ ボタンがクリックされました');
             console.log('[ボタンクリック] テキスト:', setting.テキスト);
@@ -2342,6 +2360,11 @@ function generateAddNodeButtons() {
             } catch (error) {
                 console.error('[ボタンクリック] ❌ エラーが発生しました:', error);
                 console.error('[ボタンクリック] スタックトレース:', error.stack);
+            } finally {
+                // 処理完了: ボタンを再有効化
+                btn.dataset.processing = 'false';
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
             }
         };
 
@@ -8084,8 +8107,31 @@ async function executeNodeFunction(functionName, params = {}, timeoutMs = 300000
 
             clearTimeout(timeoutId);
 
-            // レスポンスボディを先に読み取る（エラー詳細取得のため）
-            const result = await response.json();
+            // 408 Request Timeout の特別処理
+            if (response.status === 408) {
+                console.error(`[ノード関数実行] ⚠ サーバータイムアウト (408)`);
+                console.error(`[ノード関数実行] ダイアログ操作に時間がかかりすぎた可能性があります`);
+                throw new Error('サーバータイムアウト: ダイアログ操作を30秒以内に完了してください。server.psd1でタイムアウト時間を延長できます。');
+            }
+
+            // レスポンスボディを先にテキストとして読み取る（空レスポンス対策）
+            const responseText = await response.text();
+
+            // 空レスポンスの場合のエラーハンドリング
+            if (!responseText || responseText.trim() === '') {
+                console.error(`[ノード関数実行] ⚠ 空のレスポンスを受信しました`);
+                throw new Error(`空のレスポンス: サーバーが応答を返しませんでした (HTTP ${response.status})`);
+            }
+
+            // JSONパース（エラーハンドリング付き）
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error(`[ノード関数実行] ⚠ JSONパースエラー:`, parseError);
+                console.error(`[ノード関数実行] 受信したテキスト (先頭200文字):`, responseText.substring(0, 200));
+                throw new Error(`JSONパースエラー: サーバーからの応答が不正です`);
+            }
 
             if (!response.ok) {
                 console.error(`[ノード関数実行] サーバーエラー詳細:`, result);
@@ -8113,7 +8159,7 @@ async function executeNodeFunction(functionName, params = {}, timeoutMs = 300000
         } catch (fetchError) {
             clearTimeout(timeoutId);
             if (fetchError.name === 'AbortError') {
-                throw new Error(`タイムアウト: ${timeoutMs / 1000}秒を超えました`);
+                throw new Error(`クライアントタイムアウト: ${timeoutMs / 1000}秒を超えました`);
             }
             throw fetchError;
         }

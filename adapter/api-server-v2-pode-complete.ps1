@@ -12,8 +12,22 @@ param(
     [switch]$AutoOpenBrowser
 )
 
-# スクリプトのルートディレクトリ
-$script:RootDir = Split-Path -Parent $PSScriptRoot
+# スクリプトのルートディレクトリ（exe化対応）
+# exe化された場合: $MyInvocation.MyCommand.Path が実行ファイルのパス
+# 通常実行の場合: $PSScriptRoot がスクリプトのディレクトリ
+if ($MyInvocation.MyCommand.Path) {
+    # exe化または直接実行の場合
+    $scriptPath = $MyInvocation.MyCommand.Path
+    $script:RootDir = Split-Path -Parent (Split-Path -Parent $scriptPath)
+} elseif ($PSScriptRoot) {
+    # モジュールから呼び出された場合
+    $script:RootDir = Split-Path -Parent $PSScriptRoot
+} else {
+    # フォールバック: カレントディレクトリ
+    $script:RootDir = Get-Location
+}
+
+Write-Host "[パス] RootDir: $($script:RootDir)" -ForegroundColor Gray
 
 # ============================================
 # ログファイル設定
@@ -396,8 +410,18 @@ $global:ShouldOpenBrowser = $AutoOpenBrowser
 $global:RootDir = $script:RootDir
 $global:uiPath = $script:uiPath
 
+# server.psd1の設定を読み込み（タイムアウト延長等）
+$serverConfigPath = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "server.psd1"
+if (Test-Path $serverConfigPath) {
+    Write-Host "[設定] server.psd1 を読み込みます: $serverConfigPath" -ForegroundColor Green
+    Write-Host "[設定] リクエストタイムアウト: 300秒（5分）" -ForegroundColor Gray
+} else {
+    Write-Host "[警告] server.psd1 が見つかりません: $serverConfigPath" -ForegroundColor Yellow
+}
+
 # Start-PodeServer でサーバー設定とルート定義を行う
-Start-PodeServer {
+# -FilePath で設定ファイルを明示的に指定（タイムアウト延長対応）
+Start-PodeServer -FilePath $serverConfigPath {
 
     # ============================================
     # 注: v2ファイルとAdapterファイルの読み込みは

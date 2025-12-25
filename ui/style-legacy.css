@@ -31,6 +31,69 @@
     box-sizing: border-box;
 }
 
+/* ============================================
+   ローディングオーバーレイ（サーバー接続待ち）
+   ============================================ */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #e0e5ec 0%, #f0f3f7 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 40px;
+    background: #e0e5ec;
+    border-radius: 20px;
+    box-shadow:
+        8px 8px 16px #a3b1c6,
+        -8px -8px 16px #ffffff;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 20px;
+    border: 4px solid #e0e5ec;
+    border-top: 4px solid #5B9BD5;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    box-shadow:
+        inset 2px 2px 4px #a3b1c6,
+        inset -2px -2px 4px #ffffff;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.loading-subtext {
+    font-size: 14px;
+    color: #4a5568;
+}
+
 html {
     width: 100%;
     height: 100%;
