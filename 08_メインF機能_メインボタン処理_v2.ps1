@@ -1091,7 +1091,12 @@ function 新規フォルダ作成 {
     $入力フォーム.Controls.Add($テキストボックス)
     $入力フォーム.Controls.Add($ボタン)
 
+    # 前面表示設定
     $入力フォーム.Topmost = $true
+    $入力フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
     $メインメニューハンドル = メインメニューを最小化
     $入力フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル
@@ -1181,7 +1186,12 @@ function フォルダ選択と保存 {
     $入力フォーム.Controls.Add($リストボックス)
     $入力フォーム.Controls.Add($ボタン)
 
+    # 前面表示設定
     $入力フォーム.Topmost = $true
+    $入力フォーム.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
     $メインメニューハンドル = メインメニューを最小化
     $入力フォーム.ShowDialog()
     メインメニューを復元 -ハンドル $メインメニューハンドル

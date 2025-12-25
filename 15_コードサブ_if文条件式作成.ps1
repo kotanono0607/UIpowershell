@@ -442,6 +442,13 @@
         $form.Close()
     })
 
+    # 前面表示設定
+    $form.Topmost = $true
+    $form.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
+    })
+
     # フォームを表示（戻り値を無視）
     $メインメニューハンドル = メインメニューを最小化
     $null = $form.ShowDialog()
@@ -990,6 +997,13 @@ function ShowConditionBuilder {
         } | Out-String
 
         $form.Close()
+    })
+
+    # 前面表示設定
+    $form.Topmost = $true
+    $form.Add_Shown({
+        $this.Activate()
+        $this.BringToFront()
     })
 
     # フォーム表示

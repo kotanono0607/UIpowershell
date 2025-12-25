@@ -859,10 +859,12 @@ function Show-VariableManagerForm {
         }
     }
 
-    # フォーム初期化
+    # フォーム初期化・前面表示設定
     $form.Add_Shown({
         Load-VariablesFromJson | Out-Null
         Refresh-VariableList | Out-Null
+        $this.Activate()
+        $this.BringToFront()
     }) | Out-Null
 
     $form.Topmost = $true
