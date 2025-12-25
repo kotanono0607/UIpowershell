@@ -281,8 +281,6 @@ function 実行イベント_v2 {
                 $取得したエントリ = $取得したエントリ -replace "`r`n", "<<CRLF>>" -replace "`n", "`r`n" -replace "<<CRLF>>", "`r`n"
 
                 # コメント生成（Pinkノード用 - 深さ1の開始/終了マーカー付き）
-                $groupIdValue = if ($button.groupId) { $button.groupId } else { "" }
-                $layerValue = if ($button.layer) { [int]$button.layer } else { 0 }
                 $headerComment = "# [スクリプト開始] $buttonText (ID: $buttonName)`r`n"
                 $footerComment = "# [スクリプト終了] $buttonText (ID: $buttonName)`r`n"
                 $output += "$headerComment$取得したエントリ`r`n$footerComment`r`n"
@@ -1227,7 +1225,8 @@ function 作成ボタンとイベント設定 {
         [string]$ボタン名,
         [System.Drawing.Color]$背景色,
         [object]$コンテナ,
-        [string]$説明
+        [string]$説明,
+        [int]$Y位置 = 0
     )
 
     $新しいボタン = 00_汎用色ボタンを作成する -コンテナ $コンテナ -テキスト $テキスト -ボタン名 $ボタン名 -幅 160 -高さ 30 -X位置 10 -Y位置 $Y位置 -背景色 $背景色
@@ -1243,10 +1242,8 @@ function 作成ボタンとイベント設定 {
 
     $新しいボタン.Add_MouseEnter({
         param($sender, $eventArgs)
-        $global:説明ラベル.Text = $説明
         $tag = $sender.Tag
         $処理番号 = $tag.処理番号
-        $説明 = $tag.説明
 
         if ($global:作成ボタン説明.ContainsKey($処理番号)) {
             $global:説明ラベル.Text = $global:作成ボタン説明[$処理番号]
@@ -1261,15 +1258,13 @@ function 作成ボタンとイベント設定 {
 
     $新しいボタン.Add_GotFocus({
         param($sender, $eventArgs)
-        $global:説明ラベル.Text = $説明
         $tag = $sender.Tag
         $処理番号 = $tag.処理番号
-        $説明 = $tag.説明
 
         if ($global:作成ボタン説明.ContainsKey($処理番号)) {
-            $global:説明ラベル.Text = $説明
+            $global:説明ラベル.Text = $global:作成ボタン説明[$処理番号]
         } else {
-            $global:説明ラベル.Text = $説明
+            $global:説明ラベル.Text = "このボタンには説明が設定されていません。"
         }
     })
 
