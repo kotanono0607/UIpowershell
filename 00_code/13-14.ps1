@@ -1,4 +1,4 @@
-﻿function 13_14 {
+﻿﻿function 13_14 {
     # Excel(操作) - 行削除
     # 指定行を削除
 

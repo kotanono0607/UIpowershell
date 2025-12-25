@@ -1,4 +1,4 @@
-﻿# Pode Module Fix Tool for PowerShell 5.1
+﻿﻿# Pode Module Fix Tool for PowerShell 5.1
 # Fixes Console.ps1 encoding issues
 
 param([switch]$Uninstall)

@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 # ImportExcelモジュールを使用したExcel操作関数
 # 更新: 2025-12-21 - COMからImportExcelに移行
 

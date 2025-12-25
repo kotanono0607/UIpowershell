@@ -1,4 +1,4 @@
-﻿# 必要なアセンブリの読み込み
+﻿﻿# 必要なアセンブリの読み込み
 Add-Type -AssemblyName System.Windows.Forms
 
 # メインメニュー最小化/復元用のAPI定義

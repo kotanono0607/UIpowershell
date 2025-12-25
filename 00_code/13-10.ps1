@@ -1,4 +1,4 @@
-﻿function 13_10 {
+﻿﻿function 13_10 {
     # Excel(操作) - 範囲クリア
     # Excelファイルの指定範囲の内容をクリア
 

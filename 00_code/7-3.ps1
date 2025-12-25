@@ -1,4 +1,4 @@
-﻿function 7_3 {
+﻿﻿function 7_3 {
     # 入力ダイアログ：ユーザーからテキスト入力を受け付ける
 
     $変数ファイルパス = $global:JSONPath
