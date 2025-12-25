@@ -70,3 +70,30 @@ null 値の式ではメソッドを呼び出せません。
 [2025-12-25 20:37:56.392] [STEP] 7. Function executed, processing result
 [2025-12-25 20:37:56.447] [STEP] 8. Sending response
 [2025-12-25 20:37:56.449] [STEP] 9. Response sent successfully
+[2025-12-25 20:42:53.601] [STEP] 1. Request received: /api/node/execute/1_1
+[2025-12-25 20:42:53.603] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\1-1.ps1
+[2025-12-25 20:42:53.698] [STEP] 3. Executing script to define function
+[2025-12-25 20:42:53.729] [STEP] 4. Function defined successfully
+[2025-12-25 20:42:53.730] [STEP] 5. Creating STA runspace
+[2025-12-25 20:42:53.845] [STEP] 6. Executing function: 1_1
+[2025-12-25 20:42:55.822] [STEP] 7. Function executed, processing result
+[2025-12-25 20:42:55.897] [STEP] 8. Sending response
+[2025-12-25 20:42:55.899] [STEP] 9. Response sent successfully
+[2025-12-25 20:42:57.227] [STEP] 1. Request received: /api/node/execute/1_1
+[2025-12-25 20:42:57.228] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\1-1.ps1
+[2025-12-25 20:42:57.298] [STEP] 3. Executing script to define function
+[2025-12-25 20:42:57.299] [STEP] 4. Function defined successfully
+[2025-12-25 20:42:57.300] [STEP] 5. Creating STA runspace
+[2025-12-25 20:42:57.416] [STEP] 6. Executing function: 1_1
+[2025-12-25 20:42:58.680] [STEP] 7. Function executed, processing result
+[2025-12-25 20:42:58.730] [STEP] 8. Sending response
+[2025-12-25 20:42:58.732] [STEP] 9. Response sent successfully
+[2025-12-25 20:43:23.127] [STEP] 1. Request received: /api/node/execute/1_1
+[2025-12-25 20:43:23.128] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\1-1.ps1
+[2025-12-25 20:43:23.198] [STEP] 3. Executing script to define function
+[2025-12-25 20:43:23.199] [STEP] 4. Function defined successfully
+[2025-12-25 20:43:23.200] [STEP] 5. Creating STA runspace
+[2025-12-25 20:43:23.304] [STEP] 6. Executing function: 1_1
+[2025-12-25 20:43:29.320] [STEP] 7. Function executed, processing result
+[2025-12-25 20:43:29.372] [STEP] 8. Sending response
+[2025-12-25 20:43:29.374] [STEP] 9. Response sent successfully
