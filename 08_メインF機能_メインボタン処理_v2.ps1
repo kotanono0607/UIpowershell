@@ -504,8 +504,8 @@ function フォルダ作成イベント_v2 {
             }
         }
 
-        # 保存先ディレクトリを設定
-        $保存先ディレクトリ = Join-Path -Path $PSScriptRoot -ChildPath "03_history"
+        # 保存先ディレクトリを設定（exe化対応: $global:RootDir使用）
+        $保存先ディレクトリ = Join-Path -Path $global:RootDir -ChildPath "03_history"
 
         if (-not (Test-Path -Path $保存先ディレクトリ)) {
             New-Item -Path $保存先ディレクトリ -ItemType Directory | Out-Null
@@ -616,8 +616,8 @@ function フォルダ切替イベント_v2 {
             }
         }
 
-        # 保存先ディレクトリを取得
-        $保存先ディレクトリ = Join-Path -Path $PSScriptRoot -ChildPath "03_history"
+        # 保存先ディレクトリを取得（exe化対応: $global:RootDir使用）
+        $保存先ディレクトリ = Join-Path -Path $global:RootDir -ChildPath "03_history"
 
         if (-not (Test-Path -Path $保存先ディレクトリ)) {
             return @{
@@ -958,8 +958,8 @@ function 切替ボタンイベント {
 }
 
 function 新規フォルダ作成 {
-    $保存先ディレクトリ = $PSScriptRoot
-    $保存先ディレクトリ = $保存先ディレクトリ + "\03_history"
+    # exe化対応: $global:RootDir使用
+    $保存先ディレクトリ = Join-Path -Path $global:RootDir -ChildPath "03_history"
 
     $入力フォーム = New-Object Windows.Forms.Form
     $入力フォーム.Text = "フォルダ名入力"
@@ -1018,7 +1018,8 @@ function 新規フォルダ作成 {
 
     Write-JsonSafe -Path $jsonFilePath -Data $jsonData -Depth 10 -Silent $true
 
-    $スクリプトPath = $PSScriptRoot
+    # exe化対応: $global:RootDir使用
+    $スクリプトPath = $global:RootDir
 
     $global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\03_history\メイン.json" -keyName "フォルダパス"
     $global:JSONPath = "$global:folderPath\variables.json"
@@ -1040,7 +1041,8 @@ function 新規フォルダ作成 {
 }
 
 function フォルダ選択と保存 {
-    $保存先ディレクトリ = Join-Path -Path $PSScriptRoot -ChildPath "03_history"
+    # exe化対応: $global:RootDir使用
+    $保存先ディレクトリ = Join-Path -Path $global:RootDir -ChildPath "03_history"
 
     if (-not (Test-Path -Path $保存先ディレクトリ)) {
         New-Item -Path $保存先ディレクトリ -ItemType Directory | Out-Null
@@ -1107,7 +1109,8 @@ function フォルダ選択と保存 {
 
     Write-JsonSafe -Path $jsonFilePath -Data $jsonData -Depth 10 -Silent $true
 
-    $スクリプトPath = $PSScriptRoot
+    # exe化対応: $global:RootDir使用
+    $スクリプトPath = $global:RootDir
     $global:folderPath = 取得-JSON値 -jsonFilePath "$スクリプトPath\03_history\メイン.json" -keyName "フォルダパス"
     $global:JSONPath = "$global:folderPath\variables.json"
 }
