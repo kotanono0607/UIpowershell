@@ -5310,6 +5310,18 @@ function renderDebugBasicTab() {
     `;
 }
 
+// コンテナ名からカテゴリ名を取得するヘルパー関数
+function getCategoryNameFromContainer(containerName) {
+    if (!containerName) return '未分類';
+    const match = containerName.match(/操作フレームパネル(\d+)/);
+    if (match) {
+        const catNum = parseInt(match[1], 10);
+        const category = categorySettings.find(c => c.番号 === catNum);
+        return category?.名前 || '未分類';
+    }
+    return '未分類';
+}
+
 // ボタン設定タブ
 function renderDebugButtonsTab() {
     const container = document.getElementById('debug-tab-buttons');
@@ -5318,7 +5330,7 @@ function renderDebugButtonsTab() {
     // カテゴリごとに集計
     const categoryCount = {};
     buttonSettings.forEach(btn => {
-        const cat = btn.カテゴリ || '未分類';
+        const cat = getCategoryNameFromContainer(btn.コンテナ);
         categoryCount[cat] = (categoryCount[cat] || 0) + 1;
     });
 
@@ -5330,7 +5342,7 @@ function renderDebugButtonsTab() {
     const buttonRows = buttonSettings.map(btn => `
         <tr>
             <td>${btn.処理番号 || '-'}</td>
-            <td>${btn.カテゴリ || '-'}</td>
+            <td>${getCategoryNameFromContainer(btn.コンテナ)}</td>
             <td>${btn.テキスト || '-'}</td>
             <td>${btn.関数名 || '-'}</td>
         </tr>
@@ -5370,7 +5382,7 @@ function renderDebugTemplatesTab() {
         return `<tr>
             <td>${fn}</td>
             <td>${btnInfo?.テキスト || '-'}</td>
-            <td>${btnInfo?.カテゴリ || '-'}</td>
+            <td>${btnInfo ? getCategoryNameFromContainer(btnInfo.コンテナ) : '-'}</td>
             <td style="color: green;">✓ JS実装</td>
         </tr>`;
     }).join('');
