@@ -170,12 +170,15 @@ function フォームを前面表示に設定 {
         # 少し待ってから再度前面化（他のウィンドウが割り込む場合の対策）
         $timer = New-Object System.Windows.Forms.Timer
         $timer.Interval = 100
-        $form = $this
+        $timer.Tag = $this  # フォームへの参照をTagに保存
         $timer.Add_Tick({
             $this.Stop()
+            $targetForm = $this.Tag
             $this.Dispose()
-            $form.Activate()
-            $form.BringToFront()
+            if ($targetForm) {
+                $targetForm.Activate()
+                $targetForm.BringToFront()
+            }
         })
         $timer.Start()
     })
