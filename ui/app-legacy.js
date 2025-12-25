@@ -14,26 +14,38 @@ const NODE_WIDTH = 120;      // ノードの幅
 const NODE_SPACING = 10;     // ノード間の間隔（10px）
 
 // ============================================
-// エラーログ送信（console.errorのみサーバーに送信）
+// ブラウザログ送信（console.log と console.error をサーバーに送信）
 // ============================================
 
-// エラーログをサーバーに送信（エラー発見用）
-const originalConsoleError = console.error;
-console.error = function(...args) {
-    originalConsoleError.apply(console, args);
+// ログ送信用共通関数
+function sendBrowserLog(level, args) {
     try {
         fetch(`${API_BASE}/browser-logs`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 logs: [{
-                    level: 'error',
+                    level: level,
                     timestamp: new Date().toISOString(),
                     message: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
                 }]
             })
         }).catch(() => {});
     } catch (e) {}
+}
+
+// console.log をサーバーに送信
+const originalConsoleLog = console.log;
+console.log = function(...args) {
+    originalConsoleLog.apply(console, args);
+    sendBrowserLog('log', args);
+};
+
+// console.error をサーバーに送信
+const originalConsoleError = console.error;
+console.error = function(...args) {
+    originalConsoleError.apply(console, args);
+    sendBrowserLog('error', args);
 };
 
 // ============================================
