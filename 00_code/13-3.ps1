@@ -1,4 +1,4 @@
-﻿﻿function 13_3 {
+﻿function 13_3 {
     # Excel(操作) - 背景色設定
     # Excelファイルの指定セルの背景色を設定
 

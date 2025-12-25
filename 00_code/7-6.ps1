@@ -1,4 +1,4 @@
-﻿﻿function 7_6 {
+﻿function 7_6 {
     # フォルダ選択ダイアログ：フォルダを選択するダイアログを表示
 
     $変数ファイルパス = $global:JSONPath

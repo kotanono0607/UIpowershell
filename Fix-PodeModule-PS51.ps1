@@ -1,4 +1,4 @@
-﻿﻿# Pode Module Fix Tool for PowerShell 5.1
+﻿# Pode Module Fix Tool for PowerShell 5.1
 # Installs Pode 2.11.0 (last version with full PS 5.1 support)
 # and fixes encoding issues
 

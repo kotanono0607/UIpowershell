@@ -1,4 +1,4 @@
-﻿﻿
+﻿
 function 99_1 {
   param (
     [string]$直接エントリ

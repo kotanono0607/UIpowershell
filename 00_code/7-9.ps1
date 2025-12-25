@@ -1,4 +1,4 @@
-﻿﻿function 7_9 {
+﻿function 7_9 {
     # 通知トースト：Windowsの通知を表示
 
     Add-Type -AssemblyName System.Windows.Forms

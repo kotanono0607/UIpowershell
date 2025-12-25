@@ -1,4 +1,4 @@
-﻿﻿function 12_2 {
+﻿function 12_2 {
     # ランダム待機：指定範囲内のランダムな秒数だけ待機
 
     Add-Type -AssemblyName System.Windows.Forms

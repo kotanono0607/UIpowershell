@@ -1,4 +1,4 @@
-﻿﻿# RPA UI2 ボタン設定編集ツール UI付き Ver1.4.1 (DATA TABLE + DefaultView 版)
+﻿# RPA UI2 ボタン設定編集ツール UI付き Ver1.4.1 (DATA TABLE + DefaultView 版)
 # このスクリプトは STA モードで実行してください。（例：powershell.exe -STA）
 
 # 0. STAモードチェック

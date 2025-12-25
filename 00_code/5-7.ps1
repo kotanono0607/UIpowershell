@@ -1,4 +1,4 @@
-﻿﻿function 5_7 {
+﻿function 5_7 {
     # プロセス待機：プロセスの開始または終了を待機
 
     Add-Type -AssemblyName System.Windows.Forms
