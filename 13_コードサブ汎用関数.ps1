@@ -2,8 +2,10 @@
 Add-Type -AssemblyName System.Windows.Forms
 
 # メインメニュー最小化/復元用のAPI定義（既に読み込み済みの場合はスキップ）
-if (-not ([System.Management.Automation.PSTypeName]'MainMenuHelper').Type) {
-Add-Type @"
+# try/catchで囲み、型が既に存在する場合のエラーを無視
+try {
+    if (-not ([type]::GetType('MainMenuHelper', $false))) {
+        Add-Type @"
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -79,7 +81,10 @@ public class MainMenuHelper {
         return SetForegroundWindow(hWnd);
     }
 }
-"@ -ErrorAction SilentlyContinue
+"@
+    }
+} catch {
+    # 型が既に存在する場合のエラーを無視（Podeのrunspace間で共有されるため）
 }
 
 # メインメニューを最小化する関数
