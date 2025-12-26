@@ -1,8 +1,97 @@
 ﻿# 必要なアセンブリの読み込み
 Add-Type -AssemblyName System.Windows.Forms
 
-# メインメニュー最小化/復元用のAPI定義（既に読み込み済みの場合はスキップ）
-# try/catchで囲み、型が既に存在する場合のエラーを無視
+# ブラウザウィンドウ操作用のAPI定義（Containsで検索するバージョン）
+# ブラウザのタイトルは「UIpowershell - ... - Google Chrome」のように
+# ブラウザ名が付くため、Containsで検索する
+try {
+    if (-not ([type]::GetType('BrowserWindowHelper', $false))) {
+        Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public class BrowserWindowHelper {
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    public static extern bool BringWindowToTop(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    [DllImport("user32.dll")]
+    public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+
+    [DllImport("kernel32.dll")]
+    public static extern uint GetCurrentThreadId();
+
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+    public const int SW_MINIMIZE = 6;
+    public const int SW_RESTORE = 9;
+    public const int SW_SHOW = 5;
+    public const int SW_SHOWNORMAL = 1;
+
+    // UIpowershellを含むウィンドウを検索（ブラウザ対応）
+    public static IntPtr FindUIpowershellWindow() {
+        IntPtr result = IntPtr.Zero;
+        EnumWindows(delegate(IntPtr hWnd, IntPtr lParam) {
+            if (!IsWindowVisible(hWnd)) return true;
+            StringBuilder title = new StringBuilder(512);
+            GetWindowText(hWnd, title, title.Capacity);
+            string titleStr = title.ToString();
+            // タイトルに「UIpowershell」が含まれるウィンドウを検索
+            if (titleStr.Contains("UIpowershell")) {
+                result = hWnd;
+                return false;
+            }
+            return true;
+        }, IntPtr.Zero);
+        return result;
+    }
+
+    // 強制的にウィンドウを前面に持ってくる
+    public static bool ForceForegroundWindow(IntPtr hWnd) {
+        IntPtr foregroundWnd = GetForegroundWindow();
+        uint foregroundThreadId = GetWindowThreadProcessId(foregroundWnd, out _);
+        uint currentThreadId = GetCurrentThreadId();
+
+        if (foregroundThreadId != currentThreadId) {
+            AttachThreadInput(currentThreadId, foregroundThreadId, true);
+            BringWindowToTop(hWnd);
+            ShowWindow(hWnd, SW_SHOW);
+            AttachThreadInput(currentThreadId, foregroundThreadId, false);
+        } else {
+            BringWindowToTop(hWnd);
+            ShowWindow(hWnd, SW_SHOW);
+        }
+
+        return SetForegroundWindow(hWnd);
+    }
+}
+"@
+    }
+} catch {
+    # 型が既に存在する場合のエラーを無視（Podeのrunspace間で共有されるため）
+}
+
+# 旧MainMenuHelper（互換性のため残す）
 try {
     if (-not ([type]::GetType('MainMenuHelper', $false))) {
         Add-Type @"
@@ -87,11 +176,17 @@ public class MainMenuHelper {
     # 型が既に存在する場合のエラーを無視（Podeのrunspace間で共有されるため）
 }
 
-# メインメニューを最小化する関数
+# ブラウザ/メインメニューを最小化する関数
+# BrowserWindowHelper（Contains検索）を優先、なければMainMenuHelper（StartsWith検索）を使用
 function メインメニューを最小化 {
     try {
-        # MainMenuHelper型が存在する場合のみ実行（リフレクションで動的に呼び出し）
-        $helperType = [type]::GetType('MainMenuHelper', $false)
+        # 新しいBrowserWindowHelper型を優先（Containsで検索するのでブラウザに対応）
+        $helperType = [type]::GetType('BrowserWindowHelper', $false)
+        if (-not $helperType) {
+            # フォールバック: 旧MainMenuHelper型
+            $helperType = [type]::GetType('MainMenuHelper', $false)
+        }
+
         if ($helperType) {
             $findMethod = $helperType.GetMethod('FindUIpowershellWindow')
             $showMethod = $helperType.GetMethod('ShowWindow')
@@ -111,14 +206,19 @@ function メインメニューを最小化 {
     return [IntPtr]::Zero
 }
 
-# メインメニューを復元する関数
+# ブラウザ/メインメニューを復元する関数
 function メインメニューを復元 {
     param(
         [IntPtr]$ハンドル
     )
     try {
-        # MainMenuHelper型が存在する場合のみ実行（リフレクションで動的に呼び出し）
-        $helperType = [type]::GetType('MainMenuHelper', $false)
+        # 新しいBrowserWindowHelper型を優先
+        $helperType = [type]::GetType('BrowserWindowHelper', $false)
+        if (-not $helperType) {
+            # フォールバック: 旧MainMenuHelper型
+            $helperType = [type]::GetType('MainMenuHelper', $false)
+        }
+
         if ($helperType -and $ハンドル -ne [IntPtr]::Zero) {
             $showMethod = $helperType.GetMethod('ShowWindow')
             $swRestore = $helperType.GetField('SW_RESTORE').GetValue($null)
@@ -151,9 +251,12 @@ function フォームを前面表示に設定 {
         $this.Activate()
         $this.BringToFront()
 
-        # Windows APIで強制的に前面に持ってくる（MainMenuHelper型が存在する場合のみ）
+        # Windows APIで強制的に前面に持ってくる
         try {
-            $helperType = [type]::GetType('MainMenuHelper', $false)
+            $helperType = [type]::GetType('BrowserWindowHelper', $false)
+            if (-not $helperType) {
+                $helperType = [type]::GetType('MainMenuHelper', $false)
+            }
             if ($helperType) {
                 $handle = $this.Handle
                 if ($handle -ne [IntPtr]::Zero) {
