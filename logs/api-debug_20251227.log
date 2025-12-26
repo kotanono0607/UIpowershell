@@ -344,3 +344,21 @@ null 値の式ではメソッドを呼び出せません。
 パイプライン要素内で '&' の後にある式が無効なオブジェクトを作成しました。コマンド名、スクリプト ブロック、または CommandInfo オブジェクトになる必要があります。
 null 値の式ではメソッドを呼び出せません。
 パイプライン要素内で '&' の後にある式が無効なオブジェクトを作成しました。コマンド名、スクリプト ブロック、または CommandInfo オブジェクトになる必要があります。
+[2025-12-27 08:41:56.484] [STEP] 1. Request received: /api/node/execute/1_10
+[2025-12-27 08:41:56.485] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\1-10.ps1
+[2025-12-27 08:41:56.631] [STEP] 3. Executing script to define function
+[2025-12-27 08:41:56.634] [STEP] 4. Function defined successfully
+[2025-12-27 08:41:56.634] [STEP] 5. Creating STA runspace
+[2025-12-27 08:41:56.826] [STEP] 6. Executing function: 1_10
+[2025-12-27 08:42:03.140] [STEP] 7. Function executed, processing result
+[2025-12-27 08:42:03.196] [STEP] 8. Sending response
+[2025-12-27 08:42:03.198] [STEP] 9. Response sent successfully
+[2025-12-27 08:42:15.983] [STEP] 1. Request received: /api/node/execute/1_10
+[2025-12-27 08:42:15.984] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\1-10.ps1
+[2025-12-27 08:42:16.112] [STEP] 3. Executing script to define function
+[2025-12-27 08:42:16.113] [STEP] 4. Function defined successfully
+[2025-12-27 08:42:16.114] [STEP] 5. Creating STA runspace
+[2025-12-27 08:42:16.269] [STEP] 6. Executing function: 1_10
+[2025-12-27 08:42:25.514] [STEP] 7. Function executed, processing result
+[2025-12-27 08:42:25.559] [STEP] 8. Sending response
+[2025-12-27 08:42:25.561] [STEP] 9. Response sent successfully
