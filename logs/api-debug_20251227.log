@@ -295,3 +295,30 @@
 [2025-12-27 08:19:27.288] [STEP] 7. Function executed, processing result
 [2025-12-27 08:19:27.333] [STEP] 8. Sending response
 [2025-12-27 08:19:27.336] [STEP] 9. Response sent successfully
+[2025-12-27 08:32:12.301] [STEP] 1. Request received: /api/node/execute/1_10
+[2025-12-27 08:32:12.302] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\1-10.ps1
+[2025-12-27 08:32:12.484] [STEP] 3. Executing script to define function
+[2025-12-27 08:32:12.489] [STEP] ERROR: 発生場所 行:306 文字:56
++     $totalBranches = $caseCount + ($chkDefault.Checked ? 1 : 0)
++                                                        ~
+式またはステートメントのトークン '?' を使用できません。
+
+発生場所 行:306 文字:55
++     $totalBranches = $caseCount + ($chkDefault.Checked ? 1 : 0)
++                                                       ~
+式の終わりの ')' が存在しません。
+
+発生場所 行:1 文字:15
++ function 1_10 {
++               ~
+ステートメント ブロックまたは型定義に終わりの '}' が存在しません。
+
+発生場所 行:306 文字:63
++     $totalBranches = $caseCount + ($chkDefault.Checked ? 1 : 0)
++                                                               ~
+式またはステートメントのトークン ')' を使用できません。
+
+発生場所 行:329 文字:1
++ }
++ ~
+式またはステートメントのトークン '}' を使用できません。
