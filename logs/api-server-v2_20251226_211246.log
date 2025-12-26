@@ -1,0 +1,24 @@
+﻿**********************
+Windows PowerShell トランスクリプト開始
+開始時刻: 20251226211246
+ユーザー名: A-01\hello
+RunAs ユーザー: A-01\hello
+構成名: 
+コンピューター: A-01 (Microsoft Windows NT 10.0.26100.0)
+ホスト アプリケーション: powershell -NoExit -ExecutionPolicy Bypass -File .\adapter\api-server-v2-pode-complete.ps1 -AutoOpenBrowser
+プロセス ID: 23216
+PSVersion: 5.1.26100.7462
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7462
+BuildVersion: 10.0.26100.7462
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+トランスクリプトが開始されました。出力ファイル: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\logs\api-server-v2_20251226_211246.log
+
+Pode v2.11.0 (PID: 23216)
+[OK] UIpowershell状態を初期化しました (SessionId: 5e7495e2-f449-4c1f-bc46-7d7e5afb6ac2)
+次の 1 エンドポイントでリッスンしています [1 スレッド]:
+	- http://localhost:8080/

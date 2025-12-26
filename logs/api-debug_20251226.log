@@ -1,0 +1,18 @@
+﻿[2025-12-26 21:13:10.397] [STEP] 1. Request received: /api/node/execute/8_1
+[2025-12-26 21:13:10.398] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\8-1.ps1
+[2025-12-26 21:13:10.526] [STEP] 3. Executing script to define function
+[2025-12-26 21:13:10.542] [STEP] 4. Function defined successfully
+[2025-12-26 21:13:10.544] [STEP] 5. Creating STA runspace
+[2025-12-26 21:13:10.782] [STEP] 6. Executing function: 8_1
+[2025-12-26 21:13:25.921] [STEP] 7. Function executed, processing result
+[2025-12-26 21:13:25.973] [STEP] 8. Sending response
+[2025-12-26 21:13:25.975] [STEP] 9. Response sent successfully
+[2025-12-26 21:13:30.332] [STEP] 1. Request received: /api/node/execute/8_2
+[2025-12-26 21:13:30.334] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\8-2.ps1
+[2025-12-26 21:13:30.423] [STEP] 3. Executing script to define function
+[2025-12-26 21:13:30.444] [STEP] 4. Function defined successfully
+[2025-12-26 21:13:30.445] [STEP] 5. Creating STA runspace
+[2025-12-26 21:13:30.560] [STEP] 6. Executing function: 8_2
+[2025-12-26 21:13:34.901] [STEP] 7. Function executed, processing result
+[2025-12-26 21:13:34.936] [STEP] 8. Sending response
+[2025-12-26 21:13:34.937] [STEP] 9. Response sent successfully
