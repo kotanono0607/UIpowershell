@@ -303,7 +303,7 @@
     if ($chkRegex.Checked) { $options = " -Regex" }
 
     $caseCount = [int]$numBranches.Value
-    $totalBranches = $caseCount + ($chkDefault.Checked ? 1 : 0)
+    $totalBranches = $caseCount + $(if ($chkDefault.Checked) { 1 } else { 0 })
 
     $code = "switch$options ($target) {`r`n"
 
