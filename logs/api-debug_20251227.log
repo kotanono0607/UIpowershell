@@ -322,3 +322,12 @@
 + }
 + ~
 式またはステートメントのトークン '}' を使用できません。
+[2025-12-27 08:35:10.887] [STEP] 1. Request received: /api/node/execute/1_10
+[2025-12-27 08:35:10.889] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\1-10.ps1
+[2025-12-27 08:35:11.069] [STEP] 3. Executing script to define function
+[2025-12-27 08:35:11.088] [STEP] 4. Function defined successfully
+[2025-12-27 08:35:11.091] [STEP] 5. Creating STA runspace
+[2025-12-27 08:35:11.266] [STEP] 6. Executing function: 1_10
+[2025-12-27 08:35:18.597] [STEP] 7. Function executed, processing result
+[2025-12-27 08:35:18.650] [STEP] 8. Sending response
+[2025-12-27 08:35:18.652] [STEP] 9. Response sent successfully
