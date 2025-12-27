@@ -2177,7 +2177,9 @@ async function addNodeToLayer(setting) {
     let addedNodes = [];
 
     // 処理番号で判定してセット作成
-    if (setting.処理番号 === '1-2') {
+    // 条件分岐系の処理番号（branchCountを返すノード）
+    const conditionBranchNumbers = ['1-2', '1-7', '1-9', '1-10'];
+    if (conditionBranchNumbers.includes(setting.処理番号)) {
         // 条件分岐：多重分岐対応（開始・中間×N・終了）
         // branchCountはPowerShellダイアログで選択される
         addedNodes = await addConditionSet(setting);
@@ -2399,10 +2401,13 @@ async function addConditionSet(setting) {
 
     const allNodes = [];
 
+    // ノード名を取得（setting.テキストを使用）
+    const nodeName = setting.テキスト || '条件分岐';
+
     // 1. 開始ボタン（緑）
     const startNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 開始', ボタン名: `${baseId}-1` },
-        '条件分岐 開始',
+        { ...setting, テキスト: `${nodeName} 開始`, ボタン名: `${baseId}-1` },
+        `${nodeName} 開始`,
         baseY,
         groupId,
         40,
@@ -2418,8 +2423,8 @@ async function addConditionSet(setting) {
     for (let i = 0; i < grayNodeCount; i++) {
         const branchLabel = getBranchLabel(i, grayNodeCount);
         const middleNode = addSingleNode(
-            { ...setting, テキスト: `条件分岐 ${branchLabel}`, 背景色: 'Gray', ボタン名: `${baseId}-${i + 2}` },
-            `条件分岐 ${branchLabel}`,
+            { ...setting, テキスト: `${nodeName} ${branchLabel}`, 背景色: 'Gray', ボタン名: `${baseId}-${i + 2}` },
+            `${nodeName} ${branchLabel}`,
             baseY + NODE_SPACING * (i + 1) - 5,  // 5px上に調整
             groupId,
             1,  // 高さ1px
@@ -2431,8 +2436,8 @@ async function addConditionSet(setting) {
 
     // 3. 終了ボタン（緑）
     const endNode = addSingleNode(
-        { ...setting, テキスト: '条件分岐 終了', ボタン名: `${baseId}-${grayNodeCount + 2}` },
-        '条件分岐 終了',
+        { ...setting, テキスト: `${nodeName} 終了`, ボタン名: `${baseId}-${grayNodeCount + 2}` },
+        `${nodeName} 終了`,
         baseY + NODE_SPACING * (grayNodeCount + 1),
         groupId,
         NODE_HEIGHT,
@@ -11349,7 +11354,9 @@ async function selectNodeFromPalette(setting) {
     const tempNodeId = `fn${Date.now()}`;
 
     // 条件分岐・ループは特殊処理が必要
-    if (setting.処理番号 === '1-2' || setting.処理番号 === '1-3') {
+    const conditionBranchNumbers = ['1-2', '1-7', '1-9', '1-10'];
+    const loopNumbers = ['1-3', '1-4', '1-5'];
+    if (conditionBranchNumbers.includes(setting.処理番号) || loopNumbers.includes(setting.処理番号)) {
         await showAlertDialog(
             '条件分岐・ループは関数内に直接追加できません。\n先にメインフローで作成してから関数化してください。',
             '制限事項'
