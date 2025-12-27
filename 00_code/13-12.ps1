@@ -16,7 +16,9 @@
         $メインJsonPath = Join-Path $メインPath "03_history\メイン.json"
         if (Test-Path $メインJsonPath) {
             $jsonContent = Get-Content -Path $メインJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            $folderPath = $jsonContent."フォルダパス"
+            $folderName = $jsonContent."フォルダパス"
+            # 相対フォルダ名を03_history配下のフルパスに変換
+            $folderPath = Join-Path $メインPath "03_history\$folderName"
             $JSONPath = Join-Path $folderPath "variables.json"
         }
     } catch {}
