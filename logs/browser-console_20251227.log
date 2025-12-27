@@ -1,1 +1,6 @@
-[2025-12-27T05:10:03.347Z] [LOG] UIpowershell Aurora Arrow Patch Applied
+[2025-12-27T05:14:44.546Z] [LOG] UIpowershell Aurora Arrow Patch Applied
+[2025-12-27T05:15:08.754Z] [LOG] [ACTION] ボタン: 分岐 | 処理番号: 1-2
+[2025-12-27T05:15:39.594Z] [LOG] [ACTION] ボタン: 分岐 | 処理番号: 1-2
+[2025-12-27T05:15:46.128Z] [LOG] [ACTION] ボタン: 順次 | 処理番号: 1-1
+[2025-12-27T05:15:46.631Z] [LOG] [ACTION] ボタン: 順次 | 処理番号: 1-1
+[2025-12-27T05:17:10.423Z] [LOG] [ACTION] ボタン: ファイル存在確認 | 処理番号: 1-7
