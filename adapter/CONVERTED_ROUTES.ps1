@@ -598,7 +598,8 @@ Add-PodeRoute -Method Put -Path "/api/variables/:name" -ScriptBlock {
         $varName = $WebEvent.Parameters['name']
         $body = $WebEvent.Data
         # Add-Variable_v2 は追加と更新を両方処理する
-        $result = Add-Variable_v2 -Name $varName -Value $body.value -Type ($body.type ?? "単一値")
+        $varType = if ($body.type) { $body.type } else { "単一値" }
+        $result = Add-Variable_v2 -Name $varName -Value $body.value -Type $varType
         Write-PodeJsonResponse -Value $result
     } catch {
         Set-PodeResponseStatus -Code 500
