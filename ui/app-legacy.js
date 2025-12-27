@@ -61,6 +61,29 @@ console.error = function(...args) {
 };
 
 // ============================================
+// アクションログ（ユーザー操作のみ記録）
+// ============================================
+
+/**
+ * ユーザーアクションをログに記録
+ * @param {string} action - アクション名（ボタン名など）
+ * @param {string} [detail] - 追加情報（省略可）
+ */
+function logAction(action, detail = '') {
+    const detailStr = detail ? ` | ${detail}` : '';
+    console.log(`[ACTION] ${action}${detailStr}`);
+}
+
+/**
+ * エラーをログに記録（アクション関連のみ）
+ * @param {string} action - アクション名
+ * @param {string} errorMessage - エラーメッセージ
+ */
+function logActionError(action, errorMessage) {
+    console.error(`[ACTION ERROR] ${action} | ${errorMessage}`);
+}
+
+// ============================================
 // グローバル状態
 // ============================================
 
@@ -1991,11 +2014,11 @@ function generateAddNodeButtons() {
 
                 // 全てのボタンで統一的にノード追加処理
                 // ※ 条件分岐(1-2)の場合、PowerShellダイアログで分岐数も選択される
+                logAction(`ボタン: ${setting.テキスト}`, `処理番号: ${setting.処理番号}`);
                 await addNodeToLayer(setting);
 
             } catch (error) {
-                console.error('[ボタンクリック] ❌ エラーが発生しました:', error);
-                console.error('[ボタンクリック] スタックトレース:', error.stack);
+                logActionError(`ボタン: ${setting.テキスト}`, error.message);
             } finally {
                 // 処理完了: ボタンを再有効化
                 btn.dataset.processing = 'false';
