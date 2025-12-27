@@ -1,16 +1,24 @@
 ﻿# 必要なアセンブリの読み込み
 Add-Type -AssemblyName System.Windows.Forms
 
-# ブラウザウィンドウ操作用のAPI定義（Containsで検索するバージョン）
-# ブラウザのタイトルは「UIpowershell - ... - Google Chrome」のように
-# ブラウザ名が付くため、Containsで検索する
-try {
-    if (-not ([type]::GetType('BrowserWindowHelper', $false))) {
-        Add-Type @"
+# ============================================
+# Podeのrunspace問題対策: 毎回新しい型を生成
+# ============================================
+# Podeは各リクエストを別のrunspaceで実行するため、
+# [type]::GetType()で型が見つかっても実際には使えないことがある。
+# 解決策: 毎回ユニークな型名で生成し、変数に保持する
+
+# グローバル変数で現在のrunspaceで使える型を保持
+if (-not $script:WindowHelperType) {
+    $uniqueId = [guid]::NewGuid().ToString('N').Substring(0, 8)
+    $typeName = "WindowHelper_$uniqueId"
+
+    try {
+        $script:WindowHelperType = Add-Type -TypeDefinition @"
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-public class BrowserWindowHelper {
+public class $typeName {
     [DllImport("user32.dll")]
     public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
@@ -48,28 +56,32 @@ public class BrowserWindowHelper {
     public const int SW_SHOW = 5;
     public const int SW_SHOWNORMAL = 1;
 
+    private static IntPtr foundWindow = IntPtr.Zero;
+
     // UIpowershellを含むウィンドウを検索（ブラウザ対応）
     public static IntPtr FindUIpowershellWindow() {
-        IntPtr result = IntPtr.Zero;
-        EnumWindows(delegate(IntPtr hWnd, IntPtr lParam) {
-            if (!IsWindowVisible(hWnd)) return true;
-            StringBuilder title = new StringBuilder(512);
-            GetWindowText(hWnd, title, title.Capacity);
-            string titleStr = title.ToString();
-            // タイトルに「UIpowershell」が含まれるウィンドウを検索
-            if (titleStr.Contains("UIpowershell")) {
-                result = hWnd;
-                return false;
-            }
-            return true;
-        }, IntPtr.Zero);
-        return result;
+        foundWindow = IntPtr.Zero;
+        EnumWindows(EnumWindowCallback, IntPtr.Zero);
+        return foundWindow;
+    }
+
+    private static bool EnumWindowCallback(IntPtr hWnd, IntPtr lParam) {
+        if (!IsWindowVisible(hWnd)) return true;
+        StringBuilder title = new StringBuilder(512);
+        GetWindowText(hWnd, title, title.Capacity);
+        string titleStr = title.ToString();
+        if (titleStr.Contains("UIpowershell")) {
+            foundWindow = hWnd;
+            return false;
+        }
+        return true;
     }
 
     // 強制的にウィンドウを前面に持ってくる
     public static bool ForceForegroundWindow(IntPtr hWnd) {
         IntPtr foregroundWnd = GetForegroundWindow();
-        uint foregroundThreadId = GetWindowThreadProcessId(foregroundWnd, out _);
+        uint processId;
+        uint foregroundThreadId = GetWindowThreadProcessId(foregroundWnd, out processId);
         uint currentThreadId = GetCurrentThreadId();
 
         if (foregroundThreadId != currentThreadId) {
@@ -85,10 +97,11 @@ public class BrowserWindowHelper {
         return SetForegroundWindow(hWnd);
     }
 }
-"@
+"@ -PassThru
+    } catch {
+        # コンパイルエラー時はnullのまま
+        $script:WindowHelperType = $null
     }
-} catch {
-    # 型が既に存在する場合のエラーを無視（Podeのrunspace間で共有されるため）
 }
 
 # 旧MainMenuHelper（互換性のため残す）
@@ -177,27 +190,15 @@ public class MainMenuHelper {
 }
 
 # ブラウザ/メインメニューを最小化する関数
-# BrowserWindowHelper（Contains検索）を優先、なければMainMenuHelper（StartsWith検索）を使用
+# $script:WindowHelperType（runspaceごとに生成された型）を使用
 function メインメニューを最小化 {
     try {
-        # 新しいBrowserWindowHelper型を優先（Containsで検索するのでブラウザに対応）
-        $helperType = [type]::GetType('BrowserWindowHelper', $false)
-        if (-not $helperType) {
-            # フォールバック: 旧MainMenuHelper型
-            $helperType = [type]::GetType('MainMenuHelper', $false)
-        }
-
-        if ($helperType) {
-            $findMethod = $helperType.GetMethod('FindUIpowershellWindow')
-            $showMethod = $helperType.GetMethod('ShowWindow')
-            $swMinimize = $helperType.GetField('SW_MINIMIZE').GetValue($null)
-
-            if ($findMethod -and $showMethod) {
-                $handle = $findMethod.Invoke($null, @())
-                if ($handle -ne [IntPtr]::Zero) {
-                    $showMethod.Invoke($null, @($handle, $swMinimize)) | Out-Null
-                    return $handle
-                }
+        # runspaceごとに生成された型を使用（Podeのrunspace問題対策）
+        if ($script:WindowHelperType) {
+            $handle = $script:WindowHelperType::FindUIpowershellWindow()
+            if ($handle -ne [IntPtr]::Zero) {
+                $script:WindowHelperType::ShowWindow($handle, $script:WindowHelperType::SW_MINIMIZE) | Out-Null
+                return $handle
             }
         }
     } catch {
@@ -212,20 +213,9 @@ function メインメニューを復元 {
         [IntPtr]$ハンドル
     )
     try {
-        # 新しいBrowserWindowHelper型を優先
-        $helperType = [type]::GetType('BrowserWindowHelper', $false)
-        if (-not $helperType) {
-            # フォールバック: 旧MainMenuHelper型
-            $helperType = [type]::GetType('MainMenuHelper', $false)
-        }
-
-        if ($helperType -and $ハンドル -ne [IntPtr]::Zero) {
-            $showMethod = $helperType.GetMethod('ShowWindow')
-            $swRestore = $helperType.GetField('SW_RESTORE').GetValue($null)
-
-            if ($showMethod) {
-                $showMethod.Invoke($null, @($ハンドル, $swRestore)) | Out-Null
-            }
+        # runspaceごとに生成された型を使用
+        if ($script:WindowHelperType -and $ハンドル -ne [IntPtr]::Zero) {
+            $script:WindowHelperType::ShowWindow($ハンドル, $script:WindowHelperType::SW_RESTORE) | Out-Null
         }
     } catch {
         # エラー時は何もしない（意図的に無視）
@@ -246,6 +236,9 @@ function フォームを前面表示に設定 {
     # Topmostを設定
     $フォーム.TopMost = $true
 
+    # runspaceごとの型をローカル変数にキャプチャ（クロージャ用）
+    $helperType = $script:WindowHelperType
+
     # フォーム表示時に前面に持ってくるイベントを追加
     $フォーム.Add_Shown({
         $this.Activate()
@@ -253,17 +246,10 @@ function フォームを前面表示に設定 {
 
         # Windows APIで強制的に前面に持ってくる
         try {
-            $helperType = [type]::GetType('BrowserWindowHelper', $false)
-            if (-not $helperType) {
-                $helperType = [type]::GetType('MainMenuHelper', $false)
-            }
             if ($helperType) {
                 $handle = $this.Handle
                 if ($handle -ne [IntPtr]::Zero) {
-                    $method = $helperType.GetMethod('ForceForegroundWindow')
-                    if ($method) {
-                        $method.Invoke($null, @($handle)) | Out-Null
-                    }
+                    $helperType::ForceForegroundWindow($handle) | Out-Null
                 }
             }
         } catch {
@@ -284,7 +270,7 @@ function フォームを前面表示に設定 {
             }
         })
         $timer.Start()
-    })
+    }.GetNewClosure())
 
     # フォームがアクティブでなくなった時も再度前面に持ってくる
     $フォーム.Add_Deactivate({
