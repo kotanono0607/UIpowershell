@@ -434,3 +434,21 @@ null 値の式ではメソッドを呼び出せません。
 [2025-12-27 11:45:19.831] [STEP] 7. Function executed, processing result
 [2025-12-27 11:45:19.895] [STEP] 8. Sending response
 [2025-12-27 11:45:19.898] [STEP] 9. Response sent successfully
+[2025-12-27 11:58:29.859] [STEP] 1. Request received: /api/node/execute/1_2
+[2025-12-27 11:58:29.860] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\1-2.ps1
+[2025-12-27 11:58:29.994] [STEP] 3. Executing script to define function
+[2025-12-27 11:58:29.997] [STEP] 4. Function defined successfully
+[2025-12-27 11:58:29.998] [STEP] 5. Creating STA runspace
+[2025-12-27 11:58:30.185] [STEP] 6. Executing function: 1_2
+[2025-12-27 11:58:32.387] [STEP] 7. Function executed, processing result
+[2025-12-27 11:58:32.442] [STEP] 8. Sending response
+[2025-12-27 11:58:32.444] [STEP] 9. Response sent successfully
+[2025-12-27 11:58:37.114] [STEP] 1. Request received: /api/node/execute/1_10
+[2025-12-27 11:58:37.115] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\1-10.ps1
+[2025-12-27 11:58:37.278] [STEP] 3. Executing script to define function
+[2025-12-27 11:58:37.294] [STEP] 4. Function defined successfully
+[2025-12-27 11:58:37.296] [STEP] 5. Creating STA runspace
+[2025-12-27 11:58:37.475] [STEP] 6. Executing function: 1_10
+[2025-12-27 11:58:39.410] [STEP] 7. Function executed, processing result
+[2025-12-27 11:58:39.463] [STEP] 8. Sending response
+[2025-12-27 11:58:39.465] [STEP] 9. Response sent successfully
