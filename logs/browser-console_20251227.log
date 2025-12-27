@@ -1,1 +1,40 @@
-[2025-12-26T23:45:52.529Z] [LOG] UIpowershell Aurora Arrow Patch Applied
+[2025-12-27T02:02:55.147Z] [LOG] UIpowershell Aurora Arrow Patch Applied
+[2025-12-27T02:03:29.277Z] [ERROR] [ノード関数実行] エラー: Error: 不明なエラー | Stack: Error: 不明なエラー
+    at executeNodeFunction (http://localhost:8080/app-legacy.js?v=1.1.0:7651:23)
+    at async generateCode (http://localhost:8080/app-legacy.js?v=1.1.0:7789:31)
+    at async addConditionSet (http://localhost:8080/app-legacy.js?v=1.1.0:2353:20)
+    at async addNodeToLayer (http://localhost:8080/app-legacy.js?v=1.1.0:2160:22)
+    at async btn.onclick (http://localhost:8080/app-legacy.js?v=1.1.0:1994:17)
+[2025-12-27T02:03:29.278Z] [ERROR] [コード生成] API呼び出しエラー: Error: 不明なエラー | Stack: Error: 不明なエラー
+    at executeNodeFunction (http://localhost:8080/app-legacy.js?v=1.1.0:7651:23)
+    at async generateCode (http://localhost:8080/app-legacy.js?v=1.1.0:7789:31)
+    at async addConditionSet (http://localhost:8080/app-legacy.js?v=1.1.0:2353:20)
+    at async addNodeToLayer (http://localhost:8080/app-legacy.js?v=1.1.0:2160:22)
+    at async btn.onclick (http://localhost:8080/app-legacy.js?v=1.1.0:1994:17)
+[2025-12-27T02:03:29.278Z] [ERROR] [コード生成] 関数 1_2 の実行に失敗しました
+[2025-12-27T02:03:54.404Z] [ERROR] [ノード関数実行] エラー: Error: 不明なエラー | Stack: Error: 不明なエラー
+    at executeNodeFunction (http://localhost:8080/app-legacy.js?v=1.1.0:7651:23)
+    at async generateCode (http://localhost:8080/app-legacy.js?v=1.1.0:7789:31)
+    at async addConditionSet (http://localhost:8080/app-legacy.js?v=1.1.0:2353:20)
+    at async addNodeToLayer (http://localhost:8080/app-legacy.js?v=1.1.0:2160:22)
+    at async btn.onclick (http://localhost:8080/app-legacy.js?v=1.1.0:1994:17)
+[2025-12-27T02:03:54.405Z] [ERROR] [コード生成] API呼び出しエラー: Error: 不明なエラー | Stack: Error: 不明なエラー
+    at executeNodeFunction (http://localhost:8080/app-legacy.js?v=1.1.0:7651:23)
+    at async generateCode (http://localhost:8080/app-legacy.js?v=1.1.0:7789:31)
+    at async addConditionSet (http://localhost:8080/app-legacy.js?v=1.1.0:2353:20)
+    at async addNodeToLayer (http://localhost:8080/app-legacy.js?v=1.1.0:2160:22)
+    at async btn.onclick (http://localhost:8080/app-legacy.js?v=1.1.0:1994:17)
+[2025-12-27T02:03:54.405Z] [ERROR] [コード生成] 関数 1_2 の実行に失敗しました
+[2025-12-27T02:16:46.760Z] [ERROR] [ノード関数実行] エラー: Error: クライアントタイムアウト: 300秒を超えました | Stack: Error: クライアントタイムアウト: 300秒を超えました
+    at executeNodeFunction (http://localhost:8080/app-legacy.js?v=1.1.0:7656:23)
+    at async generateCode (http://localhost:8080/app-legacy.js?v=1.1.0:7789:31)
+    at async addConditionSet (http://localhost:8080/app-legacy.js?v=1.1.0:2353:20)
+    at async addNodeToLayer (http://localhost:8080/app-legacy.js?v=1.1.0:2160:22)
+    at async btn.onclick (http://localhost:8080/app-legacy.js?v=1.1.0:1994:17)
+[2025-12-27T02:16:46.761Z] [ERROR] [コード生成] API呼び出しエラー: Error: クライアントタイムアウト: 300秒を超えました | Stack: Error: クライアントタイムアウト: 300秒を超えました
+    at executeNodeFunction (http://localhost:8080/app-legacy.js?v=1.1.0:7656:23)
+    at async generateCode (http://localhost:8080/app-legacy.js?v=1.1.0:7789:31)
+    at async addConditionSet (http://localhost:8080/app-legacy.js?v=1.1.0:2353:20)
+    at async addNodeToLayer (http://localhost:8080/app-legacy.js?v=1.1.0:2160:22)
+    at async btn.onclick (http://localhost:8080/app-legacy.js?v=1.1.0:1994:17)
+[2025-12-27T02:16:46.761Z] [ERROR] [コード生成] 関数 1_2 の実行に失敗しました
