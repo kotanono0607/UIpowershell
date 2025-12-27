@@ -2180,8 +2180,16 @@ Add-PodeRoute -Method Post -Path "/api/node/execute/:functionName" -ScriptBlock 
             }
 
             # 配列を文字列に変換（$ps.Invoke() は Collection<PSObject> を返すため）
-            if ($code -is [System.Collections.ICollection] -and $code.Count -gt 0) {
-                $code = ($code | Out-String).Trim()
+            if ($code -is [System.Collections.ICollection]) {
+                if ($code.Count -eq 0) {
+                    # 空のコレクション = 関数が$nullを返した
+                    $code = $null
+                } elseif ($code.Count -eq 1 -and $null -eq $code[0]) {
+                    # 1要素でnull = 関数が$nullを返した
+                    $code = $null
+                } else {
+                    $code = ($code | Out-String).Trim()
+                }
             } elseif ($null -ne $code -and $code -isnot [string]) {
                 $code = $code.ToString()
             }
