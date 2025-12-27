@@ -425,3 +425,12 @@ null 値の式ではメソッドを呼び出せません。
 [2025-12-27 11:25:23.428] [STEP] 7. Function executed, processing result
 [2025-12-27 11:25:23.436] [STEP] 8. Sending response
 [2025-12-27 11:25:23.439] [STEP] 9. Response sent successfully
+[2025-12-27 11:45:16.589] [STEP] 1. Request received: /api/node/execute/1_2
+[2025-12-27 11:45:16.590] [STEP] 2. Script path: C:\Users\hello\Documents\WindowsPowerShell\chord\RPA-UI2\UIpowershell\00_code\1-2.ps1
+[2025-12-27 11:45:16.720] [STEP] 3. Executing script to define function
+[2025-12-27 11:45:16.723] [STEP] 4. Function defined successfully
+[2025-12-27 11:45:16.725] [STEP] 5. Creating STA runspace
+[2025-12-27 11:45:16.910] [STEP] 6. Executing function: 1_2
+[2025-12-27 11:45:19.831] [STEP] 7. Function executed, processing result
+[2025-12-27 11:45:19.895] [STEP] 8. Sending response
+[2025-12-27 11:45:19.898] [STEP] 9. Response sent successfully
