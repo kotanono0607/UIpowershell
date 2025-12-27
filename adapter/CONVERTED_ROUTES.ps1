@@ -579,7 +579,7 @@ Add-PodeRoute -Method Post -Path "/api/variables" -ScriptBlock {
 # ------------------------------
 Add-PodeRoute -Method Put -Path "/api/variables/:name" -ScriptBlock {
     # v2関数の初期化（未読み込みの場合のみ）
-    if (-not (Get-Command Update-Variable_v2 -ErrorAction SilentlyContinue)) {
+    if (-not (Get-Command Add-Variable_v2 -ErrorAction SilentlyContinue)) {
         $RootDir = Get-PodeState -Name 'RootDir'
         $adapterDir = Get-PodeState -Name 'AdapterDir'
         . (Join-Path $RootDir "12_コードメイン_コード本文_v2.ps1")
@@ -597,7 +597,8 @@ Add-PodeRoute -Method Put -Path "/api/variables/:name" -ScriptBlock {
     try {
         $varName = $WebEvent.Parameters['name']
         $body = $WebEvent.Data
-        $result = Update-Variable_v2 -Name $varName -Value $body.value
+        # Add-Variable_v2 は追加と更新を両方処理する
+        $result = Add-Variable_v2 -Name $varName -Value $body.value -Type ($body.type ?? "単一値")
         Write-PodeJsonResponse -Value $result
     } catch {
         Set-PodeResponseStatus -Code 500

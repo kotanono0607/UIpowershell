@@ -237,6 +237,15 @@ function Add-Variable_v2 {
             }
         }
 
+        # variables.json に保存
+        $exportResult = Export-VariablesToJson_v2
+        if (-not $exportResult.success) {
+            return @{
+                success = $false
+                error = "変数の保存に失敗しました: $($exportResult.error)"
+            }
+        }
+
         return @{
             success = $true
             message = "変数 '$Name' を追加/更新しました"
@@ -278,6 +287,15 @@ function Remove-Variable_v2 {
         }
 
         $global:variables.Remove($Name)
+
+        # variables.json に保存
+        $exportResult = Export-VariablesToJson_v2
+        if (-not $exportResult.success) {
+            return @{
+                success = $false
+                error = "変数の保存に失敗しました: $($exportResult.error)"
+            }
+        }
 
         return @{
             success = $true
